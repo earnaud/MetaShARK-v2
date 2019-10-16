@@ -1,7 +1,7 @@
 ### documentation.R
 
 ### UI ###
-docUI <- function(id, IM){
+docUI <- function(id){
   ns <- NS(id)
   
   # var initialization
@@ -11,6 +11,11 @@ docUI <- function(id, IM){
   
   # UI output
   tagList(
+    tags$head(
+      tags$link(rel = "stylesheet",
+                type = "text/css",
+                href = "www/styles.css")
+    ),
     fluidRow(
       box(width = 12,
           title = "Check original documentation",
@@ -31,20 +36,20 @@ docUI <- function(id, IM){
     fluidRow(
       # search sidebar
       column(5,
-             box(shinyTree(outputId = ns(IM[2]), # render tree
+             box(shinyTree(outputId = ns("tree"), # render tree
                            search = TRUE,
                            theme = "proton"),
                  width = 12
              )
-             , style = sidebarStyle
+             , id = "docSidePanel"
       ),
       # display main panel
       column(7,
-             div(box(uiOutput( ns(IM[4]) ), # XPath
-                     uiOutput( ns(IM[3]) ), # Documentation
+             div(box(uiOutput( ns("docPath") ), # XPath
+                     uiOutput( ns("docSelect") ), # Documentation
                      width = 12
                  )
-                 , style = mainpanelStyle
+                 , id = "docMainPanel"
              )
       )
     )
@@ -52,8 +57,17 @@ docUI <- function(id, IM){
 }
 
 ### SERVER ###
-documentation <- function(input, output, session, IM, tree = docGuideline, ns.index = nsIndex){
+documentation <- function(input, output, session){
+  ns <- session$ns
   
+  require(shinyTree)
+  
+  # prepare variables
+  systemGuideline <- readRDS("resources/systemGuideline.RData")
+  tree <- readRDS("resources/docGuideline.RData")
+  ns.index <- readRDS("resources/nsIndex.RData")
+  
+  # external links
   observeEvent(input$`visit-module`, {
     url <- paste0("https://nceas.github.io/eml/schema/",
                   input$`select-module`,
@@ -63,11 +77,11 @@ documentation <- function(input, output, session, IM, tree = docGuideline, ns.in
   })
   
   # render tree
-  output[[IM[2]]] <- renderTree(tree)
+  output$tree <- renderTree(tree)
   
   # output selected node
-  output[[IM[3]]] <- renderText({
-    jstree <- input[[IM[2]]]
+  output$docSelect <- renderText({
+    jstree <- input$tree
     if (is.null(jstree)){
       "None"
     } else{
@@ -80,7 +94,7 @@ documentation <- function(input, output, session, IM, tree = docGuideline, ns.in
                          unlist(node),
                          sep="/")
       )
-      output[[IM[4]]] <- renderText(as.character(h3(docPath)))
+      output$docPath <- renderText(as.character(h3(docPath)))
       
       # fetch the systemGuideLine path in the userGuideLine list
       systemPath <- followPath(tree, docPath)

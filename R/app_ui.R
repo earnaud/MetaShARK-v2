@@ -1,4 +1,5 @@
 #' @import shiny shinyjs shinydashboard RefManageR
+#' @import shinyTree
 .app_ui <- function() {
   
   # prepare variable
@@ -40,8 +41,7 @@
                   # fillUI(IM.fill[1], IM = IM.fill)),
                   fluidPage(2)),
           tabItem(tabName = "documentation",
-                  # docUI(IM.doc[1], IM = IM.doc)),
-                  fluidPage(3)),
+                  docUI("documentation")),
           tabItem(tabName = "about",
                   aboutUI("about"))
         )

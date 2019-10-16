@@ -11,6 +11,7 @@
   # welcome - no server
   # fill
   # doc
+  callModule(documentation, "documentation")
   # about
   callModule(about, "about")
   

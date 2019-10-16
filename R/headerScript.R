@@ -8,8 +8,11 @@
 }
 
 #' @import EML
+#' 
+#' Provide global variables for server part
+#' 
+# .globalScript ----
 .globalScript <- function(){
-  ### Global variables ----
   HOME = fs::path_home()
   DP.PATH <- paste0(HOME,"/dataPackagesOutput/emlAssemblyLine/")
   dir.create(DP.PATH, recursive = TRUE, showWarnings = FALSE)
@@ -41,7 +44,12 @@
 }
 
 .sourceModules <- function(){
+  # welcome module
   source("R/modules/welcome/welcomeUI.R")
+  # documentation module
+  source("R/modules/documentation/documentation.R")
+  source("R/modules/documentation/documentation_functions.R")
+  # about module
   source("R/modules/about/about.R")
   source("R/modules/about/aboutUI.R")
 }
