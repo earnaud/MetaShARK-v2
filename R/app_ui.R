@@ -1,7 +1,5 @@
-#' @import shiny shinyjs shinydashboard
+#' @import shiny shinyjs shinydashboard RefManageR
 .app_ui <- function() {
-  global <- .globalScript()
-  print(global$a)
   
   # prepare variable
   menuWidth = "250px"
@@ -37,8 +35,7 @@
       dashboardBody(
         tabItems(
           tabItem(tabName = "welcome",
-                  # welcomeUI(IM.welcome[1], IM = IM.welcome)),
-                  fluidPage(1)),
+                  welcomeUI("welcome")),
           tabItem(tabName = "fill",
                   # fillUI(IM.fill[1], IM = IM.fill)),
                   fluidPage(2)),
@@ -46,8 +43,7 @@
                   # docUI(IM.doc[1], IM = IM.doc)),
                   fluidPage(3)),
           tabItem(tabName = "about",
-                  # aboutUI(IM.about[1], IM = IM.about))
-                  fluidPage(4))
+                  aboutUI("about"))
         )
       ) # end body
       

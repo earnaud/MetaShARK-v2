@@ -3,15 +3,20 @@
   # minor functions
   rm(list = ls())
   options(shiny.reactlog=TRUE)
+  
+  .sourceModules()
 }
 
+#' @import EML
 .globalScript <- function(){
   ### Global variables ----
-  DP.PATH <- paste0(getwd(),"/dataPackagesOutput/emlAssemblyLine/")
+  HOME = fs::path_home()
+  DP.PATH <- paste0(HOME,"/dataPackagesOutput/emlAssemblyLine/")
+  dir.create(DP.PATH, recursive = TRUE, showWarnings = FALSE)
+  
   THRESHOLD = list(
     dp_data_files = 500000
   )
-  HOME = fs::path_home()
   
   # Date time format strings
   DATE.FORMAT <- combn(rep(c('YYYY','MM','DD'),3),3)
@@ -24,6 +29,19 @@
   DATE.FORMAT <- DATE.FORMAT[order(DATE.FORMAT, decreasing = TRUE)]
   UNIT.LIST <- c("custom", get_unitList()$units$name)
   
-  ## Dir creation ----
-  dir.create(DP.PATH, recursive = TRUE, showWarnings = FALSE)
+  globals <- list(
+    DEFAULT.PATH = list(DP.PATH),
+    FORMAT = list(DATE = DATE.FORMAT,
+                  HOUR = HOUR.FORMAT,
+                  UNIT = UNIT.LIST)
+  )
+  
+  # output
+  return(globals)
+}
+
+.sourceModules <- function(){
+  source("R/modules/welcome/welcomeUI.R")
+  source("R/modules/about/about.R")
+  source("R/modules/about/aboutUI.R")
 }
