@@ -1,0 +1,27 @@
+Package: MetaShARK
+Title: metashark
+Version: 0.0.0.9000
+Authors@R: person('Elie', 'ARNAUD', email = 'earnaud@outlook.com', role = c('cre', 'aut'))
+Description: MetaShARK is a Shiny application allowing its
+                    user to fill metadata for a given ecological
+                    dataset of his owns. The data description relies
+                    on Ecological Metadata Language (EML).
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    shiny,
+    golem,
+    processx,
+    attempt,
+    DT,
+    glue,
+    htmltools
+RoxygenNote: 6.1.1
+URL: https://github.com/earnaud/MetaShARK.git
+BugReports: https://github.com/earnaud/MetaShARK.git/issues
+Suggests: 
+    testthat,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
