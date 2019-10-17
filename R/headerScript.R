@@ -33,10 +33,14 @@
   UNIT.LIST <- c("custom", get_unitList()$units$name)
   
   globals <- list(
-    DEFAULT.PATH = list(DP.PATH),
+    DEFAULT.PATH = DP.PATH,
+    HOME = HOME,
     FORMAT = list(DATE = DATE.FORMAT,
                   HOUR = HOUR.FORMAT,
-                  UNIT = UNIT.LIST)
+                  UNIT = UNIT.LIST),
+    EMLAL = list(PREVIOUS = "",
+                 NAVIGATE = 1,
+                 MAX = 1)
   )
   
   # output
@@ -46,6 +50,9 @@
 .sourceModules <- function(){
   # welcome module
   source("R/modules/welcome/welcomeUI.R")
+  #fill
+  source("R/modules/fill/fill.R")
+  source("R/modules/fill/fill_functions.R")
   # documentation module
   source("R/modules/documentation/documentation.R")
   source("R/modules/documentation/documentation_functions.R")

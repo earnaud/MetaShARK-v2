@@ -1,70 +1,48 @@
 # EMLAL.R
 
-## UIs for input ----
+## Navigation UI ----
 
 # quit dp edition
-quitButton <- function(id, style){
-  ns <- NS(id)
-  
+quitButton <- function(ns){
   actionButton(ns("quit"), "Quit",
-               icon = icon("sign-out-alt"), style = style)
+               icon = icon("sign-out-alt"))
 }
 
 # save dp snapshot
-saveButton <- function(id, style){
-  ns <- NS(id)
-  
+saveButton <- function(ns){
   actionButton(ns("save"), "Save",
-               icon = icon("save",class="regular"), style = style)
+               icon = icon("save",class="regular"))
 }
 
 # next Tab
-nextTabButton <- function(id, style){
-  ns <- NS(id)
-  
+nextTabButton <- function(ns){
   actionButton(ns("nextTab"),"Next",
-               icon = icon("arrow-right"),
-               style = style)
+               icon = icon("arrow-right"))
 }
 
 # previous Tab
-prevTabButton <- function(id, style){
-  ns <- NS(id)
-  
+prevTabButton <- function(ns){
   actionButton(ns("prevTab"),"Previous",
-               icon = icon("arrow-left"),
-               style = style)
+               icon = icon("arrow-left"))
 }
 
-# custom units inputs of EAL templates
-customUnitsUI <- function(input_id, customUnitsTable){
-  ns <- NS(input_id)
-  tagList(
-    column(1),
-    column(11,
-           lapply(c("id","unitType","parentSI","multiplierToSI","description"),
-                  function(field){
-                    id <- ns(paste0("custom_",field))
-                    cat("Enter:",id,"\n")
-                    switch(field,
-                           id = textInput(id,
-                                          span("Type an ID for your custom unit", style = redButtonStyle),
-                                          placeholder = "e.g.  gramsPerSquaredMeterPerCentimeter "),
-                           unitType = textInput(id,
-                                                span("Type the scientific dimension using this unit in your dataset", style = redButtonStyle),
-                                                placeholder = "e.g. mass, areal mass density per length"),
-                           parentSI = selectInput(id,
-                                                  span("Select the parent SI from which your unit is derivated",style = redButtonStyle),
-                                                  unique(get_unitList()$units$parentSI)),
-                           multiplierToSI = numericInput(id,
-                                                         span("Type the appropriate numeric to multiply a value by to perform conversion to SI",style = redButtonStyle),
-                                                         value = 1),
-                           description = textAreaInput(id,
-                                                       "Describe your custom unit")
-                    )
-                  }), # end of lapply
-    )
-  ) # end of taglist
+# navigation sidebar
+navSidebar <- function(id, class = "navSidebar", 
+                       .prev = TRUE, .next = TRUE, ...){
+  arguments <- list(...)
+  column(2,
+         h4("Navigation"),
+         quitButton(id),
+         saveButton(id),
+         ifelse(.next,
+                nextTabButton(id),
+                HTML(NULL)),
+         ifelse(.prev,
+                prevTabButton(id),
+                HTML(NULL)),
+         arguments,
+         class = class
+  )
 }
 
 ## Associated server functions ----
@@ -113,14 +91,6 @@ onSave <- function(input, output, session,
   })
 }
 
-# set the path and save the savevar
-saveReactive <- function(toSave, path, filename){
-  location <- paste0(path,"/",filename,".rds")
-  message("Saving current metadata as:",location,"\n",sep=" ")
-  if(file.exists(location)) file.remove(location)
-  saveRDS(toSave, location)
-}
-
 # set the globalRV navigation ..
 # .. one step after
 nextTab <- function(input,output,session,
@@ -139,48 +109,6 @@ prevTab <- function(input,output,session,
     globalRV$navigate <- globalRV$navigate-1
     globalRV$previous <- previous
   })
-}
-
-# Initialize savevar variable ----
-# EMLAL module specific function
-# @param sublist: either NULL, "emlal", "metafin" to precise which sublist 
-#                 to initialize
-initReactive <- function(sublist = NULL, savevar = NULL){
-  if(!is.null(sublist) && is.null(savevar))
-    stop("Attempt to initialize savevar's sublist without savevar.")
-  if(!(is.null(sublist) || sublist %in% c("emlal","metafin")))
-    stop("Attempt to initialize savevar with inconsistent arguments")
-  
-  # re-creates a whole savevar
-  if(is.null(sublist))
-    savevar <- reactiveValues()
-  
-  # emlal reactivelist management
-  if(is.null(sublist) || sublist == "emlal")
-    savevar$emlal <- reactiveValues(
-      step = 0,
-      selectDP = reactiveValues(
-        dp_name = NULL,
-        dp_path = NULL
-      ),
-      createDP = reactiveValues(
-        dp_data_files = NULL
-      ),
-      templateDP = reactiveValues()
-    )
-  
-  # metafin reactivelist management
-  if(is.null(sublist) || sublist == "metafin")
-    savevar$metafin <- reactiveValues()
-  
-  # differential returns
-  return(if(is.null(sublist))
-    savevar
-    else
-      switch(sublist,
-             emlal = savevar$emlal,
-             metafin = savevar$metafin)
-  )
 }
 
 # Files management ----
@@ -226,9 +154,6 @@ saveInput <- function(RV){
   sapply(colnames(RV$attributesTable), function(nn){
     RV$attributes[[nn]] <- NULL
   })
-  # sapply(colnames(rv$customUnitsTable), function(nn){
-  #   rv$customUnits[[nn]] <- NULL
-  # })
   
   return(RV)
 }
@@ -267,19 +192,6 @@ customUnits <- function(input, output, session,
   return(curv)
 }
 
-
-# Needed vars
-# - columns from table
-#   * site
-#   * lat
-#   * long
-#   * taxa
-# - taxa authority (taxonomyCleanr::view_taxa_authorities())
-# - taxa name type in "scientific","common","both"
-# ! All taxa authorities do not support all name type
-
-
-
 # Misc ----
 
 # R to JS boolean
@@ -297,3 +209,35 @@ printReactiveValues <- function(values){
            values[[nn]]
   )
 }
+
+
+# # custom units inputs of EAL templates
+# customUnitsUI <- function(input_id, customUnitsTable){
+#   ns <- NS(input_id)
+#   tagList(
+#     column(1),
+#     column(11,
+#            lapply(c("id","unitType","parentSI","multiplierToSI","description"),
+#                   function(field){
+#                     id <- ns(paste0("custom_",field))
+#                     cat("Enter:",id,"\n")
+#                     switch(field,
+#                            id = textInput(id,
+#                                           span("Type an ID for your custom unit", style = redButtonStyle),
+#                                           placeholder = "e.g.  gramsPerSquaredMeterPerCentimeter "),
+#                            unitType = textInput(id,
+#                                                 span("Type the scientific dimension using this unit in your dataset", style = redButtonStyle),
+#                                                 placeholder = "e.g. mass, areal mass density per length"),
+#                            parentSI = selectInput(id,
+#                                                   span("Select the parent SI from which your unit is derivated",style = redButtonStyle),
+#                                                   unique(get_unitList()$units$parentSI)),
+#                            multiplierToSI = numericInput(id,
+#                                                          span("Type the appropriate numeric to multiply a value by to perform conversion to SI",style = redButtonStyle),
+#                                                          value = 1),
+#                            description = textAreaInput(id,
+#                                                        "Describe your custom unit")
+#                     )
+#                   }), # end of lapply
+#     )
+#   ) # end of taglist
+# }

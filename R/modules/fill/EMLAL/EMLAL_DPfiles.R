@@ -1,44 +1,49 @@
-# EMLAL_create.R
+# EMLAL_DPfiles.R
 
 ## 2. CREATE DATA PACKAGE
-createDPUI <- function(id, title, IM){
+DPfilesUI <- function(id, title, IM){
   ns <- NS(id)
   
   return(
-      fluidPage(
-        column(10,
-               h4("Data files"),
-               HTML("When selecting your files, you can't select
+    fluidPage(
+      column(10,
+             h4("Data files"),
+             HTML("When selecting your files, you can't select
                     folders. You can delete file(s) from your 
                     selection by ticking their box and clicking 
                     the 'Remove' button.<br>"),
-               div(
-                 shinyFilesButton(ns("add_data_files"),
-                                  "Load files",
-                                  "Select data file(s) from your dataset",
-                                  multiple = TRUE,
-                                  icon = icon("plus-circle")),
-                 style = "display: inline-block; vertical-align: top;"
-               ),
-               actionButton(ns("remove_data_files"),"Remove",
-                            icon = icon("minus-circle"), 
-                            style = redButtonStyle),
-               uiOutput(ns("data_files"))
-        ), # end of column 1
-        column(2,
-               h4("Navigation"),
-               quitButton(id, style = rightButtonStyle),
-               saveButton(id, style = rightButtonStyle),
-               nextTabButton(id, style = rightButtonStyle),
-               textOutput(ns("warning_data_size")),
-               textOutput(ns("overwrite")),
-               style = "text-align: center; padding: 0;"
-        ) # end of column 2
-      ) # end fluidPage
-    ) # end return
+             div(
+               shinyFilesButton(ns("add_data_files"),
+                                "Load files",
+                                "Select data file(s) from your dataset",
+                                multiple = TRUE,
+                                icon = icon("plus-circle")),
+               style = "display: inline-block; vertical-align: top;"
+             ),
+             actionButton(ns("remove_data_files"),"Remove",
+                          icon = icon("minus-circle"), 
+                          style = redButtonStyle),
+             uiOutput(ns("data_files"))
+      ), # end of column 1
+      navSidebar(ns, .prev = FALSE,
+                 ... = tagList(
+                   textOutput(ns("warning_data_size")),
+                   textOutput(ns("overwrite"))
+                 ))
+      # column(2,
+      #        h4("Navigation"),
+      #        quitButton(id, style = rightButtonStyle),
+      #        saveButton(id, style = rightButtonStyle),
+      #        nextTabButton(id, style = rightButtonStyle),
+      #        textOutput(ns("warning_data_size")),
+      #        textOutput(ns("overwrite")),
+      #        style = "text-align: center; padding: 0;"
+      # ) # end of column 2
+    ) # end fluidPage
+  ) # end return
 }
 
-createDP <- function(input, output, session, IM, savevar, globalRV){
+DPfiles <- function(input, output, session, IM, savevar, globalRV){
   # ns <- session$ns
   
   # Variable initialization ----
@@ -54,9 +59,9 @@ createDP <- function(input, output, session, IM, savevar, globalRV){
   observeEvent(globalRV$previous, {
     # dev: might evolve in `switch` if needed furtherly
     rv$data_files <- if(globalRV$previous == "create") # from create button in selectDP
-                          data.frame()
-                        else
-                          savevar$emlal$createDP$dp_data_files
+      data.frame()
+    else
+      savevar$emlal$DPfiles$dp_data_files
     
     updateFileListTrigger$trigger()
   })
@@ -73,7 +78,7 @@ createDP <- function(input, output, session, IM, savevar, globalRV){
              savevar$emlal$selectDP$dp_path, 
              savevar$emlal$selectDP$dp_name)
   callModule(nextTab, IM.EMLAL[4],
-             globalRV, "create")
+             globalRV, "DPfiles")
   
   # Data file upload ----
   # Add data files
@@ -105,7 +110,7 @@ createDP <- function(input, output, session, IM, savevar, globalRV){
     }
     
     # variable modifications
-    savevar$emlal$createDP$dp_data_files <- rv$data_files
+    savevar$emlal$DPfiles$dp_data_files <- rv$data_files
   })
   
   # Remove data files
@@ -124,7 +129,7 @@ createDP <- function(input, output, session, IM, savevar, globalRV){
   output$data_files <- renderUI({
     
     updateFileListTrigger$depend()
-
+    
     # actions
     if(!identical(rv$data_files, data.frame()) &&
        !is.null(rv$data_files)){
@@ -153,7 +158,7 @@ createDP <- function(input, output, session, IM, savevar, globalRV){
   output$warning_overwrite <- renderText({
     if(identical(dir(paste0(path,"/",dp,"/data_objects/")),
                  character(0))
-       )
+    )
       paste("WARNING:", "Selected files will overwrite
             already loaded ones.")
     else
@@ -175,22 +180,22 @@ createDP <- function(input, output, session, IM, savevar, globalRV){
            to = paste0(path,"/",dp,"/data_objects/"),
            overwrite = TRUE)
     # -- modify paths in save variable
-    tmp <- savevar$emlal$createDP$dp_data_files
+    tmp <- savevar$emlal$DPfiles$dp_data_files
     tmp$datapath <- sapply(rv$data_files$name,
-             function(dpname){
-               force(dpname)
-               paste0(path,"/",dp,"/data_objects/",dpname)
-             })
+                           function(dpname){
+                             force(dpname)
+                             paste0(path,"/",dp,"/data_objects/",dpname)
+                           })
     tmp$metadatapath <- sapply(rv$data_files$name,
-             function(dpname){
-               force(dpname)
-               paste0(path,"/",dp,"/metadata_templates/",
-                      sub("(.*)\\.[a-zA-Z0-9]*$",
-                          "attributes_\\1.txt",
-                          dpname)
-                      )
-             })
-    savevar$emlal$createDP$dp_data_files <- tmp
+                               function(dpname){
+                                 force(dpname)
+                                 paste0(path,"/",dp,"/metadata_templates/",
+                                        sub("(.*)\\.[a-zA-Z0-9]*$",
+                                            "attributes_\\1.txt",
+                                            dpname)
+                                 )
+                               })
+    savevar$emlal$DPfiles$dp_data_files <- tmp
     
     # EMLAL templating function
     template_table_attributes(

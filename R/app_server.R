@@ -1,4 +1,5 @@
 #' @import shiny
+#' @import EML EMLassemblyline
 .app_server <- function(input, output,session) {
   globals <- .globalScript()
   
@@ -6,20 +7,28 @@
   observeEvent(input$check,{
     browser()
   })
+  observeEvent(input$close,{
+    stopApp()
+  })
   
   ## modules called ----
-  # welcome - no server
-  # fill
-  # doc
-  callModule(documentation, "documentation")
-  # about
-  callModule(about, "about")
+  out <- observeEvent(input$side_menu,{
+    switch(input$side_menu,
+           # welcome - no server
+           # fill
+           fill = callModule(fill, "fill", globals),
+           # # doc
+           documentation = callModule(documentation, "documentation"),
+           # # about
+           about = callModule(about, "about"),
+           NULL
+    )
+  })
   
   ## esthetics ----
-  
   output$logo <- renderImage({ list(src = "media/MetaShARK_icon2.png",
                                     contentType = "image/png",
-                                    width = "240px",
-                                    height = "120px") },
+                                    width = "120px",
+                                    height = "60px") },
                              deleteFile = FALSE)
 }

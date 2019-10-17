@@ -3,14 +3,8 @@
 # Derived Id Modules from IM.EMLAL by pasting the step number (https://ediorg.github.io/EMLassemblyline/articles/overview.html)
 
 ### UI ###
-EMLALUI <- function(id, IM){
+EMLALUI <- function(id){
   ns <- NS(id)
-  
-  steps = list(`Organize data package` = 1,
-               `Create metadata templates` = 2,
-               `Edit metadata templates` = 3,
-               `Make EML` = 4)
-  step = steps[[1]]
   
   fluidPage(
     style="padding-top:2.5%;",
@@ -28,11 +22,7 @@ EMLALUI <- function(id, IM){
           imageOutput("edi-logo", # from main.R
                       width = "100px", height = "100px"
           ),
-          style = "display: block; 
-                   margin-left: auto;
-                   margin-right: auto;
-                   width: 100px;"
-        )
+          class = "logo")
     ), # end authorship
     box(width = 8,
         title = "How to use",
@@ -58,36 +48,51 @@ EMLALUI <- function(id, IM){
       uiOutput(ns("currentUI"))
     ) # end variable UI
   ) # end fluidPage
-
+  
 }
 
 ### SERVER ###
-EMLAL <- function(input, output, session, IM, globalRV){
+EMLAL <- function(input, output, session,
+                  savevar, globals){
   ns <- session$ns
   
-  # variable initialization
-  steps = paste0(c("select","create","template","customUnits",
+  # variable initialization ----
+  # submodules sourcing
+  source("R/modules/fill/EMLAL/EMLAL_selectDP.R")
+  source("R/modules/fill/EMLAL/EMLAL_DPfiles.R")
+  source("R/modules/fill/EMLAL/EMLAL_functions.R")
+  
+  # names of EMLAL steps
+  steps = paste0(c("select","files","template","customUnits",
                    "catvars", "edit","make","publish"), "-tab")
   
-  # Output
+  # Output ----
+  # UI
   output$currentUI <- renderUI({
-    switch(globalRV$navigate,
-           `1` = selectDPUI(id = IM.EMLAL[2+globalRV$navigate],
-                            IM = IM.EMLAL,
-                            title = steps[globalRV$navigate]),
-           `2` = createDPUI(id = IM.EMLAL[2+globalRV$navigate],
-                            IM = IM.EMLAL,
-                            title = steps[globalRV$navigate]),
-           `3` = templateDPUI(id = IM.EMLAL[2+globalRV$navigate],
-                              IM = IM.EMLAL,
-                              title = steps[globalRV$navigate]),
-           `4` = customUnitsUI(id = IM.EMLAL[2+globalRV$navigate],
-                               IM = IM.EMLAL,
-                               title = steps[globalRV$navigate]),
-           `5` = catvarsUI(id = IM.EMLAL[2+globalRV$navigate],
-                           IM = IM.EMLAL,
-                           title = steps[globalRV$navigate])
-                  )
+    switch(globals$EMLAL$NAVIGATE,
+            `1` = selectDPUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
+                             title = steps[globals$EMLAL$NAVIGATE]),
+            `2` = DPfilesUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
+                             title = steps[globals$EMLAL$NAVIGATE])
+            # `3` = templateDPUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
+            #                    title = steps[globals$EMLAL$NAVIGATE]),
+            # `4` = customUnitsUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
+            #                     title = steps[globals$EMLAL$NAVIGATE]),
+            # `5` = catvarsUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
+            #                 title = steps[globals$EMLAL$NAVIGATE])
+    )
   })
   
+  # Server
+  observeEvent(globals$EMLAL$NAVIGATE, {
+    savevar <- switch (globals$EMLAL$NAVIGATE,
+                       `1` = callModule(selectDP, paste0("EMLAL-", globals$EMLAL$NAVIGATE),
+                                        savevar, globals),
+                       `2` = callModule(DPfiles, paste0("EMLAL-", globals$EMLAL$NAVIGATE),
+                                        savevar, globals)
+    )
+  })
+  
+  # Save variable
+  return(savevar)
 }

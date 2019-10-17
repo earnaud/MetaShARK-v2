@@ -6,7 +6,7 @@
 #' metadata. It uses the EML standard (cf. NCEAS work) to allow a full and 
 #' precise description of input datasets.
 #' 
-#' @example 
+#' @examples
 #' runMetashark()
 #' 
 #' @author Elie Arnaud <elie.arnaud@mnhn.fr>

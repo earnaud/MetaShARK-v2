@@ -1,8 +1,9 @@
 # EMLAL_functions.R
 
 ### UI ###
-selectDPUI <- function(id, title, width=12, IM){
+selectDPUI <- function(id, title, width=12){
   ns <- NS(id)
+  print(ns(""))
   
   # UI output
   return(
@@ -12,16 +13,15 @@ selectDPUI <- function(id, title, width=12, IM){
       with_tippy(
         fluidRow(
           column(4,
-                 # actionButton(ns("dp_location"), "Choose directory")
                  shinyDirButton(ns("dp_location"),"Choose directory",
                                 "DP save location", icon = icon("folder-open")
-                                )
+                 )
           ),
           column(8,
                  textOutput(ns("dp_location")),
                  style = "text-align: right;"
           ),
-          style=paste(inputStyle, "text-overflow: ellipsis;")
+          class = "inputBox"
         ),
         "This is the location where your data packages will be
         saved. A folder will be created, respectively named 
@@ -35,13 +35,13 @@ selectDPUI <- function(id, title, width=12, IM){
                uiOutput(ns("dp_list")),
                actionButton(ns("dp_load"), "Load"),
                actionButton(ns("dp_delete"),"Delete",
-                            style = redButtonStyle)
+                            class = "redButton")
         ),
         # Create DP
         column(floor(width/2),
                h4("Create new data package",
                   style="text-align:center"),
-
+               
                # Data package title
                textInput(ns("dp_name"), "Data package name",
                          placeholder = paste0(Sys.Date(),"_project")),
@@ -60,8 +60,8 @@ selectDPUI <- function(id, title, width=12, IM){
                ),
                # DP creation
                actionButton(ns("dp_create"),"Create")
-       ) # end column2
-
+        ) # end column2
+        
       ) # end fluidRow
       
     ) # end fluidPage
@@ -70,11 +70,13 @@ selectDPUI <- function(id, title, width=12, IM){
   
 }
 
-selectDP <- function(input, output, session, IM, DP.path, savevar, globalRV){
-  
+selectDP <- function(input, output, session,
+                     savevar, globals){
+
   # variable initialization ----
   ns <- session$ns
-  parent_ns = NS(IM.EMLAL[1])
+  print(ns(""))
+  DP.path <- globals$DEFAULT.PATH
   
   # local values - to save will communicate with other modules
   rv <- reactiveValues(
@@ -87,10 +89,9 @@ selectDP <- function(input, output, session, IM, DP.path, savevar, globalRV){
     dp_license = NULL,
     warning_dp_name = NULL
   )
-  volumes <- c(Home = HOME, base = getVolumes()())
+  volumes <- c(Home = globals$HOME, base = getVolumes()())
   
   # DP location ----
-  
   # chose DP location
   shinyDirChoose(input, ns("dp_location"),
                  roots = volumes,
@@ -128,17 +129,17 @@ selectDP <- function(input, output, session, IM, DP.path, savevar, globalRV){
   # Render list of DP at selected location
   output$dp_list <- renderUI({
     if(!is.null(rv$dp_list))
-       radioButtons(ns("dp_list"),
-                    NULL,
-                    choiceNames = c("None selected",rv$dp_list),
-                    choiceValues = c("", rv$dp_list)
-                    )
+      radioButtons(ns("dp_list"),
+                   NULL,
+                   choiceNames = c("None selected",rv$dp_list),
+                   choiceValues = c("", rv$dp_list)
+      )
     else{
       disable("dp_load")
       disable("dp_delete")
       "No EML data package was found at this location."
     }
-
+    
   })
   
   # toggle Load and Delete buttons
@@ -184,18 +185,18 @@ selectDP <- function(input, output, session, IM, DP.path, savevar, globalRV){
   
   output$dp_list <- renderUI({
     if(!is.null(rv$dp_list))
-       radioButtons(ns("dp_list"),
-                    NULL,
-                    choiceNames = c("None selected",rv$dp_list),
-                    choiceValues = c("", rv$dp_list)
-                    )
+      radioButtons(ns("dp_list"),
+                   NULL,
+                   choiceNames = c("None selected",rv$dp_list),
+                   choiceValues = c("", rv$dp_list)
+      )
     else{
       disable("dp_load")
       disable("dp_delete")
       "No EML data package was found at this location."
     }
   })
-
+  
   # warings for input name - toggle Create button
   output$warning_dp_name <- renderText({
     if(is.null(rv$warning_dp_name)){
@@ -234,8 +235,8 @@ selectDP <- function(input, output, session, IM, DP.path, savevar, globalRV){
     # actions
     rv$dp_list <- c(rv$dp_list,dp)
     
-    globalRV$navigate <- globalRV$navigate+1
-    globalRV$previous <- "create"
+    globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE+1
+    globals$EMLAL$PREVIOUS <- "create"
     
     dir.create(path)
     saveReactive(savevar, path, dp) # initial "commit"
@@ -263,10 +264,10 @@ selectDP <- function(input, output, session, IM, DP.path, savevar, globalRV){
     # actions
     savevar$emlal <- initReactive("emlal", savevar)
     savevar$emlal <- readRDS(paste0(path,"/",dp,".rds"))$emlal
-    globalRV$navigate <- ifelse(savevar$emlal$step > 1, # resume where max reached
-                                savevar$emlal$step,
-                                globalRV$navigate+1)
-    globalRV$previous <- "load"
+    globals$EMLAL$NAVIGATE <- ifelse(savevar$emlal$step > 1, # resume where max reached
+                                    savevar$emlal$step,
+                                    globals$EMLAL$NAVIGATE+1)
+    globals$EMLAL$PREVIOUS <- "load"
   })
   
   # Delete DP
@@ -285,7 +286,7 @@ selectDP <- function(input, output, session, IM, DP.path, savevar, globalRV){
           modalButton("No"),
           actionButton(
             ns("delete_confirm"),"Yes",
-            style = redButtonStyle
+            class = "redButton"
           )
         ) # end footer
       ) # end modalDialog

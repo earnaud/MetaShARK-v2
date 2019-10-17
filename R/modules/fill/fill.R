@@ -1,12 +1,14 @@
 # fill.R
 
 ### UI ###
-fillUI <- function(id, IM){
+fillUI <- function(id){
   ns <- NS(id)
+  # submodules sourcing
+  source("R/modules/fill/EMLAL/EMLAL.R")
   
   # h1("Under construction.")
   tabsetPanel(id = ns("tabs"),
-    tabPanel(IM.EMLAL[2], EMLALUI(IM.EMLAL[1], IM.EMLAL)),
+    tabPanel("EMLAL", EMLALUI(ns("EMLAL"))),
     tabPanel("MetaFIN", h1("Under Construction"))
   )
   
@@ -15,20 +17,25 @@ fillUI <- function(id, IM){
 
 
 ### SERVER ###
-fill <- function(input, output, session, IM, globalRV){
+fill <- function(input, output, session, globals){
   
   # variable initialization ----
+  
   # save variable
   savevar <- initReactive()
   
-  observeEvent(globalRV$navigate,{
+  # action
+  observeEvent(globals$EMLAL$NAVIGATE,{
     savevar$emlal$step <- max(
-      globalRV$navigate,
+      globals$EMLAL$NAVIGATE,
       savevar$emlal$step
     )
-    if(savevar$emlal$step > globalRV$navigateMAX)
-      savevar$emlal$step <- globalRV$navigateMAX
+    if(savevar$emlal$step > globals$EMLAL$MAX)
+      savevar$emlal$step <- globals$EMLAL$MAX
   })
   
-  return(savevar)
+  savevar <- callModule(EMLAL,"EMLAL",
+                        savevar, globals)
+  
+  return(savevar) # useful? yes for side browser() to be able to reach savevar
 }

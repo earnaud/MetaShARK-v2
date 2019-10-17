@@ -13,6 +13,10 @@ which is designed to help its user as much as possible for filling ecological
 metadata. It uses the EML standard (cf. NCEAS work) to allow a full and 
 precise description of input datasets.
 }
+\examples{
+runMetashark()
+
+}
 \author{
 Elie Arnaud <elie.arnaud@mnhn.fr>
 }
