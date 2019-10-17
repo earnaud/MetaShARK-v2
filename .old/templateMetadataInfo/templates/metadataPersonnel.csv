@@ -1,0 +1,11 @@
+ufName,xmlName,placeholder,required
+First Name,givenName,Kelman,TRUE
+Middle Initial,middleInitial,R,FALSE
+Last Name,surName,Wieder,TRUE
+Organization Name,organizationName,Villanova University,TRUE
+Email address,electronicMailAddress,kelman.wieder@villanova.edu,FALSE
+UserID,userId,0000-0001-5856-8473,FALSE
+Role,role,PI,FALSE
+Project Title,projectTitle,Nitrogen Addition Experiments in Boreal Ecosystems: Understanding the Fate of Atmospherically Deposited Nitrogen in order to Determine Nitrogen Critical Loads,FALSE
+Funding Agency,fundingAgency,Cumulative Environmental Management Association (CEMA),FALSE
+Funding Number,fundingNumber,2011-0003,FALSE

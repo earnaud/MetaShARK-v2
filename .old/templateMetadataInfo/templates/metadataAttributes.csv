@@ -1,0 +1,8 @@
+ufName	xmlName	placeholder	required
+Attribute Name	attributeName	YEAR	TRUE
+Description	attributeDefinition	Year of measurement: 2011-2015	TRUE
+Type of data	class	Date	FALSE
+Unit	unit	None	FALSE
+Date format	dateTimeFormatString	YYYY	FALSE
+Missing Value Code	missingValueCode	-99999	FALSE
+Missing Value Explanation	missingValueCodeExplanation	Missing value	FALSE
