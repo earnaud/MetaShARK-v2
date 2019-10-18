@@ -3,25 +3,29 @@
 ## Navigation UI ----
 
 # quit dp edition
-quitButton <- function(ns){
+quitButton <- function(id){
+  ns <- NS(id)
   actionButton(ns("quit"), "Quit",
                icon = icon("sign-out-alt"))
 }
 
 # save dp snapshot
-saveButton <- function(ns){
+saveButton <- function(id){
+  ns <- NS(id)
   actionButton(ns("save"), "Save",
                icon = icon("save",class="regular"))
 }
 
 # next Tab
-nextTabButton <- function(ns){
+nextTabButton <- function(id){
+  ns <- NS(id)
   actionButton(ns("nextTab"),"Next",
                icon = icon("arrow-right"))
 }
 
 # previous Tab
-prevTabButton <- function(ns){
+prevTabButton <- function(id){
+  ns <- NS(id)
   actionButton(ns("prevTab"),"Previous",
                icon = icon("arrow-left"))
 }
@@ -29,19 +33,23 @@ prevTabButton <- function(ns){
 # navigation sidebar
 navSidebar <- function(id, class = "navSidebar", 
                        .prev = TRUE, .next = TRUE, ...){
+  ns <- NS(id)
+
+  # variable initialization
+  nexBut <- ifelse(.next,
+                   nextTabButton(id),
+                   HTML(NULL))
+  preBut <-ifelse(.prev,
+                  prevTabButton(id),
+                  HTML(NULL))
   arguments <- list(...)
-  column(2,
-         h4("Navigation"),
-         quitButton(id),
-         saveButton(id),
-         ifelse(.next,
-                nextTabButton(id),
-                HTML(NULL)),
-         ifelse(.prev,
-                prevTabButton(id),
-                HTML(NULL)),
-         arguments,
-         class = class
+  div(h4("Navigation"),
+      quitButton(id),
+      saveButton(id),
+      nexBut,
+      preBut,
+      arguments,
+      class = class
   )
 }
 
@@ -49,36 +57,40 @@ navSidebar <- function(id, class = "navSidebar",
 
 # on quit button 
 onQuit <- function(input, output, session, 
-                   globalRV, toSave, path, filename){
-    
+                   globals, toSave, path, filename){
+  ns <- session$ns
+  
   # modal dialog for quitting data description
   quitModal <- modalDialog(
     title = "You are leaving data description",
     "Are you sure to leave? Some of your metadata have maybe not been saved.",
     footer = tagList(
       modalButton("Cancel"),
-      actionButton("save_quit_button","Save & Quit"),
-      actionButton("quit_button","Quit",icon("times-circle"),
-                   style = redButtonStyle)
+      actionButton(ns("save_quit_button"), "Save & Quit"),
+      actionButton(ns("quit_button"), "Quit",icon("times-circle"),
+                   class = "redButton")
     )
   )
   
   # show modal on 'quit' button clicked
   observeEvent(input$quit,{
+    req(input$quit)
     showModal(quitModal)
   })
   
   # calls saveRDS method and quits
   observeEvent(input$save_quit_button,{
+    req(input$quit)
     removeModal()
     saveReactive(toSave, path, filename)
-    globalRV$navigate <- 1
+    globals$EMLAL$NAVIGATE <- 1
   })
   
   # quits simply
   observeEvent(input$quit_button,{
+    req(input$quit)
     removeModal()
-    globalRV$navigate <- 1
+    globals$EMLAL$NAVIGATE <- 1
   })
 }
 
@@ -86,28 +98,29 @@ onQuit <- function(input, output, session,
 # toSave is a structured list of reactiveValues (aka savevar in various modules)
 onSave <- function(input, output, session, 
                    toSave, path, filename){
+  ns <- session$ns
+  
   observeEvent(input$save,{
     saveReactive(toSave, path, filename)
   })
 }
 
-# set the globalRV navigation ..
+# set the globals navigation ..
 # .. one step after
 nextTab <- function(input,output,session,
-                    globalRV, previous){
+                    globals, previous){
   observeEvent(input$nextTab,{
-    globalRV$navigate <- globalRV$navigate+1
-    globalRV$previous <- previous
-  }, priority = -1
-  )
+    globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE+1
+    globals$EMLAL$PREVIOUS <- previous
+  }, priority = -1)
   
 }
 # .. one step before
 prevTab <- function(input,output,session,
-                    globalRV, previous){
+                    globals, previous){
   observeEvent(input$prevTab,{
-    globalRV$navigate <- globalRV$navigate-1
-    globalRV$previous <- previous
+    globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE-1
+    globals$EMLAL$PREVIOUS <- previous
   })
 }
 
@@ -223,16 +236,16 @@ printReactiveValues <- function(values){
 #                     cat("Enter:",id,"\n")
 #                     switch(field,
 #                            id = textInput(id,
-#                                           span("Type an ID for your custom unit", style = redButtonStyle),
+#                                           span("Type an ID for your custom unit", class = "redButton"),
 #                                           placeholder = "e.g.  gramsPerSquaredMeterPerCentimeter "),
 #                            unitType = textInput(id,
-#                                                 span("Type the scientific dimension using this unit in your dataset", style = redButtonStyle),
+#                                                 span("Type the scientific dimension using this unit in your dataset", class = "redButton"),
 #                                                 placeholder = "e.g. mass, areal mass density per length"),
 #                            parentSI = selectInput(id,
-#                                                   span("Select the parent SI from which your unit is derivated",style = redButtonStyle),
+#                                                   span("Select the parent SI from which your unit is derivated",class = "redButton"),
 #                                                   unique(get_unitList()$units$parentSI)),
 #                            multiplierToSI = numericInput(id,
-#                                                          span("Type the appropriate numeric to multiply a value by to perform conversion to SI",style = redButtonStyle),
+#                                                          span("Type the appropriate numeric to multiply a value by to perform conversion to SI",class = "redButton"),
 #                                                          value = 1),
 #                            description = textAreaInput(id,
 #                                                        "Describe your custom unit")

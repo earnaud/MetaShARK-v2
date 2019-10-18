@@ -67,32 +67,33 @@ EMLAL <- function(input, output, session,
                    "catvars", "edit","make","publish"), "-tab")
   
   # Output ----
-  # UI
-  output$currentUI <- renderUI({
-    switch(globals$EMLAL$NAVIGATE,
-            `1` = selectDPUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
-                             title = steps[globals$EMLAL$NAVIGATE]),
-            `2` = DPfilesUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
-                             title = steps[globals$EMLAL$NAVIGATE])
-            # `3` = templateDPUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
-            #                    title = steps[globals$EMLAL$NAVIGATE]),
-            # `4` = customUnitsUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
-            #                     title = steps[globals$EMLAL$NAVIGATE]),
-            # `5` = catvarsUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
-            #                 title = steps[globals$EMLAL$NAVIGATE])
-    )
-  })
-  
-  # Server
   observeEvent(globals$EMLAL$NAVIGATE, {
-    savevar <- switch (globals$EMLAL$NAVIGATE,
-                       `1` = callModule(selectDP, paste0("EMLAL-", globals$EMLAL$NAVIGATE),
-                                        savevar, globals),
-                       `2` = callModule(DPfiles, paste0("EMLAL-", globals$EMLAL$NAVIGATE),
-                                        savevar, globals)
+    # UI
+    output$currentUI <- renderUI({
+      switch(globals$EMLAL$NAVIGATE,
+             selectDPUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
+                        title = steps[globals$EMLAL$NAVIGATE]),
+             DPfilesUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
+                       title = steps[globals$EMLAL$NAVIGATE])
+             # `3` = templateDPUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
+             #                    title = steps[globals$EMLAL$NAVIGATE]),
+             # `4` = customUnitsUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
+             #                     title = steps[globals$EMLAL$NAVIGATE]),
+             # `5` = catvarsUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
+             #                 title = steps[globals$EMLAL$NAVIGATE])
+      )
+    })
+    # Server
+    savevar <- switch(globals$EMLAL$NAVIGATE,
+                      callModule(selectDP, paste0("EMLAL-", globals$EMLAL$NAVIGATE),
+                                 savevar, globals),
+                      callModule(DPfiles, paste0("EMLAL-", globals$EMLAL$NAVIGATE),
+                                 savevar, globals)
     )
   })
-  
+  observe({
+    print(globals$EMLAL$NAVIGATE)
+  })
   # Save variable
   return(savevar)
 }

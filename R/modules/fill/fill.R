@@ -18,7 +18,7 @@ fillUI <- function(id){
 
 ### SERVER ###
 fill <- function(input, output, session, globals){
-  
+  ns <- session$ns
   # variable initialization ----
   
   # save variable

@@ -1,11 +1,12 @@
 # EMLAL_DPfiles.R
 
 ## 2. CREATE DATA PACKAGE
-DPfilesUI <- function(id, title, IM){
+DPfilesUI <- function(id, title){
   ns <- NS(id)
   
   return(
     fluidPage(
+      # main panel
       column(10,
              h4("Data files"),
              HTML("When selecting your files, you can't select
@@ -22,14 +23,17 @@ DPfilesUI <- function(id, title, IM){
              ),
              actionButton(ns("remove_data_files"),"Remove",
                           icon = icon("minus-circle"), 
-                          style = redButtonStyle),
+                          class = "redButton"),
              uiOutput(ns("data_files"))
       ), # end of column 1
-      navSidebar(ns, .prev = FALSE,
-                 ... = tagList(
-                   textOutput(ns("warning_data_size")),
-                   textOutput(ns("overwrite"))
-                 ))
+      column(2,
+             navSidebar(ns("nav"), .prev = FALSE,
+                        ... = tagList(
+                          textOutput(ns("warning_data_size")),
+                          textOutput(ns("overwrite"))
+                        )
+             )
+      )
       # column(2,
       #        h4("Navigation"),
       #        quitButton(id, style = rightButtonStyle),
@@ -43,8 +47,8 @@ DPfilesUI <- function(id, title, IM){
   ) # end return
 }
 
-DPfiles <- function(input, output, session, IM, savevar, globalRV){
-  # ns <- session$ns
+DPfiles <- function(input, output, session, savevar, globals){
+  ns <- session$ns
   
   # Variable initialization ----
   rv <- reactiveValues(
@@ -52,13 +56,13 @@ DPfiles <- function(input, output, session, IM, savevar, globalRV){
     data_files = data.frame()
     # local only
   )
-  volumes <- c(Home = HOME, getVolumes()())
+  volumes <- c(Home = globals$HOME, getVolumes()())
   updateFileListTrigger <- makeReactiveTrigger()
   
   # On arrival on screen
-  observeEvent(globalRV$previous, {
+  observeEvent(globals$EMLAL$PREVIOUS, {
     # dev: might evolve in `switch` if needed furtherly
-    rv$data_files <- if(globalRV$previous == "create") # from create button in selectDP
+    rv$data_files <- if(globals$EMLAL$PREVIOUS == "create") # from create button in selectDP
       data.frame()
     else
       savevar$emlal$DPfiles$dp_data_files
@@ -67,18 +71,18 @@ DPfiles <- function(input, output, session, IM, savevar, globalRV){
   })
   
   # Navigation buttons ----
-  callModule(onQuit, IM.EMLAL[4],
+  callModule(onQuit, "nav",
              # additional arguments
-             globalRV, savevar,
+             globals, savevar,
              savevar$emlal$selectDP$dp_path, 
              savevar$emlal$selectDP$dp_name)
-  callModule(onSave, IM.EMLAL[4],
+  callModule(onSave, "nav",
              # additional arguments
              savevar, 
              savevar$emlal$selectDP$dp_path, 
              savevar$emlal$selectDP$dp_name)
-  callModule(nextTab, IM.EMLAL[4],
-             globalRV, "DPfiles")
+  callModule(nextTab, "nav",
+             globals, "DPfiles")
   
   # Data file upload ----
   # Add data files
@@ -147,7 +151,7 @@ DPfiles <- function(input, output, session, IM, savevar, globalRV){
   # Warnings ----
   # data size
   output$warning_data_size <- renderText({
-    if(sum(rv$data_files$size) > THRESHOLD$dp_data_files)
+    if(sum(rv$data_files$size) > globals$THRESHOLDS$data_files_size_max)
       paste("WARNING:", sum(rv$data_files$size),
             "bytes are about to be duplicated for data package assembly")
     else
@@ -174,7 +178,7 @@ DPfiles <- function(input, output, session, IM, savevar, globalRV){
     
     # actions
     # -- copy files to <dp>_emldp/<dp>/data_objects
-    browser()
+    # browser()
     sapply(rv$data_files$datapath,
            file.copy, 
            to = paste0(path,"/",dp,"/data_objects/"),

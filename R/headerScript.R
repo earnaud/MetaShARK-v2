@@ -8,9 +8,9 @@
 }
 
 #' @import EML
-#' 
-#' Provide global variables for server part
-#' 
+# 
+# Provide global variables for server part
+# 
 # .globalScript ----
 .globalScript <- function(){
   HOME = fs::path_home()
@@ -32,15 +32,18 @@
   DATE.FORMAT <- DATE.FORMAT[order(DATE.FORMAT, decreasing = TRUE)]
   UNIT.LIST <- c("custom", get_unitList()$units$name)
   
-  globals <- list(
+  globals <- reactiveValues(
+    THRESHOLDS = reactiveValues(data_files_size_max = 500000),
     DEFAULT.PATH = DP.PATH,
     HOME = HOME,
+    # Formats lists
     FORMAT = list(DATE = DATE.FORMAT,
                   HOUR = HOUR.FORMAT,
                   UNIT = UNIT.LIST),
-    EMLAL = list(PREVIOUS = "",
-                 NAVIGATE = 1,
-                 MAX = 1)
+    # navigation variable in EMLAL module
+    EMLAL = reactiveValues(PREVIOUS = "",
+                           NAVIGATE = 1,
+                           MAX = 1)
   )
   
   # output
@@ -48,6 +51,7 @@
 }
 
 .sourceModules <- function(){
+  source("R/utils/reactiveTrigger.R")
   # welcome module
   source("R/modules/welcome/welcomeUI.R")
   #fill

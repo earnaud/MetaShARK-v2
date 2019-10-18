@@ -1,7 +1,9 @@
 #' @import shiny
 #' @import EML EMLassemblyline
 .app_server <- function(input, output,session) {
+  # initialize global variable
   globals <- .globalScript()
+  savevar <- NULL
   
   ## DEV: do things by clicking a button
   observeEvent(input$check,{
@@ -12,8 +14,8 @@
   })
   
   ## modules called ----
-  out <- observeEvent(input$side_menu,{
-    switch(input$side_menu,
+  observeEvent(input$side_menu,{
+    savevar <- switch(input$side_menu,
            # welcome - no server
            # fill
            fill = callModule(fill, "fill", globals),

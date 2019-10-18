@@ -3,7 +3,6 @@
 ### UI ###
 selectDPUI <- function(id, title, width=12){
   ns <- NS(id)
-  print(ns(""))
   
   # UI output
   return(
@@ -28,7 +27,7 @@ selectDPUI <- function(id, title, width=12){
         after your input."
       ),
       fluidRow(
-        # Use existing DP
+        # Load existing DP
         column(ceiling(width/2),
                h4("Edit existing data package",
                   style="text-align:center"),
@@ -72,10 +71,8 @@ selectDPUI <- function(id, title, width=12){
 
 selectDP <- function(input, output, session,
                      savevar, globals){
-
   # variable initialization ----
   ns <- session$ns
-  print(ns(""))
   DP.path <- globals$DEFAULT.PATH
   
   # local values - to save will communicate with other modules
@@ -97,7 +94,6 @@ selectDP <- function(input, output, session,
                  roots = volumes,
                  # defaultRoot = HOME,
                  session = session)
-  
   # update reactive value  
   observeEvent(input$dp_location, {
     # validity checks
@@ -119,6 +115,10 @@ selectDP <- function(input, output, session,
   })
   
   # DP load ----
+  # reset input if user comes back on this screen
+  reset("dp_load")
+  reset("dp_delete")
+  reset("dp_list")
   # fetch list of DP at selected location
   observeEvent(rv$dp_location, {
     dpList <- list.files(rv$dp_location, pattern = "_emldp$")
@@ -128,18 +128,19 @@ selectDP <- function(input, output, session,
   
   # Render list of DP at selected location
   output$dp_list <- renderUI({
-    if(!is.null(rv$dp_list))
+    req(rv$dp_list)
+    if(!is.null(rv$dp_list)){
       radioButtons(ns("dp_list"),
                    NULL,
                    choiceNames = c("None selected",rv$dp_list),
                    choiceValues = c("", rv$dp_list)
       )
+    }
     else{
       disable("dp_load")
       disable("dp_delete")
       "No EML data package was found at this location."
     }
-    
   })
   
   # toggle Load and Delete buttons
@@ -155,51 +156,49 @@ selectDP <- function(input, output, session,
   })  
   
   # DP create ----
-  
-  # name inout
-  observeEvent(input$dp_name, {
-    
+  reset("dp_name")
+  reset("dp_create")
+  # name input
+  rv$valid_name <- FALSE
+  observeEvent({
+    input$dp_name
+    rv$dp_list
+  }, {
+    req(input$dp_name)
     # check for name validity
     rv$warning_dp_name <- c(
       # check for long enough name
-      if(nchar(input$dp_name) < 3)
-        "Please type a name with at least 3 characters."
-      else
-        NULL,
+      if(nchar(input$dp_name) < 3){
+        rv$valid_name <- FALSE
+        "Please type a name with at least 3 characters."}
+      else{
+        rv$valid_name <- TRUE
+        NULL},
       # check for valid characters name
       if(!grepl("^[[:alnum:]_-]+$",input$dp_name) 
-         && nzchar(input$dp_name))
-        "Only authorized characters are alphanumeric, '_' (underscore) and '-' (hyphen)."
-      else
-        NULL,
+         && nzchar(input$dp_name)){
+        rv$valid_name <- FALSE
+        "Only authorized characters are alphanumeric, '_' (underscore) and '-' (hyphen)."}
+      else{
+        rv$valid_name <- TRUE
+        NULL},
       # check for double name
       if(!is.null(rv$dp_list) 
          && input$dp_name %in% rv$dp_list
-         && input$dp_name != "")
-        paste0(input$dp_name, " exists already at this location !")
-      else
-        NULL
+         && input$dp_name != ""){
+        rv$valid_name <- FALSE
+        paste0(input$dp_name, " exists already at this location !")}
+      else{
+        rv$valid_name <- TRUE
+        NULL}
     )
     
   })
   
-  output$dp_list <- renderUI({
-    if(!is.null(rv$dp_list))
-      radioButtons(ns("dp_list"),
-                   NULL,
-                   choiceNames = c("None selected",rv$dp_list),
-                   choiceValues = c("", rv$dp_list)
-      )
-    else{
-      disable("dp_load")
-      disable("dp_delete")
-      "No EML data package was found at this location."
-    }
-  })
-  
-  # warings for input name - toggle Create button
+  # warnings for input name - toggle Create button
   output$warning_dp_name <- renderText({
-    if(is.null(rv$warning_dp_name)){
+    req(rv$valid_name)
+    if(rv$valid_name){
       rv$dp_name <- input$dp_name
       enable("dp_create")
       return(NULL)
@@ -218,6 +217,7 @@ selectDP <- function(input, output, session,
   # Create DP
   observeEvent(input$dp_create, {
     req(input$dp_name)
+    req(rv$valid_name)
     
     # variable operation - legibility purpose
     dp <- rv$dp_name
@@ -265,9 +265,10 @@ selectDP <- function(input, output, session,
     savevar$emlal <- initReactive("emlal", savevar)
     savevar$emlal <- readRDS(paste0(path,"/",dp,".rds"))$emlal
     globals$EMLAL$NAVIGATE <- ifelse(savevar$emlal$step > 1, # resume where max reached
-                                    savevar$emlal$step,
-                                    globals$EMLAL$NAVIGATE+1)
+                                     savevar$emlal$step,
+                                     globals$EMLAL$NAVIGATE+1)
     globals$EMLAL$PREVIOUS <- "load"
+    browser()
   })
   
   # Delete DP
