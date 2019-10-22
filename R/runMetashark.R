@@ -18,7 +18,7 @@ runMetashark <- function(...) {
   
   with_golem_options(
     app = shinyApp(ui = .app_ui, server = .app_server,
-                   onStart = .headerScript), 
+                   onStart = .headerScript),
     golem_opts = list(...)
   )
 }

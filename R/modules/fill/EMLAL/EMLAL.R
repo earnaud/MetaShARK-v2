@@ -60,40 +60,43 @@ EMLAL <- function(input, output, session,
   # submodules sourcing
   source("R/modules/fill/EMLAL/EMLAL_selectDP.R")
   source("R/modules/fill/EMLAL/EMLAL_DPfiles.R")
+  source("R/modules/fill/EMLAL/EMLAL_templateDP.R")
   source("R/modules/fill/EMLAL/EMLAL_functions.R")
   
   # names of EMLAL steps
   steps = paste0(c("select","files","template","customUnits",
                    "catvars", "edit","make","publish"), "-tab")
   
+  iteration = 0 # varying namespace
   # Output ----
   observeEvent(globals$EMLAL$NAVIGATE, {
+    iteration <<- iteration+1
     # UI
     output$currentUI <- renderUI({
       switch(globals$EMLAL$NAVIGATE,
-             selectDPUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
+             selectDPUI(id = ns(iteration),
                         title = steps[globals$EMLAL$NAVIGATE]),
-             DPfilesUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
-                       title = steps[globals$EMLAL$NAVIGATE])
-             # `3` = templateDPUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
-             #                    title = steps[globals$EMLAL$NAVIGATE]),
-             # `4` = customUnitsUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
+             DPfilesUI(id = ns(iteration),
+                       title = steps[globals$EMLAL$NAVIGATE]),
+             templateDPUI(id = ns(iteration),
+                          title = steps[globals$EMLAL$NAVIGATE])
+             # `4` = customUnitsUI(id =  ns(iteration),
              #                     title = steps[globals$EMLAL$NAVIGATE]),
-             # `5` = catvarsUI(id = ns(paste0("EMLAL-", globals$EMLAL$NAVIGATE)),
+             # `5` = catvarsUI(id = ns(iteration),
              #                 title = steps[globals$EMLAL$NAVIGATE])
       )
     })
     # Server
     savevar <- switch(globals$EMLAL$NAVIGATE,
-                      callModule(selectDP, paste0("EMLAL-", globals$EMLAL$NAVIGATE),
+                      callModule(selectDP,  iteration,
                                  savevar, globals),
-                      callModule(DPfiles, paste0("EMLAL-", globals$EMLAL$NAVIGATE),
+                      callModule(DPfiles, iteration,
+                                 savevar, globals),
+                      callModule(templateDP, iteration,
                                  savevar, globals)
     )
   })
-  observe({
-    print(globals$EMLAL$NAVIGATE)
-  })
+
   # Save variable
   return(savevar)
 }

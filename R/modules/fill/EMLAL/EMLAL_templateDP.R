@@ -1,7 +1,7 @@
 # EMLAL_templateDP.R
 
 ## 3. Create DP template
-templateDPUI <- function(id, title, IM){
+templateDPUI <- function(id, title){
   ns <- NS(id)
   
   return(
@@ -49,21 +49,19 @@ templateDPUI <- function(id, title, IM){
       
       # Navigation buttons ----
       column(2,
-             h4("Navigation"),
-             quitButton(id, style = rightButtonStyle),
-             saveButton(id, style = rightButtonStyle),
-             shinyjs::disabled(nextTabButton(id, style = rightButtonStyle)),
-             prevTabButton(id, style = rightButtonStyle),
-             style = "text-align: center; padding: 0;"
-             ,actionButton(ns("check2"),"Dev Check")
-             ,actionButton(ns("check3"),"Fill")
+             navSidebar(ns("nav"),
+                        ... = tagList(
+                          actionButton(ns("check2"),"Dev Check"),
+                          actionButton(ns("check3"),"Fill")
+                        )
+             )
       ) # end column 2
     ) # end fluidPage
   ) # end return
   
 }
 
-templateDP <- function(input, output, session, IM, savevar, globalRV){
+templateDP <- function(input, output, session, savevar, globals){
   ns <- session$ns
   
   observeEvent(input$check2,{
@@ -77,6 +75,7 @@ templateDP <- function(input, output, session, IM, savevar, globalRV){
     })
     savevar$emlal$templateDP[[rv$current_file]] <- rv$attributesTable
   })
+  
   # variable initialization ----
   
   # main local reactiveValues
@@ -89,8 +88,8 @@ templateDP <- function(input, output, session, IM, savevar, globalRV){
   )
   
   observe({
-    req(savevar$emlal$createDP$dp_data_files)
-    rv$files_names <- savevar$emlal$createDP$dp_data_files$name
+    req(savevar$emlal$DPfiles$dp_data_files)
+    rv$files_names <- savevar$emlal$DPfiles$dp_data_files$name
   })
   observeEvent(rv$files_names, {
     req(rv$files_names)
@@ -100,8 +99,8 @@ templateDP <- function(input, output, session, IM, savevar, globalRV){
   # on file change
   observeEvent(rv$current_file, {
     req(rv$current_file) # already req savevar$..$dp_data_files
-    req(savevar$emlal$createDP$dp_data_files$metadatapath)
-    toRead <- savevar$emlal$createDP$dp_data_files
+    req(savevar$emlal$DPfiles$dp_data_files$metadatapath)
+    toRead <- savevar$emlal$DPfiles$dp_data_files
     toRead <- toRead$metadatapath[
       match(rv$current_file, toRead$name)
       ]
@@ -207,20 +206,20 @@ templateDP <- function(input, output, session, IM, savevar, globalRV){
     )
   }
   
-  callModule(onQuit, IM.EMLAL[5],
+  callModule(onQuit, "nav",
              # additional arguments
-             globalRV, savevar,
+             globals, savevar,
              savevar$emlal$selectDP$dp_path, 
              savevar$emlal$selectDP$dp_name)
-  callModule(onSave, IM.EMLAL[5],
+  callModule(onSave, "nav",
              # additional arguments
              savevar,
              savevar$emlal$selectDP$dp_path, 
              savevar$emlal$selectDP$dp_name)
-  callModule(nextTab, IM.EMLAL[5],
-             globalRV, "template")
-  callModule(prevTab, IM.EMLAL[5],
-             globalRV, "template")
+  callModule(nextTab, "nav",
+             globals, "template")
+  callModule(prevTab, "nav",
+             globals, "template")
   
   # Procedurals / ----
   # / UI ----
@@ -283,9 +282,7 @@ templateDP <- function(input, output, session, IM, savevar, globalRV){
       
       # check corresponding input
       if(length(inputNames) != 0){
-        if(
-          rvName %in% rv$ui
-        ){
+        if(rvName %in% rv$ui){
           # show UI
           sapply(inputNames, shinyjs::show)
           
@@ -391,16 +388,16 @@ templateDP <- function(input, output, session, IM, savevar, globalRV){
     sapply(rv$files_names, function(fn){
       # write filled tables
       cur_ind <- match(fn, rv$files_names)
-      path <- savevar$emlal$createDP$dp_data_files$metadatapath[cur_ind]
+      path <- savevar$emlal$DPfiles$dp_data_files$metadatapath[cur_ind]
       table <- savevar$emlal$templateDP[[fn]]
       fwrite(table, path)
-     
+      
       # check for direction: customUnits or catvars
       if(nextStep > 0 &&
          "custom" %in% savevar$emlal$templateDP[[fn]][,"unit"])
-          nextStep = 0
+        nextStep = 0
     })
-    globalRV$navigate <- globalRV$navigate+nextStep
+    globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE+nextStep
   },
   priority = 1)
   

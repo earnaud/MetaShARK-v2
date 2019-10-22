@@ -43,7 +43,7 @@
     # navigation variable in EMLAL module
     EMLAL = reactiveValues(PREVIOUS = "",
                            NAVIGATE = 1,
-                           MAX = 1)
+                           MAX = 3)
   )
   
   # output

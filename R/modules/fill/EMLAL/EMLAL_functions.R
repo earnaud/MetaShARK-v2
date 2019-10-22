@@ -36,12 +36,8 @@ navSidebar <- function(id, class = "navSidebar",
   ns <- NS(id)
 
   # variable initialization
-  nexBut <- ifelse(.next,
-                   nextTabButton(id),
-                   HTML(NULL))
-  preBut <-ifelse(.prev,
-                  prevTabButton(id),
-                  HTML(NULL))
+  nexBut <- if(.next) nextTabButton(id) else HTML(NULL)
+  preBut <- if(.prev) prevTabButton(id) else HTML(NULL)
   arguments <- list(...)
   div(h4("Navigation"),
       quitButton(id),

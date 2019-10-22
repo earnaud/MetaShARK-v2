@@ -1,5 +1,6 @@
 #' @import shiny
 #' @import EML EMLassemblyline
+#' @importFrom data.table fread
 .app_server <- function(input, output,session) {
   # initialize global variable
   globals <- .globalScript()

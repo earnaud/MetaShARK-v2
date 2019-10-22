@@ -31,10 +31,11 @@ selectDPUI <- function(id, title, width=12){
         column(ceiling(width/2),
                h4("Edit existing data package",
                   style="text-align:center"),
-               uiOutput(ns("dp_list")),
-               actionButton(ns("dp_load"), "Load"),
-               actionButton(ns("dp_delete"),"Delete",
-                            class = "redButton")
+               uiOutput(ns("dp_list"))
+               # ,actionButton(ns("dp_load"), "Load")
+               # ,actionButton(ns("dp_delete"),"Delete",
+               #              class = "redButton")
+               # ,actionButton(ns("dev0"), "Dev")
         ),
         # Create DP
         column(floor(width/2),
@@ -44,7 +45,7 @@ selectDPUI <- function(id, title, width=12){
                # Data package title
                textInput(ns("dp_name"), "Data package name",
                          placeholder = paste0(Sys.Date(),"_project")),
-               textOutput(ns("warning_dp_name")),
+               # textOutput(ns("warning_dp_name")),
                with_tippy(
                  div(id = "license-help",
                      selectInput(ns("license"),
@@ -58,7 +59,8 @@ selectDPUI <- function(id, title, width=12){
                       For more details, visit Creative Commons.")
                ),
                # DP creation
-               actionButton(ns("dp_create"),"Create")
+               uiOutput(ns("dp_create"))
+               # actionButton(ns("dp_create"),"Create")
         ) # end column2
         
       ) # end fluidRow
@@ -86,6 +88,9 @@ selectDP <- function(input, output, session,
     dp_license = NULL,
     warning_dp_name = NULL
   )
+  observeEvent(input$dev0, {
+    browser()
+  })
   volumes <- c(Home = globals$HOME, base = getVolumes()())
   
   # DP location ----
@@ -116,9 +121,6 @@ selectDP <- function(input, output, session,
   
   # DP load ----
   # reset input if user comes back on this screen
-  reset("dp_load")
-  reset("dp_delete")
-  reset("dp_list")
   # fetch list of DP at selected location
   observeEvent(rv$dp_location, {
     dpList <- list.files(rv$dp_location, pattern = "_emldp$")
@@ -128,19 +130,26 @@ selectDP <- function(input, output, session,
   
   # Render list of DP at selected location
   output$dp_list <- renderUI({
-    req(rv$dp_list)
-    if(!is.null(rv$dp_list)){
+    # req(rv$dp_list)
+    validate(
+      need(!is.null(rv$dp_list),
+           "No existing data package")
+    )
+    tagList(
       radioButtons(ns("dp_list"),
                    NULL,
                    choiceNames = c("None selected",rv$dp_list),
                    choiceValues = c("", rv$dp_list)
       )
-    }
-    else{
-      disable("dp_load")
-      disable("dp_delete")
-      "No EML data package was found at this location."
-    }
+      ,actionButton(ns("dp_load"), "Load")
+      ,actionButton(ns("dp_delete"),"Delete",
+                    class = "redButton")
+    )
+    # else{
+    #   disable("dp_load")
+    #   disable("dp_delete")
+    #   "No EML data package was found at this location."
+    # }
   })
   
   # toggle Load and Delete buttons
@@ -156,58 +165,78 @@ selectDP <- function(input, output, session,
   })  
   
   # DP create ----
-  reset("dp_name")
-  reset("dp_create")
-  # name input
+  # check name input
+  rv$dp_name = ""
   rv$valid_name <- FALSE
-  observeEvent({
-    input$dp_name
-    rv$dp_list
-  }, {
-    req(input$dp_name)
-    # check for name validity
-    rv$warning_dp_name <- c(
-      # check for long enough name
-      if(nchar(input$dp_name) < 3){
-        rv$valid_name <- FALSE
-        "Please type a name with at least 3 characters."}
-      else{
-        rv$valid_name <- TRUE
-        NULL},
-      # check for valid characters name
-      if(!grepl("^[[:alnum:]_-]+$",input$dp_name) 
-         && nzchar(input$dp_name)){
-        rv$valid_name <- FALSE
-        "Only authorized characters are alphanumeric, '_' (underscore) and '-' (hyphen)."}
-      else{
-        rv$valid_name <- TRUE
-        NULL},
-      # check for double name
-      if(!is.null(rv$dp_list) 
-         && input$dp_name %in% rv$dp_list
-         && input$dp_name != ""){
-        rv$valid_name <- FALSE
-        paste0(input$dp_name, " exists already at this location !")}
-      else{
-        rv$valid_name <- TRUE
-        NULL}
+  output$dp_create <- renderUI({
+    rv$valid_name <- FALSE
+    validate(
+      need(nchar(input$dp_name) > 3,
+           "Please type a name with at least 3 characters."),
+      need(grepl("^[[:alnum:]_-]+$",input$dp_name) 
+           && nzchar(input$dp_name),
+           "Only authorized characters are alphanumeric, '_' (underscore) and '-' (hyphen)."),
+      need(input$dp_name != ""
+           && !(input$dp_name %in% rv$dp_list),
+           "This name is already used: change either save directory or data package name.")
     )
-    
+    rv$valid_name <- TRUE
+    return(actionButton(ns("dp_create"),"Create"))
   })
   
-  # warnings for input name - toggle Create button
-  output$warning_dp_name <- renderText({
-    req(rv$valid_name)
-    if(rv$valid_name){
-      rv$dp_name <- input$dp_name
-      enable("dp_create")
-      return(NULL)
-    }
-    else{
-      disable("dp_create")
-      return(paste(rv$warning_dp_name, collapse = "\n"))
-    }
-  })
+  
+  
+  # name input
+#   rv$valid_name <- TRUE
+#   observeEvent({
+#     input$dp_name
+#     rv$dp_list
+#   }, {
+# cat("evaluated:", input$dp_name, "\n")
+#     req(input$dp_name)
+#     # check for name validity
+#     rv$warning_dp_name <- c(
+#       # check for long enough name
+#       if(nchar(input$dp_name) < 3){
+#         rv$valid_name <- FALSE
+#         "Please type a name with at least 3 characters."}
+#       else{
+#         rv$valid_name <- TRUE
+#         NULL},
+#       # check for valid characters name
+#       if(!grepl("^[[:alnum:]_-]+$",input$dp_name) 
+#          && nzchar(input$dp_name)){
+#         rv$valid_name <- FALSE
+#         "Only authorized characters are alphanumeric, '_' (underscore) and '-' (hyphen)."}
+#       else{
+#         rv$valid_name <- TRUE
+#         NULL},
+#       # check for double name
+#       if(!is.null(rv$dp_list) 
+#          && input$dp_name %in% rv$dp_list
+#          && input$dp_name != ""){
+#         rv$valid_name <- FALSE
+#         paste0(input$dp_name, " exists already at this location !")}
+#       else{
+#         rv$valid_name <- TRUE
+#         NULL}
+#     )
+#     
+#   })
+#   
+#   # warnings for input name - toggle Create button
+#   output$warning_dp_name <- renderText({
+#     if(rv$valid_name){
+#       rv$dp_name <- input$dp_name
+#       enable("dp_create")
+#       return(NULL)
+#     }
+#     else{
+#       disable("dp_create")
+#       return(paste(rv$warning_dp_name, collapse = "\n"))
+#     }
+#   })
+#   
   
   # license choice
   rv$dp_license <- reactive({ input$license })
@@ -220,7 +249,7 @@ selectDP <- function(input, output, session,
     req(rv$valid_name)
     
     # variable operation - legibility purpose
-    dp <- rv$dp_name
+    dp <- input$dp_name
     path <- paste0(rv$dp_location,dp,"_emldp")
     license <- rv$dp_license()
     
@@ -268,7 +297,6 @@ selectDP <- function(input, output, session,
                                      savevar$emlal$step,
                                      globals$EMLAL$NAVIGATE+1)
     globals$EMLAL$PREVIOUS <- "load"
-    browser()
   })
   
   # Delete DP

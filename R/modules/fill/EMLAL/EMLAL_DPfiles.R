@@ -3,7 +3,6 @@
 ## 2. CREATE DATA PACKAGE
 DPfilesUI <- function(id, title){
   ns <- NS(id)
-  
   return(
     fluidPage(
       # main panel
@@ -32,7 +31,8 @@ DPfilesUI <- function(id, title){
                           textOutput(ns("warning_data_size")),
                           textOutput(ns("overwrite"))
                         )
-             )
+             ),
+             actionButton(ns("checkDPfiles"), "Dev")
       )
       # column(2,
       #        h4("Navigation"),
@@ -49,6 +49,10 @@ DPfilesUI <- function(id, title){
 
 DPfiles <- function(input, output, session, savevar, globals){
   ns <- session$ns
+  
+  observeEvent(input$checkDPfiles,{
+    browser()
+  })
   
   # Variable initialization ----
   rv <- reactiveValues(
@@ -171,7 +175,7 @@ DPfiles <- function(input, output, session, savevar, globals){
   
   # Process files ----
   # Template table
-  observeEvent(input$nextTab, {
+  observeEvent(input[["nav-nextTab"]], {
     # variable initialization
     dp <- savevar$emlal$selectDP$dp_name
     path <- savevar$emlal$selectDP$dp_path
