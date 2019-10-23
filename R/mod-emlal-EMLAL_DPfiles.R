@@ -1,7 +1,7 @@
 # EMLAL_DPfiles.R
 
 ## 2. CREATE DATA PACKAGE
-DPfilesUI <- function(id, title){
+DPfilesUI <- function(id, title, dev = FALSE){
   ns <- NS(id)
   return(
     fluidPage(
@@ -9,8 +9,8 @@ DPfilesUI <- function(id, title){
       column(10,
              h4("Data files"),
              HTML("When selecting your files, you can't select
-                    folders. You can delete file(s) from your 
-                    selection by ticking their box and clicking 
+                    folders. You can delete file(s) from your
+                    selection by ticking their box and clicking
                     the 'Remove' button.<br>"),
              div(
                shinyFilesButton(ns("add_data_files"),
@@ -21,7 +21,7 @@ DPfilesUI <- function(id, title){
                style = "display: inline-block; vertical-align: top;"
              ),
              actionButton(ns("remove_data_files"),"Remove",
-                          icon = icon("minus-circle"), 
+                          icon = icon("minus-circle"),
                           class = "redButton"),
              uiOutput(ns("data_files"))
       ), # end of column 1
@@ -32,7 +32,7 @@ DPfilesUI <- function(id, title){
                           textOutput(ns("overwrite"))
                         )
              ),
-             actionButton(ns("checkDPfiles"), "Dev")
+             if(dev) actionButton(ns("checkDPfiles"), "Dev")
       )
       # column(2,
       #        h4("Navigation"),
@@ -49,11 +49,13 @@ DPfilesUI <- function(id, title){
 
 DPfiles <- function(input, output, session, savevar, globals){
   ns <- session$ns
-  
-  observeEvent(input$checkDPfiles,{
-    browser()
-  })
-  
+
+  if(globals$dev){
+    observeEvent(input$checkDPfiles,{
+      browser()
+    })
+  }
+
   # Variable initialization ----
   rv <- reactiveValues(
     # to save
@@ -62,7 +64,7 @@ DPfiles <- function(input, output, session, savevar, globals){
   )
   volumes <- c(Home = globals$HOME, getVolumes()())
   updateFileListTrigger <- makeReactiveTrigger()
-  
+
   # On arrival on screen
   observeEvent(globals$EMLAL$PREVIOUS, {
     # dev: might evolve in `switch` if needed furtherly
@@ -70,40 +72,40 @@ DPfiles <- function(input, output, session, savevar, globals){
       data.frame()
     else
       savevar$emlal$DPfiles$dp_data_files
-    
+
     updateFileListTrigger$trigger()
   })
-  
+
   # Navigation buttons ----
   callModule(onQuit, "nav",
              # additional arguments
              globals, savevar,
-             savevar$emlal$selectDP$dp_path, 
+             savevar$emlal$selectDP$dp_path,
              savevar$emlal$selectDP$dp_name)
   callModule(onSave, "nav",
              # additional arguments
-             savevar, 
-             savevar$emlal$selectDP$dp_path, 
+             savevar,
+             savevar$emlal$selectDP$dp_path,
              savevar$emlal$selectDP$dp_name)
   callModule(nextTab, "nav",
              globals, "DPfiles")
-  
+
   # Data file upload ----
   # Add data files
   shinyFileChoose(input, "add_data_files",
                   roots = volumes,
                   # defaultRoot = HOME,
                   session = session)
-  
+
   observeEvent(input$add_data_files,{
     # validity checks
     req(input$add_data_files)
-    
+
     # actions
     loadedFiles <- as.data.frame(
       parseFilePaths(volumes, input$add_data_files)
     )
-    
+
     if(identical(rv$data_files, data.frame()))
       rv$data_files <- loadedFiles
     else{
@@ -116,28 +118,28 @@ DPfiles <- function(input, output, session, savevar, globals){
           )
       }
     }
-    
+
     # variable modifications
     savevar$emlal$DPfiles$dp_data_files <- rv$data_files
   })
-  
+
   # Remove data files
   observeEvent(input$remove_data_files, {
-    
+
     # validity check
     req(input$select_data_files)
-    
+
     # actions
     rv$data_files <- rv$data_files[
       rv$data_files$name != input$select_data_files
       ,]
   })
-  
+
   # Display data files
   output$data_files <- renderUI({
-    
+
     updateFileListTrigger$depend()
-    
+
     # actions
     if(!identical(rv$data_files, data.frame()) &&
        !is.null(rv$data_files)){
@@ -151,7 +153,7 @@ DPfiles <- function(input, output, session, savevar, globals){
       return(NULL)
     }
   })
-  
+
   # Warnings ----
   # data size
   output$warning_data_size <- renderText({
@@ -161,7 +163,7 @@ DPfiles <- function(input, output, session, savevar, globals){
     else
       ""
   })
-  
+
   # overwrite files
   output$warning_overwrite <- renderText({
     if(identical(dir(paste0(path,"/",dp,"/data_objects/")),
@@ -172,21 +174,21 @@ DPfiles <- function(input, output, session, savevar, globals){
     else
       ""
   })
-  
+
   # Process files ----
   # Template table
   observeEvent(input[["nav-nextTab"]], {
     # variable initialization
     dp <- savevar$emlal$selectDP$dp_name
     path <- savevar$emlal$selectDP$dp_path
-    
+
     # actions
     # -- copy files to <dp>_emldp/<dp>/data_objects
-    # browser()
+    browser()
     sapply(rv$data_files$datapath,
-           file.copy, 
+           file.copy,
            to = paste0(path,"/",dp,"/data_objects/"),
-           overwrite = TRUE)
+           recursive = TRUE)
     # -- modify paths in save variable
     tmp <- savevar$emlal$DPfiles$dp_data_files
     tmp$datapath <- sapply(rv$data_files$name,
@@ -204,7 +206,7 @@ DPfiles <- function(input, output, session, savevar, globals){
                                  )
                                })
     savevar$emlal$DPfiles$dp_data_files <- tmp
-    
+
     # EMLAL templating function
     template_table_attributes(
       path = paste0(path,"/",dp,"/metadata_templates"),
@@ -212,7 +214,7 @@ DPfiles <- function(input, output, session, savevar, globals){
       data.table = rv$data_files$name,
     )
   }, priority = 1)
-  
+
   # Output ----
   return(savevar)
 }

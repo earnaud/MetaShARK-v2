@@ -1,9 +1,9 @@
 # EMLAL_templateDP.R
 
 ## 3. Create DP template
-templateDPUI <- function(id, title){
+templateDPUI <- function(id, title, dev){
   ns <- NS(id)
-  
+
   return(
     fluidPage(
       # Inputs ----
@@ -11,7 +11,7 @@ templateDPUI <- function(id, title){
              h4("Data table attributes"),
              HTML("Even if EML Assembly Line automatically infers most
                   of your data's metadata, some steps need you to check
-                  out. Please check the following attribute, and fill 
+                  out. Please check the following attribute, and fill
                   in at least the <span style='color:red;'>mandatory
                   </span> elements."),
              fluidRow(
@@ -46,7 +46,7 @@ templateDPUI <- function(id, title){
              ),
              uiOutput(ns("edit_template"))
       ),
-      
+
       # Navigation buttons ----
       column(2,
              navSidebar(ns("nav"),
@@ -58,26 +58,30 @@ templateDPUI <- function(id, title){
       ) # end column 2
     ) # end fluidPage
   ) # end return
-  
+
 }
 
 templateDP <- function(input, output, session, savevar, globals){
   ns <- session$ns
-  
-  observeEvent(input$check2,{
-    browser()
-  })
-  observeEvent(input$check3,{
-    req(rv$current_file)
-    sapply(names(rv$attributesTable), function(nn){
-      rv$attributesTable[,nn] <- rep("a", 
-                                     dim(rv$attributesTable)[1])
+
+  if(globals$dev){
+    observeEvent(input$check2,{
+      browser()
     })
-    savevar$emlal$templateDP[[rv$current_file]] <- rv$attributesTable
-  })
-  
+
+    # fill the attribute fields with "a" to enable 'nextTab' button
+    observeEvent(input$check3,{
+      req(rv$current_file)
+      sapply(names(rv$attributesTable), function(nn){
+        rv$attributesTable[,nn] <- rep("a",
+                                       dim(rv$attributesTable)[1])
+      })
+      savevar$emlal$templateDP[[rv$current_file]] <- rv$attributesTable
+    })
+  }
+
   # variable initialization ----
-  
+
   # main local reactiveValues
   rv <- reactiveValues(
     # local save
@@ -86,7 +90,7 @@ templateDP <- function(input, output, session, savevar, globals){
     ui = character(),
     completed = FALSE
   )
-  
+
   observe({
     req(savevar$emlal$DPfiles$dp_data_files)
     rv$files_names <- savevar$emlal$DPfiles$dp_data_files$name
@@ -95,7 +99,7 @@ templateDP <- function(input, output, session, savevar, globals){
     req(rv$files_names)
     rv$current_file <- rv$files_names[1]
   })
-  
+
   # on file change
   observeEvent(rv$current_file, {
     req(rv$current_file) # already req savevar$..$dp_data_files
@@ -105,7 +109,7 @@ templateDP <- function(input, output, session, savevar, globals){
       match(rv$current_file, toRead$name)
       ]
     # load attributes_table.txt
-    rv$attributesTable <- fread(toRead, data.table = FALSE, 
+    rv$attributesTable <- fread(toRead, data.table = FALSE,
                                 stringsAsFactors = FALSE,
                                 na.strings = NULL)
     rv$attributesTable[is.na(rv$attributesTable)] <- ""
@@ -125,7 +129,7 @@ templateDP <- function(input, output, session, savevar, globals){
     if(tmpAttributes[rv$ui[grepl("date", rv$ui)] ] == "")
       rv$ui <- rv$ui[!grepl("date", rv$ui)]
   })
-  
+
   # Navigation buttons ----
   # ** files
   observeEvent(input$file_prev,{
@@ -175,7 +179,7 @@ templateDP <- function(input, output, session, savevar, globals){
       rv$current_attribute <- rv$current_attribute + 1
     }
   })
-  
+
   # outputs
   {
     output$current_file <- renderUI(div(rv$current_file,
@@ -201,31 +205,31 @@ templateDP <- function(input, output, session, savevar, globals){
                                                             round(100*rv$current_attribute/dim(rv$attributesTable)[1]),
                                                             "%);"
                                              )
-                                             
+
     )
     )
   }
-  
+
   callModule(onQuit, "nav",
              # additional arguments
              globals, savevar,
-             savevar$emlal$selectDP$dp_path, 
+             savevar$emlal$selectDP$dp_path,
              savevar$emlal$selectDP$dp_name)
   callModule(onSave, "nav",
              # additional arguments
              savevar,
-             savevar$emlal$selectDP$dp_path, 
+             savevar$emlal$selectDP$dp_path,
              savevar$emlal$selectDP$dp_name)
   callModule(nextTab, "nav",
              globals, "template")
   callModule(prevTab, "nav",
              globals, "template")
-  
+
   # Procedurals / ----
   # / UI ----
   output$edit_template <- renderUI({
     req(rv$ui)
-    
+
     # actions
     tagList(
       # write each attribute's characteristic
@@ -233,13 +237,13 @@ templateDP <- function(input, output, session, savevar, globals){
         # prepare var
         saved_value <- rv$attributesTable[rv$current_attribute, colname]
         if(grepl("date", colname)) saved_value <- gsub("^(.*) .*$","\\1", saved_value)
-        
+
         # UI
         switch(colname,
                attributeDefinition = textAreaInput(ns(colname), value = saved_value,
                                                    "Describe the attribute concisely"),
                class = HTML(paste("<b>Detected class:</b>", as.vector(saved_value) ) ),
-               unit = selectInput(ns(colname), 
+               unit = selectInput(ns(colname),
                                   span("Existing unit", style=redButtonStyle),
                                   unique(c(saved_value, UNIT.LIST)),
                                   selected = saved_value
@@ -253,7 +257,7 @@ templateDP <- function(input, output, session, savevar, globals){
                                                           "Existing hour format",
                                                           HOUR.FORMAT )
                ),
-               missingValueCode = textInput(ns(colname), 
+               missingValueCode = textInput(ns(colname),
                                             "Code for missing value",
                                             value = saved_value),
                missingValueCodeExplanation = textAreaInput(ns(colname),
@@ -263,12 +267,12 @@ templateDP <- function(input, output, session, savevar, globals){
       }) # end of lapply colname
     ) # end of tagList
   }) # end of UI
-  
-  
+
+
   # / Servers / ----
   observe({
     req( any(rv$ui %in% names(input)) )
-    
+
     # / attributes ----
     sapply(names(rv$attributesTable), function(rvName) {
       # prepare variable
@@ -279,13 +283,13 @@ templateDP <- function(input, output, session, savevar, globals){
       # 'unit' exception:
       if(rvName == "unit")
         inputNames <- inputNames[inputNames != "unitType"]
-      
+
       # check corresponding input
       if(length(inputNames) != 0){
         if(rvName %in% rv$ui){
           # show UI
           sapply(inputNames, shinyjs::show)
-          
+
           # Input UI yet exists: create eventReactive
           rv$attributes[[rvName]] <- eventReactive({
             if(rvName == "dateTimeFormatString"){
@@ -320,7 +324,7 @@ templateDP <- function(input, output, session, savevar, globals){
               input[["id"]] # link to custom inputs
             else
               input[[rvName]]
-            
+
             # check obtained value
             if(is.list(enter))
               enter <- unlist(enter)
@@ -337,7 +341,7 @@ templateDP <- function(input, output, session, savevar, globals){
         else{
           # hide UI
           sapply(inputNames, shinyjs::hide)
-          
+
           # set reactiveValue to NULL
           rv$attributes[[rvName]] <- rv$attributesTable[rv$current_attribute, rvName]
         }
@@ -346,12 +350,12 @@ templateDP <- function(input, output, session, savevar, globals){
         rv$attributes[[rvName]] <- rv$attributesTable[rv$current_attribute, rvName]
       }
     }) # end sapply
-    
+
   })
-  
+
   # Saves ----
   cpltTrigger <- makeReactiveTrigger()
-  
+
   # regular saves in savevar - triggered in saveInput()
   observeEvent({
     input
@@ -360,7 +364,7 @@ templateDP <- function(input, output, session, savevar, globals){
     savevar$emlal$templateDP[[rv$current_file]] <- rv$attributesTable
     cpltTrigger$trigger()
   })
-  
+
   # check for completeness
   observe({
     cpltTrigger$depend()
@@ -379,7 +383,7 @@ templateDP <- function(input, output, session, savevar, globals){
       shinyjs::disable(ns("nextTab"))
     }
   })
-  
+
   # Process data ----
   observeEvent(input[[ns("nextTab")]], {
     req(rv$completed)
@@ -391,7 +395,7 @@ templateDP <- function(input, output, session, savevar, globals){
       path <- savevar$emlal$DPfiles$dp_data_files$metadatapath[cur_ind]
       table <- savevar$emlal$templateDP[[fn]]
       fwrite(table, path)
-      
+
       # check for direction: customUnits or catvars
       if(nextStep > 0 &&
          "custom" %in% savevar$emlal$templateDP[[fn]][,"unit"])
@@ -400,7 +404,7 @@ templateDP <- function(input, output, session, savevar, globals){
     globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE+nextStep
   },
   priority = 1)
-  
+
   # Output ----
   return(savevar)
 }
