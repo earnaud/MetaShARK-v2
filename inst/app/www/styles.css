@@ -9,8 +9,7 @@
 }
 
 .redButton {
-	background-color: red;
-	color: white;
+	color: red;
 }
 
 .inputBox {
@@ -32,4 +31,8 @@
 	width: 100%;
 	text-align: center;
 	padding: 0;
+}
+
+.main-header {
+  position: sticky;
 }

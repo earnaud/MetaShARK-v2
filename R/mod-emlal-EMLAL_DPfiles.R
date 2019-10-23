@@ -184,7 +184,6 @@ DPfiles <- function(input, output, session, savevar, globals){
 
     # actions
     # -- copy files to <dp>_emldp/<dp>/data_objects
-    browser()
     sapply(rv$data_files$datapath,
            file.copy,
            to = paste0(path,"/",dp,"/data_objects/"),
@@ -213,6 +212,7 @@ DPfiles <- function(input, output, session, savevar, globals){
       data.path = paste0(path,"/",dp,"/data_objects"),
       data.table = rv$data_files$name,
     )
+    cat("Done\n")
   }, priority = 1)
 
   # Output ----

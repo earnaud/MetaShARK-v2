@@ -1,10 +1,11 @@
 #' @import shiny shinyjs shinydashboard shinyTree shinyFiles
 #' @import RefManageR tippy
+#' @importFrom golem get_golem_options
 .app_ui <- function() {
 
   # prepare variable
   menuWidth = "250px"
-  dev = get_golem_options(which = 'dev')
+  dev = golem::get_golem_options(which = 'dev')
   if(!is.logical(dev) || is.null(dev)) dev = FALSE
 
   # action
@@ -38,6 +39,7 @@
       ), # end sidebar
       ## Content ----
       dashboardBody(
+        tags$script(HTML("$('body').addClass('fixed');")),
         tabItems(
           tabItem(tabName = "welcome",
                   welcomeUI("welcome")),

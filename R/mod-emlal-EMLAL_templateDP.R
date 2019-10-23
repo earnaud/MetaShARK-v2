@@ -14,45 +14,49 @@ templateDPUI <- function(id, title, dev){
                   out. Please check the following attribute, and fill
                   in at least the <span style='color:red;'>mandatory
                   </span> elements."),
-             fluidRow(
-               tagList(
-                 actionButton(ns("file_prev"),
-                              "",
-                              icon("chevron-left"),
-                              width = "12%"),
-                 uiOutput(ns("current_file"),
-                          inline = TRUE),
-                 actionButton(ns("file_next"),
-                              "",
-                              icon("chevron-right"),
-                              width = "12%")
+             
+             div(
+               fluidRow(
+                 tagList(
+                   actionButton(ns("file_prev"),
+                                "",
+                                icon("chevron-left"),
+                                width = "12%"),
+                   uiOutput(ns("current_file"),
+                            inline = TRUE),
+                   actionButton(ns("file_next"),
+                                "",
+                                icon("chevron-right"),
+                                width = "12%")
+                 ),
+                 style = "padding: 5px;"
                ),
-               style = "padding: 5px;"
-             ),
-             fluidRow(
-               tagList(
-                 actionButton(ns("attribute_prev"),
-                              "",
-                              icon("chevron-left"),
-                              width = "12%"),
-                 uiOutput(ns("current_attribute"),
-                          inline = TRUE),
-                 actionButton(ns("attribute_next"),
-                              "",
-                              icon("chevron-right"),
-                              width = "12%")
+               fluidRow(
+                 tagList(
+                   actionButton(ns("attribute_prev"),
+                                "",
+                                icon("chevron-left"),
+                                width = "12%"),
+                   uiOutput(ns("current_attribute"),
+                            inline = TRUE),
+                   actionButton(ns("attribute_next"),
+                                "",
+                                icon("chevron-right"),
+                                width = "12%")
+                 ),
+                 style = "padding: 5px;"
                ),
-               style = "padding: 5px;"
-             ),
-             uiOutput(ns("edit_template"))
+               uiOutput(ns("edit_template")),
+               class = "inputBox"
+             )
       ),
 
       # Navigation buttons ----
       column(2,
              navSidebar(ns("nav"),
                         ... = tagList(
-                          actionButton(ns("check2"),"Dev Check"),
-                          actionButton(ns("check3"),"Fill")
+                          if(dev) actionButton(ns("check2"),"Dev Check"),
+                          if(dev) actionButton(ns("check3"),"Fill")
                         )
              )
       ) # end column 2
@@ -234,37 +238,37 @@ templateDP <- function(input, output, session, savevar, globals){
     tagList(
       # write each attribute's characteristic
       lapply(rv$ui, function(colname) {
-        # prepare var
-        saved_value <- rv$attributesTable[rv$current_attribute, colname]
-        if(grepl("date", colname)) saved_value <- gsub("^(.*) .*$","\\1", saved_value)
-
-        # UI
-        switch(colname,
-               attributeDefinition = textAreaInput(ns(colname), value = saved_value,
-                                                   "Describe the attribute concisely"),
-               class = HTML(paste("<b>Detected class:</b>", as.vector(saved_value) ) ),
-               unit = selectInput(ns(colname),
-                                  span("Existing unit", style=redButtonStyle),
-                                  unique(c(saved_value, UNIT.LIST)),
-                                  selected = saved_value
-               ),
-               dateTimeFormatString = tagList(selectInput(ns( paste0(colname,"_date") ),
-                                                          span("Existing date format",
-                                                               style=redButtonStyle),
-                                                          unique(c(saved_value, DATE.FORMAT)),
-                                                          selected = saved_value),
-                                              selectInput(ns( paste0(colname,"_hour") ),
-                                                          "Existing hour format",
-                                                          HOUR.FORMAT )
-               ),
-               missingValueCode = textInput(ns(colname),
-                                            "Code for missing value",
-                                            value = saved_value),
-               missingValueCodeExplanation = textAreaInput(ns(colname),
-                                                           "Explain Missing Values",
-                                                           value = saved_value)
-        ) # end of switch
-      }) # end of lapply colname
+          # prepare var
+          saved_value <- rv$attributesTable[rv$current_attribute, colname]
+          if(grepl("date", colname)) saved_value <- gsub("^(.*) .*$","\\1", saved_value)
+  
+          # UI
+          switch(colname,
+                 attributeDefinition = textAreaInput(ns(colname), value = saved_value,
+                                                     "Describe the attribute concisely"),
+                 class = HTML(paste("<b>Detected class:</b>", as.vector(saved_value) ) ),
+                 unit = selectInput(ns(colname),
+                                    span("Existing unit", class="redButton"),
+                                    unique(c(saved_value, globals$FORMAT$UNIT)),
+                                    selected = saved_value
+                 ),
+                 dateTimeFormatString = tagList(selectInput(ns( paste0(colname,"_date") ),
+                                                            span("Existing date format",
+                                                                 class="redButton"),
+                                                            unique(c(saved_value, globals$FORMAT$DATE)),
+                                                            selected = saved_value),
+                                                selectInput(ns( paste0(colname,"_hour") ),
+                                                            "Existing hour format",
+                                                            globals$FORMAT$HOUR )
+                 ),
+                 missingValueCode = textInput(ns(colname),
+                                              "Code for missing value",
+                                              value = saved_value),
+                 missingValueCodeExplanation = textAreaInput(ns(colname),
+                                                             "Explain Missing Values",
+                                                             value = saved_value)
+          ) # end of switch
+        }) # end of lapply colname
     ) # end of tagList
   }) # end of UI
 
@@ -329,7 +333,7 @@ templateDP <- function(input, output, session, savevar, globals){
             if(is.list(enter))
               enter <- unlist(enter)
             if(!isTruthy(enter)){
-              message("Input [",rvName,"] is invalid: unchanged")
+              # message("Input [",rvName,"] is invalid: unchanged")
               enter <- ifelse(isTruthy(unlist(rv$attributesTable[rv$current_attribute,rvName])),
                               unlist(rv$attributesTable[rv$current_attribute,rvName]),
                               ""
@@ -368,7 +372,6 @@ templateDP <- function(input, output, session, savevar, globals){
   # check for completeness
   observe({
     cpltTrigger$depend()
-    req(!is.null(rv$completed))
     rv$completed <- (
       isTruthy(rv$attributesTable$attributeName)
       && all(sapply(rv$attributesTable$attributeName, isTruthy))
@@ -376,11 +379,16 @@ templateDP <- function(input, output, session, savevar, globals){
       && !any(grepl("!Add.*here!",rv$attributesTable$unit))
       && !any(grepl("!Add.*here!",rv$attributesTable$dateTimeFormatString))
     )
+  })
+  observeEvent(rv$completed,{
+    validate(
+      need(!is.null(rv$completed), "rv$completed not defined")
+    )
     if(rv$completed){
-      shinyjs::enable(ns("nextTab"))
+      shinyjs::enable("nav-nextTab")
     }
     else{
-      shinyjs::disable(ns("nextTab"))
+      shinyjs::disable("nav-nextTab")
     }
   })
 
