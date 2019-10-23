@@ -39,6 +39,7 @@
       ), # end sidebar
       ## Content ----
       dashboardBody(
+        tags$script(HTML("$('body').addClass('fixed');")),
         tabItems(
           tabItem(tabName = "welcome",
                   welcomeUI("welcome")),
