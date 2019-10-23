@@ -4,7 +4,7 @@
 fillUI <- function(id){
   ns <- NS(id)
   # submodules sourcing
-  source("R/modules/fill/EMLAL/EMLAL.R")
+  # source("R/modules/fill/EMLAL/EMLAL.R")
   
   # h1("Under construction.")
   tabsetPanel(id = ns("tabs"),

@@ -3,15 +3,15 @@ about <- function(input, output, session, IM, bibliography){
   ns <- session$ns
   
   library("RefManageR")
-  source("R/modules/about/about_functions.R")
+  # source("R/modules/about/about_functions.R")
   
   # Bibliography - approximatively the same as 2019 master memoir
   bibliography <- list()
-  bibliography$actors <- ReadBib("R/modules/about/actors.bib")
+  bibliography$actors <- ReadBib("R/mod-about-actors.bib")
   message("* Actors bibliography successfully loaded !")
-  bibliography$informatics <- ReadBib("R/modules/about/informatics.bib")
+  bibliography$informatics <- ReadBib("R/mod-about-informatics.bib")
   message("* Informatics bibliography successfully loaded !")
-  bibliography$ecology <- ReadBib("R/modules/about/ecology.bib")
+  bibliography$ecology <- ReadBib("R/mod-about-ecology.bib")
   message("* Ecology bibliography successfully loaded !")
   
   # use function
