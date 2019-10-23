@@ -1,6 +1,5 @@
 #' @import shiny
-#' @import EML EMLassemblyline
-#' @importFrom data.table fread
+#' @importFrom golem get_golem_options
 .app_server <- function(input, output,session) {
   dev = get_golem_options(which = 'dev')
   if(!is.logical(dev) || is.null(dev)) dev = FALSE
