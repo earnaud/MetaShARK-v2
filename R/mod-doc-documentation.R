@@ -58,16 +58,18 @@ docUI <- function(id){
 }
 
 ### SERVER ###
+#' import shinyTree
 documentation <- function(input, output, session){
   ns <- session$ns
   
   require(shinyTree)
   
   # prepare variables
-  systemGuideline <- readRDS("resources/systemGuideline.RData")
-  tree <- readRDS("resources/docGuideline.RData")
-  ns.index <- readRDS("resources/nsIndex.RData")
+  # systemGuideline <- readRDS("resources/systemGuideline.RData")
+  # tree <- readRDS("resources/docGuideline.RData")
+  # ns.index <- readRDS("resources/nsIndex.RData")
   
+
   # external links
   observeEvent(input$`visit-module`, {
     url <- paste0("https://nceas.github.io/eml/schema/",
