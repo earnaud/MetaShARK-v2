@@ -3,9 +3,9 @@
 # Derived Id Modules from IM.EMLAL by pasting the step number (https://ediorg.github.io/EMLassemblyline/articles/overview.html)
 
 ### UI ###
-EMLALUI <- function(id){
+EMLALUI <- function(id, dev = FALSE){
   ns <- NS(id)
-  
+
   fluidPage(
     style="padding-top:2.5%;",
     box(width = 4,
@@ -14,7 +14,7 @@ EMLALUI <- function(id){
           "<p>The `EML Assembly Line` package used in this module
           and its children is the intellectual property of the
           Environment Data Initiative (EDI). You can find further
-          details on their 
+          details on their
           <a href=https://github.com/EDIorg/EMLassemblyline>git repository</a>.
           </p>"
         ),
@@ -28,15 +28,15 @@ EMLALUI <- function(id){
         title = "How to use",
         HTML(
           "<p><b>EMLassemblyline</b> is a metadata builder for scientists
-      and data managers who need to easily create high quality 
-      <b>EML</b> metadata for data publication. It emphasizes 
-      auto-extraction of metadata, appends value added content, 
-      and accepts user supplied inputs through template files 
+      and data managers who need to easily create high quality
+      <b>EML</b> metadata for data publication. It emphasizes
+      auto-extraction of metadata, appends value added content,
+      and accepts user supplied inputs through template files
       thereby minimizing user effort while maximizing the potential
-      of future data discovery and reuse. EMLassemblyline requires 
-      no familiarity with EML, is great for managing 10-100s of 
+      of future data discovery and reuse. EMLassemblyline requires
+      no familiarity with EML, is great for managing 10-100s of
       data packages, accepts all data formats, and supports complex
-      and fully reproducible science workflows. Furthermore, it 
+      and fully reproducible science workflows. Furthermore, it
       incorporates <a href=\"https://environmentaldatainitiative.files.wordpress.com/2017/11/emlbestpractices-v3.pdf\">EML best practices</a>,
       is based on a simple file organization scheme, and is not tied to a specific data repository.</p>
       <i>(preface by Colin Smith, EDI)</i>"
@@ -48,25 +48,25 @@ EMLALUI <- function(id){
       uiOutput(ns("currentUI"))
     ) # end variable UI
   ) # end fluidPage
-  
+
 }
 
 ### SERVER ###
 EMLAL <- function(input, output, session,
                   savevar, globals){
   ns <- session$ns
-  
+
   # variable initialization ----
   # submodules sourcing
   # source("R/modules/fill/EMLAL/EMLAL_selectDP.R")
   # source("R/modules/fill/EMLAL/EMLAL_DPfiles.R")
   # source("R/modules/fill/EMLAL/EMLAL_templateDP.R")
   # source("R/modules/fill/EMLAL/EMLAL_functions.R")
-  
+
   # names of EMLAL steps
   steps = paste0(c("select","files","template","customUnits",
                    "catvars", "edit","make","publish"), "-tab")
-  
+
   iteration = 0 # varying namespace
   # Output ----
   observeEvent(globals$EMLAL$NAVIGATE, {
@@ -75,11 +75,14 @@ EMLAL <- function(input, output, session,
     output$currentUI <- renderUI({
       switch(globals$EMLAL$NAVIGATE,
              selectDPUI(id = ns(iteration),
-                        title = steps[globals$EMLAL$NAVIGATE]),
+                        title = steps[globals$EMLAL$NAVIGATE],
+                        dev = globals$dev),
              DPfilesUI(id = ns(iteration),
-                       title = steps[globals$EMLAL$NAVIGATE]),
+                       title = steps[globals$EMLAL$NAVIGATE],
+                       dev = globals$dev),
              templateDPUI(id = ns(iteration),
-                          title = steps[globals$EMLAL$NAVIGATE])
+                          title = steps[globals$EMLAL$NAVIGATE],
+                          dev = globals$dev)
              # `4` = customUnitsUI(id =  ns(iteration),
              #                     title = steps[globals$EMLAL$NAVIGATE]),
              # `5` = catvarsUI(id = ns(iteration),
