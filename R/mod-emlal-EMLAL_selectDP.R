@@ -1,7 +1,6 @@
 # EMLAL_functions.R
 
 ### UI ###
-#' @import tippy
 selectDPUI <- function(id, title, width=12, dev = FALSE){
   ns <- NS(id)
 
@@ -10,20 +9,19 @@ selectDPUI <- function(id, title, width=12, dev = FALSE){
     fluidPage(
       title = "Organize data packages",
       # Data package location
-      with_tippy(
-        fluidRow(
-          column(4,
-                 shinyDirButton(ns("dp_location"),"Choose directory",
-                                "DP save location", icon = icon("folder-open")
-                 )
-          ),
-          column(8,
-                 textOutput(ns("dp_location")),
-                 style = "text-align: right;"
-          ),
-          class = "inputBox"
+      fluidRow(
+        column(4,
+               shinyDirButton(ns("dp_location"),"Choose directory",
+                              "DP save location", icon = icon("folder-open")
+               )
         ),
-        "This is the location where your data packages will be
+        column(8,
+               textOutput(ns("dp_location")),
+               style = "text-align: right;"
+        ),
+        class = "inputBox"
+      ),
+      p("This is the location where your data packages will be
         saved. A folder will be created, respectively named
         after your input."
       ),
@@ -47,17 +45,16 @@ selectDPUI <- function(id, title, width=12, dev = FALSE){
                textInput(ns("dp_name"), "Data package name",
                          placeholder = paste0(Sys.Date(),"_project")),
                # textOutput(ns("warning_dp_name")),
-               with_tippy(
-                 div(id = "license-help",
-                     selectInput(ns("license"),
-                                 "Select an Intellectual Rights License:",
-                                 c("CCBY","CC0"),
-                                 multiple = FALSE)
-                 ),
-                 HTML("License: <br>
+               div(id = "license-help",
+                   selectInput(ns("license"),
+                               "Select an Intellectual Rights License:",
+                               c("CCBY","CC0"),
+                               multiple = FALSE)
+               ),
+               HTML("License: <br>
                       <b>CC0:</b> public domain. <br>
                       <b>CC-BY-4.0:</b> open source with authorship. <br>
-                      For more details, visit Creative Commons.")
+                      For more details, visit Creative Commons."
                ),
                # DP creation
                uiOutput(ns("dp_create"))
