@@ -3,6 +3,7 @@
 # Derived Id Modules from IM.EMLAL by pasting the step number (https://ediorg.github.io/EMLassemblyline/articles/overview.html)
 
 ### UI ###
+#' @import EML EMLassemblyline
 EMLALUI <- function(id, dev = FALSE){
   ns <- NS(id)
 
@@ -52,6 +53,7 @@ EMLALUI <- function(id, dev = FALSE){
 }
 
 ### SERVER ###
+#' @importFrom data.table fread
 EMLAL <- function(input, output, session,
                   savevar, globals){
   ns <- session$ns
