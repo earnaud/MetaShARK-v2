@@ -1,6 +1,7 @@
 # EMLAL_functions.R
 
 ### UI ###
+#' @import tippy
 selectDPUI <- function(id, title, width=12, dev = FALSE){
   ns <- NS(id)
 
