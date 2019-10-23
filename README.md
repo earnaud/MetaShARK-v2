@@ -10,7 +10,13 @@ This project has the ambition to offer the user a user-friendly alternative to e
 **Any suggestion is welcome, feel free to contact the dev !**
 
 ## Running MetaShARK
-You can launch the app through the 'main.R' script (shinyApp/main.R). The supported features and expected behaviors are described below.
+You can launch the app through
+```
+library(devtools)
+install_github("earnaud/MetaShARK-v2")
+```
+
+The supported features and expected behaviors are described below.
 
 ### Required libraries
 
