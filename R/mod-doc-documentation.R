@@ -5,7 +5,7 @@ docUI <- function(id){
   ns <- NS(id)
   
   # var initialization
-  docGuideline <- readRDS("resources/docGuideline.RData")
+  docGuideline <- tree
   moduleNames <- sub("^[0-9]+_(.*)$","\\1",names(docGuideline))
   # avoid 404
   moduleNames <- moduleNames[moduleNames != "eml-unit Type Definitions"]
