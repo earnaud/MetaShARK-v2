@@ -1,10 +1,12 @@
 #' @import shiny shinyjs shinydashboard shinyTree shinyFiles
 #' @import RefManageR tippy
 .app_ui <- function() {
-  
+
   # prepare variable
   menuWidth = "250px"
-  
+  dev = get_golem_options(which = 'dev')
+  if(!is.logical(dev) || is.null(dev)) dev = FALSE
+
   # action
   tagList(
     # Leave this function for adding external resources
@@ -22,7 +24,7 @@
       dashboardSidebar(
         useShinyjs(),
         sidebarMenu(id = "side_menu",
-          menuItem("Welcome", tabName = "welcome", 
+          menuItem("Welcome", tabName = "welcome",
                    icon = icon("home")),
           menuItem("Fill in EML", tabName = "fill",
                    icon = icon("file-import")),
@@ -31,7 +33,7 @@
           menuItem("About MetaShARK", tabName = "about",
                    icon = icon("beer"))
         ),
-        actionButton("check","Dev Check"),
+        if(dev) actionButton("check","Dev Check"),
         width = menuWidth
       ), # end sidebar
       ## Content ----
@@ -40,16 +42,16 @@
           tabItem(tabName = "welcome",
                   welcomeUI("welcome")),
           tabItem(tabName = "fill",
-                  fillUI("fill")),
+                  fillUI("fill", dev)),
           tabItem(tabName = "documentation",
                   docUI("documentation")),
           tabItem(tabName = "about",
                   aboutUI("about"))
         )
       ) # end body
-      
+
     ) # end dashboard
-    
+
   ) # end taglist
 
 }

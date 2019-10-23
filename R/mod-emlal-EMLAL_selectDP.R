@@ -1,9 +1,9 @@
 # EMLAL_functions.R
 
 ### UI ###
-selectDPUI <- function(id, title, width=12){
+selectDPUI <- function(id, title, width=12, dev = FALSE){
   ns <- NS(id)
-  
+
   # UI output
   return(
     fluidPage(
@@ -23,7 +23,7 @@ selectDPUI <- function(id, title, width=12){
           class = "inputBox"
         ),
         "This is the location where your data packages will be
-        saved. A folder will be created, respectively named 
+        saved. A folder will be created, respectively named
         after your input."
       ),
       fluidRow(
@@ -41,7 +41,7 @@ selectDPUI <- function(id, title, width=12){
         column(floor(width/2),
                h4("Create new data package",
                   style="text-align:center"),
-               
+
                # Data package title
                textInput(ns("dp_name"), "Data package name",
                          placeholder = paste0(Sys.Date(),"_project")),
@@ -62,13 +62,13 @@ selectDPUI <- function(id, title, width=12){
                uiOutput(ns("dp_create"))
                # actionButton(ns("dp_create"),"Create")
         ) # end column2
-        
+
       ) # end fluidRow
-      
+
     ) # end fluidPage
-    
+
   ) # end return
-  
+
 }
 
 selectDP <- function(input, output, session,
@@ -76,7 +76,7 @@ selectDP <- function(input, output, session,
   # variable initialization ----
   ns <- session$ns
   DP.path <- globals$DEFAULT.PATH
-  
+
   # local values - to save will communicate with other modules
   rv <- reactiveValues(
     # to save
@@ -92,33 +92,33 @@ selectDP <- function(input, output, session,
     browser()
   })
   volumes <- c(Home = globals$HOME, base = getVolumes()())
-  
+
   # DP location ----
   # chose DP location
   shinyDirChoose(input, ns("dp_location"),
                  roots = volumes,
                  # defaultRoot = HOME,
                  session = session)
-  # update reactive value  
+  # update reactive value
   observeEvent(input$dp_location, {
     # validity checks
     req(input$dp_location)
-    
+
     # variable initialization
     save <- rv$dp_location
-    
+
     # actions
     # rv$dp_location <- input$dp_location
     rv$dp_location <- parseDirPath(volumes, input$dp_location)
     if(is.na(rv$dp_location))
       rv$dp_location <- save
   })
-  
+
   # Render selected DP location
   output$dp_location <- renderText({
     rv$dp_location
   })
-  
+
   # DP load ----
   # reset input if user comes back on this screen
   # fetch list of DP at selected location
@@ -127,7 +127,7 @@ selectDP <- function(input, output, session,
     if(length(dpList) != 0) rv$dp_list <- sub("_emldp","",dpList)
     else rv$dp_list <- NULL
   })
-  
+
   # Render list of DP at selected location
   output$dp_list <- renderUI({
     # req(rv$dp_list)
@@ -151,7 +151,7 @@ selectDP <- function(input, output, session,
     #   "No EML data package was found at this location."
     # }
   })
-  
+
   # toggle Load and Delete buttons
   observeEvent(input$dp_list, {
     if(input$dp_list != ""){
@@ -162,8 +162,8 @@ selectDP <- function(input, output, session,
       disable("dp_load")
       disable("dp_delete")
     }
-  })  
-  
+  })
+
   # DP create ----
   # check name input
   rv$dp_name = ""
@@ -173,7 +173,7 @@ selectDP <- function(input, output, session,
     validate(
       need(nchar(input$dp_name) > 3,
            "Please type a name with at least 3 characters."),
-      need(grepl("^[[:alnum:]_-]+$",input$dp_name) 
+      need(grepl("^[[:alnum:]_-]+$",input$dp_name)
            && nzchar(input$dp_name),
            "Only authorized characters are alphanumeric, '_' (underscore) and '-' (hyphen)."),
       need(input$dp_name != ""
@@ -183,9 +183,9 @@ selectDP <- function(input, output, session,
     rv$valid_name <- TRUE
     return(actionButton(ns("dp_create"),"Create"))
   })
-  
-  
-  
+
+
+
   # name input
 #   rv$valid_name <- TRUE
 #   observeEvent({
@@ -204,7 +204,7 @@ selectDP <- function(input, output, session,
 #         rv$valid_name <- TRUE
 #         NULL},
 #       # check for valid characters name
-#       if(!grepl("^[[:alnum:]_-]+$",input$dp_name) 
+#       if(!grepl("^[[:alnum:]_-]+$",input$dp_name)
 #          && nzchar(input$dp_name)){
 #         rv$valid_name <- FALSE
 #         "Only authorized characters are alphanumeric, '_' (underscore) and '-' (hyphen)."}
@@ -212,7 +212,7 @@ selectDP <- function(input, output, session,
 #         rv$valid_name <- TRUE
 #         NULL},
 #       # check for double name
-#       if(!is.null(rv$dp_list) 
+#       if(!is.null(rv$dp_list)
 #          && input$dp_name %in% rv$dp_list
 #          && input$dp_name != ""){
 #         rv$valid_name <- FALSE
@@ -221,9 +221,9 @@ selectDP <- function(input, output, session,
 #         rv$valid_name <- TRUE
 #         NULL}
 #     )
-#     
+#
 #   })
-#   
+#
 #   # warnings for input name - toggle Create button
 #   output$warning_dp_name <- renderText({
 #     if(rv$valid_name){
@@ -236,37 +236,37 @@ selectDP <- function(input, output, session,
 #       return(paste(rv$warning_dp_name, collapse = "\n"))
 #     }
 #   })
-#   
-  
+#
+
   # license choice
   rv$dp_license <- reactive({ input$license })
-  
+
   # DP management - on clicks----
-  
+
   # Create DP
   observeEvent(input$dp_create, {
     req(input$dp_name)
     req(rv$valid_name)
-    
+
     # variable operation - legibility purpose
     dp <- input$dp_name
     path <- paste0(rv$dp_location,dp,"_emldp")
     license <- rv$dp_license()
-    
+
     # save in empty dedicated variable
     savevar$emlal <- initReactive("emlal", savevar)
     savevar$emlal$selectDP$dp_name <- dp
     savevar$emlal$selectDP$dp_path <- path
-    
+
     # verbose
     message("Creating:",path,"\n", sep = "")
-    
+
     # actions
     rv$dp_list <- c(rv$dp_list,dp)
-    
+
     globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE+1
     globals$EMLAL$PREVIOUS <- "create"
-    
+
     dir.create(path)
     saveReactive(savevar, path, dp) # initial "commit"
     template_directories(
@@ -278,18 +278,18 @@ selectDP <- function(input, output, session,
       license
     )
   })
-  
+
   # Load DP
   observeEvent(input$dp_load, {
     req(input$dp_list)
-    
+
     # variable operation - legibility purpose
     dp <- input$dp_list
     path <- paste0(rv$dp_location,dp,"_emldp")
-    
+
     # verbose
     message("Loading:",path,"\n", sep = "") # to replace by loading DP
-    
+
     # actions
     savevar$emlal <- initReactive("emlal", savevar)
     savevar$emlal <- readRDS(paste0(path,"/",dp,".rds"))$emlal
@@ -298,14 +298,14 @@ selectDP <- function(input, output, session,
                                      globals$EMLAL$NAVIGATE+1)
     globals$EMLAL$PREVIOUS <- "load"
   })
-  
+
   # Delete DP
   observeEvent(input$dp_delete, {
     req(input$dp_list)
-    
+
     # variable operation - legibility purpose
     dp <- input$dp_list
-    
+
     # actions
     showModal(
       modalDialog(
@@ -321,22 +321,22 @@ selectDP <- function(input, output, session,
       ) # end modalDialog
     ) # end showModal
   })
-  
+
   # If deletion is confirmed
   observeEvent(input$delete_confirm,{
     # variable operation - legibility purpose
     dp <- input$dp_list
     path <- paste0(rv$dp_location,dp,"_emldp")
-    
+
     # verbose
     message("Deleting:",path,"\n", sep = "") # to replace by deleting DP
-    
+
     # actions
     unlink(path, recursive = TRUE)
     rv$dp_list <- rv$dp_list[rv$dp_list != dp]
     removeModal()
   })
-  
+
   # Output ----
   return(savevar)
 }
