@@ -1,5 +1,5 @@
 #' @import shiny shinyjs shinydashboard shinyTree shinyFiles
-#' @import RefManageR tippy
+#' @import RefManageR
 #' @importFrom golem get_golem_options
 .app_ui <- function() {
 
