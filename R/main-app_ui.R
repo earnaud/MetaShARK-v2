@@ -5,7 +5,7 @@
 
   # prepare variable
   menuWidth = "250px"
-  dev = get_golem_options(which = 'dev')
+  dev = golem::get_golem_options(which = 'dev')
   if(!is.logical(dev) || is.null(dev)) dev = FALSE
 
   # action
