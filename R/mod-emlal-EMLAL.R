@@ -58,10 +58,10 @@ EMLAL <- function(input, output, session,
   
   # variable initialization ----
   # submodules sourcing
-  source("R/modules/fill/EMLAL/EMLAL_selectDP.R")
-  source("R/modules/fill/EMLAL/EMLAL_DPfiles.R")
-  source("R/modules/fill/EMLAL/EMLAL_templateDP.R")
-  source("R/modules/fill/EMLAL/EMLAL_functions.R")
+  # source("R/modules/fill/EMLAL/EMLAL_selectDP.R")
+  # source("R/modules/fill/EMLAL/EMLAL_DPfiles.R")
+  # source("R/modules/fill/EMLAL/EMLAL_templateDP.R")
+  # source("R/modules/fill/EMLAL/EMLAL_functions.R")
   
   # names of EMLAL steps
   steps = paste0(c("select","files","template","customUnits",

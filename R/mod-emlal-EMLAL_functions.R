@@ -1,4 +1,4 @@
-# EMLAL.R
+# EMLAL_functions.R
 
 ## Navigation UI ----
 

@@ -4,7 +4,7 @@
   rm(list = ls())
   options(shiny.reactlog=TRUE)
   
-  .sourceModules()
+  # .sourceModules() # not needed anymore: all files are in the R/ directory
 }
 
 #' @import EML
@@ -50,17 +50,17 @@
   return(globals)
 }
 
-.sourceModules <- function(){
-  source("R/utils/reactiveTrigger.R")
-  # welcome module
-  source("R/modules/welcome/welcomeUI.R")
-  #fill
-  source("R/modules/fill/fill.R")
-  source("R/modules/fill/fill_functions.R")
-  # documentation module
-  source("R/modules/documentation/documentation.R")
-  source("R/modules/documentation/documentation_functions.R")
-  # about module
-  source("R/modules/about/about.R")
-  source("R/modules/about/aboutUI.R")
-}
+# .sourceModules <- function(){
+#   source("R/utils/reactiveTrigger.R")
+#   # welcome module
+#   source("R/modules/welcome/welcomeUI.R")
+#   #fill
+#   source("R/modules/fill/fill.R")
+#   source("R/modules/fill/fill_functions.R")
+#   # documentation module
+#   source("R/modules/documentation/documentation.R")
+#   source("R/modules/documentation/documentation_functions.R")
+#   # about module
+#   source("R/modules/about/about.R")
+#   source("R/modules/about/aboutUI.R")
+# }
