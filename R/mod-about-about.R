@@ -1,8 +1,8 @@
 #' @import RefManageR
-about <- function(input, output, session, IM, bibliography){
+about <- function(input, output, session, IM){
   ns <- session$ns
   
-  library("RefManageR")
+  # library("RefManageR")
   # source("R/modules/about/about_functions.R")
   
   # Bibliography - approximatively the same as 2019 master memoir

@@ -6,11 +6,17 @@
 \usage{
 runMetashark(...)
 }
+\arguments{
+\item{...}{options to pass to the application, ignored if missing or mistyped.
+\enumerate{
+  \item{dev}{logical. Shall the Dev buttons appear?}
+}}
+}
 \description{
 Main function for launching the MetaShARK application.
-MetaShARK (METAdata SHiny Automated Resource & Knowledge) is a web app 
+MetaShARK (METAdata SHiny Automated Resource & Knowledge) is a web app
 which is designed to help its user as much as possible for filling ecological
-metadata. It uses the EML standard (cf. NCEAS work) to allow a full and 
+metadata. It uses the EML standard (cf. NCEAS work) to allow a full and
 precise description of input datasets.
 }
 \examples{
