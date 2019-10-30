@@ -143,13 +143,13 @@ DPfiles <- function(input, output, session, savevar, globals){
     # actions
     if(!identical(rv$data_files, data.frame()) &&
        !is.null(rv$data_files)){
-      enable("nextTab")
+      enable("nav-nextTab")
       checkboxGroupInput(ns("select_data_files"),
                          "Select files to delete (all files here will be kept otherwise)",
                          choices = rv$data_files$name)
     }
     else{
-      disable("nextTab")
+      disable("nav-nextTab")
       return(NULL)
     }
   })

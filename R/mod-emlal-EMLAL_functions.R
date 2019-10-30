@@ -32,18 +32,19 @@ prevTabButton <- function(id){
 
 # navigation sidebar
 navSidebar <- function(id, class = "navSidebar", 
-                       .prev = TRUE, .next = TRUE, ...){
+                       .prev = TRUE, .next = TRUE, 
+                       ...){
   ns <- NS(id)
 
   # variable initialization
-  nexBut <- if(.next) nextTabButton(id) else HTML(NULL)
   preBut <- if(.prev) prevTabButton(id) else HTML(NULL)
+  nexBut <- if(.next) nextTabButton(id) else HTML(NULL)
   arguments <- list(...)
   div(h4("Navigation"),
       quitButton(id),
       saveButton(id),
-      nexBut,
       preBut,
+      nexBut,
       arguments,
       class = class
   )
@@ -72,7 +73,7 @@ onQuit <- function(input, output, session,
   observeEvent(input$quit,{
     req(input$quit)
     showModal(quitModal)
-  })
+  }, priority = -1)
   
   # calls saveRDS method and quits
   observeEvent(input$save_quit_button,{
@@ -98,7 +99,7 @@ onSave <- function(input, output, session,
   
   observeEvent(input$save,{
     saveReactive(toSave, path, filename)
-  })
+  }, priority = -1)
 }
 
 # set the globals navigation ..
@@ -117,7 +118,7 @@ prevTab <- function(input,output,session,
   observeEvent(input$prevTab,{
     globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE-1
     globals$EMLAL$PREVIOUS <- previous
-  })
+  }, priority = -1)
 }
 
 # Files management ----
@@ -153,16 +154,9 @@ createDPFolder <- function(DP.location, DP.name, data.location){
 # very local function
 saveInput <- function(RV){
   # save attributes
-  RV$attributesTable[
-    RV$current_attribute,
-    ] <- printReactiveValues(RV$attributes)[
-      names(RV$attributesTable)
-      ]
-  
-  # (re)set local save reactive value with NULL values
-  sapply(colnames(RV$attributesTable), function(nn){
-    RV$attributes[[nn]] <- NULL
-  })
+  RV$attributesTable[RV$current_attribute,] <- printReactiveValues(
+    RV$attributes
+  )[names(RV$attributesTable)]
   
   return(RV)
 }
@@ -170,35 +164,6 @@ saveInput <- function(RV){
 # build a unique id from file, attribute and colname - attribute_tables
 buildInputID <- function(filename, attribute, colname){
   paste(filename, attribute, colname, sep = "_")
-}
-
-# customUnits server
-customUnits <- function(input, output, session,
-                        savevar){
-  ns <- session$ns
-  if(is.null(savevar$emlal$templateDP$customUnitsTable))
-    savevar$emlal$templateDP$customUnitsTable <- fread(paste(savevar$emlal$selectDP$dp_path,
-                                                             savevar$emlal$selectDP$dp_name,
-                                                             "metadata_templates",
-                                                             "custom_units.txt",
-                                                             sep = "/")
-    )
-  # end of fread
-  customUnitsTable <- savevar$emlal$templateDP$customUnitsTable
-  # Custome Units Reactive Values
-  curv <- reactiveValues()
-  
-  lapply(colnames(customUnitsTable),
-         function(field){
-           id <- ns(paste0("custom_",field))
-           cat("Observe:",id,"\n")
-           curv[[id]] <- reactive({ input[[id]] })
-         })
-  
-  # output
-  cat("Output:",names(curv),"\n")
-  
-  return(curv)
 }
 
 # Misc ----
@@ -219,34 +184,7 @@ printReactiveValues <- function(values){
   )
 }
 
-
-# # custom units inputs of EAL templates
-# customUnitsUI <- function(input_id, customUnitsTable){
-#   ns <- NS(input_id)
-#   tagList(
-#     column(1),
-#     column(11,
-#            lapply(c("id","unitType","parentSI","multiplierToSI","description"),
-#                   function(field){
-#                     id <- ns(paste0("custom_",field))
-#                     cat("Enter:",id,"\n")
-#                     switch(field,
-#                            id = textInput(id,
-#                                           span("Type an ID for your custom unit", class = "redButton"),
-#                                           placeholder = "e.g.  gramsPerSquaredMeterPerCentimeter "),
-#                            unitType = textInput(id,
-#                                                 span("Type the scientific dimension using this unit in your dataset", class = "redButton"),
-#                                                 placeholder = "e.g. mass, areal mass density per length"),
-#                            parentSI = selectInput(id,
-#                                                   span("Select the parent SI from which your unit is derivated",class = "redButton"),
-#                                                   unique(get_unitList()$units$parentSI)),
-#                            multiplierToSI = numericInput(id,
-#                                                          span("Type the appropriate numeric to multiply a value by to perform conversion to SI",class = "redButton"),
-#                                                          value = 1),
-#                            description = textAreaInput(id,
-#                                                        "Describe your custom unit")
-#                     )
-#                   }), # end of lapply
-#     )
-#   ) # end of taglist
-# }
+passcat <- function(i){
+  i <<- i+1
+  cat(i,"\n")
+}
