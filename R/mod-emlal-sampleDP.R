@@ -1,45 +1,53 @@
 # sample.R
 
-## 3. Create DP template
-sampleDPUI <- function(id, title, IM){
+## 0. Sample template
+sampleUI <- function(id, title, dev){
   ns <- NS(id)
   
-  column(2,
-         h4("Navigation"),
-         quitButton(ns(id), style = rightButtonStyle),
-         saveButton(ns(id), style = rightButtonStyle),
-         actionButton(ns("nextTab"),"Next",
-                      icon = icon("arrow-right"),
-                      style = rightButtonStyle),
-         actionButton(ns("prevTab"),"Previous",
-                      icon = icon("arrow-left"),
-                      style = rightButtonStyle),
-         style = "text-align: center; padding: 0;"
-  )
+  return(
+    fluidPage(
+      # Features UI ----
+      column(10,
+             fluidRow(
+               title
+             )
+      ), # end of column1
+      # Navigation UI ----
+      column(2,
+             navSidebar(ns("nav"),
+                        ... = tagList(
+                          if(dev) actionButton(ns("check"),"Dev Check")
+                        )
+             )
+      ) # end of column2
+    ) # end of fluidPage
+  ) # end of return
 }
 
-sampleDP <- function(input, output, session, IM, savevar, globalRV){
+sample <- function(input, output, session, savevar, globals){
   ns <- session$ns
   
+  if(globals$dev){
+    observeEvent(input$check,{
+      browser()
+    })
+  }
+  
   # Navigation buttons ----
-  callModule(onQuit, IM.EMLAL[5],
+  callModule(onQuit, "nav",
              # additional arguments
-             globalRV, savevar,
-             savevar$emlal$selectDP$dp_path, 
+             globals, savevar,
+             savevar$emlal$selectDP$dp_path,
              savevar$emlal$selectDP$dp_name)
-  callModule(onSave, IM.EMLAL[5],
+  callModule(onSave, "nav",
              # additional arguments
-             savevar$emlal, 
-             savevar$emlal$selectDP$dp_path, 
+             savevar,
+             savevar$emlal$selectDP$dp_path,
              savevar$emlal$selectDP$dp_name)
-  observeEvent(input$nextTab, {
-    globalRV$navigate <- globalRV$navigate+1
-    globalRV$previous <- "template"
-  })
-  observeEvent(input$prevTab, {
-    globalRV$navigate <- globalRV$navigate-1
-    globalRV$previous <- "template"
-  })
+  callModule(nextTab, "nav",
+             globals, "sample")
+  callModule(prevTab, "nav",
+             globals, "sample")
   
   # Output ----
   return(savevar)

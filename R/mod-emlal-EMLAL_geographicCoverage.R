@@ -1,7 +1,7 @@
-# sample.R
+# geographicCoverage.R
 
 ## 0. Sample template
-catvarsUI <- function(id, title, dev){
+geocovUI <- function(id, title, dev){
   ns <- NS(id)
   
   return(
@@ -24,7 +24,7 @@ catvarsUI <- function(id, title, dev){
   ) # end of return
 }
 
-catvars <- function(input, output, session, savevar, globals){
+geocov <- function(input, output, session, savevar, globals){
   ns <- session$ns
   
   if(globals$dev){
@@ -45,9 +45,9 @@ catvars <- function(input, output, session, savevar, globals){
              savevar$emlal$selectDP$dp_path,
              savevar$emlal$selectDP$dp_name)
   callModule(nextTab, "nav",
-             globals, "catvars")
+             globals, "geocov")
   callModule(prevTab, "nav",
-             globals, "catvars")
+             globals, "geocov")
   
   # Output ----
   return(savevar)
