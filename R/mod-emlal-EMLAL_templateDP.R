@@ -55,8 +55,8 @@ templateDPUI <- function(id, title, dev){
       column(2,
              navSidebar(ns("nav"),
                         ... = tagList(
-                          if(dev) actionButton(ns("check2"),"Dev Check"),
-                          if(dev) actionButton(ns("check3"),"Fill")
+                          if(dev) actionButton(ns("check"),"Dev Check"),
+                          if(dev) actionButton(ns("fill"),"Fill")
                         )
              )
       ) # end column 2
@@ -65,20 +65,29 @@ templateDPUI <- function(id, title, dev){
 
 }
 
+#' @importFrom data.table fwrite
 templateDP <- function(input, output, session, savevar, globals){
   ns <- session$ns
-
+  
   if(globals$dev){
-    observeEvent(input$check2,{
+    observeEvent(input$check,{
       browser()
     })
 
     # fill the attribute fields with "a" to enable 'nextTab' button
-    observeEvent(input$check3,{
-      req(rv$current_file)
-      sapply(names(rv$attributesTable), function(nn){
-        rv$attributesTable[,nn] <- rep("a",
-                                       dim(rv$attributesTable)[1])
+    observeEvent(input$fill,{
+      req(rv$files_names)
+      nns <- names(rv$attributesTable)
+      nns <- nns[grepl("unit|date",nns)]
+      sapply(nns, function(nn){
+        if(grepl("date",nn)){
+          rv$attributesTable[,nn] <- gsub("^.+$",globals$FORMAT$DATE[1],
+                                          rv$attributesTable[,nn])
+        }
+        if(grepl("unit",nn)){
+          rv$attributesTable[,nn] <- gsub("^.+$",globals$FORMAT$UNIT[10], # not custom
+                                          rv$attributesTable[,nn])
+        }
       })
       savevar$emlal$templateDP[[rv$current_file]] <- rv$attributesTable
     })
@@ -101,24 +110,32 @@ templateDP <- function(input, output, session, savevar, globals){
   })
   observeEvent(rv$files_names, {
     req(rv$files_names)
+    sapply(rv$files_names, function(fn){
+      # not saved yet in savevar
+      if(is.null(savevar$emlal$templateDP[[fn]])){
+        toRead <- savevar$emlal$DPfiles$dp_data_files
+        toRead <- toRead$metadatapath[
+          match(fn, toRead$name)
+          ]
+        savevar$emlal$templateDP[[fn]] <- fread(toRead, data.table = FALSE,
+                                                stringsAsFactors = FALSE,
+                                                na.strings = NULL)
+        savevar$emlal$templateDP[[fn]][is.na(savevar$emlal$templateDP[[fn]])] <- ""
+      }
+      # yet saved in savevar
+      else{
+        
+      }
+    })
     rv$current_file <- rv$files_names[1]
   })
 
   # on file change
   observeEvent(rv$current_file, {
-    req(rv$current_file) # already req savevar$..$dp_data_files
-    req(savevar$emlal$DPfiles$dp_data_files$metadatapath)
-    toRead <- savevar$emlal$DPfiles$dp_data_files
-    toRead <- toRead$metadatapath[
-      match(rv$current_file, toRead$name)
-      ]
-    # load attributes_table.txt
-    rv$attributesTable <- fread(toRead, data.table = FALSE,
-                                stringsAsFactors = FALSE,
-                                na.strings = NULL)
-    rv$attributesTable[is.na(rv$attributesTable)] <- ""
+    req(rv$current_file)
+    rv$attributesTable <- savevar$emlal$templateDP[[rv$current_file]]
     # get current attribute
-    rv$current_attribute <- 0 # trick: trigger rv$current_attribute -dependant observers
+    rv$current_attribute <- 0 # trick: trigger rv$current_attribute-dependant observers
     rv$current_attribute <- 1
   })
   observeEvent(rv$current_attribute, {
@@ -219,14 +236,17 @@ templateDP <- function(input, output, session, savevar, globals){
              globals, savevar,
              savevar$emlal$selectDP$dp_path,
              savevar$emlal$selectDP$dp_name)
+  observeEvent(input$`nav-save`, {
+    rv <- saveInput(rv)
+  }, priority = 2)
   callModule(onSave, "nav",
              # additional arguments
              savevar,
              savevar$emlal$selectDP$dp_path,
              savevar$emlal$selectDP$dp_name)
-  callModule(nextTab, "nav",
-             globals, "template")
   callModule(prevTab, "nav",
+             globals, "template")
+  callModule(nextTab, "nav",
              globals, "template")
 
   # Procedurals / ----
@@ -273,11 +293,10 @@ templateDP <- function(input, output, session, savevar, globals){
   }) # end of UI
 
 
-  # / Servers / ----
+  # / Servers ----
   observe({
     req( any(rv$ui %in% names(input)) )
 
-    # / attributes ----
     sapply(names(rv$attributesTable), function(rvName) {
       # prepare variable
       # two different names: ids from input can be suffixed
@@ -323,9 +342,6 @@ templateDP <- function(input, output, session, savevar, globals){
                       sep = " " # make sure
                 )
             }
-            else if(rvName == "unit"
-                    && input[[rvName]] == "custom")
-              input[["id"]] # link to custom inputs
             else
               input[[rvName]]
 
@@ -339,14 +355,14 @@ templateDP <- function(input, output, session, savevar, globals){
                               ""
               )
             } # end if
-            enter
+            return(enter)
           }) # end of eventReactive
         }
         else{
           # hide UI
           sapply(inputNames, shinyjs::hide)
 
-          # set reactiveValue to NULL
+          # set reactiveValue to the known value
           rv$attributes[[rvName]] <- rv$attributesTable[rv$current_attribute, rvName]
         }
       } # end if inputNames == character(0)
@@ -361,17 +377,17 @@ templateDP <- function(input, output, session, savevar, globals){
   cpltTrigger <- makeReactiveTrigger()
 
   # regular saves in savevar - triggered in saveInput()
-  observeEvent({
-    input
-  },{
+  observe({
     req(rv$current_file)
+    invisible(names(input)) # continuous save
     savevar$emlal$templateDP[[rv$current_file]] <- rv$attributesTable
-    cpltTrigger$trigger()
+    # cpltTrigger$trigger()
   })
 
   # check for completeness
   observe({
-    cpltTrigger$depend()
+    # cpltTrigger$depend()
+    rv$completed <- NULL
     rv$completed <- (
       isTruthy(rv$attributesTable$attributeName)
       && all(sapply(rv$attributesTable$attributeName, isTruthy))
@@ -380,35 +396,59 @@ templateDP <- function(input, output, session, savevar, globals){
       && !any(grepl("!Add.*here!",rv$attributesTable$dateTimeFormatString))
     )
   })
-  observeEvent(rv$completed,{
+  observe({
+    invisible(names(input))
     validate(
       need(!is.null(rv$completed), "rv$completed not defined")
     )
     if(rv$completed){
-      shinyjs::enable("nav-nextTab")
+      enable("nav-nextTab")
     }
     else{
-      shinyjs::disable("nav-nextTab")
+      disable("nav-nextTab")
     }
   })
 
   # Process data ----
-  observeEvent(input[[ns("nextTab")]], {
+  observeEvent(input[["nav-nextTab"]], {
     req(rv$completed)
     # for each attribute data frame
-    nextStep = 1 # default = catvars
-    sapply(rv$files_names, function(fn){
-      # write filled tables
-      cur_ind <- match(fn, rv$files_names)
-      path <- savevar$emlal$DPfiles$dp_data_files$metadatapath[cur_ind]
-      table <- savevar$emlal$templateDP[[fn]]
-      fwrite(table, path)
-
-      # check for direction: customUnits or catvars
-      if(nextStep > 0 &&
-         "custom" %in% savevar$emlal$templateDP[[fn]][,"unit"])
-        nextStep = 0
-    })
+    nextStep = 2
+    nextStep <- min(
+        sapply(rv$files_names, function(fn){
+        # write filled tables
+        cur_ind <- match(fn, rv$files_names)
+        path <- savevar$emlal$DPfiles$dp_data_files$metadatapath[cur_ind]
+        table <- savevar$emlal$templateDP[[fn]]
+        fwrite(table, path)
+        
+        # check for direction: customUnits or catvars
+        if(nextStep > 0 &&
+           "custom" %in% savevar$emlal$templateDP[[fn]][,"unit"])
+          return(0) # custom units
+        else if(nextStep > 1 &&
+                "categorical" %in% savevar$emlal$templateDP[[fn]][,"class"]){
+          return(1) # categorical variables
+          cat("catvars")
+        }
+        else
+          return(2) # default = geographic Coverage
+      })
+    )
+    # cat(nextStep,"\n")
+    browser()
+    # EMLAL: template categorical variables tables
+    template_categorical_variables(
+      path = paste(savevar$emlal$selectDP$dp_path,
+                   savevar$emlal$selectDP$dp_name,
+                   "metadata_templates",
+                   sep = "/"),
+      data.path = paste(savevar$emlal$selectDP$dp_path,
+                        savevar$emlal$selectDP$dp_name,
+                        "data_objects",
+                        sep = "/")
+    )
+    
     globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE+nextStep
   },
   priority = 1)

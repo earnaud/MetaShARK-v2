@@ -67,7 +67,7 @@ EMLAL <- function(input, output, session,
 
   # names of EMLAL steps
   steps = paste0(c("select","files","template","customUnits",
-                   "catvars", "edit","make","publish"), "-tab")
+                   "catvars", "geocov","make","publish"), "-tab")
 
   iteration = 0 # varying namespace
   # Output ----
@@ -84,11 +84,18 @@ EMLAL <- function(input, output, session,
                        dev = globals$dev),
              templateDPUI(id = ns(iteration),
                           title = steps[globals$EMLAL$NAVIGATE],
-                          dev = globals$dev)
-             # `4` = customUnitsUI(id =  ns(iteration),
-             #                     title = steps[globals$EMLAL$NAVIGATE]),
-             # `5` = catvarsUI(id = ns(iteration),
-             #                 title = steps[globals$EMLAL$NAVIGATE])
+                          dev = globals$dev),
+             customUnitsUI(id =  ns(iteration),
+                           title = steps[globals$EMLAL$NAVIGATE],
+                           dev = globals$dev),
+             catvarsUI(id = ns(iteration),
+                       title = steps[globals$EMLAL$NAVIGATE],
+                       dev = globals$dev),
+             geocovUI(id = ns(iteration),
+                      title = steps[globals$EMLAL$NAVIGATE],
+                      dev = globals$dev),
+             HTML("<img src='media/working.png'/>")
+             
       )
     })
     # Server
@@ -98,7 +105,14 @@ EMLAL <- function(input, output, session,
                       callModule(DPfiles, iteration,
                                  savevar, globals),
                       callModule(templateDP, iteration,
-                                 savevar, globals)
+                                 savevar, globals),
+                      callModule(customUnits, iteration,
+                                 savevar, globals),
+                      callModule(catvars, iteration,
+                                 savevar, globals),
+                      callModule(geocov, iteration,
+                                 savevar, globals),
+                      NULL
     )
   })
 
