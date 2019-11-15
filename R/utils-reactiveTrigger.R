@@ -1,10 +1,13 @@
-# Usage:
-# create an instance like
-# `myTrigger <- makeReactiveTrigger()`
-# in the reactive chunk to be triggered:
-# `myTrigger$depend()`
-# and in the chunk causing the trigger:
-# `myTrigger$trigger()`
+#' @title makeReactiveTrigger
+#'
+#' @description produces a trigger generator object X in 2 parts:
+#' - X$depend() : written in a shiny server code chunk, this chunk comes to
+#' be triggered each time X$trigger() is evaluated
+#' - X$trigger() : written in a shiny server code chunk, each time X$trigger()
+#' is evaluated, code chunks containing X$depend() will be evaluated after.
+#' All creadits for this function goes to Dean Attali
+#'
+#' @importFrom shiny reactiveValues isolate
 makeReactiveTrigger <- function() {
   rv <- reactiveValues(a = 0)
   list(

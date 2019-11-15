@@ -1,8 +1,7 @@
 # fill.R
 
 ### UI ###
-welcomeUI <- function(id){
-  
+welcomeUI <- function(id) {
   fluidPage(
     headerPanel("Welcome in MetaShARK"),
     mainPanel(
@@ -33,5 +32,4 @@ welcomeUI <- function(id){
       ")
     )
   )
-  
 }

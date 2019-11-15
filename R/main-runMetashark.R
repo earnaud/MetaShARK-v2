@@ -1,4 +1,4 @@
-#' Run MetaShARK
+#' @title Run MetaShARK
 #'
 #' Main function for launching the MetaShARK application.
 #' MetaShARK (METAdata SHiny Automated Resource & Knowledge) is a web app
@@ -13,20 +13,21 @@
 #'
 #' @examples
 #' runMetashark()
-#'
 #' @author Elie Arnaud <elie.arnaud@mnhn.fr>
 #'
-#' @export
 #' @importFrom shiny shinyApp
 #' @importFrom golem with_golem_options use_favicon favicon
+#'
+#' @export
 runMetashark <- function(...) {
-
   use_favicon("inst/app/www/favicon.png")
   favicon(ico = "inst/app/www/favicon.png")
-  
+
   with_golem_options(
-    app = shinyApp(ui = .app_ui, server = .app_server,
-                   onStart = .headerScript),
+    app = shinyApp(
+      ui = .app_ui, server = .app_server,
+      onStart = .headerScript
+    ),
     golem_opts = list(...)
   )
 }

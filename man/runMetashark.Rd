@@ -2,7 +2,13 @@
 % Please edit documentation in R/main-runMetashark.R
 \name{runMetashark}
 \alias{runMetashark}
-\title{Run MetaShARK}
+\title{Run MetaShARK
+
+Main function for launching the MetaShARK application.
+MetaShARK (METAdata SHiny Automated Resource & Knowledge) is a web app
+which is designed to help its user as much as possible for filling ecological
+metadata. It uses the EML standard (cf. NCEAS work) to allow a full and
+precise description of input datasets.}
 \usage{
 runMetashark(...)
 }
@@ -13,6 +19,8 @@ runMetashark(...)
 }}
 }
 \description{
+Run MetaShARK
+
 Main function for launching the MetaShARK application.
 MetaShARK (METAdata SHiny Automated Resource & Knowledge) is a web app
 which is designed to help its user as much as possible for filling ecological
@@ -21,7 +29,6 @@ precise description of input datasets.
 }
 \examples{
 runMetashark()
-
 }
 \author{
 Elie Arnaud <elie.arnaud@mnhn.fr>

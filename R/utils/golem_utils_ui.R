@@ -5,48 +5,50 @@
 # @return an HTML list
 # @examples
 # list_to_li(c("a","b"))
-# 
+#
 #' @importFrom htmltools tags tagAppendAttributes tagList
-list_to_li <- function(list, class = NULL){
-  if (is.null(class)){
+list_to_li <- function(list, class = NULL) {
+  if (is.null(class)) {
     tagList(lapply(list, tags$li))
   } else {
     res <- lapply(list, tags$li)
     res <- lapply(res, function(x) tagAppendAttributes(x, class = class))
     tagList(res)
   }
-
 }
 
 #' @importFrom htmltools tags tagAppendAttributes tagList
-list_to_p <- function(list, class = NULL){
-  if (is.null(class)){
+list_to_p <- function(list, class = NULL) {
+  if (is.null(class)) {
     tagList(lapply(list, tags$p))
   } else {
     res <- lapply(list, tags$p)
     res <- lapply(res, function(x) tagAppendAttributes(x, class = class))
     tagList(res)
   }
-
 }
 
 #' @importFrom glue glue
 #' @importFrom htmltools tags tagAppendAttributes tagList
-named_to_li <- function(list, class = NULL){
-  if(is.null(class)){
+named_to_li <- function(list, class = NULL) {
+  if (is.null(class)) {
     res <- mapply(
-      function(x, y){
+      function(x, y) {
         tags$li(HTML(glue("<b>{y}:</b> {x}")))
       },
-      list, names(list), SIMPLIFY = FALSE)
-    #res <- lapply(res, HTML)
+      list, names(list),
+      SIMPLIFY = FALSE
+    )
+    # res <- lapply(res, HTML)
     tagList(res)
   } else {
     res <- mapply(
-      function(x, y){
+      function(x, y) {
         tags$li(HTML(glue("<b>{y}:</b> {x}")))
       },
-      list, names(list), SIMPLIFY = FALSE)
+      list, names(list),
+      SIMPLIFY = FALSE
+    )
     res <- lapply(res, function(x) tagAppendAttributes(x, class = class))
     tagList(res)
   }
@@ -159,55 +161,54 @@ rep_br <- function(times = 1) {
 #
 # @examples
 # enurl("https://www.thinkr.fr", "ThinkR")
-enurl <- function(url, text){
+enurl <- function(url, text) {
   tags$a(href = url, text)
 }
 
 
 # Columns wrappers
-# 
-# These are convenient wrappers around 
+#
+# These are convenient wrappers around
 # `column(12, ...)`, `column(6, ...)`, `column(4, ...)`...
-# 
+#
 # @export
 # @rdname columns
 #' @importFrom shiny column
-col_12 <- function(...){
+col_12 <- function(...) {
   column(12, ...)
 }
 
 #' @importFrom shiny column
-col_10 <- function(...){
+col_10 <- function(...) {
   column(10, ...)
 }
 
 #' @importFrom shiny column
-col_8 <- function(...){
+col_8 <- function(...) {
   column(8, ...)
 }
 
 #' @importFrom shiny column
-col_6 <- function(...){
+col_6 <- function(...) {
   column(6, ...)
 }
 
 #' @importFrom shiny column
-col_4 <- function(...){
+col_4 <- function(...) {
   column(4, ...)
 }
 
 #' @importFrom shiny column
-col_3 <- function(...){
+col_3 <- function(...) {
   column(3, ...)
 }
 
 #' @importFrom shiny column
-col_2 <- function(...){
+col_2 <- function(...) {
   column(2, ...)
 }
 
 #' @importFrom shiny column
-col_1 <- function(...){
+col_1 <- function(...) {
   column(1, ...)
 }
-

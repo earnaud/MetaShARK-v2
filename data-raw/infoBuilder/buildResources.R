@@ -1,5 +1,5 @@
 # buildResources.R
-rm(list=ls())
+rm(list = ls())
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # Imports
