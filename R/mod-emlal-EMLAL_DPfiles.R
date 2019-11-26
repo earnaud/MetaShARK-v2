@@ -34,15 +34,6 @@ DPfilesUI <- function(id, title, dev = FALSE){
              ),
              if(dev) actionButton(ns("checkDPfiles"), "Dev")
       )
-      # column(2,
-      #        h4("Navigation"),
-      #        quitButton(id, style = rightButtonStyle),
-      #        saveButton(id, style = rightButtonStyle),
-      #        nextTabButton(id, style = rightButtonStyle),
-      #        textOutput(ns("warning_data_size")),
-      #        textOutput(ns("overwrite")),
-      #        style = "text-align: center; padding: 0;"
-      # ) # end of column 2
     ) # end fluidPage
   ) # end return
 }

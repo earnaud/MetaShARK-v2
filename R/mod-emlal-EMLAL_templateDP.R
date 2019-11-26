@@ -436,7 +436,7 @@ templateDP <- function(input, output, session, savevar, globals){
       })
     )
     # cat(nextStep,"\n")
-    browser()
+    # browser()
     # EMLAL: template categorical variables tables
     template_categorical_variables(
       path = paste(savevar$emlal$selectDP$dp_path,

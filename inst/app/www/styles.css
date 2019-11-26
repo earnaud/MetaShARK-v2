@@ -27,12 +27,15 @@
 }
 
 .navSidebar {
-	position: right;
 	width: 100%;
 	text-align: center;
 	padding: 0;
 }
 
-.main-header {
-  position: sticky;
+.danger {
+  color: red;
+}
+
+.valid {
+  color: green;
 }
