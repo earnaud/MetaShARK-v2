@@ -16,6 +16,7 @@
     dashboardPage(
       title = "MetaShARK",
       dashboardHeader(
+        tags$li(class = "dropdown", actionLink("appOptions", "", icon("gear"))),
         tags$li(class = "dropdown", actionLink("close", "", icon("power-off"))),
         # title = span(imageOutput("logo", inline = TRUE), "MetaShARK"),
         title = "MetaShARK",
@@ -29,10 +30,16 @@
                    icon = icon("home")),
           menuItem("Fill in EML", tabName = "fill",
                    icon = icon("file-import")),
+          menuItem("Upload EML", tabName = "upload",
+                   icon = icon("file-export")),
           menuItem("EML Documentation", tabName = "documentation",
                    icon = icon("glasses")),
           menuItem("About MetaShARK", tabName = "about",
-                   icon = icon("beer"))
+                   icon = icon("beer")),
+          hidden( # Ghost tab for options
+            menuItem("appOptions", tabName = "appOptions",
+                     icon = icon("gear"))
+          )
         ),
         if(dev) actionButton("check","Dev Check"),
         width = menuWidth
@@ -45,10 +52,14 @@
                   welcomeUI("welcome")),
           tabItem(tabName = "fill",
                   fillUI("fill", dev)),
+          tabItem(tabName = "upload",
+                  uploadUI("upload", dev)),
           tabItem(tabName = "documentation",
                   docUI("documentation")),
           tabItem(tabName = "about",
-                  aboutUI("about"))
+                  aboutUI("about")),
+          tabItem(tabName = "appOptions",
+                  appOptionsUI("appOptions", dev))
         )
       ) # end body
 
@@ -67,10 +78,8 @@
 
   tags$head(
     golem::activate_js(),
-    golem::favicon(),
+    golem::use_favicon("inst/app/www/favicon.png"),
     # Add here all the external resources
-    # If you have a custom.css in the inst/app/www
-    # Or for example, you can add shinyalert::useShinyalert() here
     tags$link(rel="stylesheet", type="text/css", href="www/styles.css")
   )
 }

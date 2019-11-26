@@ -7,20 +7,31 @@
   globals <- .globalScript(dev)
   savevar <- NULL
 
+  # Head bar server
+  # observeEvent(input$appOtions,{
+  callModule(appOptions, "appOptions")
+  # })
+  observeEvent(input$close,{
+    stopApp()
+  })
+  
   ## DEV: do things by clicking a button
   observeEvent(input$check,{
     browser()
   })
-  observeEvent(input$close,{
-    stopApp()
+  observeEvent(input$appOptions, {
+    updateTabItems(session, "side_menu", "appOptions")
   })
-
+  
+  
   ## modules called ----
   observeEvent(input$side_menu,{
     savevar <- switch(input$side_menu,
            # welcome - no server
            # fill
            fill = callModule(fill, "fill", globals),
+           # upload
+           upload = callModule(upload, "upload", dev),
            # doc
            documentation = callModule(documentation, "documentation"),
            # about
