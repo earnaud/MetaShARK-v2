@@ -7,3 +7,4 @@ $run_dev.*
 ^README\.Rmd$
 ^packrat/
 ^\.Rprofile$
+^\.httr-oauth$

@@ -1,11 +1,16 @@
-#' @import shiny shinyjs shinydashboard shinyTree shinyFiles
-#' @import RefManageR
+#' @title .app_ui
+#' 
+#' @description UI part of the mainapp's  script
+#' 
 #' @importFrom golem get_golem_options
+#' @importFrom shiny tagList tags actionLink icon span imageOutput actionButton HTML
+#' @importFrom shinydashboard dashboardPage dashboardHeader dashboardSidebar sidebarMenu menuItem dashboardBody tabItems tabItem
+#' @importFrom shinyjs useShinyjs hidden
 .app_ui <- function() {
 
   # prepare variable
   menuWidth = "250px"
-  dev = golem::get_golem_options(which = 'dev')
+  dev = get_golem_options(which = 'dev')
   if(!is.logical(dev) || is.null(dev)) dev = FALSE
 
   # action
@@ -14,12 +19,12 @@
     .golem_add_external_resources(),
     # List the first level UI elements here
     dashboardPage(
-      title = "MetaShARK",
+      title = "MetaShARK", # browser title
       dashboardHeader(
         tags$li(class = "dropdown", actionLink("appOptions", "", icon("gear"))),
         tags$li(class = "dropdown", actionLink("close", "", icon("power-off"))),
-        # title = span(imageOutput("logo", inline = TRUE), "MetaShARK"),
-        title = "MetaShARK",
+        title = span(imageOutput("logo", inline = TRUE)),
+        # title = HTML("<img src='logo.png'/>"), # app title
         titleWidth = menuWidth
       ),
       ## Menus ----
@@ -69,7 +74,12 @@
 
 }
 
-#' @import shiny
+#' @title .golem_add_external_resources
+#' 
+#' @description {golem} utility
+#' 
+#' @importFrom shiny addResourcePath tags 
+#' @importFrom golem use_favicon
 .golem_add_external_resources <- function(){
 
   addResourcePath(
@@ -77,8 +87,8 @@
   )
 
   tags$head(
-    golem::activate_js(),
-    golem::use_favicon("inst/app/www/favicon.png"),
+    # golem::activate_js(),
+    use_favicon("inst/app/www/favicon.png"),
     # Add here all the external resources
     tags$link(rel="stylesheet", type="text/css", href="www/styles.css")
   )

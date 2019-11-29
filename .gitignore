@@ -4,3 +4,4 @@ inst/doc
 packrat/lib*/
 tutorial-metacat-pndb-r-interface.Rmd
 tutorial-metacat-pndb-r-interface.R
+.httr-oauth

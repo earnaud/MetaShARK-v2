@@ -1,15 +1,16 @@
-### multiApply.R
-
-# Can be used as template for recursive list function
-# @param target: the list on which the FUNS will be applied
-# @param FUNS: list of functions
-# @param ARGS: list of arguments matching FUNS. Caution ! The elements in ARGS
-#              shall be concatenated in a vector if possible. Else, send a 
-#              pointer (list names or so). Remember you do not need to input
-#              target in the ARGS list
-# @param path: if a FUN explicitly needs the path followed from the 0th-level, 
-#              it can be accessed by figuring it clearly as 'path' in the function
-#              arguments.
+#' @title multiApply.R
+#' 
+#' Can be used as template for recursive list function
+#' 
+#' @param target: the list on which the FUNS will be applied
+#' @param FUNS: list of functions
+#' @param ARGS: list of arguments matching FUNS. Caution ! The elements in ARGS
+#' shall be concatenated in a vector if possible. Else, send a 
+#' pointer (list names or so). Remember you do not need to input
+#' target in the ARGS list
+#' @param path: if a FUN explicitly needs the path followed from the 0th-level, 
+#' it can be accessed by figuring it clearly as 'path' in the function
+#' arguments.
 multiApply <- function(target, 
                        FUNS = list(),
                        ARGS = rep(NA, length(FUNS)),
@@ -49,8 +50,6 @@ multiApply <- function(target,
   if(exists("target.attributes"))
     attributes(target) <- target.attributes
   
-  
-  
   # Functions application
   sapply(seq_along(FUNS),
          function(i){
@@ -68,8 +67,6 @@ multiApply <- function(target,
            # execute functions
            target <<- do.call(fun, arg)
          })
-  
-  
   
   # adds path to the target as an attribute
   if(setPath){

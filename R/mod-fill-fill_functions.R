@@ -1,9 +1,13 @@
 # fill_functions.R
 
 # Manage savevar variable ----
-# EMLAL module specific function
-# @param sublist: either NULL, "emlal", "metafin" to precise which sublist 
-#                 to initialize
+#' @title initReactive
+#'
+#' @description EMLAL module specific function. Initialize `savevar` variable.
+#' 
+#' @param sublist either NULL, "emlal", "metafin" to precise which sublist to initialize (NULL initializes the whole variable)
+#' 
+#' @importFrom shiny reactiveValues 
 initReactive <- function(sublist = NULL, savevar = NULL){
   if(!is.null(sublist) && is.null(savevar))
     stop("Attempt to initialize savevar's sublist without savevar.")
@@ -42,7 +46,9 @@ initReactive <- function(sublist = NULL, savevar = NULL){
   )
 }
 
-# set the path and save the savevar
+#' @describeIn initReactive 
+#' 
+#' @description save the `savevar` variable at wanted location
 saveReactive <- function(toSave, path, filename){
   location <- paste0(path,"/",filename,".rds")
   message("Saving current metadata as:",location,"\n",sep=" ")

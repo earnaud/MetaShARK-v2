@@ -1,3 +1,13 @@
+#' @title uploadUI
+#' 
+#' @description UI part for the upload module. Used to build and drop 
+#' data packages to a chosen metacat.
+#' 
+#' @param id shiny module id
+#' 
+#' @importFrom shiny NS tagList actionButton tags selectInput
+#' uiOutput textOutput icon
+#' @importFrom data.table fread
 uploadUI <- function(id, dev) {
   ns <- NS(id)
   registeredEndpoints <- fread("resources/registeredEndpoints.txt")
@@ -9,7 +19,7 @@ uploadUI <- function(id, dev) {
     tags$hr(),
     # select endpoint ----
     tags$h3("Select your MetaCat portal"),
-    div(
+    tags$div(
       tags$p("'dev' portals are under construction. No guarantee is given of their consistance.
            'stable' portals are completely functional.
            Chosing 'Other' will ask you to input some technical information."),
@@ -22,7 +32,7 @@ uploadUI <- function(id, dev) {
     
     # check authentication token ----
     tags$h3("Get your authentication token"),
-    div(
+    tags$div(
       tags$p("The authentication token must be set in the MetaShARK options."),
       style = "border-left: solid lightgrey; padding: 20px;"
     ),
@@ -30,7 +40,7 @@ uploadUI <- function(id, dev) {
     
     # files input ----
     tags$h3("Select your data, script and metadata files"),
-    div(
+    tags$div(
       tags$h4("Metadata (one file expected)"),
       multiFIlesInputUI(ns("metadata"), "Please select an .xml file validating EML schema."),
       textOutput(ns("warnings-metadata")),
@@ -44,19 +54,36 @@ uploadUI <- function(id, dev) {
     ),
     tags$hr(),
     
-    # constraints? ----
-    tags$h3("Add constraints between your files"),
-    # select Subject
-    # select Property (rdf format)
-    # select Target
+    # Constraints ----
+    # div(id="constraints_div",
+    #     tags$h4("Add constraints between script and data files"),
+    #     actionButton(ns("add_constraint"), "", icon = icon("plus"), width = "40px")
+    # ),
+    # tags$hr(),
     
-    actionButton(ns("process"), "Process", icon = icon("rocket"))
+    actionButton(ns("process"), "Process", icon = icon("rocket"),
+                 width = "100%")
   )
 }
 
+#' @title upload
+#' 
+#' @description server part of the upload module
+#' 
+#' @param input shiny module input
+#' @param output shiny module output
+#' @param session shiny module session
+#' @param dataone.formats list of the dataone supported formats
+#' 
+#' @importFrom shiny observeEvent reactive textInput tags 
+# observe renderUI reactiveValues callModule
+#' @importFrom dplyr filter select
 #' @importFrom shinyjs enable disable
-upload <- function(input, output, session, dev) {
+#' @importFrom data.table fread fwrite
+upload <- function(input, output, session, dev,
+                   dataone.formats) {
   ns <- session$ns
+  
   registeredEndpoints <- fread("resources/registeredEndpoints.txt")
   
   if(dev)
@@ -77,7 +104,7 @@ upload <- function(input, output, session, dev) {
   
   memberNode <- reactive({
     if(endpoint() != "Other")
-      registeredEndpoints[match(endpoint(), registeredEndpoints$mn), "URL"]
+      registeredEndpoints %>% dplyr::filter(mn == endpoint()) %>% dplyr::select(URL)
     else
       input$`actual-endpoint`
   })
@@ -105,7 +132,6 @@ upload <- function(input, output, session, dev) {
   )
   
   observe({
-    # browser()
     if(
       dim(rvFiles$md())[1] != 1 ||
       dim(rvFiles$data())[1] < 1
@@ -113,10 +139,32 @@ upload <- function(input, output, session, dev) {
       disable("process")
     else
       enable("process")
+    
+    if(
+      dim(rvFiles$scr())[1] == 0 ||
+      dim(rvFiles$data())[1] == 0
+    )
+      disable("add_constraint")
+    else
+      enable("add_constraint")
+    
   })
   
   # Constraints ----
-  
+  # workflowFiles <- reactiveValues()
+  # 
+  # observeEvent(input$add_constraint, {
+  #   req(rvFiles$scr(), rvFiles$data())
+  #   
+  #   insertUI(
+  #     selector = "#constraints_div",
+  #     where = "afterBegin",
+  #     ui = describeWorkflowUI(ns(input$add_constraint), rvFiles$scr(), rvFiles$data())
+  #   )
+  #   
+  #   workflowFiles[[as.character(input$add_constraint)]] <- callModule(describeWorkflow, 
+  #                                                                     input$add_constraint)
+  # })
   
   # Process ----
   observeEvent(input$process,{
@@ -124,7 +172,8 @@ upload <- function(input, output, session, dev) {
     uploadDP(mn = as.character(registeredEndpoints %>% dplyr::filter(mn == endpoint()) %>% dplyr::select(URL)),
              cn = as.character(registeredEndpoints %>% dplyr::filter(mn == endpoint()) %>% dplyr::select(cn)),
              eml = rvFiles$md()$datapath,
-             data = rvFiles$data()$datapath)
+             data = rvFiles$data()$datapath,
+             formats = dataone.formats)
     enable("process")
   })
   

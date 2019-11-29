@@ -1,12 +1,10 @@
-# fill.R
-
-### UI ###
+#' @title Fill
+#' 
+#' @description server part of the fill module. Root script for whole module (comprise EML AL and MetaFIN)
+#' 
+#' @importFrom shiny NS tabsetPanel tabPanel h1
 fillUI <- function(id, dev = FALSE){
   ns <- NS(id)
-  # submodules sourcing
-  # source("R/modules/fill/EMLAL/EMLAL.R")
-
-  # h1("Under construction.")
   tabsetPanel(id = ns("tabs"),
     tabPanel("EMLAL", EMLALUI(ns("EMLAL"), dev)),
     tabPanel("MetaFIN", h1("Under Construction"))
@@ -14,9 +12,9 @@ fillUI <- function(id, dev = FALSE){
 
 }
 
-
-
-### SERVER ###
+#' @describeIn fillUI
+#' 
+#' @importFrom shiny observeEvent callModule
 fill <- function(input, output, session, globals){
   ns <- session$ns
   # variable initialization ----

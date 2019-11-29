@@ -1,6 +1,6 @@
-# sample.R
-
-## 0. Sample template
+# EMLAL sample 
+# 
+# This file is never sourced in MetaShARK -- template to produce EMLAL modules
 sampleUI <- function(id, title, dev){
   ns <- NS(id)
   

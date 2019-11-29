@@ -2,10 +2,10 @@
 % Please edit documentation in R/mod-doc-documentation.R
 \name{documentation}
 \alias{documentation}
-\title{import shinyTree}
+\title{documentation}
 \usage{
 documentation(input, output, session)
 }
 \description{
-import shinyTree
+server part of the documentation module.
 }
