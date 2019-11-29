@@ -1,18 +1,22 @@
-# EMLAL_DPfiles.R
-
-## 2. CREATE DATA PACKAGE
+#' @title Data Package files
+#' 
+#' @description UI part of the DPfiles module. 
+#' 
+#' @importFrom shiny NS fluidPage column tags HTML icon actionButton uiOutput tagList textOutput
+#' @importFrom shinyFiles shinyFilesButton
 DPfilesUI <- function(id, title, dev = FALSE){
   ns <- NS(id)
+  
   return(
     fluidPage(
       # main panel
       column(10,
-             h4("Data files"),
+             tags$h4("Data files"),
              HTML("When selecting your files, you can't select
                     folders. You can delete file(s) from your
                     selection by ticking their box and clicking
                     the 'Remove' button.<br>"),
-             div(
+             tags$div(
                shinyFilesButton(ns("add_data_files"),
                                 "Load files",
                                 "Select data file(s) from your dataset",
@@ -38,6 +42,14 @@ DPfilesUI <- function(id, title, dev = FALSE){
   ) # end return
 }
 
+#' @title Data Package files
+#' 
+#' @description server part of the DPfiles module. 
+#' 
+#' @importFrom shiny observeEvent reactiveValues callModule req checkboxGroupInput renderUI renderText 
+#' @importFrom shinyFiles getVolumes shinyFileChoose parseFilePaths 
+#' @importFrom shinyjs enable disable 
+#' @importFrom EMLassemblyline template_table_attributes
 DPfiles <- function(input, output, session, savevar, globals){
   ns <- session$ns
 
@@ -126,7 +138,7 @@ DPfiles <- function(input, output, session, savevar, globals){
       ,]
   })
 
-  # Display data files
+  # Display data files 
   output$data_files <- renderUI({
 
     updateFileListTrigger$depend()

@@ -1,5 +1,14 @@
-# about_functions.R
-
+#' @title renderBibliography
+#' 
+#' @description shiny-formatted render* function. Allow the user to print a .bib bibliography content. References are NOT numbered 
+#' according to possible calls from the app.
+#' 
+#' @param bib file path to bibliography
+#' 
+#' @export
+#' @importFrom RefManageR NoCite PrintBibliography
+#' @importFrom shiny renderUI withProgress incProgress HTML 
+#' @importFrom utils capture.output
 renderBibliography <- function(bib){
   NoCite(bib, "*")
   renderUI(

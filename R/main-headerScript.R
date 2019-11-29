@@ -1,21 +1,23 @@
-#' @import shiny
+#' @title .headerScript
+#' 
+#' @description misc preparations commands
 .headerScript <- function(){
-  # minor functions
   rm(list = ls())
   options(shiny.reactlog=TRUE)
-
-  # .sourceModules() # not needed anymore: all files are in the R/ directory
 }
 
-#' @import EML
-#
-# Provide global variables for server part
-#
-# .globalScript ----
+#' @title .globalScript
+#' 
+#' @description script to generate 'globals' reactiveValues
+#' 
+#' @importFrom fs path_home
+#' @importFrom utils combn 
+#' @importFrom dataone listFormats CNode
+#' @importFrom shiny reactiveValues
 .globalScript <- function(dev = FALSE){
   if(!is.logical(dev) || is.null(dev)) dev = FALSE
 
-  HOME = fs::path_home()
+  HOME = path_home()
   DP.PATH <- paste0(HOME,"/dataPackagesOutput/emlAssemblyLine/")
   dir.create(DP.PATH, recursive = TRUE, showWarnings = FALSE)
 
@@ -33,6 +35,7 @@
   DATE.FORMAT <- as.vector(rbind(DATE.FORMAT, gsub('Y{4}','YY',DATE.FORMAT)))
   DATE.FORMAT <- DATE.FORMAT[order(DATE.FORMAT, decreasing = TRUE)]
   UNIT.LIST <- c("custom", get_unitList()$units$name)
+  DATAONE.LIST <- dataone::listFormats(dataone::CNode())$MediaType
 
   globals <- reactiveValues(
     dev = dev,
@@ -42,7 +45,8 @@
     # Formats lists
     FORMAT = list(DATE = DATE.FORMAT,
                   HOUR = HOUR.FORMAT,
-                  UNIT = UNIT.LIST),
+                  UNIT = UNIT.LIST,
+                  DATAONE = DATAONE.LIST),
     # navigation variable in EMLAL module
     EMLAL = reactiveValues(PREVIOUS = "",
                            NAVIGATE = 1,
@@ -52,18 +56,3 @@
   # output
   return(globals)
 }
-
-# .sourceModules <- function(){
-#   source("R/utils/reactiveTrigger.R")
-#   # welcome module
-#   source("R/modules/welcome/welcomeUI.R")
-#   #fill
-#   source("R/modules/fill/fill.R")
-#   source("R/modules/fill/fill_functions.R")
-#   # documentation module
-#   source("R/modules/documentation/documentation.R")
-#   source("R/modules/documentation/documentation_functions.R")
-#   # about module
-#   source("R/modules/about/about.R")
-#   source("R/modules/about/aboutUI.R")
-# }

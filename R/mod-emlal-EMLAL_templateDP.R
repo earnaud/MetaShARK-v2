@@ -1,6 +1,8 @@
-# EMLAL_templateDP.R
-
-## 3. Create DP template
+#' @title Data Package Template filling
+#' 
+#' @description UI part of the templateDP module. Fill in the attributes of the data package
+#' 
+#' @importFrom shiny NS fluidPage fluidRow column tags tagList HTML actionButton icon uiOutput
 templateDPUI <- function(id, title, dev){
   ns <- NS(id)
 
@@ -8,14 +10,14 @@ templateDPUI <- function(id, title, dev){
     fluidPage(
       # Inputs ----
       column(10,
-             h4("Data table attributes"),
+             tags$h4("Data table attributes"),
              HTML("Even if EML Assembly Line automatically infers most
                   of your data's metadata, some steps need you to check
                   out. Please check the following attribute, and fill
                   in at least the <span style='color:red;'>mandatory
                   </span> elements."),
              
-             div(
+             tags$div(
                fluidRow(
                  tagList(
                    actionButton(ns("file_prev"),
@@ -65,10 +67,19 @@ templateDPUI <- function(id, title, dev){
 
 }
 
-#' @importFrom data.table fwrite
+#' @describeIn templateDPUI
+#' 
+#' @description UI part of the templateDP module. 
+#' 
+#' @importFrom data.table fread fwrite
+#' @importFrom shiny observeEvent req reactiveValues observe renderUI tags callModule textAreaInput HTML selectInput tagList 
+#' observe eventReactive validate 
+#' @importFrom shinyjs hide show enable disable
+#' @importFrom EMLassemblyline template_categorical_variables
 templateDP <- function(input, output, session, savevar, globals){
   ns <- session$ns
   
+  # DEV ----
   if(globals$dev){
     observeEvent(input$check,{
       browser()
@@ -94,7 +105,6 @@ templateDP <- function(input, output, session, savevar, globals){
   }
 
   # variable initialization ----
-
   # main local reactiveValues
   rv <- reactiveValues(
     # local save
@@ -203,7 +213,7 @@ templateDP <- function(input, output, session, savevar, globals){
 
   # outputs
   {
-    output$current_file <- renderUI(div(rv$current_file,
+    output$current_file <- renderUI(tags$div(rv$current_file,
                                         style = paste0("display: inline-block;
                                                        font-size:20pt;
                                                        text-align:center;
@@ -215,7 +225,7 @@ templateDP <- function(input, output, session, savevar, globals){
                                                        "%);")
     )
     )
-    output$current_attribute <- renderUI(div(rv$attributesTable[rv$current_attribute,"attributeName"],
+    output$current_attribute <- renderUI(tags$div(rv$attributesTable[rv$current_attribute,"attributeName"],
                                              style = paste0("display: inline-block;
                                                             font-size:15pt;
                                                             text-align:center;
@@ -273,7 +283,7 @@ templateDP <- function(input, output, session, savevar, globals){
                                     selected = saved_value
                  ),
                  dateTimeFormatString = tagList(selectInput(ns( paste0(colname,"_date") ),
-                                                            span("Existing date format",
+                                                            tags$span("Existing date format",
                                                                  class="redButton"),
                                                             unique(c(saved_value, globals$FORMAT$DATE)),
                                                             selected = saved_value),
@@ -311,7 +321,7 @@ templateDP <- function(input, output, session, savevar, globals){
       if(length(inputNames) != 0){
         if(rvName %in% rv$ui){
           # show UI
-          sapply(inputNames, shinyjs::show)
+          sapply(inputNames, show)
 
           # Input UI yet exists: create eventReactive
           rv$attributes[[rvName]] <- eventReactive({
@@ -435,8 +445,6 @@ templateDP <- function(input, output, session, savevar, globals){
           return(2) # default = geographic Coverage
       })
     )
-    # cat(nextStep,"\n")
-    # browser()
     # EMLAL: template categorical variables tables
     template_categorical_variables(
       path = paste(savevar$emlal$selectDP$dp_path,

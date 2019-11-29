@@ -1,6 +1,8 @@
-# geographicCoverage.R
-
-## 0. Sample template
+#' @title Geographic coverage 
+#' 
+#' @description UI part for the Geographic Coverage module
+#' 
+#' @importFrom shiny NS fluidPage fluidRow column tagList tags actionButton 
 geocovUI <- function(id, title, dev){
   ns <- NS(id)
   
@@ -24,6 +26,11 @@ geocovUI <- function(id, title, dev){
   ) # end of return
 }
 
+#' @title Geographic coverage 
+#' 
+#' @description server part for the Geographic Coverage module
+#' 
+#' @importFrom shiny observeEvent callModule 
 geocov <- function(input, output, session, savevar, globals){
   ns <- session$ns
   

@@ -1,6 +1,6 @@
-#' Run MetaShARK
+#' @title Run MetaShARK
 #'
-#' Main function for launching the MetaShARK application.
+#' @description Main function for launching the MetaShARK application.
 #' MetaShARK (METAdata SHiny Automated Resource & Knowledge) is a web app
 #' which is designed to help its user as much as possible for filling ecological
 #' metadata. It uses the EML standard (cf. NCEAS work) to allow a full and

@@ -1,9 +1,10 @@
-# EMLAL.R
-
-# Derived Id Modules from IM.EMLAL by pasting the step number (https://ediorg.github.io/EMLassemblyline/articles/overview.html)
-
-### UI ###
-#' @import EML EMLassemblyline
+#' @title EMLALUI
+#' 
+#' @description UI part of the EMLAL module. Allow the user to use a front-end shiny interface to the EML Assembly Line package, from
+#' Environmental Data Initiative.
+#' 
+#' @importFrom shiny NS fluidPage HTML tags imageOutput uiOutput
+#' @importFrom shinydashboard box
 EMLALUI <- function(id, dev = FALSE){
   ns <- NS(id)
 
@@ -19,7 +20,7 @@ EMLALUI <- function(id, dev = FALSE){
           <a href=https://github.com/EDIorg/EMLassemblyline>git repository</a>.
           </p>"
         ),
-        div(
+        tagsdiv(
           imageOutput("edi-logo", # from main.R
                       width = "100px", height = "100px"
           ),
@@ -52,18 +53,15 @@ EMLALUI <- function(id, dev = FALSE){
 
 }
 
-### SERVER ###
-#' @importFrom data.table fread
+#' @title EMLAL
+#' 
+#' @description server part of the EMLAL module. Allow the user to use a front-end shiny interface to the EML Assembly Line package, from
+#' Environmental Data Initiative.
+#' 
+#' @importFrom shiny observeEvent renderUI HTML callModule
 EMLAL <- function(input, output, session,
                   savevar, globals){
   ns <- session$ns
-
-  # variable initialization ----
-  # submodules sourcing
-  # source("R/modules/fill/EMLAL/EMLAL_selectDP.R")
-  # source("R/modules/fill/EMLAL/EMLAL_DPfiles.R")
-  # source("R/modules/fill/EMLAL/EMLAL_templateDP.R")
-  # source("R/modules/fill/EMLAL/EMLAL_functions.R")
 
   # names of EMLAL steps
   steps = paste0(c("select","files","template","customUnits",

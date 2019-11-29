@@ -4,12 +4,15 @@
 #' 
 #' @param id shiny module id
 #' @param helpText a character vector to give the user an explanation. Will be inserted into a tags$p() call.
+#' 
+#' @importFrom shiny NS tagList tags icon actionButton uiOutput
+#' @importFrom shinyFiles shinyFilesButton
 multiFIlesInputUI <- function(id, helpText = NULL){
   ns <- NS(id)
   
   tagList(
     tags$p(helpText),
-    div(
+    tags$div(
       shinyFilesButton(ns("add_files"),
                        "Load files",
                        "Select data file(s) from your dataset",
@@ -21,7 +24,6 @@ multiFIlesInputUI <- function(id, helpText = NULL){
                  icon = icon("minus-circle"),
                  class = "redButton"),
     uiOutput(ns("files"))
-    
   )
 }
 
@@ -32,9 +34,13 @@ multiFIlesInputUI <- function(id, helpText = NULL){
 #' @param input shiny module input
 #' @param output shiny module output
 #' @param session shiny module session
+#' 
+#' @importFrom shiny reactiveValues observeEvent req renderUI checkboxGroupInput
+#' @importFrom shinyFiles getVolumes shinyFileChoose parseFilePaths
 multiFIlesInput <- function(input, output, session){
   ns <- session$ns
   
+  # Variable initialization ----
   rv <- reactiveValues(
     # to save
     files = data.frame()
@@ -42,7 +48,7 @@ multiFIlesInput <- function(input, output, session){
   )
   volumes <- c(Home = fs::path_home(), getVolumes()())
   
-  # Add data files
+  # Add data files ----
   shinyFileChoose(input, "add_files",
                   roots = volumes,
                   # defaultRoot = HOME,
@@ -73,7 +79,7 @@ multiFIlesInput <- function(input, output, session){
     
   })
   
-  # Remove data files
+  # Remove data files ----
   observeEvent(input$remove_files, {
     
     # validity check
@@ -85,7 +91,7 @@ multiFIlesInput <- function(input, output, session){
       ,]
   })
   
-  # Display data files
+  # Display data files ----
   output$files <- renderUI({
     
     # actions
@@ -100,5 +106,6 @@ multiFIlesInput <- function(input, output, session){
     }
   })
   
+  # Out -----
   return(reactive(rv$files))
 }

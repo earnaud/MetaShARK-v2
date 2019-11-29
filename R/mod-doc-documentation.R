@@ -1,6 +1,10 @@
-### documentation.R
-
-### UI ###
+#' @title docUI
+#' 
+#' @description UI part of the documentation module
+#' 
+#' @importFrom shiny NS tagList tags fluidRow column selectInput div
+#' @importFrom shinydashboard box
+#' @importFrom shinyTree shinyTree
 docUI <- function(id){
   ns <- NS(id)
   
@@ -57,18 +61,17 @@ docUI <- function(id){
   )
 }
 
-### SERVER ###
-#' import shinyTree
+#' @title documentation
+#' 
+#' @description server part of the documentation module.
+#' 
+#' @importFrom shiny observeEvent renderText
+#' @importFrom shinyTree renderTree get_selected 
+#' @importFrom utils browseURL
 documentation <- function(input, output, session){
   ns <- session$ns
   
   require(shinyTree)
-  
-  # prepare variables
-  # systemGuideline <- readRDS("resources/systemGuideline.RData")
-  # tree <- readRDS("resources/docGuideline.RData")
-  # ns.index <- readRDS("resources/nsIndex.RData")
-  
 
   # external links
   observeEvent(input$`visit-module`, {
@@ -97,14 +100,13 @@ documentation <- function(input, output, session){
                          unlist(node),
                          sep="/")
       )
-      output$docPath <- renderText(as.character(h3(docPath)))
+      output$docPath <- renderText(as.character(tags$h4(docPath)))
       
       # fetch the systemGuideLine path in the userGuideLine list
       systemPath <- followPath(tree, docPath)
       
       if(!is.character(systemPath))
         systemPath <- commonPath(systemPath,unlist(node))
-      # return(userPath)
       
       # fetch the eml-xsd content in the systemGuideLine list
       systemContent <- followPath(systemGuideline, systemPath)

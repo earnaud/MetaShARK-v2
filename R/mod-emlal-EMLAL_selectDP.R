@@ -1,6 +1,10 @@
-# EMLAL_functions.R
-
-### UI ###
+#' @title Data Package selection
+#' 
+#' @description UI part for the Data Package selection. Allow the user to choose between
+#' creating a new data package or loading an existing one. 
+#' 
+#' @importFrom shiny NS fluidPage fluidRow column tags tagList icon textOutput uiOutput selectInput textInput HTML
+#' @importFrom shinyFiles shinyDirButton 
 selectDPUI <- function(id, title, width=12, dev = FALSE){
   ns <- NS(id)
 
@@ -21,31 +25,27 @@ selectDPUI <- function(id, title, width=12, dev = FALSE){
         ),
         class = "inputBox"
       ),
-      p("This is the location where your data packages will be
+      tags$p("This is the location where your data packages will be
         saved. A folder will be created, respectively named
         after your input."
       ),
       fluidRow(
         # Load existing DP
         column(ceiling(width/2),
-               h4("Edit existing data package",
+               tags$h4("Edit existing data package",
                   style="text-align:center"),
                uiOutput(ns("dp_list"))
-               # ,actionButton(ns("dp_load"), "Load")
-               # ,actionButton(ns("dp_delete"),"Delete",
-               #              class = "redButton")
-               # ,actionButton(ns("dev0"), "Dev")
         ),
         # Create DP
         column(floor(width/2),
-               h4("Create new data package",
+               tags$h4("Create new data package",
                   style="text-align:center"),
 
                # Data package title
                textInput(ns("dp_name"), "Data package name",
                          placeholder = paste0(Sys.Date(),"_project")),
                # textOutput(ns("warning_dp_name")),
-               div(id = "license-help",
+               tags$div(id = "license-help",
                    selectInput(ns("license"),
                                "Select an Intellectual Rights License:",
                                c("CCBY","CC0"),
@@ -58,7 +58,6 @@ selectDPUI <- function(id, title, width=12, dev = FALSE){
                ),
                # DP creation
                uiOutput(ns("dp_create"))
-               # actionButton(ns("dp_create"),"Create")
         ) # end column2
 
       ) # end fluidRow
@@ -69,6 +68,16 @@ selectDPUI <- function(id, title, width=12, dev = FALSE){
 
 }
 
+#' @title Data Package selection
+#' 
+#' @description UI part for the Data Package selection. Allow the user to choose between
+#' creating a new data package or loading an existing one. 
+#' 
+#' @importFrom shiny reactiveValues observeEvent req renderText renderUI validate radioButtons actionButton reactive
+#' showModal modalDialog modalButton removeModal
+#' @importFrom shinyFiles getVolumes shinyDirChoose parseDirPath
+#' @importFrom shinyjs enable disable
+#' @importFrom EMLassemblyline template_directories template_core_metadata
 selectDP <- function(input, output, session,
                      savevar, globals){
   # variable initialization ----
@@ -138,16 +147,11 @@ selectDP <- function(input, output, session,
                    NULL,
                    choiceNames = c("None selected",rv$dp_list),
                    choiceValues = c("", rv$dp_list)
-      )
-      ,actionButton(ns("dp_load"), "Load")
-      ,actionButton(ns("dp_delete"),"Delete",
-                    class = "redButton")
+      ),
+      actionButton(ns("dp_load"), "Load"),
+      actionButton(ns("dp_delete"),"Delete",
+                   class = "redButton")
     )
-    # else{
-    #   disable("dp_load")
-    #   disable("dp_delete")
-    #   "No EML data package was found at this location."
-    # }
   })
 
   # toggle Load and Delete buttons
@@ -182,65 +186,10 @@ selectDP <- function(input, output, session,
     return(actionButton(ns("dp_create"),"Create"))
   })
 
-
-
-  # name input
-#   rv$valid_name <- TRUE
-#   observeEvent({
-#     input$dp_name
-#     rv$dp_list
-#   }, {
-# cat("evaluated:", input$dp_name, "\n")
-#     req(input$dp_name)
-#     # check for name validity
-#     rv$warning_dp_name <- c(
-#       # check for long enough name
-#       if(nchar(input$dp_name) < 3){
-#         rv$valid_name <- FALSE
-#         "Please type a name with at least 3 characters."}
-#       else{
-#         rv$valid_name <- TRUE
-#         NULL},
-#       # check for valid characters name
-#       if(!grepl("^[[:alnum:]_-]+$",input$dp_name)
-#          && nzchar(input$dp_name)){
-#         rv$valid_name <- FALSE
-#         "Only authorized characters are alphanumeric, '_' (underscore) and '-' (hyphen)."}
-#       else{
-#         rv$valid_name <- TRUE
-#         NULL},
-#       # check for double name
-#       if(!is.null(rv$dp_list)
-#          && input$dp_name %in% rv$dp_list
-#          && input$dp_name != ""){
-#         rv$valid_name <- FALSE
-#         paste0(input$dp_name, " exists already at this location !")}
-#       else{
-#         rv$valid_name <- TRUE
-#         NULL}
-#     )
-#
-#   })
-#
-#   # warnings for input name - toggle Create button
-#   output$warning_dp_name <- renderText({
-#     if(rv$valid_name){
-#       rv$dp_name <- input$dp_name
-#       enable("dp_create")
-#       return(NULL)
-#     }
-#     else{
-#       disable("dp_create")
-#       return(paste(rv$warning_dp_name, collapse = "\n"))
-#     }
-#   })
-#
-
   # license choice
   rv$dp_license <- reactive({ input$license })
 
-  # DP management - on clicks----
-
+  # DP management - on clicks ----
   # Create DP
   observeEvent(input$dp_create, {
     req(input$dp_name)

@@ -1,6 +1,8 @@
-# fill.R
-
-### UI ###
+#' @title welcome
+#' 
+#' @description Welcome page of the MetaShARK app.
+#' 
+#' @importFrom shiny fluidPage headerPanel mainPanel HTML
 welcomeUI <- function(id){
   
   fluidPage(
@@ -29,6 +31,17 @@ welcomeUI <- function(id){
           Biodiversity) and its <a href='https://github.com/NCEAS/eml'>git</a>.
           However, MetaShARK offers a <a href='#shiny-tab-documentation'>documentation
           section</a> dedicated to EML. </p>
+        </div>
+        
+        <div id='CatnShark'>
+          <h2>MetaCat and MetaShARK</h2>
+          <p>The application you are currently using is a front-end
+          tool for any user who wants to contribute to a DataOne node
+          repository, also known as <b>metadata catalog</b> or <b>MetaCat</b>.
+          To contribute to a MetaCat, you need to login to the metacat
+          in which you want to upload your data package. Then, it will 
+          be possible for MetaShARK to gather the needed informations, as
+          you will see while using the app.</p>
         </div>
       ")
     )

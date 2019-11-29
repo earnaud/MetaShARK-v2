@@ -1,12 +1,20 @@
+#' @title appOptionsUI
+#' 
+#' @description UI part of the appOptions module. Allow the user to change several settings in the app.
+#' 
+#' @importFrom shiny NS tags tagList fluidRow column textAreaInput checkboxInput actionButton
 appOptionsUI <- function(id, dev) {
   ns <- NS(id)
   
   tagList(
-    h1("Options"),
+    tags$h1("Options"),
     fluidRow(
       column(8,
-             h2("Metacat setup"),
-             textAreaInput(ns("auth_token"), "Authentication token", width = "120%"),
+             tags$h2("Metacat setup"),
+             textAreaInput(ns("auth_token"), 
+                           "Authentication token",
+                           width = "120%",
+                           value = options("dataone_token")),
              checkboxInput(ns("test_metacat"), "Test MetaCat", value = TRUE),
              actionButton(ns("metacat_save"),"Save")
       ),
@@ -24,7 +32,25 @@ appOptionsUI <- function(id, dev) {
   )
 }
 
+#' @title appOptions
+#' 
+#' @description server part of the appOptions module. Allow the user to change several settings in the app.
+#' 
+#' @importFrom shiny observeEvent updateTextAreaInput
 appOptions <- function(input, output, session) {
+  
+  observeEvent(input$test_metacat,{
+    if(input$test_metacat){
+      updateTextAreaInput(session, 
+                          "auth_token", 
+                          value = options("dataone_test_token")[[1]])
+    }
+    else{
+      updateTextAreaInput(session, 
+                          "auth_token",
+                          value = options("dataone_token")[[1]])
+    }
+  })
   
   observeEvent(input$metacat_save,{
     if(input$test_metacat)

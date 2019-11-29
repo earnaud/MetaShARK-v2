@@ -1,10 +1,8 @@
-# Usage:
-# create an instance like
-# `myTrigger <- makeReactiveTrigger()`
-# in the reactive chunk to be triggered:
-# `myTrigger$depend()`
-# and in the chunk causing the trigger:
-# `myTrigger$trigger()`
+#' @title reactiveTrigger
+#' 
+#' @description create a 'reactiveTrigger' object (NOT an official R class) with two methods:
+#' 1. depend() : must be written in a code chunk to execute on triggering
+#' 2. trigger() : when executed, trigger the object (and all the "depending" code chunks)
 makeReactiveTrigger <- function() {
   rv <- reactiveValues(a = 0)
   list(

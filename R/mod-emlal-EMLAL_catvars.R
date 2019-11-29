@@ -1,6 +1,8 @@
-# sample.R
-
-## 0. Sample template
+#' @title Geographic coverage 
+#' 
+#' @description UI part for the Geographic Coverage module
+#' 
+#' @importFrom shiny NS fluidPage column fluidRow actionButton tags tagList 
 catvarsUI <- function(id, title, dev){
   ns <- NS(id)
   
@@ -24,6 +26,11 @@ catvarsUI <- function(id, title, dev){
   ) # end of return
 }
 
+#' @title Geographic coverage 
+#' 
+#' @description UI part for the Geographic Coverage module
+#' 
+#' @importFrom shiny observeEvent callModule 
 catvars <- function(input, output, session, savevar, globals){
   ns <- session$ns
   

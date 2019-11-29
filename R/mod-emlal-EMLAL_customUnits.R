@@ -1,6 +1,8 @@
-# sample.R
-
-## 0. Sample template
+#' @title customUnitsUI
+#' 
+#' @description UI part of the customUnits module.
+#' 
+#' @importFrom shiny NS fluidPage column fluidRow tagList tags icon actionButton uiOutput textOutput
 customUnitsUI <- function(id, title, dev){
   ns <- NS(id)
   
@@ -41,6 +43,13 @@ customUnitsUI <- function(id, title, dev){
   ) # end of return
 }
 
+#' @title customUnitsUI
+#' 
+#' @description server part of the customUnits module.
+#' 
+#' @importFrom shiny observeEvent reactiveValues observe req isolate callModule renderUI tagList textInput selectInput
+#' numericInput textAreaInput eventReactive reactiveValuesToList
+#' @importFrom data.table fread
 customUnits <- function(input, output, session,
                         savevar, globals){
   ns <- session$ns
@@ -161,8 +170,6 @@ customUnits <- function(input, output, session,
              globals, "customUnits")
   
   # Procedurals ----
-   
-  
   # / UI ----
   # Warning: Error in choicesWithNames: argument "choices" is missing, with no default
   output$edit_CU <- renderUI({
@@ -197,8 +204,6 @@ customUnits <- function(input, output, session,
   }) # end of UI
   
   # / Servers ----
-   
-  
   observe({
     req( any(rv$ui %in% names(input)) )
     
