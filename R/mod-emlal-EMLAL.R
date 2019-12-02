@@ -20,7 +20,7 @@ EMLALUI <- function(id, dev = FALSE){
           <a href=https://github.com/EDIorg/EMLassemblyline>git repository</a>.
           </p>"
         ),
-        tagsdiv(
+        tags$div(
           imageOutput("edi-logo", # from main.R
                       width = "100px", height = "100px"
           ),
