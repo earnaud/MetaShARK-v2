@@ -2,10 +2,11 @@
 # MetaShARK
 Metadata Shiny-Automated Resources & Knowledge
 _First released on 15-04-2019_  
-DOI: 10.5281/zenodo.3355324  
+(DOI will be updated on next release)
 
 The aim of the MetaShARK app is to allow any user a bit familiar with ecology to fill in data packages to provide as many information as possible on any dataset used in a publication, communication, etc. in ecology. The challenge of this work is to produce a user-friendly tool to a science community which is not familiar to heavy metadata standards and their informatic specification. Consequently, the choice has been made to work only with R as it is the currentest programming language in this community and it can be easily accessible as an open source application, despite of its low performances.
 This project has the ambition to offer the user a user-friendly alternative to existing tools (such as the hardcore Morpho ;) ) but also to address an other issue which is the EML is not always fully considered.
+This MetaShARK git is called "v2" because it is the evolution with {golem} package of the previous [MetaShARK git](https://github.com/earnaud/MetaShARK)
 
 **Any suggestion is welcome, feel free to contact the dev !**
 
@@ -16,27 +17,30 @@ library(devtools)
 install_github("earnaud/MetaShARK-v2")
 ```
 
-The supported features and expected behaviors are described below.
+All dependencies are described in the DESCRIPTION file.
 
-### Required libraries
+The supported features and expected behaviors are described below. 
 
-MetaShARK require following libraries to perform:
+## MetaShARK features 
 
-**GUI libraries**
-* [shiny](https://CRAN.R-project.org/package=shiny)
-* [shinyTree](https://CRAN.R-project.org/package=shinyTree)
-* [shinydashboard](https://CRAN.R-project.org/package=shinydashboard)
-* [shinyjs](https://CRAN.R-project.org/package=shinyjs)
-* [tcltk2](https://CRAN.R-project.org/package=tcltk2)
-* [tippy](https://CRAN.R-project.org/package=tippy)
+### Documentation
 
-**Metadata libraries**
-* [EML](https://CRAN.R-project.org/package=EML)
-* [EMLassemblyline](https://github.com/EDIorg/EMLassemblyline)
+First feature devempêd in MetaShARK, it is possible to consult any documented part of the Ecological Metadata Language. This documentation directly relies on the EML 2.2.0, and some tags (as the "eml-\*" ones) can be undocumented. Also, it is possible to access the original documentation through the dedicated tab.
 
-**Utilitary libraries**
-* [devtools](https://CRAN.R-project.org/package=devtools)
-* [RefManageR](https://CRAN.R-project.org/package=RefManageR)
+### Metadata filling
+
+Two methods are being developped to fill in metadata:
+
+* Metadata Fill-In (MetaFIN) : still not accessible, it is the PNDB specific tool exploring automatic inference to fill in metadata from datasets.
+* EML Assembly Line (EMLAL) : in development, it is the EDI tool allowing the user to interact with a major part of the EML. MetaShARK is a user front-end solution to offer more automated and visual access to this tool.
+
+### Data Package upload
+
+It is possibe to upload data packages to metacats registered in MetaShARK. You will need to fetch your metacat token in the corresponding MetaCatUI. 
+
+### References
+
+Some references are given that sustain the base principles of this work.
 
 ## Releases
 
