@@ -14,6 +14,7 @@
 #' @importFrom utils combn 
 #' @importFrom dataone listFormats CNode
 #' @importFrom shiny reactiveValues
+#' @importFrom EML get_unitList
 .globalScript <- function(dev = FALSE){
   if(!is.logical(dev) || is.null(dev)) dev = FALSE
 
@@ -42,6 +43,7 @@
     THRESHOLDS = reactiveValues(data_files_size_max = 500000),
     DEFAULT.PATH = DP.PATH,
     HOME = HOME,
+    NS.INDEX = readRDS("resources/nsIndex.RData"),
     # Formats lists
     FORMAT = list(DATE = DATE.FORMAT,
                   HOUR = HOUR.FORMAT,
