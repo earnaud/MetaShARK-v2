@@ -43,7 +43,7 @@
     THRESHOLDS = reactiveValues(data_files_size_max = 500000),
     DEFAULT.PATH = DP.PATH,
     HOME = HOME,
-    NS.INDEX = readRDS("resources/nsIndex.RData"),
+    NS.INDEX = readRDS(system.file("resources/nsIndex.RData", package = "MetaShARK")),
     # Formats lists
     FORMAT = list(DATE = DATE.FORMAT,
                   HOUR = HOUR.FORMAT,
