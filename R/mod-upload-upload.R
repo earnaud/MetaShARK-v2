@@ -10,7 +10,7 @@
 #' @importFrom data.table fread
 uploadUI <- function(id, dev) {
   ns <- NS(id)
-  registeredEndpoints <- fread(system.file("resources/registeredEndpoints.txt"), package="MetaShARK")
+  registeredEndpoints <- fread(system.file("resources/registeredEndpoints.txt", package="MetaShARK"))
   
   # TODO use `runjs` from shinyjs to update css : https://stackoverflow.com/questions/46045222/reactive-css-properties-in-r-shiny
   
@@ -84,7 +84,7 @@ upload <- function(input, output, session, dev,
                    dataone.formats) {
   ns <- session$ns
   
-  registeredEndpoints <- fread(system.file("resources/registeredEndpoints.txt"), package="MetaShARK")
+  registeredEndpoints <- fread(system.file("resources/registeredEndpoints.txt", package="MetaShARK"))
   
   if(dev)
     observeEvent(input$dev, {
