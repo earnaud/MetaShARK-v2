@@ -45,7 +45,7 @@
            # upload
            upload = callModule(upload, "upload", dev),
            # doc
-           documentation = callModule(documentation, "documentation"),
+           documentation = callModule(documentation, "documentation", globals),
            # about
            about = callModule(about, "about"),
            # default

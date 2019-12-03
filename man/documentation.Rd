@@ -4,7 +4,7 @@
 \alias{documentation}
 \title{documentation}
 \usage{
-documentation(input, output, session)
+documentation(input, output, session, globals)
 }
 \description{
 server part of the documentation module.
