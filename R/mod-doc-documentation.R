@@ -68,7 +68,7 @@ docUI <- function(id){
 #' @importFrom shiny observeEvent renderText
 #' @importFrom shinyTree renderTree get_selected 
 #' @importFrom utils browseURL
-documentation <- function(input, output, session){
+documentation <- function(input, output, session, globals){
   ns <- session$ns
   
   require(shinyTree)
@@ -110,7 +110,7 @@ documentation <- function(input, output, session){
       
       # fetch the eml-xsd content in the systemGuideLine list
       systemContent <- followPath(systemGuideline, systemPath)
-      out <- extractContent(systemContent, nsIndex = ns.index)
+      out <- extractContent(systemContent, nsIndex = globals$NS.INDEX)
       return(out)
     }
   })
