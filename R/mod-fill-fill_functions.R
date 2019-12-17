@@ -4,22 +4,25 @@
 #' @title initReactive
 #'
 #' @description EMLAL module specific function. Initialize `savevar` variable.
-#' 
+#'
 #' @param sublist either NULL, "emlal", "metafin" to precise which sublist to initialize (NULL initializes the whole variable)
-#' 
-#' @importFrom shiny reactiveValues 
-initReactive <- function(sublist = NULL, savevar = NULL){
-  if(!is.null(sublist) && is.null(savevar))
+#'
+#' @importFrom shiny reactiveValues
+initReactive <- function(sublist = NULL, savevar = NULL) {
+  if (!is.null(sublist) && is.null(savevar)) {
     stop("Attempt to initialize savevar's sublist without savevar.")
-  if(!(is.null(sublist) || sublist %in% c("emlal","metafin")))
+  }
+  if (!(is.null(sublist) || sublist %in% c("emlal", "metafin"))) {
     stop("Attempt to initialize savevar with inconsistent arguments")
-  
+  }
+
   # re-creates a whole savevar
-  if(is.null(sublist))
+  if (is.null(sublist)) {
     savevar <- reactiveValues()
-  
+  }
+
   # emlal reactivelist management
-  if(is.null(sublist) || sublist == "emlal")
+  if (is.null(sublist) || sublist == "emlal") {
     savevar$emlal <- reactiveValues(
       step = 0,
       selectDP = reactiveValues(
@@ -29,29 +32,33 @@ initReactive <- function(sublist = NULL, savevar = NULL){
       createDP = reactiveValues(
         dp_data_files = NULL
       ),
-      templateDP = reactiveValues()
+      templateDP = reactiveValues(),
+      catvars = reactiveValues()
     )
-  
+  }
+
   # metafin reactivelist management
-  if(is.null(sublist) || sublist == "metafin")
+  if (is.null(sublist) || sublist == "metafin") {
     savevar$metafin <- reactiveValues()
-  
+  }
+
   # differential returns
-  return(if(is.null(sublist))
+  return(if (is.null(sublist)) {
     savevar
-    else
-      switch(sublist,
-             emlal = savevar$emlal,
-             metafin = savevar$metafin)
-  )
+  } else {
+    switch(sublist,
+      emlal = savevar$emlal,
+      metafin = savevar$metafin
+    )
+  })
 }
 
-#' @describeIn initReactive 
-#' 
+#' @describeIn initReactive
+#'
 #' @description save the `savevar` variable at wanted location
-saveReactive <- function(toSave, path, filename){
-  location <- paste0(path,"/",filename,".rds")
-  message("Saving current metadata as:",location,"\n",sep=" ")
-  if(file.exists(location)) file.remove(location)
+saveReactive <- function(toSave, path, filename) {
+  location <- paste0(path, "/", filename, ".rds")
+  message("Saving current metadata as:", location, "\n", sep = " ")
+  if (file.exists(location)) file.remove(location)
   saveRDS(toSave, location)
 }

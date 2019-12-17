@@ -1,11 +1,11 @@
 #' @title Data Package selection
-#' 
+#'
 #' @description UI part for the Data Package selection. Allow the user to choose between
-#' creating a new data package or loading an existing one. 
-#' 
+#' creating a new data package or loading an existing one.
+#'
 #' @importFrom shiny NS fluidPage fluidRow column tags tagList icon textOutput uiOutput selectInput textInput HTML
-#' @importFrom shinyFiles shinyDirButton 
-selectDPUI <- function(id, title, width=12, dev = FALSE){
+#' @importFrom shinyFiles shinyDirButton
+selectDPUI <- function(id, title, width = 12, dev = FALSE) {
   ns <- NS(id)
 
   # UI output
@@ -14,72 +14,75 @@ selectDPUI <- function(id, title, width=12, dev = FALSE){
       title = "Organize data packages",
       # Data package location
       fluidRow(
-        column(4,
-               shinyDirButton(ns("dp_location"),"Choose directory",
-                              "DP save location", icon = icon("folder-open")
-               )
+        column(
+          4,
+          shinyDirButton(ns("dp_location"), "Choose directory",
+            "DP save location",
+            icon = icon("folder-open")
+          )
         ),
         column(8,
-               textOutput(ns("dp_location")),
-               style = "text-align: right;"
+          textOutput(ns("dp_location")),
+          style = "text-align: right;"
         ),
         class = "inputBox"
       ),
       tags$p("This is the location where your data packages will be
         saved. A folder will be created, respectively named
-        after your input."
-      ),
+        after your input."),
       fluidRow(
         # Load existing DP
-        column(ceiling(width/2),
-               tags$h4("Edit existing data package",
-                  style="text-align:center"),
-               uiOutput(ns("dp_list"))
+        column(
+          ceiling(width / 2),
+          tags$h4("Edit existing data package",
+            style = "text-align:center"
+          ),
+          uiOutput(ns("dp_list"))
         ),
         # Create DP
-        column(floor(width/2),
-               tags$h4("Create new data package",
-                  style="text-align:center"),
+        column(
+          floor(width / 2),
+          tags$h4("Create new data package",
+            style = "text-align:center"
+          ),
 
-               # Data package title
-               textInput(ns("dp_name"), "Data package name",
-                         placeholder = paste0(Sys.Date(),"_project")),
-               # textOutput(ns("warning_dp_name")),
-               tags$div(id = "license-help",
-                   selectInput(ns("license"),
-                               "Select an Intellectual Rights License:",
-                               c("CCBY","CC0"),
-                               multiple = FALSE)
-               ),
-               HTML("License: <br>
+          # Data package title
+          textInput(ns("dp_name"), "Data package name",
+            placeholder = paste0(Sys.Date(), "_project")
+          ),
+          # textOutput(ns("warning_dp_name")),
+          tags$div(
+            id = "license-help",
+            selectInput(ns("license"),
+              "Select an Intellectual Rights License:",
+              c("CCBY", "CC0"),
+              multiple = FALSE
+            )
+          ),
+          HTML("License: <br>
                       <b>CC0:</b> public domain. <br>
                       <b>CC-BY-4.0:</b> open source with authorship. <br>
-                      For more details, visit Creative Commons."
-               ),
-               # DP creation
-               uiOutput(ns("dp_create"))
+                      For more details, visit Creative Commons."),
+          # DP creation
+          uiOutput(ns("dp_create"))
         ) # end column2
-
       ) # end fluidRow
-
     ) # end fluidPage
-
   ) # end return
-
 }
 
 #' @title Data Package selection
-#' 
+#'
 #' @description UI part for the Data Package selection. Allow the user to choose between
-#' creating a new data package or loading an existing one. 
-#' 
+#' creating a new data package or loading an existing one.
+#'
 #' @importFrom shiny reactiveValues observeEvent req renderText renderUI validate radioButtons actionButton reactive
 #' showModal modalDialog modalButton removeModal
 #' @importFrom shinyFiles getVolumes shinyDirChoose parseDirPath
 #' @importFrom shinyjs enable disable
 #' @importFrom EMLassemblyline template_directories template_core_metadata
 selectDP <- function(input, output, session,
-                     savevar, globals){
+                     savevar, globals) {
   # variable initialization ----
   ns <- session$ns
   DP.path <- globals$DEFAULT.PATH
@@ -103,9 +106,10 @@ selectDP <- function(input, output, session,
   # DP location ----
   # chose DP location
   shinyDirChoose(input, ns("dp_location"),
-                 roots = volumes,
-                 # defaultRoot = HOME,
-                 session = session)
+    roots = volumes,
+    # defaultRoot = HOME,
+    session = session
+  )
   # update reactive value
   observeEvent(input$dp_location, {
     # validity checks
@@ -117,8 +121,9 @@ selectDP <- function(input, output, session,
     # actions
     # rv$dp_location <- input$dp_location
     rv$dp_location <- parseDirPath(volumes, input$dp_location)
-    if(is.na(rv$dp_location))
+    if (is.na(rv$dp_location)) {
       rv$dp_location <- save
+    }
   })
 
   # Render selected DP location
@@ -131,36 +136,42 @@ selectDP <- function(input, output, session,
   # fetch list of DP at selected location
   observeEvent(rv$dp_location, {
     dpList <- list.files(rv$dp_location, pattern = "_emldp$")
-    if(length(dpList) != 0) rv$dp_list <- sub("_emldp","",dpList)
-    else rv$dp_list <- NULL
+    if (length(dpList) != 0) {
+      rv$dp_list <- sub("_emldp", "", dpList)
+    } else {
+      rv$dp_list <- NULL
+    }
   })
 
   # Render list of DP at selected location
   output$dp_list <- renderUI({
     # req(rv$dp_list)
     validate(
-      need(!is.null(rv$dp_list),
-           "No existing data package")
+      need(
+        !is.null(rv$dp_list),
+        "No existing data package"
+      )
     )
     tagList(
       radioButtons(ns("dp_list"),
-                   NULL,
-                   choiceNames = c("None selected",rv$dp_list),
-                   choiceValues = c("", rv$dp_list)
+        NULL,
+        choiceNames = c("None selected", rv$dp_list),
+        choiceValues = c("", rv$dp_list)
       ),
       actionButton(ns("dp_load"), "Load"),
-      actionButton(ns("dp_delete"),"Delete",
-                   class = "redButton")
+      actionButton(ns("dp_delete"), "Delete",
+        class = "redButton"
+      )
     )
   })
 
   # toggle Load and Delete buttons
   observeEvent(input$dp_list, {
-    if(input$dp_list != ""){
+    if (input$dp_list != "") {
       enable("dp_load")
       enable("dp_delete")
     }
-    else{
+    else {
       disable("dp_load")
       disable("dp_delete")
     }
@@ -168,26 +179,34 @@ selectDP <- function(input, output, session,
 
   # DP create ----
   # check name input
-  rv$dp_name = ""
+  rv$dp_name <- ""
   rv$valid_name <- FALSE
   output$dp_create <- renderUI({
     rv$valid_name <- FALSE
     validate(
-      need(nchar(input$dp_name) > 3,
-           "Please type a name with at least 3 characters."),
-      need(grepl("^[[:alnum:]_-]+$",input$dp_name)
-           && nzchar(input$dp_name),
-           "Only authorized characters are alphanumeric, '_' (underscore) and '-' (hyphen)."),
-      need(input$dp_name != ""
-           && !(input$dp_name %in% rv$dp_list),
-           "This name is already used: change either save directory or data package name.")
+      need(
+        nchar(input$dp_name) > 3,
+        "Please type a name with at least 3 characters."
+      ),
+      need(
+        grepl("^[[:alnum:]_-]+$", input$dp_name)
+        && nzchar(input$dp_name),
+        "Only authorized characters are alphanumeric, '_' (underscore) and '-' (hyphen)."
+      ),
+      need(
+        input$dp_name != ""
+        && !(input$dp_name %in% rv$dp_list),
+        "This name is already used: change either save directory or data package name."
+      )
     )
     rv$valid_name <- TRUE
-    return(actionButton(ns("dp_create"),"Create"))
+    return(actionButton(ns("dp_create"), "Create"))
   })
 
   # license choice
-  rv$dp_license <- reactive({ input$license })
+  rv$dp_license <- reactive({
+    input$license
+  })
 
   # DP management - on clicks ----
   # Create DP
@@ -197,7 +216,7 @@ selectDP <- function(input, output, session,
 
     # variable operation - legibility purpose
     dp <- input$dp_name
-    path <- paste0(rv$dp_location,dp,"_emldp")
+    path <- paste0(rv$dp_location, dp, "_emldp")
     license <- rv$dp_license()
 
     # save in empty dedicated variable
@@ -206,13 +225,13 @@ selectDP <- function(input, output, session,
     savevar$emlal$selectDP$dp_path <- path
 
     # verbose
-    message("Creating:",path,"\n", sep = "")
+    message("Creating:", path, "\n", sep = "")
 
     # actions
-    rv$dp_list <- c(rv$dp_list,dp)
+    rv$dp_list <- c(rv$dp_list, dp)
 
-    globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE+1
-    globals$EMLAL$PREVIOUS <- "create"
+    globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1
+    globals$EMLAL$HISTORY <- "create"
 
     dir.create(path)
     saveReactive(savevar, path, dp) # initial "commit"
@@ -232,18 +251,19 @@ selectDP <- function(input, output, session,
 
     # variable operation - legibility purpose
     dp <- input$dp_list
-    path <- paste0(rv$dp_location,dp,"_emldp")
+    path <- paste0(rv$dp_location, dp, "_emldp")
 
     # verbose
-    message("Loading:",path,"\n", sep = "") # to replace by loading DP
+    message("Loading:", path, "\n", sep = "") # to replace by loading DP
 
     # actions
     savevar$emlal <- initReactive("emlal", savevar)
-    savevar$emlal <- readRDS(paste0(path,"/",dp,".rds"))$emlal
+    savevar$emlal <- readRDS(paste0(path, "/", dp, ".rds"))$emlal
     globals$EMLAL$NAVIGATE <- ifelse(savevar$emlal$step > 1, # resume where max reached
-                                     savevar$emlal$step,
-                                     globals$EMLAL$NAVIGATE+1)
-    globals$EMLAL$PREVIOUS <- "load"
+      savevar$emlal$step,
+      globals$EMLAL$NAVIGATE + 1
+    )
+    globals$EMLAL$HISTORY <- "load"
   })
 
   # Delete DP
@@ -261,7 +281,7 @@ selectDP <- function(input, output, session,
         footer = tagList(
           modalButton("No"),
           actionButton(
-            ns("delete_confirm"),"Yes",
+            ns("delete_confirm"), "Yes",
             class = "redButton"
           )
         ) # end footer
@@ -270,13 +290,13 @@ selectDP <- function(input, output, session,
   })
 
   # If deletion is confirmed
-  observeEvent(input$delete_confirm,{
+  observeEvent(input$delete_confirm, {
     # variable operation - legibility purpose
     dp <- input$dp_list
-    path <- paste0(rv$dp_location,dp,"_emldp")
+    path <- paste0(rv$dp_location, dp, "_emldp")
 
     # verbose
-    message("Deleting:",path,"\n", sep = "") # to replace by deleting DP
+    message("Deleting:", path, "\n", sep = "") # to replace by deleting DP
 
     # actions
     unlink(path, recursive = TRUE)

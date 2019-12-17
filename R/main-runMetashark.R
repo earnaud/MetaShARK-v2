@@ -13,20 +13,20 @@
 #'
 #' @examples
 #' runMetashark()
-#'
 #' @author Elie Arnaud <elie.arnaud@mnhn.fr>
 #'
 #' @export
 #' @importFrom shiny shinyApp
 #' @importFrom golem with_golem_options use_favicon favicon
 runMetashark <- function(...) {
-
   use_favicon("inst/app/www/favicon.png")
   favicon(ico = "inst/app/www/favicon.png")
-  
+
   with_golem_options(
-    app = shinyApp(ui = .app_ui, server = .app_server,
-                   onStart = .headerScript),
+    app = shinyApp(
+      ui = .app_ui, server = .app_server,
+      onStart = .headerScript
+    ),
     golem_opts = list(...)
   )
 }

@@ -11,9 +11,11 @@ source("guidelinesExplorer.R")
 # set vars
 {
   cat("Setting variables\n")
-  xsdFiles = dir(path = "xsdFiles/", 
-                 pattern = "eml")
-  xsdFiles = paste0("xsdFiles/", xsdFiles)
+  xsdFiles <- dir(
+    path = "xsdFiles/",
+    pattern = "eml"
+  )
+  xsdFiles <- paste0("xsdFiles/", xsdFiles)
 }
 
 # build index for namespaces

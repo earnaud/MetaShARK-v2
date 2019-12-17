@@ -21,7 +21,6 @@ precise description of input datasets.
 }
 \examples{
 runMetashark()
-
 }
 \author{
 Elie Arnaud <elie.arnaud@mnhn.fr>

@@ -28,16 +28,16 @@ display <- function(tag) {
 }
 
 #' @title jq_hide
-#' 
+#'
 #' @description Hide an elements by calling jquery hide on it
-#' 
+#'
 #' @importFrom htmltools tags
 jq_hide <- function(id) {
   tags$script(sprintf("$('#%s').hide()", id))
 }
 
 #' @title with_red_star
-#' 
+#'
 #' @description Add a red star at the end of the text
 #'
 #' Adds a red star at the end of the text
@@ -49,7 +49,6 @@ jq_hide <- function(id) {
 #'
 #' @examples
 #' with_red_star("Enter your name here")
-#'
 #' @importFrom htmltools tags HTML
 with_red_star <- function(text) {
   htmltools::tags$span(

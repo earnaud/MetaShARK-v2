@@ -21,6 +21,6 @@ uploadDP(mn, cn, eml, data, scripts = c(), formats)
 }
 \description{
 automation script to upload data packages
-produced with {dataone} and {datapack}. This function is 
+produced with {dataone} and {datapack}. This function is
 freely inspired by [this tutorial script](http://training.arcticdata.io/materials/arctic-data-center-training/programming-metadata-and-data-publishing.html#publish-data-to-the-arctic-data-center-test-site).
 }
