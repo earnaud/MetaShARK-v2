@@ -58,19 +58,25 @@ catvarsUI <- function(id, title, dev) {
 catvars <- function(input, output, session, savevar, globals) {
   ns <- session$ns
 
+  # DEV ----
   if (globals$dev) {
     observeEvent(input$check, {
       browser()
     })
   }
 
+  observeEvent(rv$currentIndex, {
+    print(rv$currentIndex)
+  })
+
+  # Initialization ----
   rv <- reactiveValues(
     catvarFiles = c(),
-    currentIndex = integer(),
-    catvars = reactiveValues()
+    currentIndex = 0,
+    catvars = reactiveValues(),
+    codes = reactiveValues()
   )
 
-  # Initialization
   observeEvent(TRUE,
     {
       # list catvar files
@@ -94,33 +100,50 @@ catvars <- function(input, output, session, savevar, globals) {
         "catvar"
       )
       rv$currentIndex <- 1
+      sapply(rv$catvarFiles$full, function(file_name) {
+        # browser()
+        savevar$emlal$catvars[[basename(file_name)]] <- fread(file_name)
+        if (all(is.na(savevar$emlal$catvars[[basename(file_name)]]$definition))) {
+          savevar$emlal$catvars[[basename(file_name)]] <- savevar$emlal$catvars[[basename(file_name)]] %>%
+            mutate(definition = replace(.$definition, TRUE, paste("Value:", .$code, "for attribute:", .$attributeName)))
+        }
+      })
     },
     once = TRUE
   )
 
   observeEvent(rv$currentIndex, {
+    # update rv$catvars
     rv$catvars <- fread(rv$catvarFiles$full[rv$currentIndex])
-  })
+    if (all(is.na(rv$catvars$definition))) {
+      rv$catvars <- savevar$emlal$catvars[[ rv$catvarFiles$short[rv$currentIndex] ]]
+    }
+  }) # end of observeEvent
 
   # Navigation buttons ----
   # ** files
-  observeEvent(input$file_prev,{
-    req(rv$currentIndex)
-    if (rv$current_index > 1) {
-      rv$current_index <- rv$current_index - 1
-    }
-  },
-  priority = -1
+  observeEvent(input$file_prev,
+    {
+      req(rv$currentIndex)
+      if (rv$currentIndex > 1) {
+        rv$currentIndex <- rv$currentIndex - 1
+      }
+    },
+    priority = -1
   )
-  observeEvent(input$file_next, {
-    req(rv$currentIndex, rv$catvarFiles$short)
-    if (rv$current_index < length(rv$catvarFiles$short)) {
-      rv$current_index <- rv$current_index + 1
-    }
-  },
-  priority = -1
+  observeEvent(input$file_next,
+    {
+      req(rv$currentIndex, rv$catvarFiles$short)
+      if (rv$currentIndex < length(rv$catvarFiles$short)) {
+        rv$currentIndex <- rv$currentIndex + 1
+      }
+    },
+    priority = -1
   )
-  output$current_file <- renderUI(tags$div(rv$catvarFiles$short[rv$currentIndex],
+  output$current_file <- renderUI({
+    print("current file")
+    tags$div(
+      rv$catvarFiles$short[rv$currentIndex],
       style = paste0(
         "display: inline-block;
         font-size:20pt;
@@ -132,9 +155,9 @@ catvars <- function(input, output, session, savevar, globals) {
         round(100 * rv$currentIndex / length(rv$catvarFiles$short)),
         "%);"
       )
-    ))
-  
-  
+    )
+  })
+
   callModule(
     onQuit, "nav",
     # additional arguments
@@ -161,56 +184,89 @@ catvars <- function(input, output, session, savevar, globals) {
   # Procedurals ----
   # /UI ----
   output$edit_catvar <- renderUI({
-    tagList(
-      lapply(unique(rv$catvars$attributeName), function(attribute) {
-        # get code for each attribute
-        codes <- rv$catvars %>%
-          dplyr::filter(attributeName == attribute) %>%
-          dplyr::select(code)
-        # collapse box for each attribute
-        shinyBS::bsCollapse(
-          id = paste0(
-            rv$catvarFiles$short[rv$currentIndex],
-            attribute,
-            collapse = "-"
-          ),
+    req(rv$catvars)
+    print("ui")
+    catvars <- isolate(rv$catvars)
+    do.call(
+      bsCollapse,
+      c(
+        id = rv$catvarFiles$short[rv$currentIndex],
+        ... = lapply(unique(catvars$attributeName), function(attribute) {
+          # get code for each attribute
+          codes <- catvars %>%
+            dplyr::filter(attributeName == attribute) %>%
+            dplyr::select(code)
+          # collapse box
           shinyBS::bsCollapsePanel(
             title = attribute,
             value = attribute,
             tagList(
               lapply(sapply(codes, as.list), function(cod) {
-                cat(attribute, "--", cod, "\n")
-                # get definition for each code
-                saved_value <- rv$catvars %>%
-                  filter(
-                    attributeName == attribute,
-                    code == cod
-                  ) %>%
-                  select(definition)
-                if(is.na(saved_value))
-                  saved_value <- paste("Value:", cod, "for attribute:", attribute)
-                
                 # input for each code
-                textAreaInput(ns(cod), cod, value = saved_value)
-              }) # end of "tagapply"
-            )
+                textAreaInput(ns(cod), cod, value = catvars %>% filter(attributeName == attribute, code == cod) %>% select(definition))
+              })
+            ) # end of "tagapply" -- text areas
           ) # end of bsCollapsePanel
-        )
-      }) # end of "tagapply"
-    )
+        }) # end of "tagapply" -- collapse boxes
+      ) # end of args
+    ) # end of do.call
   }) # end of renderUI
 
   # /Server ----
+  observeEvent(rv$currentIndex, {
+    # req(any(names(rv$codes)) %in% names(input))
+    # validate(
+    #   need(all(rv$catvars$code %in% names(input)), "codes' inputs are not ready yet")
+    # )
+    print("server")
+    sapply(rv$catvars$code, function(cod) {
+      rv$codes[[cod]] <- eventReactive(input[[cod]],
+        {
+          # get input value
+          enter <- input[[cod]]
+
+          # check obtained value
+          if (is.list(enter)) {
+            enter <- unlist(enter)
+          }
+          return(enter)
+        },
+        ignoreNULL = TRUE
+      ) # end eventReactive
+    }) # end sapply
+  }) # end observeEvent
+
+  # Saves ----
+  observeEvent(
+    {
+      # isolate({
+      sapply(names(rv$codes), function(i) input[[i]])
+      # })
+    },
+    {
+      validate(
+        need(all(rv$catvars$code %in% names(input)), "codes' inputs are not ready yet"),
+        need(all(rv$catvars$code %in% names(rv$codes)), "codes' inputs are not ready yet")
+      )
+
+      rv$catvars$definition <- printReactiveValues(rv$codes)[rv$catvars$code]
+    }
+  )
 
   # Process data ----
-
   observeEvent(input[["nav-prevTab"]], {
     if (tail(globals$EMLAL$HISTORY, 1) != "customUnits") {
       globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE - 1
     }
   })
   observeEvent(input[["nav-nextTab"]], {
-
+    # write catvar templates
+    sapply(rv$catvarFiles$full, function(file_name) {
+      fwrite(
+        savevar$emlal$catvars[[basename(file_name)]],
+        file_name
+      )
+    })
   })
 
   # Output ----
