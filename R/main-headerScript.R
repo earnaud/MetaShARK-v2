@@ -56,7 +56,7 @@
     EMLAL = reactiveValues(
       HISTORY = character(),
       NAVIGATE = 1,
-      MAX = 4
+      MAX = 5
     )
   )
 

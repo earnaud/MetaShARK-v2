@@ -127,7 +127,7 @@ customUnits <- function(input, output, session,
       sapply(names(savevar$emlal$templateDP), function(file_name) {
         if (file_name != "custom_units") {
           # shorten attributes' data frame name
-          tmp <- savevar$emlal$templateDP[[file_name]]
+          tmp <- savevar$emlal$templateDP[[file_name]] 
           if (any(tmp$unit == "custom")) {
             # expand attributes' names list
             rv$attributesNames <<- c(
@@ -316,7 +316,6 @@ customUnits <- function(input, output, session,
       ) # end eventReactive
     }) # end sapply
   }) # end observe
-  # end Servers
 
   # Saves ----
   observeEvent(
