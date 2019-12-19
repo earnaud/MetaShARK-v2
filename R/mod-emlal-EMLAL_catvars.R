@@ -9,6 +9,7 @@ catvarsUI <- function(id, title, dev) {
   return(
     fluidPage(
       # Features UI ----
+      h4(title),
       column(
         10,
         fluidRow(
@@ -65,10 +66,6 @@ catvars <- function(input, output, session, savevar, globals) {
     })
   }
 
-  observeEvent(rv$currentIndex, {
-    print(rv$currentIndex)
-  })
-
   # Initialization ----
   rv <- reactiveValues(
     catvarFiles = c(),
@@ -101,7 +98,6 @@ catvars <- function(input, output, session, savevar, globals) {
       )
       rv$currentIndex <- 1
       sapply(rv$catvarFiles$full, function(file_name) {
-        # browser()
         savevar$emlal$catvars[[basename(file_name)]] <- fread(file_name)
         if (all(is.na(savevar$emlal$catvars[[basename(file_name)]]$definition))) {
           savevar$emlal$catvars[[basename(file_name)]] <- savevar$emlal$catvars[[basename(file_name)]] %>%
@@ -141,7 +137,6 @@ catvars <- function(input, output, session, savevar, globals) {
     priority = -1
   )
   output$current_file <- renderUI({
-    print("current file")
     tags$div(
       rv$catvarFiles$short[rv$currentIndex],
       style = paste0(
@@ -185,7 +180,6 @@ catvars <- function(input, output, session, savevar, globals) {
   # /UI ----
   output$edit_catvar <- renderUI({
     req(rv$catvars)
-    print("ui")
     catvars <- isolate(rv$catvars)
     do.call(
       bsCollapse,
@@ -218,7 +212,6 @@ catvars <- function(input, output, session, savevar, globals) {
     # validate(
     #   need(all(rv$catvars$code %in% names(input)), "codes' inputs are not ready yet")
     # )
-    print("server")
     sapply(rv$catvars$code, function(cod) {
       rv$codes[[cod]] <- eventReactive(input[[cod]],
         {
@@ -237,18 +230,12 @@ catvars <- function(input, output, session, savevar, globals) {
   }) # end observeEvent
 
   # Saves ----
-  observeEvent(
-    {
-      # isolate({
-      sapply(names(rv$codes), function(i) input[[i]])
-      # })
-    },
+  observeEvent(sapply(names(rv$codes), function(i) input[[i]]),
     {
       validate(
         need(all(rv$catvars$code %in% names(input)), "codes' inputs are not ready yet"),
         need(all(rv$catvars$code %in% names(rv$codes)), "codes' inputs are not ready yet")
       )
-
       rv$catvars$definition <- printReactiveValues(rv$codes)[rv$catvars$code]
     }
   )
