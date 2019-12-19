@@ -106,7 +106,8 @@ EMLAL <- function(input, output, session,
         geocovUI(
           id = ns(iteration),
           title = steps[globals$EMLAL$NAVIGATE],
-          dev = globals$dev
+          dev = globals$dev,
+          data.files = reactiveValuesToList(savevar$emlal$templateDP)
         ),
         tagList(
           imageOutput(ns("WIP"))
