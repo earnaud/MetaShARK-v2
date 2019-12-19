@@ -82,6 +82,7 @@ uploadUI <- function(id, dev) {
 #' @importFrom dplyr filter select
 #' @importFrom shinyjs enable disable
 #' @importFrom data.table fread fwrite
+#' @importFrom devtools system.file
 upload <- function(input, output, session, dev,
                    dataone.formats) {
   ns <- session$ns
@@ -164,22 +165,6 @@ upload <- function(input, output, session, dev,
       enable("add_constraint")
     }
   })
-
-  # Constraints ----
-  # workflowFiles <- reactiveValues()
-  #
-  # observeEvent(input$add_constraint, {
-  #   req(rvFiles$scr(), rvFiles$data())
-  #
-  #   insertUI(
-  #     selector = "#constraints_div",
-  #     where = "afterBegin",
-  #     ui = describeWorkflowUI(ns(input$add_constraint), rvFiles$scr(), rvFiles$data())
-  #   )
-  #
-  #   workflowFiles[[as.character(input$add_constraint)]] <- callModule(describeWorkflow,
-  #                                                                     input$add_constraint)
-  # })
 
   # Process ----
   observeEvent(input$process, {
