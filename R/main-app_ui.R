@@ -109,7 +109,7 @@
 
   tags$head(
     # golem::activate_js(),
-    use_favicon("inst/app/www/favicon.png"),
+    # use_favicon("inst/app/www/favicon.png"),
     # Add here all the external resources
     tags$link(rel = "stylesheet", type = "text/css", href = "www/styles.css")
   )

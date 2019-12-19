@@ -3,10 +3,10 @@
 #' @description UI part for the Geographic Coverage module
 #'
 #' @importFrom shiny NS fluidPage fluidRow column tagList tags actionButton
-geocovUI <- function(id, title, dev) {
+geocovUI <- function(id, title, dev, data.files) {
   ns <- NS(id)
 
-  # browser()
+  browser()
   
   return(
     fluidPage(
@@ -22,12 +22,18 @@ geocovUI <- function(id, title, dev) {
               title = "Use dataset's geographic variables",
               value = 1,
               tagList(
-                selectInput("")
+                selectInput("site", "Choose a column for sites:", c("(None selected)", lapply(data.files, colnames))),
+                selectInput("latitude", "Choose a column for latitude:", c("(None selected)", lapply(data.files, colnames))),
+                selectInput("longitude", "Choose a column for longitude:", c("(None selected)", lapply(data.files, colnames)))
               )
             ),
             bsCollapsePanel(
               title = "Fill geographic template",
-              value = 2
+              value = 2,
+              span(
+                actionButton("addui", "", icon("plus")),
+                hidden(actionButton("removeui", "", icon("minus")))
+              )
             )
           )
         )
@@ -59,8 +65,52 @@ geocov <- function(input, output, session, savevar, globals) {
       browser()
     })
   }
+  # Variable initialization
+  rv = reactiveValues(
+    sites = data.frame(
+      id = character(),
+      site = character(),
+      lat = numeric(),
+      lon = numeric()
+    ),
+    uis <- reactiveValues(),
+    servers <- reactiveValues()
+  )
 
+  observeEvent(TRUE, {
+    disable("removeui")
+  }, once = TRUE)
+  
   # Navigation buttons ----
+  observeEvent(input$addui, {
+    rv$sites <- rbind(
+      rv$sites,
+      c(paste0("site_",input$addui), character(""), 0, 0)
+    )
+    
+    enable("removeui")
+  })
+  output$sites_ui <- renderUI({
+    req(rv$sites)
+    
+    tagList(
+      lapply(rv$sites$id, function(id){
+        div(id = paste0("ui", id),
+          checkboxInput(paste0("check-",id)),
+          textInput(paste0("site-",id), "Site name or id"),
+          numericInput(paste0("lat-",id), "Latitude", 0, -90, 90, 1),
+          numericInput(paste0("lon-",id), "Longitude", 0, -180, 180, 1)
+        )
+      })
+    )
+  })
+  observeEvent(rv$sites, {
+    
+  })
+  
+  observeEvent(input$removeui, {
+    
+  })
   
   # NSB
   callModule(

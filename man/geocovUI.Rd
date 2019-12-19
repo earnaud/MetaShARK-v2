@@ -4,7 +4,7 @@
 \alias{geocovUI}
 \title{Geographic coverage}
 \usage{
-geocovUI(id, title, dev)
+geocovUI(id, title, dev, data.files)
 }
 \description{
 UI part for the Geographic Coverage module
