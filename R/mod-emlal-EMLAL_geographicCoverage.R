@@ -6,7 +6,7 @@
 geocovUI <- function(id, title, dev, data.files) {
   ns <- NS(id)
 
-  browser()
+  # browser()
   
   return(
     fluidPage(
@@ -15,7 +15,7 @@ geocovUI <- function(id, title, dev, data.files) {
         10,
         fluidRow(
           tags$h4(title),
-          # tags$p("help"),
+          tags$p("UNDER CONSTRUCTION"),
           bsCollapse(
             id = ns("method"),
             bsCollapsePanel(

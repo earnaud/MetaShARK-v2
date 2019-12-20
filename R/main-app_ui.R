@@ -16,7 +16,10 @@
   # action
   tagList(
     # Leave this function for adding external resources
-    .golem_add_external_resources(),
+    # .golem_add_external_resources(),
+    tags$head(
+      tags$link(rel = "stylesheet", type = "text/css", href = "www/styles.css")
+    ),
     # List the first level UI elements here
     dashboardPage(
       title = "MetaShARK", # browser title
@@ -96,21 +99,21 @@
   ) # end taglist
 }
 
-#' @title .golem_add_external_resources
-#'
-#' @description {golem} utility
-#'
-#' @importFrom shiny addResourcePath tags
-#' @importFrom golem use_favicon
-.golem_add_external_resources <- function() {
-  addResourcePath(
-    "www", system.file("app/www", package = "MetaShARK")
-  )
-
-  tags$head(
-    # golem::activate_js(),
-    # use_favicon("inst/app/www/favicon.png"),
-    # Add here all the external resources
-    tags$link(rel = "stylesheet", type = "text/css", href = "www/styles.css")
-  )
-}
+# @title .golem_add_external_resources
+#
+# @description {golem} utility
+#
+# @importFrom shiny addResourcePath tags
+# @importFrom golem use_favicon
+# .golem_add_external_resources <- function() {
+#   addResourcePath(
+#     "www", system.file("app/www", package = "MetaShARK")
+#   )
+# 
+#   tags$head(
+#     # golem::activate_js(),
+#     # use_favicon("inst/app/www/favicon.png"),
+#     # Add here all the external resources
+#     tags$link(rel = "stylesheet", type = "text/css", href = "www/styles.css")
+#   )
+# }
