@@ -12,7 +12,7 @@ templateDP(input, output, session, savevar, globals)
 \description{
 UI part of the templateDP module. Fill in the attributes of the data package
 
-UI part of the templateDP module.
+server part of the templateDP module.
 }
 \section{Functions}{
 \itemize{

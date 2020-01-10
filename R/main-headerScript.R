@@ -52,11 +52,16 @@
       UNIT = UNIT.LIST,
       DATAONE = DATAONE.LIST
     ),
+    # Regex patterns
+    PATTERNS = list(
+      # match one expression for latitude or longitude
+      LATLON = "[+-]?[[:digit:]]+[.,]*[[:digit:]]*"
+    ),
     # navigation variable in EMLAL module
     EMLAL = reactiveValues(
       HISTORY = character(),
       NAVIGATE = 1,
-      MAX = 5
+      MAX = 6
     )
   )
 

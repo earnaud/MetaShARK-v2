@@ -255,7 +255,7 @@ catvars <- function(input, output, session, savevar, globals) {
       )
     })
   })
-
+  
   # Output ----
   return(savevar)
 }

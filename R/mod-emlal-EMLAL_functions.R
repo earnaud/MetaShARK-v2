@@ -23,12 +23,15 @@ navSidebar <- function(id, class = "navSidebar",
   preBut <- if (.prev) prevTabButton(id) else HTML(NULL)
   nexBut <- if (.next) nextTabButton(id) else HTML(NULL)
   arguments <- list(...)
-  tags$div(tags$h4("Navigation"),
-    quitButton(id),
-    saveButton(id),
-    preBut,
-    nexBut,
-    arguments,
+  div(
+    verticalLayout(
+      tags$h4("Navigation"),
+      quitButton(id),
+      saveButton(id),
+      preBut,
+      nexBut,
+      arguments
+    ),
     class = class
   )
 }
@@ -39,7 +42,8 @@ navSidebar <- function(id, class = "navSidebar",
 quitButton <- function(id) {
   ns <- NS(id)
   actionButton(ns("quit"), "Quit",
-    icon = icon("sign-out-alt")
+    icon = icon("sign-out-alt"),
+    width = "100%"
   )
 }
 
@@ -49,7 +53,8 @@ quitButton <- function(id) {
 saveButton <- function(id) {
   ns <- NS(id)
   actionButton(ns("save"), "Save",
-    icon = icon("save", class = "regular")
+    icon = icon("save", class = "regular"),
+    width = "100%"
   )
 }
 
@@ -59,7 +64,8 @@ saveButton <- function(id) {
 nextTabButton <- function(id) {
   ns <- NS(id)
   actionButton(ns("nextTab"), "Next",
-    icon = icon("arrow-right")
+    icon = icon("arrow-right"),
+    width = "100%"
   )
 }
 
@@ -69,7 +75,8 @@ nextTabButton <- function(id) {
 prevTabButton <- function(id) {
   ns <- NS(id)
   actionButton(ns("prevTab"), "Previous",
-    icon = icon("arrow-left")
+    icon = icon("arrow-left"),
+    width = "100%"
   )
 }
 
