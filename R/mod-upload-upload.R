@@ -13,7 +13,8 @@ uploadUI <- function(id, dev) {
   registeredEndpoints <- fread(system.file("resources", "registeredEndpoints.txt", package = "MetaShARK"))
 
   # TODO use `runjs` from shinyjs to update css : https://stackoverflow.com/questions/46045222/reactive-css-properties-in-r-shiny
-
+  # TODO add update module
+  
   tagList(
     shiny::tabsetPanel(
       id = "upload",

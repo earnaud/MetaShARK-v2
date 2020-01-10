@@ -76,13 +76,13 @@ templateDPUI <- function(id, title, dev) {
 
 #' @describeIn templateDPUI
 #'
-#' @description UI part of the templateDP module.
+#' @description server part of the templateDP module.
 #'
 #' @importFrom data.table fread fwrite
 #' @importFrom shiny observeEvent req reactiveValues observe renderUI tags callModule textAreaInput HTML selectInput tagList
 #' observe eventReactive validate
 #' @importFrom shinyjs hide show enable disable
-#' @importFrom EMLassemblyline template_categorical_variables
+#' @importFrom EMLassemblyline template_categorical_variables template_geographic_coverage
 templateDP <- function(input, output, session, savevar, globals) {
   ns <- session$ns
 
@@ -127,7 +127,8 @@ templateDP <- function(input, output, session, savevar, globals) {
     attributes = reactiveValues(),
     # utility
     ui = character(),
-    completed = FALSE
+    completed = FALSE,
+    templateCatvars = FALSE
   )
 
   observe({
@@ -514,6 +515,7 @@ templateDP <- function(input, output, session, savevar, globals) {
           } # custom units
           else if (nextStep > 1 &&
             "categorical" %in% savevar$emlal$templateDP[[fn]][, "class"]) {
+            rv$templateCatvars <- TRUE
             return(1) # categorical variables
           }
           else {
@@ -522,8 +524,22 @@ templateDP <- function(input, output, session, savevar, globals) {
         })
       )
 
-      # EMLAL: template categorical variables tables
-      template_categorical_variables(
+      # EMLAL: template new fields if needed
+      if(rv$templateCatvars)
+        template_categorical_variables(
+          path = paste(savevar$emlal$selectDP$dp_path,
+            savevar$emlal$selectDP$dp_name,
+            "metadata_templates",
+            sep = "/"
+          ),
+          data.path = paste(savevar$emlal$selectDP$dp_path,
+            savevar$emlal$selectDP$dp_name,
+            "data_objects",
+            sep = "/"
+          )
+        )
+      
+      template_geographic_coverage(
         path = paste(savevar$emlal$selectDP$dp_path,
           savevar$emlal$selectDP$dp_name,
           "metadata_templates",
@@ -533,7 +549,9 @@ templateDP <- function(input, output, session, savevar, globals) {
           savevar$emlal$selectDP$dp_name,
           "data_objects",
           sep = "/"
-        )
+        ),
+        empty = TRUE,
+        write.file = TRUE
       )
 
       globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + nextStep

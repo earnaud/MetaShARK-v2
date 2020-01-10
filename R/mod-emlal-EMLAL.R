@@ -107,7 +107,8 @@ EMLAL <- function(input, output, session,
           id = ns(iteration),
           title = steps[globals$EMLAL$NAVIGATE],
           dev = globals$dev,
-          data.files = reactiveValuesToList(savevar$emlal$templateDP)
+          data.files = savevar$emlal$DPfiles$dp_data_files$datapath,
+          coordPattern = globals$PATTERNS$LATLON
         ),
         tagList(
           imageOutput(ns("WIP"))
