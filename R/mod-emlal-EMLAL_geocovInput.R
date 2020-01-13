@@ -225,8 +225,14 @@ extractCoordinates <- function(coordCols, Pattern, localWarnings, coordTags, rv)
     if(all(coordinates[,1] <= coordinates[,2]))
       colnames(coordinates) <- rev(coordTags)
     
-    rv$columns$eastBoundingCoordinate <- coordinates$E
-    rv$columns$westBoundingCoordinate <- coordinates$W
+    if(identical(coordTags, c("N","S"))){
+      rv$columns$northBoundingCoordinate <- coordinates$N
+      rv$columns$southBoundingCoordinate <- coordinates$S
+    }
+    if(identical(coordTags, c("E","W"))){
+      rv$columns$eastBoundingCoordinate <- coordinates$E
+      rv$columns$westBoundingCoordinate <- coordinates$W
+    }
     
     # Still wait for a second column.
   } else {
