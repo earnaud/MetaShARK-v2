@@ -68,7 +68,7 @@ EMLAL <- function(input, output, session,
   # names of EMLAL steps
   steps <- paste0(c(
     "select", "files", "template", "customUnits",
-    "catvars", "geocov", "make", "publish"
+    "catvars", "geocov", "taxcov", "make", "publish"
   ), "-tab")
 
   iteration <- 0 # varying namespace
@@ -110,6 +110,11 @@ EMLAL <- function(input, output, session,
           data.files = savevar$emlal$DPfiles$dp_data_files$datapath,
           coordPattern = globals$PATTERNS$LATLON
         ),
+        taxcovUI(
+          id = ns(iteration),
+          title = steps[globals$EMLAL$NAVIGATE],
+          dev = globals$dev
+        ),
         tagList(
           imageOutput(ns("WIP"))
         )
@@ -139,6 +144,10 @@ EMLAL <- function(input, output, session,
       ),
       callModule(
         geocov, iteration,
+        savevar, globals
+      ),
+      callModule(
+        taxcov, iteration,
         savevar, globals
       ),
       callModule(

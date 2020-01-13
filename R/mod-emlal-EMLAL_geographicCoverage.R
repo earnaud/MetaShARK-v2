@@ -376,14 +376,6 @@ geocov <- function(input, output, session, savevar, globals) {
     }
   })
   
-  nextTabModal <- modalDialog(
-    "You are getting ready to proceed.",
-    footer = tagList(
-      modalButton("Cancel"),
-      actionButton(ns("confirm"),"Proceed")
-    )
-  )
-  
   observeEvent(input$confirm, {
     removeModal()
     globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE+1
@@ -397,9 +389,67 @@ geocov <- function(input, output, session, savevar, globals) {
       globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE-2
   })
   observeEvent(input[["nav-nextTab"]], {
-    # TODO temporize nextTab passage
-    globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE-1
+    # Create modal
+    choices = c(
+      "no geographic coverage" = 0,
+      "columns selection" = if(rv$columns$complete) 1 else NULL,
+      "custom edition" = if(rv$custom$complete) 2 else NULL
+    )
+    
+    nextTabModal <- modalDialog(
+      tagList(
+        "You are getting ready to proceed. Please select one of the following:",
+        radioButtons(
+          ns("method"),
+          "Method for Geographic Coverage:",
+          choices = choices
+        ),
+        actionButton(ns("modal-dev"),"Dev")
+      ),
+      footer = tagList(
+        modalButton("Cancel"),
+        actionButton(ns("confirm"),"Proceed")
+      )
+    )
+    
     showModal(nextTabModal)
+  })
+  
+  observeEvent(input$confirm, {
+    removeModal()
+    browser()
+    df <- NULL
+    if(input$method == "columns selection"){
+      df <- cbind(
+        rv$columns$geographicDescription,
+        rv$columns$northBoundingCoordinate,
+        rv$columns$southBoundingCoordinate,
+        rv$columns$eastBoundingCoordinate,
+        rv$columns$westBoundingCoordinate
+      )
+    }
+    if(input$method == "custom edition"){
+      df <- cbind(
+        rv$custom$geographicDescription,
+        rv$custom$northBoundingCoordinate,
+        rv$custom$southBoundingCoordinate,
+        rv$custom$eastBoundingCoordinate,
+        rv$custom$westBoundingCoordinate
+      )
+    }
+    if(!is.null(df)){
+      fwrite(
+        df,
+        paste(
+          savevar$emlal$selectDP$dp_path,
+          savevar$emlal$selectDP$dp_name,
+          "metadata_templates",
+          "geographic_coverage.txt",
+          sep = "/"
+        )
+      )
+      message("Geographic Coverage has been written.")
+    }
   })
   
   # Output ----

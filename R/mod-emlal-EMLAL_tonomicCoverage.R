@@ -1,7 +1,4 @@
-# EMLAL sample
-
-# This file is never sourced in MetaShARK -- template to produce EMLAL modules
-sampleUI <- function(id, title, dev) {
+taxcovUI <- function(id, title, dev) {
   ns <- NS(id)
 
   return(
@@ -16,7 +13,8 @@ sampleUI <- function(id, title, dev) {
       # Navigation UI ----
       column(
         2,
-        navSidebar(ns("nav"),
+        navSidebar(
+          ns("nav"),
           ... = tagList(
             if (dev) actionButton(ns("check"), "Dev Check")
           )
@@ -26,11 +24,11 @@ sampleUI <- function(id, title, dev) {
   ) # end of return
 }
 
-sample <- function(input, output, session, savevar, globals) {
-  ns <- session$ns
+taxcov <- function(input, output, session, savevar, globals) {
+  ns <- session
 
-  if (globals$dev) {
-    observeEvent(input$check, {
+  if (globals) {
+    observeEvent(input, {
       browser()
     })
   }
@@ -40,23 +38,23 @@ sample <- function(input, output, session, savevar, globals) {
     onQuit, "nav",
     # additional arguments
     globals, savevar,
-    savevar$emlal$selectDP$dp_path,
-    savevar$emlal$selectDP$dp_name
+    savevar,
+    savevar
   )
   callModule(
     onSave, "nav",
     # additional arguments
     savevar,
-    savevar$emlal$selectDP$dp_path,
-    savevar$emlal$selectDP$dp_name
+    savevar,
+    savevar
   )
   callModule(
     nextTab, "nav",
-    globals, "sample"
+    globals, "taxcov"
   )
   callModule(
     prevTab, "nav",
-    globals, "sample"
+    globals, "taxcov"
   )
 
   # Output ----
