@@ -16,6 +16,8 @@
 #' @importFrom shiny NS HTML tags
 navSidebar <- function(id, class = "navSidebar",
                        .prev = TRUE, .next = TRUE,
+                        disableNext = FALSE,
+                        disablePrev = FALSE,
                        ...) {
   ns <- NS(id)
 
@@ -28,8 +30,8 @@ navSidebar <- function(id, class = "navSidebar",
       tags$h4("Navigation"),
       quitButton(id),
       saveButton(id),
-      preBut,
-      nexBut,
+      if(disablePrev) disabled(preBut) else preBut,
+      if(disableNext) disabled(nexBut) else nexBut,
       arguments
     ),
     class = class
@@ -136,10 +138,11 @@ onQuit <- function(input, output, session,
 onSave <- function(input, output, session,
                    toSave, path, filename) {
   ns <- session$ns
+  id <- gsub("-$","",ns(""))
 
   observeEvent(input$save,
     {
-      saveReactive(toSave, path, filename)
+      saveReactive(toSave, path, filename, id)
     },
     priority = -1
   )
@@ -181,7 +184,7 @@ prevTab <- function(input, output, session,
 #'
 #' @importFrom shiny showModal modalDialog span modalButton
 #' @importFrom EMLassemblyline template_directories
-createDPFolder <- function(DP.location, DP.name, data.location) {
+DataFilesFolder <- function(DP.location, DP.name, data.location) {
   if (dir.exists(paste0(DP.location, DP.name))) {
     unlink(paste0(DP.location, DP.name), recursive = TRUE)
     showModal(modalDialog(

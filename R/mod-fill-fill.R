@@ -26,11 +26,10 @@ fill <- function(input, output, session, globals) {
   observeEvent(globals$EMLAL$NAVIGATE, {
     # resume where it was saved
     savevar$emlal$step <- globals$EMLAL$NAVIGATE
-
-    # DEV: can't go further than developped point
-    if (savevar$emlal$step > globals$EMLAL$MAX) {
-      savevar$emlal$step <- globals$EMLAL$MAX
-    }
+  })
+  observeEvent(globals$EMLAL$HISTORY, {
+    # resume where it was saved
+    savevar$emlal$history <- globals$EMLAL$HISTORY
   })
 
   savevar <- callModule(

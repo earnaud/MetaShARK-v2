@@ -6,7 +6,7 @@
 #' @importFrom shiny NS fluidPage fluidRow column tagList tags actionButton
 #' @importFrom shinyjs hidden
 # @importFrom shinyBS bsTooltip
-geoCovInputUI <- function(id, site_id, rmv_id, old_id) {
+GeoCovInputUI <- function(id, site_id, rmv_id) {
   ns <- NS(id)
   
   div_id <- id
@@ -59,13 +59,13 @@ geoCovInputUI <- function(id, site_id, rmv_id, old_id) {
   )
 }
 
-#' @title geoCovInput
+#' @title GeoCovInput
 #' 
-#' @describeIn geoCovInputUI
+#' @describeIn GeoCovInputUI
 #' 
 #' @importFrom shiny observeEvent removeUI
 #' @importFrom dplyr slice %>%
-geoCovInput<- function(input, output, session, 
+GeoCovInput<- function(input, output, session, 
   rv, rmv_id, site_id, ref) {
   
   # Metadata acquisition ----
@@ -111,7 +111,6 @@ geoCovInput<- function(input, output, session,
     actualValues <- printReactiveValues(localRV)
     sapply(names(rv), function(rvid){
       rv[[rvid]][ind] <- actualValues[rvid]
-      # rv[[rvid]][ind]
     })
     
   }, ignoreInit = TRUE, priority = 0)
@@ -129,7 +128,7 @@ geoCovInput<- function(input, output, session,
     
   }, ignoreInit = TRUE, once = TRUE, autoDestroy = TRUE)
   
-  # Output  
+  # Output ---- 
   return(rv)
 }
 
@@ -150,21 +149,21 @@ insertGeoCovInput <- function(id, rv, ns){
   
   # Proper module server ----
   # create the UI 
-  newUI <- geoCovInputUI(ns(div_id), site_id, rmv_id, id)
+  newUI <- GeoCovInputUI(ns(div_id), site_id, rmv_id)
   
   # insert the UI
   insertUI(selector = "#inserthere", ui = newUI)
   
   # create the server
-  rv <- callModule(geoCovInput, div_id,
+  rv <- callModule(GeoCovInput, div_id,
     rv, rmv_id, site_id, id)
   
   # Output ----
   return(rv)
 }
 
-#' @title geoCovColumn
-geoCovColumn <- function(data.content, data.files){
+#' @title GeoCovColumn
+GeoCovColumn <- function(data.content, data.files){
   columns <- lapply(
     names(data.content),
     function(data.filename){

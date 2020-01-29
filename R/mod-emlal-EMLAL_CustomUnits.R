@@ -1,9 +1,9 @@
-#' @title customUnitsUI
+#' @title CustomUnitsUI
 #'
-#' @description UI part of the customUnits module.
+#' @description UI part of the CustomUnits module.
 #'
 #' @importFrom shiny NS fluidPage column fluidRow tagList tags icon actionButton uiOutput textOutput
-customUnitsUI <- function(id, title, dev) {
+CustomUnitsUI <- function(id, title, dev) {
   ns <- NS(id)
 
   return(
@@ -50,16 +50,16 @@ customUnitsUI <- function(id, title, dev) {
   ) # end of return
 }
 
-#' @title customUnitsUI
+#' @title CustomUnitsUI
 #'
-#' @description server part of the customUnits module.
+#' @description server part of the CustomUnits module.
 #'
 #' @importFrom shiny observeEvent reactiveValues observe req isolate callModule renderUI tagList textInput selectInput
 #' numericInput textAreaInput eventReactive reactiveValuesToList
 #' @importFrom data.table fread
 #' @importFrom shinyjs enable disable toggleState
 #' @importFrom dplyr select mutate filter %>%
-customUnits <- function(input, output, session,
+CustomUnits <- function(input, output, session,
                         savevar, globals) {
   ns <- session$ns
 
@@ -79,7 +79,7 @@ customUnits <- function(input, output, session,
       else
         rv$CU_Table[, field] <- rv$attributes[[field]]()
     })
-    savevar$emlal$templateDP$custom_units <- rv$CU_Table
+    savevar$emlal$Attributes$custom_units <- rv$CU_Table
   })
 
 
@@ -97,12 +97,12 @@ customUnits <- function(input, output, session,
   # Once-only triggered
   observeEvent(TRUE,
     {
-      # need to have filled templateDP
+      # need to have filled Attributes
       req(
         isolate(
           unlist(
             reactiveValuesToList(
-              savevar$emlal$templateDP
+              savevar$emlal$Attributes
             )
           )
         )
@@ -112,8 +112,8 @@ customUnits <- function(input, output, session,
       # }
       disable("nav-nextTab")
       rv$CU_Table <- fread(
-        paste(savevar$emlal$selectDP$dp_path,
-          savevar$emlal$selectDP$dp_name,
+        paste(savevar$emlal$SelectDP$dp_path,
+          savevar$emlal$SelectDP$dp_name,
           "metadata_templates",
           "custom_units.txt",
           sep = "/"
@@ -124,10 +124,10 @@ customUnits <- function(input, output, session,
       )
 
       # get attributesNames and attributesFiles
-      sapply(names(savevar$emlal$templateDP), function(file_name) {
+      sapply(names(savevar$emlal$Attributes), function(file_name) {
         if (file_name != "custom_units") {
           # shorten attributes' data frame name
-          tmp <- savevar$emlal$templateDP[[file_name]] 
+          tmp <- savevar$emlal$Attributes[[file_name]] 
           if (any(tmp$unit == "custom")) {
             # expand attributes' names list
             rv$attributesNames <<- c(
@@ -192,7 +192,7 @@ customUnits <- function(input, output, session,
   observeEvent(rv$CU_Table, {
     req(rv$CU_Table)
     rv$ui <- colnames(rv$CU_Table)
-    savevar$emlal$templateDP$custom_units <- rv$CU_Table
+    savevar$emlal$Attributes$custom_units <- rv$CU_Table
   })
 
   # Navigation buttons ----
@@ -233,19 +233,19 @@ customUnits <- function(input, output, session,
     onQuit, "nav",
     # additional arguments
     globals, savevar,
-    savevar$emlal$selectDP$dp_path,
-    savevar$emlal$selectDP$dp_name
+    savevar$emlal$SelectDP$dp_path,
+    savevar$emlal$SelectDP$dp_name
   )
   callModule(
     onSave, "nav",
     # additional arguments
     savevar,
-    savevar$emlal$selectDP$dp_path,
-    savevar$emlal$selectDP$dp_name
+    savevar$emlal$SelectDP$dp_path,
+    savevar$emlal$SelectDP$dp_name
   )
   callModule(
     nextTab, "nav",
-    globals, "customUnits"
+    globals, "CustomUnits"
   )
   callModule(
     prevTab, "nav",
@@ -362,8 +362,8 @@ customUnits <- function(input, output, session,
     {
       fwrite(
         rv$CU_Table,
-        paste(savevar$emlal$selectDP$dp_path,
-          savevar$emlal$selectDP$dp_name,
+        paste(savevar$emlal$SelectDP$dp_path,
+          savevar$emlal$SelectDP$dp_name,
           "metadata_templates",
           "custom_units.txt",
           sep = "/"
@@ -371,8 +371,8 @@ customUnits <- function(input, output, session,
       )
       # avoid catvar filling if not templated
       if (!any(grepl("catvar", 
-                 dir(paste(savevar$emlal$selectDP$dp_path,
-                           savevar$emlal$selectDP$dp_name,
+                 dir(paste(savevar$emlal$SelectDP$dp_path,
+                           savevar$emlal$SelectDP$dp_name,
                            "metadata_templates",
                            sep = "/")
                  )))

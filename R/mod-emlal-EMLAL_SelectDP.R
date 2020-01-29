@@ -5,14 +5,14 @@
 #'
 #' @importFrom shiny NS fluidPage fluidRow column tags tagList icon textOutput uiOutput selectInput textInput HTML
 #' @importFrom shinyFiles shinyDirButton
-selectDPUI <- function(id, title, width = 12, dev = FALSE) {
+SelectDPUI <- function(id, title, width = 12, dev = FALSE) {
   ns <- NS(id)
 
   # UI output
   return(
     fluidPage(
       title = "Organize data packages",
-      # Data package location
+      # Data package location ----
       fluidRow(
         column(
           4,
@@ -31,7 +31,7 @@ selectDPUI <- function(id, title, width = 12, dev = FALSE) {
         saved. A folder will be created, respectively named
         after your input."),
       fluidRow(
-        # Load existing DP
+        # Load existing DP ----
         column(
           ceiling(width / 2),
           tags$h4("Edit existing data package",
@@ -39,7 +39,7 @@ selectDPUI <- function(id, title, width = 12, dev = FALSE) {
           ),
           uiOutput(ns("dp_list"))
         ),
-        # Create DP
+        # Create DP ----
         column(
           floor(width / 2),
           tags$h4("Create new data package",
@@ -50,7 +50,9 @@ selectDPUI <- function(id, title, width = 12, dev = FALSE) {
           textInput(ns("dp_name"), "Data package name",
             placeholder = paste0(Sys.Date(), "_project")
           ),
-          # textOutput(ns("warning_dp_name")),
+          textInput(ns("dp_title"), "Dataset title",
+            placeholder = "Any title is a title"
+          ),
           tags$div(
             id = "license-help",
             selectInput(ns("license"),
@@ -81,7 +83,7 @@ selectDPUI <- function(id, title, width = 12, dev = FALSE) {
 #' @importFrom shinyFiles getVolumes shinyDirChoose parseDirPath
 #' @importFrom shinyjs enable disable
 #' @importFrom EMLassemblyline template_directories template_core_metadata
-selectDP <- function(input, output, session,
+SelectDP <- function(input, output, session,
                      savevar, globals) {
   # variable initialization ----
   ns <- session$ns
@@ -92,7 +94,8 @@ selectDP <- function(input, output, session,
     # to save
     # Default DP location
     dp_location = DP.path,
-    dp_name = NULL,
+    dp_name = character(),
+    dp_title = character(),
     # local only
     dp_list = NULL,
     dp_license = NULL,
@@ -148,12 +151,13 @@ selectDP <- function(input, output, session,
     # req(rv$dp_list)
     validate(
       need(
-        !is.null(rv$dp_list),
-        "No existing data package"
+        isTruthy(rv$dp_list),
+        "No existing data package at this location"
       )
     )
     tagList(
-      radioButtons(ns("dp_list"),
+      radioButtons(
+        ns("dp_list"),
         NULL,
         choiceNames = c("None selected", rv$dp_list),
         choiceValues = c("", rv$dp_list)
@@ -179,7 +183,6 @@ selectDP <- function(input, output, session,
 
   # DP create ----
   # check name input
-  rv$dp_name <- ""
   rv$valid_name <- FALSE
   output$dp_create <- renderUI({
     rv$valid_name <- FALSE
@@ -197,9 +200,17 @@ selectDP <- function(input, output, session,
         input$dp_name != ""
         && !(input$dp_name %in% rv$dp_list),
         "This name is already used: change either save directory or data package name."
+      ),
+      need(
+        input$dp_title != ""
+        && grepl("^[[:alnum:]\\ \\.,:_-]+$", input$dp_title),
+        "This title has invalid character: use alphanumerics, 
+        \" \" \".\" \",\" \":\" \"_\" or \"-\""
       )
     )
     rv$valid_name <- TRUE
+    rv$dp_name <- input$dp_name
+    rv$dp_title <- input$dp_title
     return(actionButton(ns("dp_create"), "Create"))
   })
 
@@ -209,7 +220,7 @@ selectDP <- function(input, output, session,
   })
 
   # DP management - on clicks ----
-  # Create DP
+  # * Create DP ---- 
   observeEvent(input$dp_create, {
     req(input$dp_name)
     req(rv$valid_name)
@@ -217,12 +228,14 @@ selectDP <- function(input, output, session,
     # variable operation - legibility purpose
     dp <- input$dp_name
     path <- paste0(rv$dp_location, dp, "_emldp")
+    title <- input$title
     license <- rv$dp_license()
 
     # save in empty dedicated variable
     savevar$emlal <- initReactive("emlal", savevar)
-    savevar$emlal$selectDP$dp_name <- dp
-    savevar$emlal$selectDP$dp_path <- path
+    savevar$emlal$SelectDP$dp_name <- dp
+    savevar$emlal$SelectDP$dp_path <- path
+    savevar$emlal$SelectDP$dp_title <- title
 
     # verbose
     message("Creating:", path, "\n", sep = "")
@@ -245,17 +258,15 @@ selectDP <- function(input, output, session,
     )
   })
 
-  # Load DP
+  # * Load DP ----
   observeEvent(input$dp_load, {
     req(input$dp_list)
-
     # variable operation - legibility purpose
     dp <- input$dp_list
     path <- paste0(rv$dp_location, dp, "_emldp")
 
     # verbose
     message("Loading:", path, "\n", sep = "") # to replace by loading DP
-
     # actions
     savevar$emlal <- initReactive("emlal", savevar)
     savevar$emlal <- readRDS(paste0(path, "/", dp, ".rds"))$emlal
@@ -263,10 +274,10 @@ selectDP <- function(input, output, session,
       savevar$emlal$step,
       globals$EMLAL$NAVIGATE + 1
     )
-    globals$EMLAL$HISTORY <- "load"
+    globals$EMLAL$HISTORY <- savevar$emlal$history
   })
 
-  # Delete DP
+  # * Delete DP ----
   observeEvent(input$dp_delete, {
     req(input$dp_list)
 

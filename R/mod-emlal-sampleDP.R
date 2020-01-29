@@ -40,15 +40,15 @@ sample <- function(input, output, session, savevar, globals) {
     onQuit, "nav",
     # additional arguments
     globals, savevar,
-    savevar$emlal$selectDP$dp_path,
-    savevar$emlal$selectDP$dp_name
+    savevar$emlal$SelectDP$dp_path,
+    savevar$emlal$SelectDP$dp_name
   )
   callModule(
     onSave, "nav",
     # additional arguments
     savevar,
-    savevar$emlal$selectDP$dp_path,
-    savevar$emlal$selectDP$dp_name
+    savevar$emlal$SelectDP$dp_path,
+    savevar$emlal$SelectDP$dp_name
   )
   callModule(
     nextTab, "nav",

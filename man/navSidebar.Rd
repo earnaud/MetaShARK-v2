@@ -8,7 +8,15 @@
 \alias{prevTabButton}
 \title{Navigation sidebar}
 \usage{
-navSidebar(id, class = "navSidebar", .prev = TRUE, .next = TRUE, ...)
+navSidebar(
+  id,
+  class = "navSidebar",
+  .prev = TRUE,
+  .next = TRUE,
+  disableNext = FALSE,
+  disablePrev = FALSE,
+  ...
+)
 
 quitButton(id)
 

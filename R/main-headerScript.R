@@ -1,6 +1,6 @@
 #' @title .headerScript
 #'
-#' @description misc preparations commands
+#' @description Misc preparations commands
 .headerScript <- function() {
   rm(list = ls())
   options(shiny.reactlog = TRUE)
@@ -38,6 +38,9 @@
   UNIT.LIST <- c("custom", get_unitList()$units$name)
   DATAONE.LIST <- dataone::listFormats(dataone::CNode())$MediaType
 
+  # Taxa authorities
+  TAXA.AUTHORITIES <- taxonomyCleanr::view_taxa_authorities()
+  
   # Build global variable
   globals <- reactiveValues(
     dev = dev,
@@ -50,18 +53,21 @@
       DATE = DATE.FORMAT,
       HOUR = HOUR.FORMAT,
       UNIT = UNIT.LIST,
-      DATAONE = DATAONE.LIST
+      DATAONE = DATAONE.LIST,
+      AUTHORITIES = TAXA.AUTHORITIES
     ),
     # Regex patterns
     PATTERNS = list(
       # match one expression for latitude or longitude
-      LATLON = "[+-]?[[:digit:]]+[.,]*[[:digit:]]*"
+      LATLON = "[+-]?[[:digit:]]+[.,]*[[:digit:]]*",
+      NAME = "^[[:alpha:] \\'\\.\\-]+$",
+      EMAIL = "^[^@]+@[^@]+\\.[[:alpha:]]",
+      ORCID = "^\\d{4}-\\d{4}-\\d{4}-(\\d{4}|\\d{3}X)$"
     ),
     # navigation variable in EMLAL module
     EMLAL = reactiveValues(
       HISTORY = character(),
-      NAVIGATE = 1,
-      MAX = 6
+      NAVIGATE = 1
     )
   )
 

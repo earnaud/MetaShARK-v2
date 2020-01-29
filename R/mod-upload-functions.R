@@ -39,6 +39,7 @@ uploadDP <- function(mn, cn, eml, data, scripts = c(), formats) {
   # Edit metadata ----
   message("Edit metadata ")
   doc$packageId <- id$metadata
+  doc$dataset$maintenance$description <- "completed"
   doc$system <- mn@identifier
 
   # Data edit loop
