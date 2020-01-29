@@ -32,7 +32,7 @@ First feature devempêd in MetaShARK, it is possible to consult any documented p
 Two methods are being developped to fill in metadata:
 
 * Metadata Fill-In (MetaFIN) : still not accessible, it is the PNDB specific tool exploring automatic inference to fill in metadata from datasets.
-* EML Assembly Line (EMLAL) : in development, it is the EDI tool allowing the user to interact with a major part of the EML. MetaShARK is a user front-end solution to offer more automated and visual access to this tool.
+* EML Assembly Line (EMLAL) : it is the EDI tool allowing the user to interact with a major part of the EML. MetaShARK is a user front-end solution to offer more automated and visual access to this tool.
 
 ### Data Package upload
 
@@ -44,25 +44,27 @@ Some references are given that sustain the base principles of this work.
 
 ## Releases
 
-### Release 20190918 - EML 2.2.0
+### Pre-Release 20200129 - EML Assembly Line (dev version)
 
-With the release of EML v2.2.0 on 2019/09/13 by the NCEAS team, MetaShARK was updated to adapt to the new specification.
-
-#### Features
-* Guidelines files for Documentation were updated with EML 2.2.0 .xsd files, and the guidelines were reprocessed. Please note that NCEAS team decided to remove the documentation from high-level nodes (roots of each module). To remedy to this, the original documentation is now accessible through an external link. 
-* The 'About' section is now filled with references written directly from .bib files. 
-
-### Release 20190507
+Here it comes ! The first pre-release allowing the user to describe his dataset according to the [EML Assembly Line](https://ediorg.github.io/EMLassemblyline/articles/overview.html) recommendations. Please note this version is **still in development** and some features might suffer bugs. Consequently, do not hesitate to [open an issue](https://github.com/earnaud/MetaShARK-v2/issues)
 
 #### Features
-* The tool still allows only the documentation browsing. The support has been moved from basic shiny style to the shiny Dashboard style. With this feature comes easier ways to organize the UI for future steps. 
-* The whole repository architecture has been remade, which caused difficulties on uploading the latest version. 
-* A .old directory has been created at the root to store old files which could still be useful later. Any documentation about them shall be contained within it as comments for scripts or data labels for other files.
 
-### Release 20190415
+MetaShARK/EAL supports:
+* data package management (CC BY or CC 0 Licences)
+* tabulated files's description (and *only* those ones yet, badly)
+* automated\* tables' attributes filling
+* custom units' descriptions
+* automated\* categorical variables description
+* geographic, taxonomic\*\* and temporal coverages
+* description of persons involved (possibly through ORCID)
 
-#### Features
-The tool allows to browse the documentation contained at any level of the EML XML schema (v. 2.1.1). The links to external sites have been implemented but the references between the modules are not. Content is based on the EML Schema provided through the [NCEAS eml repo](https://github.com/NCEAS/eml).
+\* automation still requires user's verification
+\*\* see Known Bugs below
+
+#### Known Bugs
+
+* Taxonomic coverage still suffers some errors in its core functions: see [this issue](https://github.com/EDIorg/EDIutils/issues/12)
 
 ## Authors
 * Elie Arnaud (developper) - elie.arnaud@mnhn.fr

@@ -1,10 +1,10 @@
 #' @title Data Package files
 #'
-#' @description UI part of the DPfiles module.
+#' @description UI part of the DataFiles module.
 #'
 #' @importFrom shiny NS fluidPage column tags HTML icon actionButton uiOutput tagList textOutput
 #' @importFrom shinyFiles shinyFilesButton
-DPfilesUI <- function(id, title, dev = FALSE) {
+DataFilesUI <- function(id, title, dev = FALSE) {
   ns <- NS(id)
 
   return(
@@ -41,7 +41,7 @@ DPfilesUI <- function(id, title, dev = FALSE) {
             textOutput(ns("overwrite"))
           )
         ),
-        if (dev) actionButton(ns("checkDPfiles"), "Dev")
+        if (dev) actionButton(ns("checkDataFiles"), "Dev")
       )
     ) # end fluidPage
   ) # end return
@@ -49,18 +49,17 @@ DPfilesUI <- function(id, title, dev = FALSE) {
 
 #' @title Data Package files
 #'
-#' @description server part of the DPfiles module.
+#' @description server part of the DataFiles module.
 #'
 #' @importFrom shiny observeEvent reactiveValues callModule req checkboxGroupInput renderUI renderText
 #' @importFrom shinyFiles getVolumes shinyFileChoose parseFilePaths
 #' @importFrom shinyjs enable disable
 #' @importFrom EMLassemblyline template_table_attributes
-DPfiles <- function(input, output, session, savevar, globals) {
+DataFiles <- function(input, output, session, savevar, globals) {
   ns <- session$ns
 
   if (globals$dev) {
-    cat(ns("Start\n"))
-    observeEvent(input$checkDPfiles, {
+    observeEvent(input$checkDataFiles, {
       browser()
     })
   }
@@ -77,10 +76,10 @@ DPfiles <- function(input, output, session, savevar, globals) {
   # On arrival on screen
   observeEvent(globals$EMLAL$HISTORY, {
     # dev: might evolve in `switch` if needed furtherly
-    rv$data_files <- if (tail(globals$EMLAL$HISTORY, 1) == "create") { # from create button in selectDP
+    rv$data_files <- if (tail(globals$EMLAL$HISTORY, 1) == "create") { # from create button in SelectDP
       data.frame()
     } else {
-      savevar$emlal$DPfiles$dp_data_files
+      savevar$emlal$DataFiles$dp_data_files
     }
 
     updateFileListTrigger$trigger()
@@ -91,19 +90,19 @@ DPfiles <- function(input, output, session, savevar, globals) {
     onQuit, "nav",
     # additional arguments
     globals, savevar,
-    savevar$emlal$selectDP$dp_path,
-    savevar$emlal$selectDP$dp_name
+    savevar$emlal$SelectDP$dp_path,
+    savevar$emlal$SelectDP$dp_name
   )
   callModule(
     onSave, "nav",
     # additional arguments
     savevar,
-    savevar$emlal$selectDP$dp_path,
-    savevar$emlal$selectDP$dp_name
+    savevar$emlal$SelectDP$dp_path,
+    savevar$emlal$SelectDP$dp_name
   )
   callModule(
     nextTab, "nav",
-    globals, "DPfiles"
+    globals, "DataFiles"
   )
 
   # Data file upload ----
@@ -140,7 +139,7 @@ DPfiles <- function(input, output, session, savevar, globals) {
     }
 
     # variable modifications
-    savevar$emlal$DPfiles$dp_data_files <- rv$data_files
+    savevar$emlal$DataFiles$dp_data_files <- rv$data_files
   })
 
   # Remove data files
@@ -206,8 +205,8 @@ DPfiles <- function(input, output, session, savevar, globals) {
   observeEvent(input[["nav-nextTab"]],
     {
       # variable initialization
-      dp <- savevar$emlal$selectDP$dp_name
-      path <- savevar$emlal$selectDP$dp_path
+      dp <- savevar$emlal$SelectDP$dp_name
+      path <- savevar$emlal$SelectDP$dp_path
 
       # actions
       # -- copy files to <dp>_emldp/<dp>/data_objects
@@ -217,7 +216,7 @@ DPfiles <- function(input, output, session, savevar, globals) {
         recursive = TRUE
       )
       # -- modify paths in save variable
-      tmp <- savevar$emlal$DPfiles$dp_data_files
+      tmp <- savevar$emlal$DataFiles$dp_data_files
       tmp$datapath <- sapply(
         rv$data_files$name,
         function(dpname) {
@@ -239,7 +238,7 @@ DPfiles <- function(input, output, session, savevar, globals) {
           )
         }
       )
-      savevar$emlal$DPfiles$dp_data_files <- tmp
+      savevar$emlal$DataFiles$dp_data_files <- tmp
 
       # EMLAL templating function
       template_table_attributes(
@@ -247,9 +246,6 @@ DPfiles <- function(input, output, session, savevar, globals) {
         data.path = paste0(path, "/", dp, "/data_objects"),
         data.table = rv$data_files$name
       )
-      if (globals$dev) {
-        cat(ns("Done\n"))
-      }
     },
     priority = 1
   )

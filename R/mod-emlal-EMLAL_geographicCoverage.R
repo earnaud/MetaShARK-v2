@@ -4,7 +4,7 @@
 #'
 #' @importFrom shiny NS fluidPage fluidRow column tagList tags actionButton
 #' @importFrom shinyjs hidden
-geocovUI <- function(id, title, dev, data.files, coordPattern) {
+GeoCovUI <- function(id, title, dev, data.files, coordPattern) {
   ns <- NS(id)
   
   return(
@@ -69,7 +69,7 @@ geocovUI <- function(id, title, dev, data.files, coordPattern) {
                 ),
                 column(10,
                   hidden(
-                    div(
+                    tags$div(
                       id = ns("slider_tips"),
                       HTML("You can detail a more precise number by using the left/right (or down/up) arrows 
                       of your keyboard. Precision can be given at 0.01°. Items can be removed by
@@ -105,7 +105,8 @@ geocovUI <- function(id, title, dev, data.files, coordPattern) {
 #' @importFrom shinyBS updateCollapse
 #' @importFrom stringr str_extract_all
 #' @importFrom dplyr %>%
-geocov <- function(input, output, session, savevar, globals) {
+#' @importFrom EMLassemblyline template_geographic_coverage
+GeoCov <- function(input, output, session, savevar, globals) {
   ns <- session$ns
   
   if (globals$dev) {
@@ -124,7 +125,7 @@ geocov <- function(input, output, session, savevar, globals) {
     ),
     fileChoices = character(),
     columns = reactiveValues(
-      complete = logical(),
+      complete = FALSE,
       geographicDescription = character(),
       northBoundingCoordinate = numeric(),
       southBoundingCoordinate = numeric(),
@@ -133,7 +134,7 @@ geocov <- function(input, output, session, savevar, globals) {
     ),
     custom = reactiveValues(
       complete = logical(),
-      id = character(),
+      id = numeric(),
       geographicDescription = character(),
       northBoundingCoordinate = numeric(),
       southBoundingCoordinate = numeric(),
@@ -143,14 +144,14 @@ geocov <- function(input, output, session, savevar, globals) {
   )
   
   # Get all data in an object to avoid possible multiple loadings
-  filesData <- lapply(savevar$emlal$DPfiles$dp_data_files$datapath, fread)
-  names(filesData) <- basename(savevar$emlal$DPfiles$dp_data_files$datapath)
+  filesData <- lapply(savevar$emlal$DataFiles$dp_data_files$datapath, fread)
+  names(filesData) <- basename(savevar$emlal$DataFiles$dp_data_files$datapath)
   
   # Pre-fill UI fields ----
   saved_table <- fread(
     paste(
-      savevar$emlal$selectDP$dp_path,
-      savevar$emlal$selectDP$dp_name,
+      savevar$emlal$SelectDP$dp_path,
+      savevar$emlal$SelectDP$dp_name,
       "metadata_templates",
       "geographic_coverage.txt",
       sep = "/"
@@ -172,7 +173,7 @@ geocov <- function(input, output, session, savevar, globals) {
   # Use columns ----
   
   # Prepare content
-  data.files <- savevar$emlal$DPfiles$dp_data_files$datapath
+  data.files <- savevar$emlal$DataFiles$dp_data_files$datapath
   data.content <- lapply(data.files, fread)
   names(data.content) <- basename(data.files)
   
@@ -192,8 +193,8 @@ geocov <- function(input, output, session, savevar, globals) {
   names(data.content.coordinates) <- basename(data.files)
   
   # format choices for selectInputs
-  columns <- geoCovColumn(data.content, data.files)
-  columns.coordinates <- geoCovColumn(data.content.coordinates, data.files)
+  columns <- GeoCovColumn(data.content, data.files)
+  columns.coordinates <- GeoCovColumn(data.content.coordinates, data.files)
   
   # set selectInput choices
   updateSelectInput(
@@ -330,20 +331,21 @@ geocov <- function(input, output, session, savevar, globals) {
     onQuit, "nav",
     # additional arguments
     globals, savevar,
-    savevar$emlal$selectDP$dp_path,
-    savevar$emlal$selectDP$dp_name
+    savevar$emlal$SelectDP$dp_path,
+    savevar$emlal$SelectDP$dp_name
   )
   callModule(
     onSave, "nav",
     # additional arguments
     savevar,
-    savevar$emlal$selectDP$dp_path,
-    savevar$emlal$selectDP$dp_name
+    savevar$emlal$SelectDP$dp_path,
+    savevar$emlal$SelectDP$dp_name
   )
-  callModule(
-    nextTab, "nav",
-    globals, "geocov"
-  )
+  # NOTE nav-nextTab has been disabled in this module
+  # callModule(
+  #   nextTab, "nav",
+  #   globals, "GeoCov"
+  # )
   callModule(
     prevTab, "nav",
     globals
@@ -383,7 +385,7 @@ geocov <- function(input, output, session, savevar, globals) {
   
   # Process data ----
   observeEvent(input[["nav-prevTab"]], {
-    if(tail(globals$EMLAL$HISTORY, 1) == "customUnits")
+    if(tail(globals$EMLAL$HISTORY, 1) == "CustomUnits")
       globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE-1
     else if(tail(globals$EMLAL$HISTORY, 1) == "template")
       globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE-2
@@ -397,6 +399,7 @@ geocov <- function(input, output, session, savevar, globals) {
     )
     
     nextTabModal <- modalDialog(
+      title = "Proceed Geographic Coverage",
       tagList(
         "You are getting ready to proceed. Please select one of the following:",
         radioButtons(
@@ -413,11 +416,10 @@ geocov <- function(input, output, session, savevar, globals) {
     )
     
     showModal(nextTabModal)
-  })
+  }, priority = 1)
   
   observeEvent(input$confirm, {
     removeModal()
-    browser()
     df <- NULL
     if(input$method == "columns selection"){
       df <- cbind(
@@ -441,8 +443,8 @@ geocov <- function(input, output, session, savevar, globals) {
       fwrite(
         df,
         paste(
-          savevar$emlal$selectDP$dp_path,
-          savevar$emlal$selectDP$dp_name,
+          savevar$emlal$SelectDP$dp_path,
+          savevar$emlal$SelectDP$dp_name,
           "metadata_templates",
           "geographic_coverage.txt",
           sep = "/"
@@ -450,7 +452,11 @@ geocov <- function(input, output, session, savevar, globals) {
       )
       message("Geographic Coverage has been written.")
     }
-  })
+    
+    savevar$emlal$GeoCov <- df
+    
+    globals$EMLAL$HISTORY <- c(globals$EMLAL$HISTORY, "GeoCov")
+  }, priority = 1)
   
   # Output ----
   return(savevar)
