@@ -5,7 +5,7 @@
 #' @importFrom shiny NS fluidPage fluidRow column tags tagList HTML actionButton icon uiOutput
 AttributesUI <- function(id, title, dev) {
   ns <- NS(id)
-
+  
   return(
     fluidPage(
       # Inputs ----
@@ -17,53 +17,36 @@ AttributesUI <- function(id, title, dev) {
               out. Please check the following attribute, and fill
               in at least the <span style='color:red;'>mandatory
               </span> elements."),
-
-        tags$div(
-          fluidRow(
-            tagList(
-              actionButton(ns("file_prev"),
-                "",
-                icon("chevron-left"),
-                width = "12%"
-              ),
-              uiOutput(ns("current_file"),
-                inline = TRUE
-              ),
-              actionButton(ns("file_next"),
-                "",
-                icon("chevron-right"),
-                width = "12%"
-              )
-            ),
-            style = "padding: 5px;"
+        fluidRow(
+          column(1,
+            actionButton(
+              ns("file_prev"),
+              "",
+              icon("chevron-left")
+            )
           ),
-          fluidRow(
-            tagList(
-              actionButton(ns("attribute_prev"),
-                "",
-                icon("chevron-left"),
-                width = "12%"
-              ),
-              uiOutput(ns("current_attribute"),
-                inline = TRUE
-              ),
-              actionButton(ns("attribute_next"),
-                "",
-                icon("chevron-right"),
-                width = "12%"
-              )
-            ),
-            style = "padding: 5px;"
+          column(10,
+            uiOutput(ns("current_file"),
+              inline = TRUE
+            )
           ),
-          uiOutput(ns("edit_template")),
-          class = "inputBox"
+          column(1,
+            actionButton(
+              ns("file_next"),
+              "",
+              icon("chevron-right")
+            )
+          )
+        ),
+        fluidRow(
+          uiOutput(ns("edit_attributes"))
         )
-      ),
-
+      ), # end of column
+      
       # NSB ----
-      column(
-        2,
-        navSidebar(ns("nav"),
+      column(2,
+        navSidebar(
+          ns("nav"),
           ... = tagList(
             if (dev) actionButton(ns("check"), "Dev Check"),
             if (dev) actionButton(ns("fill"), "Fill")
@@ -83,211 +66,212 @@ AttributesUI <- function(id, title, dev) {
 #' observe eventReactive validate
 #' @importFrom shinyjs hide show enable disable
 #' @importFrom EMLassemblyline template_categorical_variables template_geographic_coverage
+#' @importFrom shinyBS bsCollapse bsCollapsePanel
 Attributes <- function(input, output, session, savevar, globals) {
   ns <- session$ns
-
+  
   if (globals$dev) {
     observeEvent(input$check, {
       browser()
     })
-
-    # fill the attribute fields with "a" or random units/dateFormat to enable 'nextTab' button
+    
     observeEvent(input$fill, {
-      req(exists("rv"))
-      sapply(rv$files_names, function(fn) {
-        sapply(names(savevar$emlal$Attributes[[fn]]), function(.) {
-          if (grepl("date", .)) {
-            savevar$emlal$Attributes[[fn]][, .] <- gsub(
-              "^.+$", globals$FORMAT$DATE[1],
-              savevar$emlal$Attributes[[fn]][, .]
-            )
-          }
-          else if (grepl("unit", .)) {
-            savevar$emlal$Attributes[[fn]][, .] <- gsub(
-              "^.+$", globals$FORMAT$UNIT[10], # not custom
-              savevar$emlal$Attributes[[fn]][, .]
-            )
-          }
-          else if (!(. %in% c("attributeName", "class"))) {
-            savevar$emlal$Attributes[[fn]][, .] <- "Automatically filled field."
-          }
-        })
+      toFill <- names(input)
+      toFill <- toFill[grepl(pattern = "^[0-9]+-[0-9]+-", toFill)]
+      sapply(toFill, function(id){
+        id_type = gsub("^[0-9]+-[0-9]+-","", id)
+        if(id_type %in% c("missingValueCodeExplanation", "attributeDefinition", "missingValueCode"))
+          updateTextAreaInput(session, id, value = "Automatically filled field.")
+        if(id_type %in% c("dateTimeFormatString"))
+          updateSelectInput(session, id, selected = globals$FORMAT$DATE[3])
+        if(id_type %in% c("unit" ))
+          updateSelectInput(session, id, selected = globals$FORMAT$UNIT[1])
       })
-      rv$attributesTable <- savevar$emlal$Attributes[[rv$current_file]]
     })
   }
-
+  
   # variable initialization ----
-  # main local reactiveValues
   rv <- reactiveValues(
-    # local save
-    attributes = reactiveValues(),
-    # utility
-    ui = character(),
-    completed = FALSE,
-    templateCatvars = FALSE
+    files = savevar$emlal$DataFiles$dp_data_files$metadatapath,
+    filenames = basename(savevar$emlal$DataFiles$dp_data_files$metadatapath),
+    current_file = 1,
+    current_table = data.frame(),
+    complete = FALSE
   )
-
-  observe({
-    req(savevar$emlal$DataFiles$dp_data_files)
-    rv$files_names <- savevar$emlal$DataFiles$dp_data_files$name
-  })
-  observeEvent(rv$files_names, {
-    req(rv$files_names)
-    sapply(rv$files_names, function(fn) {
-      # not saved yet in savevar
-      if (is.null(savevar$emlal$Attributes[[fn]])) {
-        toRead <- savevar$emlal$DataFiles$dp_data_files
-        toRead <- toRead$metadatapath[
-          match(fn, toRead$name)
-        ]
-        savevar$emlal$Attributes[[fn]] <- fread(
-          toRead,
-          data.table = FALSE,
-          stringsAsFactors = FALSE,
-          na.strings = NULL
-        )
-        savevar$emlal$Attributes[[fn]][is.na(savevar$emlal$Attributes[[fn]])] <- ""
-        rv$current_attribute <- 0 # trick: trigger rv$current_attribute-dependant observers
-        rv$current_attribute <- 1
-      }
-      # yet saved in savevar
-      else {
-
-      }
-    })
-    rv$current_file <- rv$files_names[1]
-  })
-
-  # on file change
-  observeEvent(rv$current_file, {
-    req(rv$current_file)
-    rv$attributesTable <- savevar$emlal$Attributes[[rv$current_file]]
-    # set current attribute
-    # rv$current_attribute <- 0 # trick: trigger rv$current_attribute-dependant observers
-    rv$current_attribute <- 1
-  })
-  observeEvent(
-    {
-      rv$current_file
-      rv$current_attribute
-    },
-    {
-      req(rv$attributesTable)
-      tmpAttributes <- rv$attributesTable[rv$current_attribute, ]
-      rv$ui <- names(tmpAttributes)
-      rv$ui <- rv$ui[rv$ui != "attributeName"]
-      # units case
-      if (tmpAttributes["unit"] == "") {
-        rv$ui <- rv$ui[!grepl("unit", rv$ui)]
-      }
-      # date case
-      if (tmpAttributes[rv$ui[grepl("date", rv$ui)] ] == "") {
-        rv$ui <- rv$ui[!grepl("date", rv$ui)]
-      }
-    }
+  # cure rv$current_table
+  rv$current_table <- fread(
+    rv$files[rv$current_file], 
+    data.table = FALSE, 
+    stringsAsFactors = FALSE
   )
-
+  rv$current_table[is.na(rv$current_table)] <- ""
+  # Initialize display
+  disable("file_prev")
+  
   # Navigation buttons ----
-  # ** files
-  observeEvent(input$file_prev,
-    {
-      req(
-        rv$attributes
-      )
-      cur_ind <- match(rv$current_file, rv$files_names)
-      if (cur_ind > 1) {
-        # save metadata
-        rv <- saveInput(rv)
-        savevar$emlal$Attributes[[rv$current_file]] <- rv$attributesTable
-        # change file
-        rv$current_file <- rv$files_names[cur_ind - 1]
-      }
-    },
-    priority = -1
-  )
-  observeEvent(input$file_next,
-    {
-      req(
-        rv$attributes
-      )
-      cur_ind <- match(rv$current_file, rv$files_names)
-      if (cur_ind < length(rv$files_names)) {
-        # save metadata
-        rv <- saveInput(rv)
-        savevar$emlal$Attributes[[rv$current_file]] <- rv$attributesTable
-        # change file
-        rv$current_file <- rv$files_names[cur_ind + 1]
-      }
-    },
-    priority = -1
-  )
-  # ** attribute
-  observeEvent(input$attribute_prev, {
-    req(
-      rv$attributes
-    )
-    if (rv$current_attribute > 1) {
-      # save metadata
-      rv <- saveInput(rv)
-      # change attribute
-      rv$current_attribute <- rv$current_attribute - 1
-    }
+  # Previous
+  observeEvent(input$file_prev, {
+    req(rv$current_file > 1)
+    rv$current_file <- rv$current_file - 1
   })
-  observeEvent(input$attribute_next, {
-    req(
-      rv$attributes
-    )
-    if (rv$current_attribute < length(rv$attributesTable$attributeName)) {
-      # save metadata
-      rv <- saveInput(rv)
-      # change attribute
-      rv$current_attribute <- rv$current_attribute + 1
-    }
+  # Next
+  observeEvent(input$file_next,{
+    req(rv$current_file < length(rv$files))
+    rv$current_file <- rv$current_file + 1
   })
-
-  # outputs
-  {
-    output$current_file <- renderUI(tags$div(rv$current_file,
+  observeEvent(rv$current_file, {
+    req(rv$current_file > 0)
+    
+    # en/disable buttons
+    if(rv$current_file == 1)
+      disable("file_prev")
+    else 
+      enable("file_prev")
+    if(rv$current_file == length(rv$files))
+      disable("file_next")
+    else 
+      enable("file_next")
+    
+    # save metadata
+    # savevar$emlal$Attributes[[ rv$filenames[rv$current_file] ]] <- isolate(rv$current_table)
+    
+    # update table
+    rv$current_table <- fread(
+      rv$files[rv$current_file],
+      data.table = FALSE,
+      stringsAsFactors = FALSE
+    )
+    rv$current_table[is.na(rv$current_table)] <- ""
+  }, priority = 1)
+  
+  # display
+  output$current_file <- renderUI(
+    tags$div(
+      basename(rv$files[rv$current_file]),
       style = paste0(
         "display: inline-block;
-        font-size:20pt;
-        text-align:center;
-        width:70%;
-        background: linear-gradient(90deg, #3c8dbc ",
-        round(100 * match(rv$current_file, rv$files_names) / length(rv$files_names)),
-        "%, white ",
-        round(100 * match(rv$current_file, rv$files_names) / length(rv$files_names)),
-        "%);"
+        font-size:14pt;
+        text-align:center;"
       )
-    ))
-    output$current_attribute <- renderUI(tags$div(rv$attributesTable[rv$current_attribute, "attributeName"],
-      style = paste0(
-        "display: inline-block;
-        font-size:15pt;
-        text-align:center;
-        width:70%;
-        background: linear-gradient(90deg, #3c8dbc ",
-        round(100 * rv$current_attribute / dim(rv$attributesTable)[1]),
-        "%, white ",
-        round(100 * rv$current_attribute / dim(rv$attributesTable)[1]),
-        "%);"
+    )
+  )
+  
+  # generate UI ----
+  observeEvent(rv$current_file, {
+    req(!identical(rv$current_table, data.frame()))
+    output$edit_attributes <- renderUI({
+      # validity check
+      validate(
+        need(
+          !identical(rv$current_table, data.frame()) && isTruthy(rv$current_table),
+          "No valid attributes table."
+        )
       )
-    ))
-  }
+      # GUI
+      current_table <- isolate(rv$current_table)
 
+      ui <- do.call(
+        bsCollapse,
+        lapply(
+          seq(dim(rv$current_table)[1]),
+          fields = isolate(colnames(rv$current_table)),
+          function(row_index, fields){
+            # prepare variables
+            attribute_row <- isolate(rv$current_table[row_index,])
+
+            return(
+              bsCollapsePanel(
+                title = attribute_row[ fields[1] ], # TEST
+                lapply(fields[-1], function(colname) {
+                  # prepare var
+                  saved_value <- isolate(rv$current_table[row_index, colname])
+                  inputId <- paste(
+                    isolate(rv$current_file),
+                    row_index,
+                    colname,
+                    sep = "-"
+                  )
+
+                  # GUI
+                  switch(colname,
+                    attributeDefinition = textAreaInput(
+                      ns(inputId),
+                      value = saved_value,
+                      "Describe the attribute concisely"
+                    ),
+                    class = HTML(paste("<b>Detected class:</b>", as.vector(saved_value))),
+                    unit = if(isTruthy(saved_value))
+                      selectInput(
+                        ns(inputId),
+                        with_red_star("Select an unit"),
+                        unique(c(saved_value, globals$FORMAT$UNIT)),
+                        selected = saved_value
+                      ),
+                    dateTimeFormatString = if(isTruthy(saved_value))
+                      selectInput( # TODO add a module for hour format
+                        ns(inputId),
+                        with_red_star("Select a date format"),
+                        unique(c(saved_value, globals$FORMAT$DATE)),
+                        selected = saved_value
+                      ),
+                    missingValueCode = textInput(
+                      ns(inputId),
+                      "Code for missing value",
+                      value = saved_value
+                    ),
+                    missingValueCodeExplanation = textAreaInput(
+                      ns(inputId),
+                      "Explain Missing Values",
+                      value = saved_value
+                    ),
+                    NULL
+                  ) # end of switch
+                }) # end of lapply colname
+              ) # end of bsCollapsePanel
+            ) # end of return
+          }
+        ) # end of lapply : row_index
+      )
+      return(ui)
+    })
+
+  }, priority = 0) # end of observeEvent
+
+  # generate server ----
+  observeEvent(names(input), {
+
+    sapply(
+      seq(dim(rv$current_table)[1]),
+      fields = colnames(rv$current_table),
+      function(row_index, fields){
+
+        lapply(fields[-1], function(colname) {
+          inputId <- paste(
+            isolate(rv$current_file),
+            row_index,
+            colname,
+            sep = "-"
+          )
+
+          if(inputId %in% names(input)){
+            observeEvent(input[[inputId]], {
+              req(input[[inputId]])
+              rv$current_table[row_index, colname] <- input[[inputId]]
+            })
+          }
+        }) # end of lapply colname
+
+      }) # end of lapply : row_index
+
+  }) # end of observeEvent
+
+  # NSB ----
   callModule(
     onQuit, "nav",
     # additional arguments
     globals, savevar,
     savevar$emlal$SelectDP$dp_path,
     savevar$emlal$SelectDP$dp_name
-  )
-  observeEvent(input$`nav-save`,
-    {
-      rv <- saveInput(rv)
-    },
-    priority = 2
   )
   callModule(
     onSave, "nav",
@@ -298,245 +282,78 @@ Attributes <- function(input, output, session, savevar, globals) {
   )
   callModule(
     nextTab, "nav",
-    globals, "template"
+    globals, "attributes"
   )
   callModule(
     prevTab, "nav",
     globals
   )
-
-  # Procedurals / ----
-  # / UI ----
-  output$edit_template <- renderUI({
-    req(rv$ui)
-
-    # actions
-    tagList(
-      # write each attribute's characteristic
-      lapply(rv$ui, function(colname) {
-        # prepare var
-        saved_value <- rv$attributesTable[rv$current_attribute, colname]
-        if (grepl("date", colname)) saved_value <- gsub("^(.*) .*$", "\\1", saved_value)
-
-        # UI
-        switch(colname,
-          attributeDefinition = textAreaInput(ns(colname),
-            value = saved_value,
-            "Describe the attribute concisely"
-          ),
-          class = HTML(paste("<b>Detected class:</b>", as.vector(saved_value))),
-          unit = selectInput(ns(colname),
-            span("Existing unit", class = "redButton"),
-            unique(c(saved_value, globals$FORMAT$UNIT)),
-            selected = saved_value
-          ),
-          dateTimeFormatString = tagList(
-            selectInput(ns(paste0(colname, "_date")),
-              tags$span("Existing date format",
-                class = "redButton"
-              ),
-              unique(c(saved_value, globals$FORMAT$DATE)),
-              selected = saved_value
-            ),
-            selectInput(
-              ns(paste0(colname, "_hour")),
-              "Existing hour format",
-              globals$FORMAT$HOUR
-            )
-          ),
-          missingValueCode = textInput(ns(colname),
-            "Code for missing value",
-            value = saved_value
-          ),
-          missingValueCodeExplanation = textAreaInput(ns(colname),
-            "Explain Missing Values",
-            value = saved_value
-          )
-        ) # end of switch
-      }) # end of lapply colname
-    ) # end of tagList
-  }) # end of UI
-
-
-  # / Servers ----
-  observe({
-    req(any(rv$ui %in% names(input)))
-
-    sapply(names(rv$attributesTable), function(rvName) {
-      # prepare variable
-      # two different names: ids from input can be suffixed
-      inputNames <- names(input)[
-        which(grepl(rvName, names(input)))
-      ]
-      # 'unit' exception:
-      if (rvName == "unit") {
-        inputNames <- inputNames[inputNames != "unitType"]
-      }
-
-      # check corresponding input
-      if (length(inputNames) != 0) {
-        if (rvName %in% rv$ui) {
-          # show UI
-          sapply(inputNames, show)
-
-          # Input UI yet exists: create eventReactive
-          rv$attributes[[rvName]] <- eventReactive(
-            {
-              if (rvName == "dateTimeFormatString") {
-                if (is.na(input[[paste0(rvName, "_hour")]])
-                || input[[paste0(rvName, "_hour")]] == "NA") {
-                  input[[paste0(rvName, "_date")]]
-                }
-                else {
-                  input[[paste0(rvName, "_date")]]
-                  input[[paste0(rvName, "_hour")]]
-                }
-              }
-              else {
-                input[[rvName]]
-              }
-            },
-            {
-              # get input value
-              enter <- if (rvName == "dateTimeFormatString") {
-                if (is.na(input[[paste0(rvName, "_hour")]])
-                || input[[paste0(rvName, "_hour")]] == "NA") {
-                  input[[paste0(rvName, "_date")]]
-                } else {
-                  paste(input[[paste0(rvName, "_date")]],
-                    input[[paste0(rvName, "_hour")]],
-                    sep = " " # make sure
-                  )
-                }
-              }
-              else {
-                input[[rvName]]
-              }
-
-              # check obtained value
-              if (is.list(enter)) {
-                enter <- unlist(enter)
-              }
-              if (!isTruthy(enter)) {
-                # message("Input [",rvName,"] is invalid: unchanged")
-                enter <- ifelse(isTruthy(unlist(rv$attributesTable[rv$current_attribute, rvName])),
-                  unlist(rv$attributesTable[rv$current_attribute, rvName]),
-                  ""
-                )
-              } # end if
-              return(enter)
-            }
-          ) # end of eventReactive
-        }
-        else {
-          # hide UI
-          sapply(inputNames, shinyjs::hide)
-
-          # set reactiveValue to the known value
-          rv$attributes[[rvName]] <- rv$attributesTable[rv$current_attribute, rvName]
-        }
-      } # end if inputNames == character(0)
-      else {
-        rv$attributes[[rvName]] <- rv$attributesTable[rv$current_attribute, rvName]
-      }
-    }) # end sapply
-  })
-
+  
   # Saves ----
-  cpltTrigger <- makeReactiveTrigger()
-
-  # regular saves in savevar - triggered in saveInput()
-  observeEvent(
-    {
-      input$file_prev
-      input$file_next
-      input$attribute_prev
-      input$attribute_next
-      input[["nav-nextTab"]]
-      input[["nav-prevTab"]]
-    },
-    {
-      req(rv$current_file, rv$attributesTable)
-      savevar$emlal$Attributes[[rv$current_file]] <- rv$attributesTable
-      if (globals$dev) {
-        cat("saved", rv$current_file, "\n")
-      }
-    },
-    priority = 2
-  )
-
+  # observeEvent(rv$current_table, {
+  #   req(rv$current_file)
+  #   savevar$emlal$Attributes[[ rv$filenames[rv$current_file] ]] <- rv$current_table
+  # })
+  
+  
   # check for completeness
   observe({
-    rv$completed <- NULL
-    rv$completed <- (
-      isTruthy(rv$attributesTable$attributeName)
-      && all(sapply(rv$attributesTable$attributeName, isTruthy))
-      && all(sapply(rv$attributesTable$class, isTruthy))
-      && !any(grepl("!Add.*here!", rv$attributesTable$unit))
-      && !any(grepl("!Add.*here!", rv$attributesTable$dateTimeFormatString))
-    )
-  })
-  observe({
-    invisible(names(input))
-    validate(
-      need(!is.null(rv$completed), "rv$completed not defined")
-    )
-    if (rv$completed) {
-      enable("nav-nextTab")
-    }
-    else {
-      disable("nav-nextTab")
-    }
-  })
-
-  # Process data ----
-  observeEvent(input[["nav-nextTab"]],
-    {
-      req(rv$completed)
-      disable("nav-nextTab")
-
-      # for each attribute data frame
-      nextStep <- 2
-      nextStep <- min(
-        sapply(rv$files_names, function(fn) {
-          # write filled tables
-          cur_ind <- match(fn, rv$files_names)
-          path <- savevar$emlal$DataFiles$dp_data_files$metadatapath[cur_ind]
-          table <- savevar$emlal$Attributes[[fn]]
-          fwrite(table, path)
-
-          # check for direction: CustomUnits or CatVars
-          if (nextStep > 0 &&
-            "custom" %in% savevar$emlal$Attributes[[fn]][, "unit"]) {
-            return(0)
-          } # custom units
-          else if (nextStep > 1 &&
-            "categorical" %in% savevar$emlal$Attributes[[fn]][, "class"]) {
-            rv$templateCatvars <- TRUE
-            return(1) # categorical variables
-          }
-          else {
-            return(2)
-          } # default = geographic Coverage
-        })
+    rv$complete <- all(
+      sapply(
+        savevar$emlal$Attributes,
+        function(table){
+          isTruthy(table) &&
+            all(sapply(table$attributeName, isTruthy)) && 
+            all(sapply(table$class, isTruthy)) && 
+            !any(grepl("!Add.*here!", table$unit)) && 
+            !any(grepl("!Add.*here!", table$dateTimeFormatString))
+        }
       )
+    )
+    
+    if (isTRUE(rv$complete))
+      enable("nav-nextTab")
+    else 
+      disable("nav-nextTab")
+  })
+  
+  # Process data ----
+  observeEvent(input[["nav-nextTab"]], {
+    req(isTRUE(rv$complete))
+    disable("nav-nextTab")
 
-      # EMLAL: template new fields if needed
-      if(rv$templateCatvars)
-        template_categorical_variables(
-          path = paste(savevar$emlal$SelectDP$dp_path,
-            savevar$emlal$SelectDP$dp_name,
-            "metadata_templates",
-            sep = "/"
-          ),
-          data.path = paste(savevar$emlal$SelectDP$dp_path,
-            savevar$emlal$SelectDP$dp_name,
-            "data_objects",
-            sep = "/"
-          )
-        )
-      
-      template_geographic_coverage(
+    # TODO add a withProgress
+
+    # for each attribute data frame
+    nextStep <- 2
+    nextStep <- min(
+      sapply(seq_along(rv$filenames), function(cur_ind) {
+        # write filled tables
+        # cur_ind <- match(fn, rv$filenames)
+        fn <- rv$filenames[cur_ind]
+        path <- savevar$emlal$DataFiles$dp_data_files$metadatapath[cur_ind]
+        table <- savevar$emlal$Attributes[[fn]]
+        fwrite(table, path)
+
+        # check for direction: CustomUnits or CatVars
+        if (nextStep > 0 &&
+            "custom" %in% savevar$emlal$Attributes[[fn]][, "unit"]) {
+          return(0)
+        } # custom units
+        else if (nextStep > 1 &&
+            "categorical" %in% savevar$emlal$Attributes[[fn]][, "class"]) {
+          rv$templateCatvars <- TRUE
+          return(1) # categorical variables
+        }
+        else {
+          return(2)
+        } # default = geographic Coverage
+      })
+    )
+
+    # EMLAL: template new fields if needed
+    if(rv$templateCatvars)
+      template_categorical_variables(
         path = paste(savevar$emlal$SelectDP$dp_path,
           savevar$emlal$SelectDP$dp_name,
           "metadata_templates",
@@ -546,19 +363,30 @@ Attributes <- function(input, output, session, savevar, globals) {
           savevar$emlal$SelectDP$dp_name,
           "data_objects",
           sep = "/"
-        ),
-        empty = TRUE,
-        write.file = TRUE
+        )
       )
 
-      globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + nextStep
+    template_geographic_coverage(
+      path = paste(savevar$emlal$SelectDP$dp_path,
+        savevar$emlal$SelectDP$dp_name,
+        "metadata_templates",
+        sep = "/"
+      ),
+      data.path = paste(savevar$emlal$SelectDP$dp_path,
+        savevar$emlal$SelectDP$dp_name,
+        "data_objects",
+        sep = "/"
+      ),
+      empty = TRUE,
+      write.file = TRUE
+    )
 
-      # browser()
-      enable("nav-nextTab")
-    },
-    priority = 1
-  )
+    globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + nextStep
 
+    # browser()
+    enable("nav-nextTab")
+  }, priority = 1)
+  
   # Output ----
   return(savevar)
 }

@@ -12,7 +12,8 @@
   menuWidth <- "250px"
   dev <- get_golem_options(which = "dev")
   if (!is.logical(dev) || is.null(dev)) dev <- FALSE
-
+  if(dev) shinylogs::use_tracking(on_unload = TRUE)
+  
   # action
   tagList(
     # Leave this function for adding external resources
