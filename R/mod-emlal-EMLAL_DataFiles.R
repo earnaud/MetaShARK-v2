@@ -76,7 +76,7 @@ DataFiles <- function(input, output, session, savevar, globals) {
   # On arrival on screen
   observeEvent(globals$EMLAL$HISTORY, {
     # dev: might evolve in `switch` if needed furtherly
-    rv$data_files <- if (tail(globals$EMLAL$HISTORY, 1) == "create") { # from create button in SelectDP
+    rv$data_files <- if (all(dim(savevar$emlal$DataFiles$dp_data_files) == c(0,0))) { # from create button in SelectDP
       data.frame()
     } else {
       savevar$emlal$DataFiles$dp_data_files
@@ -246,6 +246,8 @@ DataFiles <- function(input, output, session, savevar, globals) {
         data.path = paste0(path, "/", dp, "/data_objects"),
         data.table = rv$data_files$name
       )
+      
+      message(ns(": Done!"))
     },
     priority = 1
   )

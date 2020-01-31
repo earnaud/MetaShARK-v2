@@ -13,10 +13,12 @@
   savevar <- NULL
 
   ## DEV: do things by clicking a button
-  observeEvent(input$check, {
-    browser()
-  })
-
+  if(dev){
+    observeEvent(input$check, {
+      browser()
+    })
+    # shinylogs::track_usage(storage_mode = shinylogs::store_null())
+  }
   ## esthetics ----
   output$logo <- renderImage(
     {

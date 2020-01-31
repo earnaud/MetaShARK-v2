@@ -139,7 +139,8 @@ EMLAL <- function(input, output, session,
         ),
         {
           tagList(
-            imageOutput(NS(iteration)("WIP"))
+            imageOutput(NS(iteration)("WIP")),
+            imageOutput("WIP")
           )
         }
       )

@@ -27,15 +27,18 @@
   )
 
   # Date time format strings
-  DATE.FORMAT <- combn(rep(c("YYYY", "MM", "DD"), 3), 3)
-  DATE.FORMAT <- unique(as.list(as.data.frame(DATE.FORMAT[, !apply(DATE.FORMAT, 2, function(y) any(duplicated(y)))], stringsAsFactors = FALSE)))
-  DATE.FORMAT <- sapply(c("-", "/", ":"), function(sep) {
-    sapply(DATE.FORMAT, paste, collapse = sep)
-  })
-  HOUR.FORMAT <- c(NA, gsub("YYYY", "hh", gsub("MM", "mm", gsub("DD", "ss", DATE.FORMAT))))
-  DATE.FORMAT <- as.vector(rbind(DATE.FORMAT, gsub("Y{4}", "YY", DATE.FORMAT)))
-  DATE.FORMAT <- DATE.FORMAT[order(DATE.FORMAT, decreasing = TRUE)]
+  # TODO better !
+  DATE.FORMAT <- c(
+    "YYYY", "YYYY-MM", "YYYY-MM-DD",
+    "hh", "hh:mm", "hh:mm:ss",
+    "YYYY-MM-DD hh", "YYYY-MM-DD hh:mm", "YYYY-MM-DD hh:mm:ss",
+    "YYYY hh", "YYYY hh:mm", "YYYY hh:mm:ss"
+  )
+  
+  # Unit types
   UNIT.LIST <- c("custom", get_unitList()$units$name)
+  
+  # DataONE nodes
   DATAONE.LIST <- dataone::listFormats(dataone::CNode())$MediaType
 
   # Taxa authorities
@@ -51,7 +54,6 @@
     # Formats lists
     FORMAT = list(
       DATE = DATE.FORMAT,
-      HOUR = HOUR.FORMAT,
       UNIT = UNIT.LIST,
       DATAONE = DATAONE.LIST,
       AUTHORITIES = TAXA.AUTHORITIES

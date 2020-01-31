@@ -183,18 +183,18 @@ Misc <- function(input, output, session, savevar, globals) {
     rv$keywords$keywords <- input$keywords
     
     output$thesaurus <- renderUI({
-      if(isTruthy(rv$keywords$keywords))
-        tagList(
-          lapply(seq_along(rv$keywords$keywords), function(k_id){
-            keyword <- rv$keywords$keywords[k_id]
-            textInput(
-              ns(paste0("thesaurus-for-", keyword)), 
-              keyword 
-            )
-          })
-        )
-      else
-        "No keyword input"
+      validate(
+        need(rv$keywords$keywords, "No keyword input")
+      )
+      tagList(
+        lapply(seq_along(rv$keywords$keywords), function(k_id){
+          keyword <- rv$keywords$keywords[k_id]
+          textInput(
+            ns(paste0("thesaurus-for-", keyword)), 
+            keyword 
+          )
+        })
+      )
     })
     
   })
@@ -207,7 +207,6 @@ Misc <- function(input, output, session, savevar, globals) {
     sapply(seq_along(rv$keywords$keywords), function(k_id){
       keyword <- rv$keywords$keywords[k_id]
       input_id <- paste0("thesaurus-for-", keyword)
-      # message("tesorusse:", input[[input_id]])
       validate(
         need(isTruthy(input[[input_id]]) ||
             input[[input_id]] == "", 
