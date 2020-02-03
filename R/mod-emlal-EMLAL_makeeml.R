@@ -1,6 +1,6 @@
 MakeEMLUI <- function(id, title, dev) {
   ns <- NS(id)
-
+  
   return(
     fluidPage(
       # Features UI ----
@@ -42,42 +42,12 @@ MakeEMLUI <- function(id, title, dev) {
 #' @importFrom EMLassemblyline make_eml
 MakeEML <- function(input, output, session, savevar, globals) {
   ns <- session$ns
-
+  
   if (globals$dev) {
     observeEvent(input$check, {
       browser()
     })
   }
-
-  # Make eml ----
-  observeEvent(input$make_eml, {
-    . <- savevar$emlal
-    
-    browser()
-    stop("Not further")
-    
-    make_eml(
-      path = .$SelectDP$dp_path,
-      data.path = unique(dirname(.$DataFiles$dp_data_files$datapath)),
-      eml.path = .$SelectDP$dp_path, 
-      dataset.title = .$SelectDP$dp_title,
-      temporal.coverage,
-      maintenance.description = "ongoing",
-      # TODO in data selection step, add entity differenciation
-      data.table = basename(.$DataFiles$dp_data_files$datapath), 
-      # other.entity = NULL,
-      # other.entity.description = NULL,
-      # TODO in data selection step, add data url
-      # data.url = NULL,
-      # TODO add EDI data repository ID
-      # provenance = NULL,
-      # TODO add user.id from options
-      user.id = 'Test',
-      user.domain = 'EDI',
-      # TODO check how to get a lsid?
-      package.id = NULL
-    )
-  })
   
   # Navigation buttons ----
   callModule(
@@ -102,7 +72,37 @@ MakeEML <- function(input, output, session, savevar, globals) {
     prevTab, "nav",
     globals
   )
-
+  
+  # Make eml ----
+  observeEvent(input$make_eml, {
+    . <- savevar$emlal
+    
+    try(
+      make_eml(
+        path = .$SelectDP$dp_path,
+        data.path = unique(dirname(.$DataFiles$dp_data_files$datapath)),
+        eml.path = .$SelectDP$dp_path, 
+        dataset.title = .$SelectDP$dp_title,
+        temporal.coverage = .$Misc$temporal_coverage,
+        maintenance.description = "ongoing",
+        # TODO in data selection step, add entity differenciation
+        data.table = basename(.$DataFiles$dp_data_files$datapath),
+        data.table.description = basename(.$DataFiles$dp_data_files$datapath),
+        # other.entity = NULL,
+        # other.entity.description = NULL,
+        # TODO in data selection step, add data url
+        # data.url = NULL,
+        # TODO add EDI data repository ID
+        # provenance = NULL,
+        # TODO add user.id from options
+        user.id = 'Test',
+        user.domain = 'EDI',
+        # TODO check how to get a lsid?
+        package.id = NULL
+      )
+    )
+    
+  })
   # Output ----
   return(savevar)
 }

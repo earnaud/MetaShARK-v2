@@ -20,7 +20,7 @@
     .golem_add_external_resources(),
     # List the first level UI elements here
     dashboardPage(
-      title = "MetaShARK", # browser title
+      title = "MetaShARK",
       dashboardHeader(
         tags$li(class = "dropdown", actionLink("appOptions", "", icon("gear"))),
         tags$li(class = "dropdown", actionLink("close", "", icon("power-off"))),

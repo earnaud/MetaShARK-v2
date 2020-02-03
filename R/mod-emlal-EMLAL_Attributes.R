@@ -82,8 +82,9 @@ Attributes <- function(input, output, session, savevar, globals) {
         id_type = gsub("^[0-9]+-[0-9]+-","", id)
         if(id_type %in% c("missingValueCodeExplanation", "attributeDefinition", "missingValueCode"))
           updateTextAreaInput(session, id, value = "Automatically filled field.")
-        if(id_type %in% c("dateTimeFormatString"))
+        if(id_type %in% c("dateTimeFormatString")){
           updateSelectInput(session, id, selected = globals$FORMAT$DATE[3])
+        }
         if(id_type %in% c("unit" ))
           updateSelectInput(session, id, selected = globals$FORMAT$UNIT[1])
       })
@@ -95,53 +96,51 @@ Attributes <- function(input, output, session, savevar, globals) {
     files = savevar$emlal$DataFiles$dp_data_files$metadatapath,
     filenames = basename(savevar$emlal$DataFiles$dp_data_files$metadatapath),
     current_file = 1,
-    current_table = data.frame(),
+    current_table = NULL,
     complete = FALSE
   )
-  # cure rv$current_table
-  rv$current_table <- fread(
-    rv$files[rv$current_file], 
-    data.table = FALSE, 
-    stringsAsFactors = FALSE
-  )
-  rv$current_table[is.na(rv$current_table)] <- ""
-  # Initialize display
-  disable("file_prev")
   
   # Navigation buttons ----
   # Previous
   observeEvent(input$file_prev, {
     req(rv$current_file > 1)
+    
+    if(isTruthy(rv$current_table)){
+      try(isolate(savevar$emlal$Attributes[[ rv$filenames[rv$current_file] ]] <- rv$current_table))
+    }
+    
     rv$current_file <- rv$current_file - 1
   })
+  
   # Next
   observeEvent(input$file_next,{
     req(rv$current_file < length(rv$files))
+    
+    if(isTruthy(rv$current_table)){
+      try(isolate(savevar$emlal$Attributes[[ rv$filenames[rv$current_file] ]] <- rv$current_table))
+    }
+    
     rv$current_file <- rv$current_file + 1
   })
+  
+  # update table
   observeEvent(rv$current_file, {
     req(rv$current_file > 0)
     
-    # en/disable buttons
-    if(rv$current_file == 1)
-      disable("file_prev")
-    else 
-      enable("file_prev")
-    if(rv$current_file == length(rv$files))
-      disable("file_next")
-    else 
-      enable("file_next")
-    
-    # save metadata
-    # savevar$emlal$Attributes[[ rv$filenames[rv$current_file] ]] <- isolate(rv$current_table)
-    
-    # update table
-    rv$current_table <- fread(
-      rv$files[rv$current_file],
-      data.table = FALSE,
-      stringsAsFactors = FALSE
-    )
-    rv$current_table[is.na(rv$current_table)] <- ""
+    if(
+      isTruthy(savevar$emlal$Attributes[[ rv$filenames[rv$current_file] ]]) &&
+        !identical(savevar$emlal$Attributes[[ rv$filenames[rv$current_file] ]], data.frame())
+    ) {
+      rv$current_table <- savevar$emlal$Attributes[[ rv$filenames[rv$current_file] ]]
+    }
+    else {
+      rv$current_table <- fread(
+        rv$files[rv$current_file],
+        data.table = FALSE,
+        stringsAsFactors = FALSE
+      )
+      rv$current_table[is.na(rv$current_table)] <- ""
+    }
   }, priority = 1)
   
   # display
@@ -159,6 +158,7 @@ Attributes <- function(input, output, session, savevar, globals) {
   # generate UI ----
   observeEvent(rv$current_file, {
     req(!identical(rv$current_table, data.frame()))
+    
     output$edit_attributes <- renderUI({
       # validity check
       validate(
@@ -169,7 +169,7 @@ Attributes <- function(input, output, session, savevar, globals) {
       )
       # GUI
       current_table <- isolate(rv$current_table)
-
+      
       ui <- do.call(
         bsCollapse,
         lapply(
@@ -178,7 +178,7 @@ Attributes <- function(input, output, session, savevar, globals) {
           function(row_index, fields){
             # prepare variables
             attribute_row <- isolate(rv$current_table[row_index,])
-
+            
             return(
               bsCollapsePanel(
                 title = attribute_row[ fields[1] ], # TEST
@@ -191,7 +191,7 @@ Attributes <- function(input, output, session, savevar, globals) {
                     colname,
                     sep = "-"
                   )
-
+                  
                   # GUI
                   switch(colname,
                     attributeDefinition = textAreaInput(
@@ -234,17 +234,21 @@ Attributes <- function(input, output, session, savevar, globals) {
       )
       return(ui)
     })
-
+    
   }, priority = 0) # end of observeEvent
-
+  
   # generate server ----
   observeEvent(names(input), {
-
+    req(
+      !identical(rv$current_table, data.frame()), 
+      any(unlist(sapply(colnames(rv$current_table), grepl, names(input))))
+    )
+    
     sapply(
       seq(dim(rv$current_table)[1]),
       fields = colnames(rv$current_table),
       function(row_index, fields){
-
+        
         lapply(fields[-1], function(colname) {
           inputId <- paste(
             isolate(rv$current_file),
@@ -252,19 +256,19 @@ Attributes <- function(input, output, session, savevar, globals) {
             colname,
             sep = "-"
           )
-
+          
           if(inputId %in% names(input)){
             observeEvent(input[[inputId]], {
               req(input[[inputId]])
-              rv$current_table[row_index, colname] <- input[[inputId]]
+              isolate(rv$current_table[row_index, colname] <- input[[inputId]])
             })
           }
         }) # end of lapply colname
-
+        
       }) # end of lapply : row_index
-
+    
   }) # end of observeEvent
-
+  
   # NSB ----
   callModule(
     onQuit, "nav",
@@ -290,17 +294,15 @@ Attributes <- function(input, output, session, savevar, globals) {
   )
   
   # Saves ----
-  # observeEvent(rv$current_table, {
-  #   req(rv$current_file)
-  #   savevar$emlal$Attributes[[ rv$filenames[rv$current_file] ]] <- rv$current_table
-  # })
-  
-  
   # check for completeness
-  observe({
+  observeEvent(rv$current_table, {
+    rv$complete <- FALSE
+    req(!identical(rv$current_table, data.frame()))
+    .attributes <- reactiveValuesToList(savevar$emlal$Attributes)
+    
     rv$complete <- all(
       sapply(
-        savevar$emlal$Attributes,
+        .attributes,
         function(table){
           isTruthy(table) &&
             all(sapply(table$attributeName, isTruthy)) && 
@@ -310,7 +312,19 @@ Attributes <- function(input, output, session, savevar, globals) {
         }
       )
     )
-    
+  }, priority = -1)
+  
+  # en/disable buttons
+  observe({
+    req(names(input))
+    if(rv$current_file == 1)
+      disable("file_prev")
+    else 
+      enable("file_prev")
+    if(rv$current_file == length(rv$files))
+      disable("file_next")
+    else 
+      enable("file_next")
     if (isTRUE(rv$complete))
       enable("nav-nextTab")
     else 
@@ -321,69 +335,75 @@ Attributes <- function(input, output, session, savevar, globals) {
   observeEvent(input[["nav-nextTab"]], {
     req(isTRUE(rv$complete))
     disable("nav-nextTab")
-
+    
+    if(isTruthy(rv$current_table)){
+      try(isolate(savevar$emlal$Attributes[[ rv$filenames[rv$current_file] ]] <- rv$current_table))
+    }
+    
     # TODO add a withProgress
-
-    # for each attribute data frame
-    nextStep <- 2
-    nextStep <- min(
-      sapply(seq_along(rv$filenames), function(cur_ind) {
-        # write filled tables
-        # cur_ind <- match(fn, rv$filenames)
-        fn <- rv$filenames[cur_ind]
-        path <- savevar$emlal$DataFiles$dp_data_files$metadatapath[cur_ind]
-        table <- savevar$emlal$Attributes[[fn]]
-        fwrite(table, path)
-
-        # check for direction: CustomUnits or CatVars
-        if (nextStep > 0 &&
-            "custom" %in% savevar$emlal$Attributes[[fn]][, "unit"]) {
-          return(0)
-        } # custom units
-        else if (nextStep > 1 &&
-            "categorical" %in% savevar$emlal$Attributes[[fn]][, "class"]) {
-          rv$templateCatvars <- TRUE
-          return(1) # categorical variables
-        }
-        else {
-          return(2)
-        } # default = geographic Coverage
-      })
-    )
-
-    # EMLAL: template new fields if needed
-    if(rv$templateCatvars)
-      template_categorical_variables(
-        path = paste(savevar$emlal$SelectDP$dp_path,
-          savevar$emlal$SelectDP$dp_name,
-          "metadata_templates",
-          sep = "/"
-        ),
-        data.path = paste(savevar$emlal$SelectDP$dp_path,
-          savevar$emlal$SelectDP$dp_name,
-          "data_objects",
-          sep = "/"
+    withProgress(
+      message = "Processing entered metadata ...",
+      {
+        incProgress(1/7)
+        # for each attribute data frame
+        templateCatvars <- FALSE
+        nextStep <- 2
+        nextStep <- min(
+          sapply(seq_along(rv$filenames), function(cur_ind) {
+            incProgress(1/7) # x3
+            # write filled tables
+            fn <- rv$filenames[cur_ind]
+            path <- savevar$emlal$DataFiles$dp_data_files$metadatapath[cur_ind]
+            table <- savevar$emlal$Attributes[[fn]]
+            fwrite(table, path, sep = "\t")
+            . <- nextStep
+            # check for direction: CustomUnits or CatVars
+            if ("custom" %in% savevar$emlal$Attributes[[fn]][, "unit"]) {
+              . <- 0
+            } # custom units
+            if ("categorical" %in% savevar$emlal$Attributes[[fn]][, "class"]) {
+              templateCatvars <<- TRUE
+              . <- min(., 1) # categorical variables
+            }
+            return(.)
+          })
         )
-      )
-
-    template_geographic_coverage(
-      path = paste(savevar$emlal$SelectDP$dp_path,
-        savevar$emlal$SelectDP$dp_name,
-        "metadata_templates",
-        sep = "/"
-      ),
-      data.path = paste(savevar$emlal$SelectDP$dp_path,
-        savevar$emlal$SelectDP$dp_name,
-        "data_objects",
-        sep = "/"
-      ),
-      empty = TRUE,
-      write.file = TRUE
-    )
-
-    globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + nextStep
-
-    # browser()
+        
+        # EMLAL: template new fields if needed
+        if(isTRUE(templateCatvars)) # might not be defined
+          template_categorical_variables(
+            path = paste(savevar$emlal$SelectDP$dp_path,
+              savevar$emlal$SelectDP$dp_name,
+              "metadata_templates",
+              sep = "/"
+            ),
+            data.path = paste(savevar$emlal$SelectDP$dp_path,
+              savevar$emlal$SelectDP$dp_name,
+              "data_objects",
+              sep = "/"
+            )
+          )
+        incProgress(1/7)
+        
+        template_geographic_coverage(
+          path = paste(savevar$emlal$SelectDP$dp_path,
+            savevar$emlal$SelectDP$dp_name,
+            "metadata_templates",
+            sep = "/"
+          ),
+          data.path = paste(savevar$emlal$SelectDP$dp_path,
+            savevar$emlal$SelectDP$dp_name,
+            "data_objects",
+            sep = "/"
+          ),
+          empty = TRUE,
+          write.file = TRUE
+        )
+        incProgress(1/7)
+        
+        globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + nextStep
+        incProgress(1/7)
+      })
     enable("nav-nextTab")
   }, priority = 1)
   
