@@ -38,5 +38,5 @@ fill <- function(input, output, session, globals) {
   )
 
   # Output ----
-  return(savevar) # useful? yes for side browser() to be able to reach savevar
+  return(savevar)
 }

@@ -101,7 +101,7 @@ SelectDP <- function(input, output, session,
     dp_license = NULL,
     warning_dp_name = NULL
   )
-  observeEvent(input$dev0, {
+  observeEvent(input$dev, {
     browser()
   })
   volumes <- c(Home = globals$HOME, base = getVolumes()())
@@ -228,7 +228,7 @@ SelectDP <- function(input, output, session,
     # variable operation - legibility purpose
     dp <- input$dp_name
     path <- paste0(rv$dp_location, dp, "_emldp")
-    title <- input$title
+    title <- input$dp_title
     license <- rv$dp_license()
 
     # save in empty dedicated variable
@@ -247,15 +247,19 @@ SelectDP <- function(input, output, session,
     globals$EMLAL$HISTORY <- "create"
 
     dir.create(path)
+
     saveReactive(savevar, path, dp) # initial "commit"
+
     template_directories(
       path,
       dp
     )
+
     template_core_metadata(
       path,
       license
     )
+
   })
 
   # * Load DP ----

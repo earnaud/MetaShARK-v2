@@ -153,7 +153,6 @@ describeWorkflow <- function(input, output, session) {
 
   # Remove
   observeEvent(input$remove, {
-    # browser()
     removeUI(
       selector = paste0("#", ns("span"))
     )

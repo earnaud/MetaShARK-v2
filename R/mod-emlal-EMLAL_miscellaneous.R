@@ -65,7 +65,6 @@ Miscellaneous <- function(
   
   observeEvent(rv$file(),{
     req(rv$file())
-    # browser()
     updateTextAreaInput(
       session,
       "content",

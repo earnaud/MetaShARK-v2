@@ -150,7 +150,7 @@ Personnel <- function(input, output, session, savevar, globals) {
       personnel,
       paste0(
         savevar$emlal$SelectDP$dp_path,
-        "/Personnel.txt"
+        "/personnel.txt"
       )
     )
   })
@@ -166,7 +166,7 @@ Personnel <- function(input, output, session, savevar, globals) {
 #' @description module to document EML::Personnel
 #' 
 #' @importFrom shinyBS bsTooltip
-PersonnelModUI <- function(id, site_id, rmv_id) {
+PersonnelModUI <- function(id, site_id, rmv_id, dev = FALSE) {
   ns <- NS(id)
   
   div_id <- id
@@ -281,10 +281,11 @@ PersonnelModUI <- function(id, site_id, rmv_id) {
           icon("trash"), 
           class = "danger"
         ),
-        actionButton(
-          ns("dev"),
-          "Dev"
-        )
+        if(dev)
+          actionButton(
+            ns("dev"),
+            "Dev"
+          )
       )
     )
   )
@@ -299,9 +300,10 @@ PersonnelMod <- function(input, output, session,
   globals, rv, rmv_id, site_id, ref) {
   ns <- session$ns
   
-  observeEvent(input$dev, {
-    browser()
-  })
+  if(globals$dev)
+    observeEvent(input$dev, {
+      browser()
+    })
   
   # Variable initialization ----
   localRV <- reactiveValues(
@@ -475,8 +477,6 @@ PersonnelMod <- function(input, output, session,
       NA
     }
     
-    # browser()
-    
     if(!is.na(ind)){
       # print values into rv at selected index
       actualValues <- printReactiveValues(localRV)
@@ -497,7 +497,6 @@ PersonnelMod <- function(input, output, session,
     ind <- match(ref, rv$id)
     sapply(names(rv), function(rvid){
       if(rvid == "id"){ # keep length
-        browser()
         rv[[rvid]][[ind]] <<- -1*rv[[rvid]][[ind]]
       }else
         rv[[rvid]] <<- rv[[rvid]][-ind]
@@ -520,7 +519,7 @@ insertPersonnelInput <- function(id, rv, ns, globals){
   
   # Proper module server ----
   # create the UI 
-  newUI <- PersonnelModUI(ns(div_id), site_id, rmv_id)
+  newUI <- PersonnelModUI(ns(div_id), site_id, rmv_id, dev = globals$dev)
   
   # insert the UI
   insertUI(
