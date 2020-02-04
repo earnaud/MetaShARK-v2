@@ -85,13 +85,16 @@ MakeEML <- function(input, output, session, savevar, globals) {
         dataset.title = .$SelectDP$dp_title,
         temporal.coverage = .$Misc$temporal_coverage,
         maintenance.description = "ongoing",
-        # TODO in data selection step, add entity differenciation
+        geographic.description = checkTruth(.$GeoCov$geographicDescription),
+        geographic.coordinates = checkTruth(.$GeoCov[,c("northBoundingCoordinate","southBoundingCoordinate","eastBoundingCoordinate","westBoundingCoordinate")]),
         data.table = basename(.$DataFiles$dp_data_files$datapath),
+        # TODO add description fields
         data.table.description = basename(.$DataFiles$dp_data_files$datapath),
-        # other.entity = NULL,
-        # other.entity.description = NULL,
         # TODO in data selection step, add data url
         # data.url = NULL,
+        # TODO in data selection step, add entity differenciation
+        # other.entity = NULL,
+        # other.entity.description = NULL,
         # TODO add EDI data repository ID
         # provenance = NULL,
         # TODO add user.id from options
@@ -101,6 +104,8 @@ MakeEML <- function(input, output, session, savevar, globals) {
         package.id = NULL
       )
     )
+    
+    browser()
     
   })
   # Output ----

@@ -1,31 +1,48 @@
-
-# MetaShARK
+![Logo](./media/metashark-logo-v3.png)
+<img src="./media/metashark-logo-v3.png" alt="Logo" width="50em">
+<!-- # MetaShARK -->
 Metadata Shiny-Automated Resources & Knowledge
 _First released on 15-04-2019_  
 (DOI will be updated on next release)
 
 The aim of the MetaShARK app is to allow any user a bit familiar with ecology to fill in data packages to provide as many information as possible on any dataset used in a publication, communication, etc. in ecology. The challenge of this work is to produce a user-friendly tool to a science community which is not familiar to heavy metadata standards and their informatic specification. Consequently, the choice has been made to work only with R as it is the currentest programming language in this community and it can be easily accessible as an open source application, despite of its low performances.
-This project has the ambition to offer the user a user-friendly alternative to existing tools (such as the hardcore Morpho ;) ) but also to address an other issue which is the EML is not always fully considered.
+This project has the ambition to offer the user a user-friendly alternative to existing tools (such as the hardcore Morpho ;) ) but also to address an other issue which is the EML is not always fully considered.  
 This MetaShARK git is called "v2" because it is the evolution with {golem} package of the previous [MetaShARK git](https://github.com/earnaud/MetaShARK)
 
 **Any suggestion is welcome, feel free to contact the dev !**
 
 ## Running MetaShARK
-You can launch the app through
+
+There are two versions of MetaShARK currently available:
+
+* Stable : this version is the last version described in the *RELEASES.md* file.
+* Dev : this version is the last version released, described later in this file. However, it might suffer some bugs.
+
+All dependencies are described in the DESCRIPTION file. 
+
+### Stable
+
+You can install the stable app as follow:
+
 ```
 library(devtools)
 install_github("earnaud/MetaShARK-v2")
 ```
 
-All dependencies are described in the DESCRIPTION file.
+### Dev
 
-The supported features and expected behaviors are described below. 
+You can install the dev app as follow:
+
+```
+library(devtools)
+install_github("earnaud/MetaShARK-v2", ref = "dev")
+```
 
 ## MetaShARK features 
 
 ### Documentation
 
-First feature devempêd in MetaShARK, it is possible to consult any documented part of the Ecological Metadata Language. This documentation directly relies on the EML 2.2.0, and some tags (as the "eml-\*" ones) can be undocumented. Also, it is possible to access the original documentation through the dedicated tab.
+First feature developped in MetaShARK, it is possible to consult any documented part of the Ecological Metadata Language. This documentation directly relies on the EML 2.2.0, and some tags (as the "eml-\*" ones) can be undocumented. Also, it is possible to access the original documentation through the dedicated tab.
 
 ### Metadata filling
 
