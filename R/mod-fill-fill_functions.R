@@ -124,3 +124,21 @@ readPlainText <- function(files, prefix = NULL, sep = "/", ...){
     )
   )$text
 }
+
+#' @title checkTruth
+#' 
+#' @description check if `x` is truthy (as shiny::isTruthy) or not. 
+#' Returns the argument if truthy, or the `output` argument if not (default to NULL)
+#' 
+#' @param x argument to check fo truthiness
+#' @param output what to return if `x` is not truthy
+#' 
+#' @importFrom shiny isTruthy
+checkTruth <- function(x, output = NULL){
+  if(missing(x))
+    stop("'x' is missing with no default.")
+  if(isTruthy(x) && isTruthy(unlist(x)))
+    return(x)
+  else
+    return(output)
+}

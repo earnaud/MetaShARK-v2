@@ -4,7 +4,7 @@
 \alias{PersonnelModUI}
 \title{PersonnelModUI}
 \usage{
-PersonnelModUI(id, site_id, rmv_id)
+PersonnelModUI(id, site_id, rmv_id, dev = FALSE)
 }
 \description{
 module to document EML::Personnel
