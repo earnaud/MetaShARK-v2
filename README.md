@@ -1,5 +1,5 @@
-![Logo](./media/metashark-logo-v3.png)
-<img src="./media/metashark-logo-v3.png" alt="Logo" width="50em">
+<img src="./media/metashark-logo-v3.png" alt="" width="50%">
+
 <!-- # MetaShARK -->
 Metadata Shiny-Automated Resources & Knowledge
 _First released on 15-04-2019_  
@@ -61,9 +61,9 @@ Some references are given that sustain the base principles of this work.
 
 ## Releases
 
-### Pre-Release 20200129 - EML Assembly Line (dev version)
+### Pre-Release 20200204 - EML Assembly Line (dev version)
 
-Here it comes ! The first pre-release allowing the user to describe his dataset according to the [EML Assembly Line](https://ediorg.github.io/EMLassemblyline/articles/overview.html) recommendations. Please note this version is **still in development** and some features might suffer bugs. Consequently, do not hesitate to [open an issue](https://github.com/earnaud/MetaShARK-v2/issues)
+Here it comes ! The first pre-release allowing the user to describe his dataset according to the [EML Assembly Line](https://ediorg.github.io/EMLassemblyline/articles/overview.html) recommendations. Please note this version is **still in development** and some features might suffer bugs. Consequently, do not hesitate to [open an issue](https://github.com/earnaud/MetaShARK-v2/issues).
 
 #### Features
 
@@ -82,6 +82,7 @@ MetaShARK/EAL supports:
 #### Known Bugs
 
 * Taxonomic coverage still suffers some errors in its core functions: see [this issue](https://github.com/EDIorg/EDIutils/issues/12)
+* **Make EML** currently does not work (badly). 
 
 ## Authors
 * Elie Arnaud (developper) - elie.arnaud@mnhn.fr
@@ -91,4 +92,3 @@ Any contribution can be done and submitted. To contribute, please refer the 'con
 
 ## Submit issues
 For anny issue submittance, please add a single-word tag in bracket before the title of your issue. Do not hesitate also to describe it exhaustively and add a label.
-
