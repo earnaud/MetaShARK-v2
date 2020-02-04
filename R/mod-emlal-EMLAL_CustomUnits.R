@@ -155,7 +155,6 @@ CustomUnits <- function(input, output, session,
           )
         })
       }
-      # browser()
       rv$CU_Table <- rv$CU_Table %>% 
         mutate(parentSI = replace(.$parentSI, TRUE, "dimensionless")) %>% 
         mutate(multiplierToSI = replace(.$multiplierToSI, TRUE, 1))
@@ -366,7 +365,8 @@ CustomUnits <- function(input, output, session,
           "metadata_templates",
           "custom_units.txt",
           sep = "/"
-        )
+        ),
+        sep = "\t"
       )
       # avoid catvar filling if not templated
       if (

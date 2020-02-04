@@ -79,16 +79,31 @@ MakeEML <- function(input, output, session, savevar, globals) {
     
     try(
       make_eml(
-        path = .$SelectDP$dp_path,
-        data.path = unique(dirname(.$DataFiles$dp_data_files$datapath)),
-        eml.path = .$SelectDP$dp_path, 
+        path = paste(
+          .$SelectDP$dp_path,
+          .$SelectDP$dp_name,
+          "metadata_templates",
+          sep = "/"
+        ),
+        data.path = paste(
+          .$SelectDP$dp_path,
+          .$SelectDP$dp_name,
+          "data_objects",
+          sep = "/"
+        ),
+        eml.path = paste(
+          .$SelectDP$dp_path,
+          .$SelectDP$dp_name,
+          "eml",
+          sep = "/"
+        ),
         dataset.title = .$SelectDP$dp_title,
         temporal.coverage = .$Misc$temporal_coverage,
         maintenance.description = "ongoing",
         geographic.description = checkTruth(.$GeoCov$geographicDescription),
         geographic.coordinates = checkTruth(.$GeoCov[,c("northBoundingCoordinate","southBoundingCoordinate","eastBoundingCoordinate","westBoundingCoordinate")]),
         data.table = basename(.$DataFiles$dp_data_files$datapath),
-        # TODO add description fields
+        # TODO add description inputs
         data.table.description = basename(.$DataFiles$dp_data_files$datapath),
         # TODO in data selection step, add data url
         # data.url = NULL,

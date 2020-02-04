@@ -448,7 +448,8 @@ GeoCov <- function(input, output, session, savevar, globals) {
           "metadata_templates",
           "geographic_coverage.txt",
           sep = "/"
-        )
+        ),
+        sep = "\t"
       )
       message("Geographic Coverage has been written.")
     }

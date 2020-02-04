@@ -251,7 +251,8 @@ CatVars <- function(input, output, session, savevar, globals) {
     sapply(rv$catvarFiles$full, function(file_name) {
       fwrite(
         savevar$emlal$CatVars[[basename(file_name)]],
-        file_name
+        file_name,
+        sep = "\t"
       )
     })
   })

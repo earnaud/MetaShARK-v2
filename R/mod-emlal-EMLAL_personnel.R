@@ -151,7 +151,8 @@ Personnel <- function(input, output, session, savevar, globals) {
       paste0(
         savevar$emlal$SelectDP$dp_path,
         "/personnel.txt"
-      )
+      ),
+      sep = "\t"
     )
   })
   

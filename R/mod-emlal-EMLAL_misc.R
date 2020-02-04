@@ -299,7 +299,8 @@ Misc <- function(input, output, session, savevar, globals) {
       paste0(
         savevar$emlal$SelectDP$dp_path,
         "/keywords.txt"
-      )
+      ),
+      sep = "\t"
     )
     
     message("Writing 'additional_info.txt'.")
