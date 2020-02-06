@@ -1,2 +1,0 @@
-mn,URL,cn
-PNDB (dev),https://openstack-192-168-100-101.genouest.org/metacat/d1/mn/v2/,STAGING

@@ -268,7 +268,7 @@ CustomUnits <- function(input, output, session,
         # UI
         switch(colname,
           id = textInput(ns(colname),
-            label = span(colname, class = "redButton"),
+            label = with_red_star(colname),
             placeholder = "e.g. milligramsPerGram",
             value = saved_value
           ),
