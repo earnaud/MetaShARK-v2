@@ -1,6 +1,7 @@
+[![DOI](https://zenodo.org/badge/216049930.svg)](https://zenodo.org/badge/latestdoi/216049930)
+
 <img src="./media/metashark-logo-v3.png" alt="" width="50%">
 
-<!-- # MetaShARK -->
 Metadata Shiny-Automated Resources & Knowledge
 _First released on 15-04-2019_  
 (DOI will be updated on next release)
