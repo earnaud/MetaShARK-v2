@@ -22,11 +22,15 @@ runMetashark <- function(...) {
   # use_favicon("pkgdown/favicon/favicon.ico")
   # favicon(ico = "inst/app/www/favicon.png")
 
-  with_golem_options(
-    app = shinyApp(
-      ui = .app_ui, server = .app_server,
+  # browser()
+  
+  app = with_golem_options(
+    shinyApp(
+      ui = .app_ui, 
+      server = .app_server,
       onStart = .headerScript
-    ),
-    golem_opts = list(...)
+    )
+    , golem_opts = list(...)
   )
+  runApp(app)
 }

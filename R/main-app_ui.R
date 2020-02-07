@@ -7,24 +7,33 @@
 #' @importFrom shinydashboard dashboardPage dashboardHeader dashboardSidebar sidebarMenu menuItem dashboardBody tabItems tabItem
 #' @importFrom shinyjs useShinyjs hidden
 .app_ui <- function() {
-
+  
   # prepare variable
   menuWidth <- "250px"
   dev <- get_golem_options(which = "dev")
   if (!is.logical(dev) || is.null(dev)) dev <- FALSE
+  globals <- .globalScript(dev, reactive = FALSE)
+  
   if(dev) shinylogs::use_tracking(on_unload = TRUE)
+  
+  message(globals$PATHS$logo.png)
   
   # action
   tagList(
     # Leave this function for adding external resources
-    .golem_add_external_resources(),
+    # .golem_add_external_resources(),
+    tags$head(
+      # Add here all the external resources
+      tags$link(rel = "stylesheet", type = "text/css", href = "www/styles.css")
+    ),
     # List the first level UI elements here
     dashboardPage(
       title = "MetaShARK",
       dashboardHeader(
         tags$li(class = "dropdown", actionLink("appOptions", "", icon("gear"))),
         tags$li(class = "dropdown", actionLink("close", "", icon("power-off"))),
-        title = span(imageOutput("logo", inline = TRUE)),
+        title = tags$img(src = globals$PATHS$logo.png, width = "200px", height = "40px"),
+        # title = span(imageOutput("logo", inline = TRUE)),
         titleWidth = menuWidth
       ),
       ## Menus ----
@@ -76,7 +85,7 @@
           ),
           tabItem(
             tabName = "upload",
-            uploadUI("upload", dev)
+            uploadUI("upload", dev, globals)
           ),
           tabItem(
             tabName = "documentation",
@@ -96,19 +105,21 @@
   ) # end taglist
 }
 
-#' @title .golem_add_external_resources
-#'
-#' @description {golem} utility
-#'
-#' @importFrom shiny addResourcePath tags
-#' @importFrom golem use_favicon
-.golem_add_external_resources <- function() {
-  addResourcePath(
-    "www", system.file("app/www", package = "MetaShARK")
-  )
-
-  tags$head(
-    # Add here all the external resources
-    tags$link(rel = "stylesheet", type = "text/css", href = "www/styles.css")
-  )
-}
+# #' @title .golem_add_external_resources
+# #'
+# #' @description {golem} utility
+# #'
+# #' @importFrom shiny addResourcePath tags
+# #' @importFrom golem use_favicon
+# .golem_add_external_resources <- function() {
+#   addResourcePath(
+#     "www", system.file("app/www", package = "MetaShARK")
+#   )
+#   addResourcePath(
+#     "resources", system.file("resources", package = "MetaShARK")
+#   )
+#   tags$head(
+#     # Add here all the external resources
+#     tags$link(rel = "stylesheet", type = "text/css", href = "www/styles.css")
+#   )
+# }
