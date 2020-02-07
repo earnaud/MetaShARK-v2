@@ -8,9 +8,10 @@
 #' @importFrom shiny NS tagList actionButton tags selectInput
 #' uiOutput textOutput icon
 #' @importFrom data.table fread
-uploadUI <- function(id, dev) {
+uploadUI <- function(id, dev, globals) {
   ns <- NS(id)
-  registeredEndpoints <- fread(system.file("resources", "registeredEndpoints.txt", package = "MetaShARK"))
+  registeredEndpoints <- fread(globals$PATHS$registeredEndpoints.txt)
+  # registeredEndpoints <- fread(system.file("resources", "registeredEndpoints.txt", package = "MetaShARK"))
 
   # TODO use `runjs` from shinyjs to update css : https://stackoverflow.com/questions/46045222/reactive-css-properties-in-r-shiny
   # TODO add update module
@@ -97,10 +98,11 @@ uploadUI <- function(id, dev) {
 #' @importFrom data.table fread fwrite
 # @importFrom devtools system.file
 upload <- function(input, output, session, dev,
-                   dataone.formats) {
+                   globals) {
   ns <- session$ns
 
-  registeredEndpoints <- fread(system.file("resources", "registeredEndpoints.txt", package = "MetaShARK"))
+  registeredEndpoints <- fread(globals$PATHS$registeredEndpoints.txt)
+  # registeredEndpoints <- fread(system.file("resources", "registeredEndpoints.txt", package = "MetaShARK"))
 
   if (dev) {
     observeEvent(input$dev, {

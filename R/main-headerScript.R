@@ -15,7 +15,7 @@
 #' @importFrom dataone listFormats CNode
 #' @importFrom shiny reactiveValues
 #' @importFrom EML get_unitList
-.globalScript <- function(dev = FALSE) {
+.globalScript <- function(dev = FALSE, reactive = TRUE) {
   if (!is.logical(dev) || is.null(dev)) dev <- FALSE
 
   HOME <- path_home()
@@ -38,41 +38,66 @@
   # Unit types
   UNIT.LIST <- c("custom", get_unitList()$units$name)
   
+  # Paths
+  # resourcesPaths <- system.file("resources", package="MetaShARK") %>% 
+  #   paste(., dir(.), sep = "/")
+  wwwPaths <- system.file("app/www", package="MetaShARK") %>% 
+    paste(., dir(.), sep = "/") %>%
+    as.list
+  names(wwwPaths) <- basename(unlist(wwwPaths))
+  
   # DataONE nodes
-  DATAONE.LIST <- dataone::listFormats(dataone::CNode())$MediaType
-
+  # DATAONE.LIST <- dataone::listFormats(dataone::CNode())$MediaType
+  DATAONE.LIST <- unlist(fread(wwwPaths$dataoneCNodesList.txt))
+  
   # Taxa authorities
-  TAXA.AUTHORITIES <- taxonomyCleanr::view_taxa_authorities()
+  # TAXA.AUTHORITIES <-  taxonomyCleanr::view_taxa_authorities()
+  TAXA.AUTHORITIES <- fread(wwwPaths$taxaAuthorities.txt)
   
   # Build global variable
-  globals <- reactiveValues(
-    dev = dev,
-    THRESHOLDS = reactiveValues(data_files_size_max = 500000),
-    DEFAULT.PATH = DP.PATH,
-    HOME = HOME,
-    NS.INDEX = readRDS(system.file("resources/nsIndex.RData", package = "MetaShARK")),
-    # Formats lists
-    FORMAT = list(
-      DATE = DATE.FORMAT,
-      UNIT = UNIT.LIST,
-      DATAONE = DATAONE.LIST,
-      AUTHORITIES = TAXA.AUTHORITIES
-    ),
-    # Regex patterns
-    PATTERNS = list(
-      # match one expression for latitude or longitude
-      LATLON = "[+-]?[[:digit:]]+[.,]*[[:digit:]]*",
-      NAME = "^[[:alpha:] \\'\\.\\-]+$",
-      EMAIL = "^[^@]+@[^@]+\\.[[:alpha:]]",
-      ORCID = "^\\d{4}-\\d{4}-\\d{4}-(\\d{4}|\\d{3}X)$"
-    ),
-    # navigation variable in EMLAL module
-    EMLAL = reactiveValues(
-      HISTORY = character(),
-      NAVIGATE = 1
+  if(reactive)
+    globals <- reactiveValues(
+      dev = dev,
+      THRESHOLDS = reactiveValues(data_files_size_max = 500000),
+      DEFAULT.PATH = DP.PATH,
+      HOME = HOME,
+      PATHS = wwwPaths,
+      # Formats lists
+      FORMAT = list(
+        DATE = DATE.FORMAT,
+        UNIT = UNIT.LIST,
+        DATAONE = DATAONE.LIST,
+        AUTHORITIES = TAXA.AUTHORITIES
+      ),
+      # Regex patterns
+      PATTERNS = list(
+        # match one expression for latitude or longitude
+        LATLON = "[+-]?[[:digit:]]+[.,]*[[:digit:]]*",
+        NAME = "^[[:alpha:] \\'\\.\\-]+$",
+        EMAIL = "^[^@]+@[^@]+\\.[[:alpha:]]",
+        ORCID = "^\\d{4}-\\d{4}-\\d{4}-(\\d{4}|\\d{3}X)$"
+      ),
+      # navigation variable in EMLAL module
+      EMLAL = reactiveValues(
+        HISTORY = character(),
+        NAVIGATE = 1
+      )
     )
-  )
-
+  else
+    globals <- list(
+      dev = dev,
+      THRESHOLDS = reactiveValues(data_files_size_max = 500000),
+      DEFAULT.PATH = DP.PATH,
+      HOME = HOME,
+      PATHS = wwwPaths,
+      # Formats lists
+      FORMAT = list(
+        DATE = DATE.FORMAT,
+        UNIT = UNIT.LIST,
+        DATAONE = DATAONE.LIST,
+        AUTHORITIES = TAXA.AUTHORITIES
+      )
+    )
   # output
   return(globals)
 }

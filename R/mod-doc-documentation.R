@@ -127,7 +127,7 @@ documentation <- function(input, output, session, globals) {
 
       # fetch the eml-xsd content in the systemGuideLine list
       systemContent <- followPath(systemGuideline, systemPath)
-      out <- extractContent(systemContent, nsIndex = globals$NS.INDEX)
+      out <- extractContent(systemContent, nsIndex = readRDS(globals$PATHS$nsIndex.Rdata))
       return(out)
     }
   })

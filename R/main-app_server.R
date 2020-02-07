@@ -52,7 +52,7 @@
       # fill
       fill = callModule(fill, "fill", globals),
       # upload
-      upload = callModule(upload, "upload", dev),
+      upload = callModule(upload, "upload", dev, globals),
       # doc
       documentation = callModule(documentation, "documentation", globals),
       # about
