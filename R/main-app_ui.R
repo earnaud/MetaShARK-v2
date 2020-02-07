@@ -14,10 +14,6 @@
   if (!is.logical(dev) || is.null(dev)) dev <- FALSE
   globals <- .globalScript(dev, reactive = FALSE)
   
-  if(dev) shinylogs::use_tracking(on_unload = TRUE)
-  
-  message(globals$PATHS$logo.png)
-  
   # action
   tagList(
     # Leave this function for adding external resources

@@ -17,7 +17,6 @@
     observeEvent(input$check, {
       browser()
     })
-    # shinylogs::track_usage(storage_mode = shinylogs::store_null())
   }
   ## esthetics ----
   output$logo <- renderImage({

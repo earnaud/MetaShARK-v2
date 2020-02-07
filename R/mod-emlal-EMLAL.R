@@ -3,7 +3,7 @@
 #' @description UI part of the EMLAL module. Allow the user to use a front-end shiny interface to the EML Assembly Line package, from
 #' Environmental Data Initiative. ARAR
 #'
-#' @importFrom shiny NS fluidPage HTML tags imageOutput uiOutput
+#' @importFrom shiny NS fluidPage column HTML tags imageOutput uiOutput
 #' @importFrom shinydashboard box
 #' @importFrom shinycssloaders withSpinner
 EMLALUI <- function(id, dev = FALSE) {
@@ -26,8 +26,10 @@ EMLALUI <- function(id, dev = FALSE) {
           </p>"
         ),
         tags$div(
-          imageOutput(ns("edi-logo"), # from main.R
-            width = "100px", height = "100px"
+          imageOutput(
+            ns("edi-logo"),
+            width = "100px",
+            height = "100px"
           ),
           class = "logo"
         )
@@ -64,7 +66,7 @@ EMLALUI <- function(id, dev = FALSE) {
 #' @description server part of the EMLAL module. Allow the user to use a front-end shiny interface to the EML Assembly Line package, from
 #' Environmental Data Initiative.
 #'
-#' @importFrom shiny observeEvent renderUI HTML callModule
+#' @importFrom shiny observeEvent renderUI renderImage HTML callModule imageOutput
 EMLAL <- function(input, output, session,
   savevar, globals) {
   ns <- session$ns
@@ -79,8 +81,7 @@ EMLAL <- function(input, output, session,
   }, deleteFile = FALSE)
   
   # names of EMLAL steps
-  steps <- c("SelectDP", "DataFiles", "Attributes","CustomUnits",
-    "CatVars", "GeoCov", "TaxCov", "Misc", "MakeEML")
+  steps <- c("SelectDP", "DataFiles", "Attributes","CustomUnits","CatVars", "GeoCov", "TaxCov", "Misc", "MakeEML")
   
   iteration <- 0 # varying namespace
   # Output ----
@@ -146,8 +147,7 @@ EMLAL <- function(input, output, session,
         ),
         {
           tagList(
-            imageOutput(NS(iteration)("WIP")),
-            imageOutput("WIP")
+            imageOutput(ns("WIP"))
           )
         }
       )

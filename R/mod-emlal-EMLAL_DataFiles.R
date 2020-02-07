@@ -66,9 +66,7 @@ DataFiles <- function(input, output, session, savevar, globals) {
 
   # Variable initialization ----
   rv <- reactiveValues(
-    # to save
     data_files = data.frame()
-    # local only
   )
   volumes <- c(Home = globals$HOME, getVolumes()())
   updateFileListTrigger <- makeReactiveTrigger()

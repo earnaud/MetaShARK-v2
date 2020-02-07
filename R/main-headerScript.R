@@ -8,13 +8,13 @@
 
 #' @title .globalScript
 #'
-#' @description script to generate 'globals' reactiveValues
+#' @description script to generate `globals` reactiveValues
 #'
 #' @importFrom fs path_home
-#' @importFrom utils combn
 #' @importFrom dataone listFormats CNode
 #' @importFrom shiny reactiveValues
 #' @importFrom EML get_unitList
+#' @importFrom data;table fread
 .globalScript <- function(dev = FALSE, reactive = TRUE) {
   if (!is.logical(dev) || is.null(dev)) dev <- FALSE
 
