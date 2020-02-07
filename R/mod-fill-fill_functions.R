@@ -88,6 +88,8 @@ initReactive <- function(sublist = NULL, savevar = NULL) {
 #' @describeIn initReactive
 #'
 #' @description save the `savevar` variable at wanted location
+#' 
+#' @importFrom shiny withProgress incProgress 
 saveReactive <- function(toSave, path, filename, id = NULL) {
   location <- paste0(path, "/", filename, ".rds")
   withProgress(
@@ -100,9 +102,6 @@ saveReactive <- function(toSave, path, filename, id = NULL) {
     message = "Saving current metadata",
     detail = if(!is.null(id)) paste("Module:", id) else ""
   )
-  # message("Saving current metadata as:", location, "\n", sep = " ")
-  # if (file.exists(location)) file.remove(location)
-  # saveRDS(toSave, location)
 }
 
 #' @title readFilesText 
@@ -116,7 +115,7 @@ saveReactive <- function(toSave, path, filename, id = NULL) {
 readPlainText <- function(files, prefix = NULL, sep = "/", ...){
   if(is.null(prefix)) sep <- ""
   
-  readtext::readtext(
+  readtext(
     paste(
       prefix,
       files,

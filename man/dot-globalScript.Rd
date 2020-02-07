@@ -7,5 +7,5 @@
 .globalScript(dev = FALSE, reactive = TRUE)
 }
 \description{
-script to generate 'globals' reactiveValues
+script to generate `globals` reactiveValues
 }
