@@ -20,17 +20,14 @@
     # shinylogs::track_usage(storage_mode = shinylogs::store_null())
   }
   ## esthetics ----
-  output$logo <- renderImage(
-    {
-      list(
-        src = "logo.png",
-        contentType = "image/png",
-        width = "200px",
-        height = "40px"
-      )
-    },
-    deleteFile = FALSE
-  )
+  output$logo <- renderImage({
+    list(
+      src = "inst/app/www/logo.png",
+      contentType = "image/png",
+      width = "200px",
+      height = "40px"
+    )
+  }, deleteFile = FALSE)
 
   # Head bar server ----
   # Options

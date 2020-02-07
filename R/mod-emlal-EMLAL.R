@@ -26,14 +26,12 @@ EMLALUI <- function(id, dev = FALSE) {
           </p>"
         ),
         tags$div(
-          imageOutput("edi-logo", # from main.R
+          imageOutput(ns("edi-logo"), # from main.R
             width = "100px", height = "100px"
           ),
           class = "logo"
         )
       ),
-      # ), # end authorship
-      # box(
       column(8,
         tags$h3("Usage"),
         HTML(
@@ -70,6 +68,15 @@ EMLALUI <- function(id, dev = FALSE) {
 EMLAL <- function(input, output, session,
   savevar, globals) {
   ns <- session$ns
+  
+  output$`edi-logo` <- renderImage({
+    list(
+      src = "inst/app/www/EDI-logo.png",
+      contentType = "image/png",
+      width = "100%",
+      height = "100%"
+    )
+  }, deleteFile = FALSE)
   
   # names of EMLAL steps
   steps <- c("SelectDP", "DataFiles", "Attributes","CustomUnits",
