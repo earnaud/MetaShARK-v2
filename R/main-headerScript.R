@@ -39,8 +39,6 @@
   UNIT.LIST <- c("custom", get_unitList()$units$name)
   
   # Paths
-  # resourcesPaths <- system.file("resources", package="MetaShARK") %>% 
-  #   paste(., dir(.), sep = "/")
   wwwPaths <- system.file("app/www", package="MetaShARK") %>% 
     paste(., dir(.), sep = "/") %>%
     as.list
