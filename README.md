@@ -12,12 +12,14 @@ This MetaShARK git is called "v2" because it is the evolution with {golem} packa
 
 **Any suggestion is welcome, feel free to contact the dev !**
 
-## Running MetaShARK
+## Installing MetaShARK
 
 There are two versions of MetaShARK currently available:
 
 * Stable : this version is the last version described in the *RELEASES.md* file.
 * Dev : this version is the last version released, described later in this file. However, it might suffer some bugs.
+
+**If you are using Dev version, reinstall it regularly !** The dev team will try to push needed fixes at least once per day during dev maintenance.
 
 All dependencies are described in the DESCRIPTION file. 
 
