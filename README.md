@@ -12,14 +12,26 @@ This MetaShARK git is called "v2" because it is the evolution with {golem} packa
 
 **Any suggestion is welcome, feel free to contact the dev !**
 
-## Running MetaShARK
+## Installing MetaShARK
 
 There are two versions of MetaShARK currently available:
 
 * Stable : this version is the last version described in the *RELEASES.md* file.
 * Dev : this version is the last version released, described later in this file. However, it might suffer some bugs.
 
-All dependencies are described in the DESCRIPTION file. 
+**If you are using Dev version, reinstall it regularly !** The dev team will try to push needed fixes at least once per day during dev maintenance.
+
+All dependencies are described in the DESCRIPTION file. You will also need to install the following system libraries, according to you OS:
+
+| OS          | Debian-like          | Fedora, CentOS, RHEL | Solaris     | Mac OSX     |
+|-------------|----------------------|----------------------|-------------|-------------|
+| libcurl     | libcurl4-openssl-dev | libcurl-devel        | libcurl_dev | curl        |
+| libxml-2.0  | libxml2-dev          | libxml2-devel        | libxml2_dev | libxml2     |
+| openssl     | libssl-dev           | openssl-devel        | libssl_dev  | openssl@1.1 |
+| libjq       | libjq-dev            | libjq-devel          | libjq_dev   | jq          |
+| libv8       | libv8-dev            | v8-devel             | libv8_dev   | v8          |
+| redland     | librdf0-dev          | redland-devel        | librdf_dev  | redland     |
+| poppler-cpp | libpoppler-cpp-dev   | poppler-cpp-devel    | poppler_dev | poppler     |
 
 ### Stable
 
@@ -27,7 +39,8 @@ You can install the stable app as follow:
 
 ```
 library(devtools)
-install_github("earnaud/MetaShARK-v2")
+devtools::install_github("EDIorg/EMLassemblyline")
+install_github("earnaud/MetaShARK-v2", dependencies=TRUE)
 ```
 
 ### Dev
@@ -36,7 +49,9 @@ You can install the dev app as follow:
 
 ```
 library(devtools)
-install_github("earnaud/MetaShARK-v2", ref = "dev")
+devtools::install_github("EDIorg/EMLassemblyline")
+install.packages(c("readtext","shinyBS","shinycssloaders"))
+install_github("earnaud/MetaShARK-v2", ref = "dev", dependencies=TRUE)
 ```
 
 ## MetaShARK features 
