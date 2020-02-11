@@ -191,7 +191,7 @@ CatVars <- function(input, output, session, savevar, globals) {
             dplyr::filter(attributeName == attribute) %>%
             dplyr::select(code)
           # collapse box
-          shinyBS::bsCollapsePanel(
+          bsCollapsePanel(
             title = attribute,
             value = attribute,
             tagList(
