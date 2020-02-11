@@ -31,10 +31,12 @@ runMetashark <- function(...) {
       ui = .app_ui, 
       server = .app_server,
       onStart = .headerScript
-    )
-    , golem_opts = list(...)
+    ),
+    golem_opts = list(...)
   )
   
-  runApp(app)
+  runApp(
+    appDir = app
+  )
   
 }
