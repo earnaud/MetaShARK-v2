@@ -5,6 +5,12 @@
 #' @usage 
 #' runMetaShark(...)
 #' 
+#' @param server 
+#' Logical. Is the app deployed in server or not? 
+#' If FALSE (default), the app is deployed for a local desktop usage.
+#' If TRUE, the app is deployed for a distant server usage. The main difference between
+#' both is the way filesystems will be used.
+#' 
 #' @param ... options to pass to the application, ignored if missing or mistyped.
 #' \describe{
 #'   \item{dev}{logical. Add development elements in the GUI.}
@@ -24,7 +30,7 @@
 #' @export
 #' @importFrom shiny shinyApp runApp 
 #' @importFrom golem with_golem_options
-runMetashark <- function(...) {
+runMetashark <- function(server = FALSE, ...) {
   
   app = with_golem_options(
     shinyApp(
@@ -32,7 +38,7 @@ runMetashark <- function(...) {
       server = .app_server,
       onStart = .headerScript
     ),
-    golem_opts = list(...)
+    golem_opts = c(server, as.list(...))
   )
   
   runApp(
