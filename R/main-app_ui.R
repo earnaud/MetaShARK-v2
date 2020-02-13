@@ -28,7 +28,6 @@
       dashboardHeader(
         tags$li(class = "dropdown", actionLink("appOptions", "", icon("gear"))),
         tags$li(class = "dropdown", actionLink("close", "", icon("power-off"))),
-        # title = tags$img(src = globals$PATHS$logo.png, width = "200px", height = "40px"),
         # title = "MetaShARK",
         title = span(imageOutput("logo", inline = TRUE)),
         titleWidth = menuWidth

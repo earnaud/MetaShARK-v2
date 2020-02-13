@@ -18,13 +18,14 @@
       browser()
     })
   }
+  
   ## esthetics ----
   output$logo <- renderImage({
     list(
-      src = "inst/app/www/logo.png",
+      src = "inst/media/logo.png",
       contentType = "image/png",
       width = "200px",
-      height = "40px"
+      height = "50px"
     )
   }, deleteFile = FALSE)
 

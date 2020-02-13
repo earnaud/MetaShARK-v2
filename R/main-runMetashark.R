@@ -32,13 +32,15 @@
 #' @importFrom golem with_golem_options
 runMetashark <- function(server = FALSE, ...) {
   
+  args <- list(...)
+  
   app = with_golem_options(
     shinyApp(
       ui = .app_ui, 
       server = .app_server,
       onStart = .headerScript
     ),
-    golem_opts = c(server, as.list(...))
+    golem_opts = c(server, args)
   )
   
   runApp(

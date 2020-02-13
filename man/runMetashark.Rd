@@ -7,6 +7,11 @@
 runMetaShark(...)
 }
 \arguments{
+\item{server}{Logical. Is the app deployed in server or not? 
+If FALSE (default), the app is deployed for a local desktop usage.
+If TRUE, the app is deployed for a distant server usage. The main difference between
+both is the way filesystems will be used.}
+
 \item{...}{options to pass to the application, ignored if missing or mistyped.
 \describe{
   \item{dev}{logical. Add development elements in the GUI.}
