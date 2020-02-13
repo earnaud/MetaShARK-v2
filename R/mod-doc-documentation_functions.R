@@ -252,12 +252,15 @@ commonPath <- function(li, name) {
 
 # --- List handling
 
-# Takes a hierarchy list (tree), a path written in a vector pasted
-# with sep = sep, and returns the targetted node
-# @param tree: explored hierarchy list thanks to @path
-# @param path: vector of characters matching some of @tree names and
-#              separated with @sep
-# @param sep: separators between @path elements (aka @tree names)
+#' followPath
+#'
+#' Takes a hierarchy list (tree), a path written in a vector pasted
+#' with sep = sep, and returns the targetted node
+#' 
+#' @param tree: explored hierarchy list thanks to @path
+#' @param path: vector of characters matching some of @tree names and
+#'              separated with @sep
+#' @param sep: separators between @path elements (aka @tree names)
 followPath <- function(tree, path, sep = "/") {
   # Validity checks
   if (is.null(tree) || is.null(path)) {

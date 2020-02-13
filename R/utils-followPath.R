@@ -3,6 +3,7 @@
 #' @title followPath
 #'
 #' @description Takes a hierarchy list (tree), a path written in a vector pasted with sep, and returns the leaf
+#' 
 #' @param tree: explored hierarchy list thanks to path
 #' @param path: vector of characters matching some of tree names and
 #' separated with sep

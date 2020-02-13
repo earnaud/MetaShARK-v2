@@ -39,7 +39,7 @@
   UNIT.LIST <- c("custom", get_unitList()$units$name)
   
   # Paths
-  wwwPaths <- system.file("app/www", package="MetaShARK") %>% 
+  wwwPaths <- system.file("inst/resources", package="MetaShARK") %>% 
     paste(., dir(.), sep = "/") %>%
     as.list
   names(wwwPaths) <- basename(unlist(wwwPaths))
