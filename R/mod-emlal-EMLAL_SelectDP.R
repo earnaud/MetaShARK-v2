@@ -5,7 +5,7 @@
 #'
 #' @importFrom shiny NS fluidPage fluidRow column tags tagList icon textOutput uiOutput selectInput textInput HTML
 #' @importFrom shinyFiles shinyDirButton
-SelectDPUI <- function(id, title, width = 12, dev = FALSE) {
+SelectDPUI <- function(id, title, width = 12, dev = FALSE, server) {
   ns <- NS(id)
 
   # UI output
@@ -16,14 +16,19 @@ SelectDPUI <- function(id, title, width = 12, dev = FALSE) {
       fluidRow(
         column(
           4,
-          shinyDirButton(ns("dp_location"), "Choose directory",
-            "DP save location",
-            icon = icon("folder-open")
-          )
+          if(!server)
+            shinyDirButton(
+              ns("dp_location"),
+              "Choose directory",
+              "DP save location",
+              icon = icon("folder-open")
+            )
+          else
+            tags$b("Data Package will be saved in:")
         ),
         column(8,
           textOutput(ns("dp_location")),
-          style = "text-align: right;"
+          style = "text-align: left;"
         ),
         class = "inputBox"
       ),
@@ -104,31 +109,34 @@ SelectDP <- function(input, output, session,
   observeEvent(input$dev, {
     browser()
   })
-  volumes <- c(Home = globals$HOME, base = getVolumes()())
-
+  
   # DP location ----
-  # chose DP location
-  shinyDirChoose(input, ns("dp_location"),
-    roots = volumes,
-    # defaultRoot = HOME,
-    session = session
-  )
-  # update reactive value
-  observeEvent(input$dp_location, {
-    # validity checks
-    req(input$dp_location)
+  if(!server){
+    volumes <- c(Home = globals$HOME, base = getVolumes()())
 
-    # variable initialization
-    save <- rv$dp_location
-
-    # actions
-    # rv$dp_location <- input$dp_location
-    rv$dp_location <- parseDirPath(volumes, input$dp_location)
-    if (is.na(rv$dp_location)) {
-      rv$dp_location <- save
-    }
-  })
-
+    # chose DP location
+    shinyDirChoose(input, ns("dp_location"),
+      roots = volumes,
+      # defaultRoot = HOME,
+      session = session
+    )
+    # update reactive value
+    observeEvent(input$dp_location, {
+      # validity checks
+      req(input$dp_location)
+  
+      # variable initialization
+      save <- rv$dp_location
+  
+      # actions
+      # rv$dp_location <- input$dp_location
+      rv$dp_location <- parseDirPath(volumes, input$dp_location)
+      if (is.na(rv$dp_location)) {
+        rv$dp_location <- save
+      }
+    })
+  }
+    
   # Render selected DP location
   output$dp_location <- renderText({
     rv$dp_location

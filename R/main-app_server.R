@@ -6,7 +6,11 @@
 #' @importFrom shinydashboard updateTabItems
 #' @importFrom golem get_golem_options
 .app_server <- function(input, output, session) {
-  dev <- golem::get_golem_options(which = "dev")
+  # get app arguments
+  appArgs <- golem::get_golem_options()
+  dev <- appArgs$dev
+  server = appArgs$server
+  
   if (!is.logical(dev) || is.null(dev)) dev <- FALSE
   # initialize global variables
   globals <- .globalScript(dev)
@@ -22,7 +26,7 @@
   ## esthetics ----
   output$logo <- renderImage({
     list(
-      src = system.file("media/logo.png"),
+      src = system.file("media/logo.png", package="MetaShARK"),
       contentType = "image/png",
       width = "200px",
       height = "50px"
@@ -47,7 +51,7 @@
     savevar <- switch(input$side_menu,
       # welcome - no server
       # fill
-      fill = callModule(fill, "fill", globals),
+      fill = callModule(fill, "fill", globals, server),
       # upload
       upload = callModule(upload, "upload", dev, globals),
       # doc
