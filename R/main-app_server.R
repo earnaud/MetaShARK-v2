@@ -22,7 +22,7 @@
   ## esthetics ----
   output$logo <- renderImage({
     list(
-      src = "inst/media/logo.png",
+      src = system.file("media/logo.png"),
       contentType = "image/png",
       width = "200px",
       height = "50px"
