@@ -1,17 +1,22 @@
 #' @title EMLALUI
-#' 
+#'
 #' @description UI part of the EMLAL module. Allow the user to use a front-end shiny interface to the EML Assembly Line package, from
-#' Environmental Data Initiative.
-#' 
-#' @importFrom shiny NS fluidPage HTML tags imageOutput uiOutput
+#' Environmental Data Initiative. ARAR
+#'
+#' @importFrom shiny NS fluidPage column HTML tags imageOutput uiOutput
 #' @importFrom shinydashboard box
-EMLALUI <- function(id, dev = FALSE){
+#' @importFrom shinycssloaders withSpinner
+EMLALUI <- function(id, dev = FALSE) {
   ns <- NS(id)
-
+  
   fluidPage(
-    style="padding-top:2.5%;",
-    box(width = 4,
-        title = "Authorship",
+    style = "padding-top:2.5%;",
+    box(
+      collapsible = TRUE,
+      width = 12,
+      title = "About EML Assembly Line",
+      column(4,
+        tags$h3("Authorship"),
         HTML(
           "<p>The `EML Assembly Line` package used in this module
           and its children is the intellectual property of the
@@ -21,99 +26,186 @@ EMLALUI <- function(id, dev = FALSE){
           </p>"
         ),
         tags$div(
-          imageOutput("edi-logo", # from main.R
-                      width = "100px", height = "100px"
+          imageOutput(
+            ns("edi-logo"),
+            width = "100px",
+            height = "100px"
           ),
-          class = "logo")
-    ), # end authorship
-    box(width = 8,
-        title = "How to use",
+          class = "logo"
+        )
+      ),
+      column(8,
+        tags$h3("Usage"),
         HTML(
           "<p><b>EMLassemblyline</b> is a metadata builder for scientists
-      and data managers who need to easily create high quality
-      <b>EML</b> metadata for data publication. It emphasizes
-      auto-extraction of metadata, appends value added content,
-      and accepts user supplied inputs through template files
-      thereby minimizing user effort while maximizing the potential
-      of future data discovery and reuse. EMLassemblyline requires
-      no familiarity with EML, is great for managing 10-100s of
-      data packages, accepts all data formats, and supports complex
-      and fully reproducible science workflows. Furthermore, it
-      incorporates <a href=\"https://environmentaldatainitiative.files.wordpress.com/2017/11/emlbestpractices-v3.pdf\">EML best practices</a>,
-      is based on a simple file organization scheme, and is not tied to a specific data repository.</p>
-      <i>(preface by Colin Smith, EDI)</i>"
-        )
-    ), # end how-to-use
+          and data managers who need to easily create high quality
+          <b>EML</b> metadata for data publication. It emphasizes
+          auto-extraction of metadata, appends value added content,
+          and accepts user supplied inputs through template files
+          thereby minimizing user effort while maximizing the potential
+          of future data discovery and reuse. EMLassemblyline requires
+          no familiarity with EML, is great for managing 10-100s of
+          data packages, accepts all data formats, and supports complex
+          and fully reproducible science workflows. Furthermore, it
+          incorporates <a href=\"https://environmentaldatainitiative.files.wordpress.com/2017/11/emlbestpractices-v3.pdf\">EML best practices</a>,
+          is based on a simple file organization scheme, and is not tied to a specific data repository.</p>
+          <i>(preface by Colin Smith, EDI)</i>
+        ")
+      ) # end usage
+    ),
     box(
       title = "EML Assembly Line",
       width = 12,
-      uiOutput(ns("currentUI"))
+      uiOutput(ns("currentUI"))  %>% withSpinner(color="#599cd4")
     ) # end variable UI
   ) # end fluidPage
-
 }
 
 #' @title EMLAL
-#' 
+#'
 #' @description server part of the EMLAL module. Allow the user to use a front-end shiny interface to the EML Assembly Line package, from
 #' Environmental Data Initiative.
-#' 
-#' @importFrom shiny observeEvent renderUI HTML callModule
+#'
+#' @importFrom shiny observeEvent renderUI renderImage HTML callModule imageOutput
 EMLAL <- function(input, output, session,
-                  savevar, globals){
+  savevar, globals, server) {
   ns <- session$ns
-
+  
+  output$`edi-logo` <- renderImage({
+    list(
+      src = system.file("media/EDI-logo.png", package="MetaShARK"),
+      contentType = "image/png",
+      width = "100%",
+      height = "100%"
+    )
+  }, deleteFile = FALSE)
+  
   # names of EMLAL steps
-  steps = paste0(c("select","files","template","customUnits",
-                   "catvars", "geocov","make","publish"), "-tab")
-
-  iteration = 0 # varying namespace
+  steps <- c("SelectDP", "DataFiles", "Attributes","CustomUnits","CatVars", "GeoCov", "TaxCov", "Misc", "MakeEML")
+  
+  iteration <- 0 # varying namespace
   # Output ----
   observeEvent(globals$EMLAL$NAVIGATE, {
-    iteration <<- iteration+1
-    # UI
+    iteration <<- iteration + 1
+    # UI ----
     output$currentUI <- renderUI({
       switch(globals$EMLAL$NAVIGATE,
-             selectDPUI(id = ns(iteration),
-                        title = steps[globals$EMLAL$NAVIGATE],
-                        dev = globals$dev),
-             DPfilesUI(id = ns(iteration),
-                       title = steps[globals$EMLAL$NAVIGATE],
-                       dev = globals$dev),
-             templateDPUI(id = ns(iteration),
-                          title = steps[globals$EMLAL$NAVIGATE],
-                          dev = globals$dev),
-             customUnitsUI(id =  ns(iteration),
-                           title = steps[globals$EMLAL$NAVIGATE],
-                           dev = globals$dev),
-             catvarsUI(id = ns(iteration),
-                       title = steps[globals$EMLAL$NAVIGATE],
-                       dev = globals$dev),
-             geocovUI(id = ns(iteration),
-                      title = steps[globals$EMLAL$NAVIGATE],
-                      dev = globals$dev),
-             HTML("<img src='media/working.png'/>")
-             
+        SelectDPUI(
+          id = ns(iteration),
+          title = steps[globals$EMLAL$NAVIGATE],
+          dev = globals$dev,
+          server = server
+        ),
+        DataFilesUI(
+          id = ns(iteration),
+          title = steps[globals$EMLAL$NAVIGATE],
+          dev = globals$dev
+        ),
+        AttributesUI(
+          id = ns(iteration),
+          title = steps[globals$EMLAL$NAVIGATE],
+          dev = globals$dev
+        ),
+        CustomUnitsUI(
+          id = ns(iteration),
+          title = steps[globals$EMLAL$NAVIGATE],
+          dev = globals$dev
+        ),
+        CatVarsUI(
+          id = ns(iteration),
+          title = steps[globals$EMLAL$NAVIGATE],
+          dev = globals$dev
+        ),
+        GeoCovUI(
+          id = ns(iteration),
+          title = steps[globals$EMLAL$NAVIGATE],
+          dev = globals$dev,
+          data.files = savevar$emlal$DataFiles$dp_data_files$datapath,
+          coordPattern = globals$PATTERNS$LATLON
+        ),
+        TaxCovUI(
+          id = ns(iteration),
+          title = steps[globals$EMLAL$NAVIGATE],
+          dev = globals$dev,
+          data.files = savevar$emlal$DataFiles$dp_data_files$datapath,
+          taxa.authorities = globals$FORMAT$AUTHORITIES
+        ),
+        PersonnelUI(
+          id = ns(iteration),
+          title = steps[globals$EMLAL$NAVIGATE],
+          dev = globals$dev
+        ),
+        MiscUI(
+          id = ns(iteration),
+          title = steps[globals$EMLAL$NAVIGATE],
+          dev = globals$dev,
+          savevar = savevar
+        ),
+        MakeEMLUI(
+          id = ns(iteration),
+          title = steps[globals$EMLAL$NAVIGATE],
+          dev = globals$dev
+        ),
+        {
+          tagList(
+            imageOutput(ns("WIP"))
+          )
+        }
       )
     })
-    # Server
+    
+    # Server ----
     savevar <- switch(globals$EMLAL$NAVIGATE,
-                      callModule(selectDP,  iteration,
-                                 savevar, globals),
-                      callModule(DPfiles, iteration,
-                                 savevar, globals),
-                      callModule(templateDP, iteration,
-                                 savevar, globals),
-                      callModule(customUnits, iteration,
-                                 savevar, globals),
-                      callModule(catvars, iteration,
-                                 savevar, globals),
-                      callModule(geocov, iteration,
-                                 savevar, globals),
-                      NULL
+      callModule(
+        SelectDP, iteration,
+        savevar, globals, server
+      ),
+      callModule(
+        DataFiles, iteration,
+        savevar, globals
+      ),
+      callModule(
+        Attributes, iteration,
+        savevar, globals
+      ),
+      callModule(
+        CustomUnits, iteration,
+        savevar, globals
+      ),
+      callModule(
+        CatVars, iteration,
+        savevar, globals
+      ),
+      callModule(
+        GeoCov, iteration,
+        savevar, globals
+      ),
+      callModule(
+        TaxCov, iteration,
+        savevar, globals
+      ),
+      callModule(
+        Personnel, iteration,
+        savevar, globals
+      ),
+      callModule(
+        Misc, iteration,
+        savevar, globals
+      ),
+      callModule(
+        MakeEML, iteration,
+        savevar, globals
+      ),
+      callModule(
+        function(input, output, server, savevar) {
+          output$WIP <- renderImage("media/working.png")
+          return(savevar)
+        },
+        iteration
+      )
     )
   })
-
+  
   # Save variable
   return(savevar)
 }

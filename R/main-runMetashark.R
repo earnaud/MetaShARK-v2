@@ -1,32 +1,50 @@
 #' @title Run MetaShARK
 #'
 #' @description Main function for launching the MetaShARK application.
-#' MetaShARK (METAdata SHiny Automated Resource & Knowledge) is a web app
+#' 
+#' @usage 
+#' runMetaShark(...)
+#' 
+#' @param server 
+#' Logical. Is the app deployed in server or not? 
+#' If FALSE (default), the app is deployed for a local desktop usage.
+#' If TRUE, the app is deployed for a distant server usage. The main difference between
+#' both is the way filesystems will be used.
+#' 
+#' @param ... options to pass to the application, ignored if missing or mistyped.
+#' \describe{
+#'   \item{dev}{logical. Add development elements in the GUI.}
+#' }
+#'
+#' @details MetaShARK (METAdata SHiny Automated Resource & Knowledge) is a web app
 #' which is designed to help its user as much as possible for filling ecological
 #' metadata. It uses the EML standard (cf. NCEAS work) to allow a full and
 #' precise description of input datasets.
-#'
-#' @param ... options to pass to the application, ignored if missing or mistyped.
-#' \enumerate{
-#'   \item{dev}{logical. Shall the Dev buttons appear?}
-#' }
-#'
+#' 
 #' @examples
+#' # run this to launch MetaShARK
 #' runMetashark()
-#'
+#' 
 #' @author Elie Arnaud <elie.arnaud@mnhn.fr>
 #'
 #' @export
-#' @importFrom shiny shinyApp
-#' @importFrom golem with_golem_options use_favicon favicon
-runMetashark <- function(...) {
-
-  use_favicon("inst/app/www/favicon.png")
-  favicon(ico = "inst/app/www/favicon.png")
+#' @importFrom shiny shinyApp runApp 
+#' @importFrom golem with_golem_options
+runMetashark <- function(server = FALSE, ...) {
   
-  with_golem_options(
-    app = shinyApp(ui = .app_ui, server = .app_server,
-                   onStart = .headerScript),
-    golem_opts = list(...)
+  args <- list(...)
+  
+  app = with_golem_options(
+    shinyApp(
+      ui = .app_ui, 
+      server = .app_server,
+      onStart = .headerScript
+    ),
+    golem_opts = c(server = server, args)
   )
+  
+  runApp(
+    appDir = app
+  )
+  
 }

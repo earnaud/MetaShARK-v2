@@ -4,12 +4,12 @@
 \alias{uploadUI}
 \title{uploadUI}
 \usage{
-uploadUI(id, dev)
+uploadUI(id, dev, globals)
 }
 \arguments{
 \item{id}{shiny module id}
 }
 \description{
-UI part for the upload module. Used to build and drop 
+UI part for the upload module. Used to build and drop
 data packages to a chosen metacat.
 }

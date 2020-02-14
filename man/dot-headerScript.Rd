@@ -7,5 +7,5 @@
 .headerScript()
 }
 \description{
-misc preparations commands
+Misc preparations commands
 }

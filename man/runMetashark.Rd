@@ -4,22 +4,30 @@
 \alias{runMetashark}
 \title{Run MetaShARK}
 \usage{
-runMetashark(...)
+runMetaShark(...)
 }
 \arguments{
+\item{server}{Logical. Is the app deployed in server or not? 
+If FALSE (default), the app is deployed for a local desktop usage.
+If TRUE, the app is deployed for a distant server usage. The main difference between
+both is the way filesystems will be used.}
+
 \item{...}{options to pass to the application, ignored if missing or mistyped.
-\enumerate{
-  \item{dev}{logical. Shall the Dev buttons appear?}
+\describe{
+  \item{dev}{logical. Add development elements in the GUI.}
 }}
 }
 \description{
 Main function for launching the MetaShARK application.
+}
+\details{
 MetaShARK (METAdata SHiny Automated Resource & Knowledge) is a web app
 which is designed to help its user as much as possible for filling ecological
 metadata. It uses the EML standard (cf. NCEAS work) to allow a full and
 precise description of input datasets.
 }
 \examples{
+# run this to launch MetaShARK
 runMetashark()
 
 }

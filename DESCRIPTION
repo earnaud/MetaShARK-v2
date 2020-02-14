@@ -30,9 +30,9 @@ Imports:
     shinyFiles,
     shinydashboard,
     shinyjs
-RoxygenNote: 7.0.0
-URL: https://github.com/earnaud/MetaShARK.git
-BugReports: https://github.com/earnaud/MetaShARK.git/issues
+RoxygenNote: 7.0.2
+URL: https://github.com/earnaud/MetaShARK-v2.git
+BugReports: https://github.com/earnaud/MetaShARK-v2.git/issues
 Suggests: 
     testthat,
     knitr,
