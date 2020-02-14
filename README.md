@@ -1,6 +1,6 @@
 [![DOI](https://zenodo.org/badge/216049930.svg)](https://zenodo.org/badge/latestdoi/216049930)
 
-<img src="./media/metashark-logo-v3.png" alt="" width="50%">
+<img src="./inst/media/logo.png" alt="" width="50%">
 
 Metadata Shiny-Automated Resources & Knowledge
 _First released on 15-04-2019_  
@@ -9,7 +9,7 @@ The aim of the MetaShARK app is to allow any user a bit familiar with ecology to
 This project has the ambition to offer the user a user-friendly alternative to existing tools (such as the hardcore Morpho ;) ) but also to address an other issue which is the EML is not always fully considered.  
 This MetaShARK git is called "v2" because it is the evolution with {golem} package of the previous [MetaShARK git](https://github.com/earnaud/MetaShARK)
 
-MetaShARK has a dedicated [dockerhub](https://hub.docker.com/r/eliearnaud/metashark/dockerfile) and its deployment method is also [accessible](https://github.com/earnaud/MetaShARK_docker/edit/master/README.md).
+MetaShARK has a dedicated [dockerhub](https://hub.docker.com/r/eliearnaud/metashark/dockerfile) and its deployment method is also [accessible](https://github.com/earnaud/MetaShARK_docker/).
 
 **Any suggestion is welcome, feel free to contact the dev !**
 
