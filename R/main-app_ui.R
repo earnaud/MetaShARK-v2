@@ -8,9 +8,12 @@
 #' @importFrom shinyjs useShinyjs hidden
 .app_ui <- function() {
   
+  appArgs <- get_golem_options()
+  dev <- appArgs$dev
+  server = appArgs$server
+  
   # prepare variable
   menuWidth <- "250px"
-  dev <- get_golem_options(which = "dev")
   if (!is.logical(dev) || is.null(dev)) dev <- FALSE
   globals <- .globalScript(dev, reactive = FALSE)
   
@@ -27,7 +30,10 @@
       title = "MetaShARK",
       dashboardHeader(
         tags$li(class = "dropdown", actionLink("appOptions", "", icon("gear"))),
-        tags$li(class = "dropdown", actionLink("close", "", icon("power-off"))),
+        tags$li(class = "dropdown", 
+          if(!isTRUE(server)) actionLink("close", "", icon("power-off"))
+          else NULL
+        ),
         # title = "MetaShARK",
         title = span(imageOutput("logo", inline = TRUE)),
         titleWidth = menuWidth

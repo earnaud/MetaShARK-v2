@@ -16,7 +16,7 @@ SelectDPUI <- function(id, title, width = 12, dev = FALSE, server) {
       fluidRow(
         column(
           4,
-          if(!server)
+          if(!isTRUE(server))
             shinyDirButton(
               ns("dp_location"),
               "Choose directory",
@@ -89,7 +89,7 @@ SelectDPUI <- function(id, title, width = 12, dev = FALSE, server) {
 #' @importFrom shinyjs enable disable
 #' @importFrom EMLassemblyline template_directories template_core_metadata
 SelectDP <- function(input, output, session,
-                     savevar, globals) {
+                     savevar, globals, server) {
   # variable initialization ----
   ns <- session$ns
   DP.path <- globals$DEFAULT.PATH
@@ -111,7 +111,7 @@ SelectDP <- function(input, output, session,
   })
   
   # DP location ----
-  if(!server){
+  if(!isTRUE(server)){
     volumes <- c(Home = globals$HOME, base = getVolumes()())
 
     # chose DP location
