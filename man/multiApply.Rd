@@ -20,11 +20,11 @@ multiApply(
 \item{FUNS:}{list of functions}
 
 \item{ARGS:}{list of arguments matching FUNS. Caution ! The elements in ARGS
-shall be concatenated in a vector if possible. Else, send a 
+shall be concatenated in a vector if possible. Else, send a
 pointer (list names or so). Remember you do not need to input
 target in the ARGS list}
 
-\item{path:}{if a FUN explicitly needs the path followed from the 0th-level, 
+\item{path:}{if a FUN explicitly needs the path followed from the 0th-level,
 it can be accessed by figuring it clearly as 'path' in the function
 arguments.}
 }

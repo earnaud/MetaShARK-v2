@@ -13,10 +13,10 @@ onSave(input, output, session, toSave, path, filename)
 
 nextTab(input, output, session, globals, previous)
 
-prevTab(input, output, session, globals, previous)
+prevTab(input, output, session, globals)
 }
 \description{
-server part for shiny navigation sidebar module (see [navSidebar()]). 
+server part for shiny navigation sidebar module (see [navSidebar()]).
 The functions are very specific and thus are not exported.
 }
 \section{Functions}{

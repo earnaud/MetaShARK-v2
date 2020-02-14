@@ -4,7 +4,7 @@
 \alias{upload}
 \title{upload}
 \usage{
-upload(input, output, session, dev, dataone.formats)
+upload(input, output, session, dev, globals)
 }
 \arguments{
 \item{input}{shiny module input}

@@ -1,10 +1,9 @@
 #' @title welcome
-#' 
+#'
 #' @description Welcome page of the MetaShARK app.
-#' 
+#'
 #' @importFrom shiny fluidPage headerPanel mainPanel HTML
-welcomeUI <- function(id){
-  
+welcomeUI <- function(id) {
   fluidPage(
     headerPanel("Welcome in MetaShARK"),
     mainPanel(
@@ -46,5 +45,4 @@ welcomeUI <- function(id){
       ")
     )
   )
-  
 }

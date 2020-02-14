@@ -8,5 +8,5 @@ EMLALUI(id, dev = FALSE)
 }
 \description{
 UI part of the EMLAL module. Allow the user to use a front-end shiny interface to the EML Assembly Line package, from
-Environmental Data Initiative.
+Environmental Data Initiative. ARAR
 }
