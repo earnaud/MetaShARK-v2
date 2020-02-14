@@ -10,7 +10,7 @@ docUI <- function(id) {
 
   # var initialization
   docGuideline <- tree
-  browser()
+
   moduleNames <- sub("^[0-9]+_(.*)$", "\\1", names(docGuideline))
   # avoid 404
   moduleNames <- moduleNames[moduleNames != "eml-unit Type Definitions"]

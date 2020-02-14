@@ -15,7 +15,7 @@ fillUI <- function(id, dev = FALSE) {
 #' @describeIn fillUI
 #'
 #' @importFrom shiny observeEvent callModule
-fill <- function(input, output, session, globals) {
+fill <- function(input, output, session, globals, server) {
   ns <- session$ns
   # variable initialization ----
 
@@ -34,7 +34,7 @@ fill <- function(input, output, session, globals) {
 
   savevar <- callModule(
     EMLAL, "EMLAL",
-    savevar, globals
+    savevar, globals, server
   )
 
   # Output ----

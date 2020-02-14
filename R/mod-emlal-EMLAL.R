@@ -68,12 +68,12 @@ EMLALUI <- function(id, dev = FALSE) {
 #'
 #' @importFrom shiny observeEvent renderUI renderImage HTML callModule imageOutput
 EMLAL <- function(input, output, session,
-  savevar, globals) {
+  savevar, globals, server) {
   ns <- session$ns
   
   output$`edi-logo` <- renderImage({
     list(
-      src = system.file("media/EDI-logo.png"),
+      src = system.file("media/EDI-logo.png", package="MetaShARK"),
       contentType = "image/png",
       width = "100%",
       height = "100%"
@@ -93,7 +93,8 @@ EMLAL <- function(input, output, session,
         SelectDPUI(
           id = ns(iteration),
           title = steps[globals$EMLAL$NAVIGATE],
-          dev = globals$dev
+          dev = globals$dev,
+          server = server
         ),
         DataFilesUI(
           id = ns(iteration),
@@ -157,7 +158,7 @@ EMLAL <- function(input, output, session,
     savevar <- switch(globals$EMLAL$NAVIGATE,
       callModule(
         SelectDP, iteration,
-        savevar, globals
+        savevar, globals, server
       ),
       callModule(
         DataFiles, iteration,
