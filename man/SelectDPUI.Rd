@@ -4,7 +4,7 @@
 \alias{SelectDPUI}
 \title{Data Package selection}
 \usage{
-SelectDPUI(id, title, width = 12, dev = FALSE)
+SelectDPUI(id, title, width = 12, dev = FALSE, server)
 }
 \description{
 UI part for the Data Package selection. Allow the user to choose between

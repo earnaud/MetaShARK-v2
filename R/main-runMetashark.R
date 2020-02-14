@@ -40,7 +40,7 @@ runMetashark <- function(server = FALSE, ...) {
       server = .app_server,
       onStart = .headerScript
     ),
-    golem_opts = c(server, args)
+    golem_opts = c(server = server, args)
   )
   
   runApp(
