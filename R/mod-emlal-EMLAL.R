@@ -73,7 +73,7 @@ EMLAL <- function(input, output, session,
   
   output$`edi-logo` <- renderImage({
     list(
-      src = "inst/media/EDI-logo.png",
+      src = "media/EDI-logo.png",
       contentType = "image/png",
       width = "100%",
       height = "100%"
