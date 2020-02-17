@@ -2,6 +2,9 @@
 
 <img src="./inst/media/logo.png" alt="" width="50%">
 
+**Server adress:** http://openstack-192-168-100-121.genouest.org/  
+**Server status:** down
+
 Metadata Shiny-Automated Resources & Knowledge
 _First released on 15-04-2019_  
 
