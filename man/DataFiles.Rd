@@ -4,7 +4,7 @@
 \alias{DataFiles}
 \title{Data Package files}
 \usage{
-DataFiles(input, output, session, savevar, globals)
+DataFiles(input, output, session, savevar, globals, server)
 }
 \description{
 server part of the DataFiles module.

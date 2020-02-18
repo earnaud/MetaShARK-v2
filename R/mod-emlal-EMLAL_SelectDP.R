@@ -16,15 +16,15 @@ SelectDPUI <- function(id, title, width = 12, dev = FALSE, server) {
       fluidRow(
         column(
           4,
-          if(!isTRUE(server))
+          if(isTRUE(server))
+            tags$b("Data Package will be saved in:")
+          else
             shinyDirButton(
               ns("dp_location"),
               "Choose directory",
               "DP save location",
               icon = icon("folder-open")
             )
-          else
-            tags$b("Data Package will be saved in:")
         ),
         column(8,
           textOutput(ns("dp_location")),
@@ -129,11 +129,16 @@ SelectDP <- function(input, output, session,
       save <- rv$dp_location
   
       # actions
-      # rv$dp_location <- input$dp_location
       rv$dp_location <- parseDirPath(volumes, input$dp_location)
       if (is.na(rv$dp_location)) {
         rv$dp_location <- save
       }
+    })
+  }
+  else {
+    observeEvent(input$dp_location, {
+      req(input$dp_location)
+      rv$dp_location <- input$dp_location
     })
   }
     

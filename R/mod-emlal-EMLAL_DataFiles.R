@@ -4,7 +4,7 @@
 #'
 #' @importFrom shiny NS fluidPage column tags HTML icon actionButton uiOutput tagList textOutput
 #' @importFrom shinyFiles shinyFilesButton
-DataFilesUI <- function(id, title, dev = FALSE) {
+DataFilesUI <- function(id, title, dev = FALSE, server = FALSE) {
   ns <- NS(id)
 
   return(
@@ -18,12 +18,22 @@ DataFilesUI <- function(id, title, dev = FALSE) {
                     selection by ticking their box and clicking
                     the 'Remove' button.<br>"),
         tags$div(
-          shinyFilesButton(ns("add_data_files"),
-            "Load files",
-            "Select data file(s) from your dataset",
-            multiple = TRUE,
-            icon = icon("plus-circle")
-          ),
+          if(isTRUE(server))
+            fileInput(
+              ns("add_data_files"),
+              "Select data file(s) from your dataset",
+              buttonLabel = "Load files",
+              multiple = TRUE,
+              icon = icon("plus-circle")
+            )
+          else
+            shinyFilesButton(
+              ns("add_data_files"),
+              "Load files",
+              "Select data file(s) from your dataset",
+              multiple = TRUE,
+              icon = icon("plus-circle")
+            ),
           style = "display: inline-block; vertical-align: top;"
         ),
         actionButton(ns("remove_data_files"), "Remove",
@@ -55,7 +65,7 @@ DataFilesUI <- function(id, title, dev = FALSE) {
 #' @importFrom shinyFiles getVolumes shinyFileChoose parseFilePaths
 #' @importFrom shinyjs enable disable
 #' @importFrom EMLassemblyline template_table_attributes
-DataFiles <- function(input, output, session, savevar, globals) {
+DataFiles <- function(input, output, session, savevar, globals, server) {
   ns <- session$ns
 
   if (globals$dev) {
@@ -105,12 +115,13 @@ DataFiles <- function(input, output, session, savevar, globals) {
 
   # Data file upload ----
   # Add data files
-  shinyFileChoose(
-    input,
-    "add_data_files",
-    roots = volumes,
-    session = session
-  )
+  if(!isTRUE(server))
+    shinyFileChoose(
+      input,
+      "add_data_files",
+      roots = volumes,
+      session = session
+    )
 
   observeEvent(input$add_data_files, {
     # validity checks

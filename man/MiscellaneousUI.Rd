@@ -4,7 +4,7 @@
 \alias{MiscellaneousUI}
 \title{MiscellaneousUI}
 \usage{
-MiscellaneousUI(id, help_label = NULL)
+MiscellaneousUI(id, help_label = NULL, server = FALSE)
 }
 \description{
 MiscellaneousUI
