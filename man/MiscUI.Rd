@@ -5,7 +5,7 @@
 \alias{Misc}
 \title{MiscUI}
 \usage{
-MiscUI(id, title, dev, savevar)
+MiscUI(id, title, dev, savevar, server)
 
 Misc(input, output, session, savevar, globals)
 }
