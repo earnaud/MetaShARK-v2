@@ -99,7 +99,8 @@ EMLAL <- function(input, output, session,
         DataFilesUI(
           id = ns(iteration),
           title = steps[globals$EMLAL$NAVIGATE],
-          dev = globals$dev
+          dev = globals$dev,
+          server = server
         ),
         AttributesUI(
           id = ns(iteration),
@@ -139,7 +140,8 @@ EMLAL <- function(input, output, session,
           id = ns(iteration),
           title = steps[globals$EMLAL$NAVIGATE],
           dev = globals$dev,
-          savevar = savevar
+          savevar = savevar,
+          server = server
         ),
         MakeEMLUI(
           id = ns(iteration),
@@ -158,11 +160,11 @@ EMLAL <- function(input, output, session,
     savevar <- switch(globals$EMLAL$NAVIGATE,
       callModule(
         SelectDP, iteration,
-        savevar, globals, server
+        savevar, globals, server = server
       ),
       callModule(
         DataFiles, iteration,
-        savevar, globals
+        savevar, globals, server = server
       ),
       callModule(
         Attributes, iteration,
@@ -190,7 +192,7 @@ EMLAL <- function(input, output, session,
       ),
       callModule(
         Misc, iteration,
-        savevar, globals
+        savevar, globals, server = server
       ),
       callModule(
         MakeEML, iteration,
