@@ -19,7 +19,7 @@
   
   # action
   tagList(
-    includeCSS("inst/app/www/styles.css"),
+    includeCSS(system.file("app/www/styles.css", package="MetaShARK")),
     # List the first level UI elements here
     dashboardPage(
       title = "MetaShARK",
