@@ -113,7 +113,7 @@ MiscUI <- function(id, title, dev, savevar, server) {
 #' 
 #' @importFrom shiny dateRangeInput
 #' @importFrom shinyjs enable disable
-Misc <- function(input, output, session, savevar, globals) {
+Misc <- function(input, output, session, savevar, globals, server) {
   ns <- session$ns
   
   if (globals$dev) {
