@@ -3,7 +3,7 @@
 <img src="./inst/media/logo.png" alt="" width="50%">
 
 **Server adress:** http://openstack-192-168-100-121.genouest.org/  
-**Server status:** down
+**Server status:** ![Active](https://placehold.it/15/c5f015/000000?text=+) `Active`
 
 Metadata Shiny-Automated Resources & Knowledge
 _First released on 15-04-2019_  
