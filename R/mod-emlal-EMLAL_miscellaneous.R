@@ -1,7 +1,7 @@
 #' @title MiscellaneousUI
 #' 
 #' 
-MiscellaneousUI <- function(id, help_label = NULL){
+MiscellaneousUI <- function(id, help_label = NULL, server=FALSE){
   ns <- NS(id)
   
   fluidRow(
@@ -9,13 +9,22 @@ MiscellaneousUI <- function(id, help_label = NULL){
     column(4,
       tags$b(paste0("Select '", gsub(".*-(.*)$","\\1", id), "' file.")),
       tags$br(),
-      shinyFilesButton(
-        ns("file"), 
-        "Load file",
-        paste0("Select '", gsub(".*-(.*)$","\\1", id), "' file."),
-        multiple = FALSE,
-        icon = icon("file")
-      ),
+      if(isTRUE(server))
+        fileInput(
+          ns("file"), 
+          "",
+          multiple = FALSE,
+          buttonLabel = "Load file",
+          icon = icon("file")
+        )
+      else
+        shinyFilesButton(
+          ns("file"), 
+          "Load file",
+          paste0("Select '", gsub(".*-(.*)$","\\1", id), "' file."),
+          multiple = FALSE,
+          icon = icon("file")
+        ),
       textOutput(ns("selected"))
     ),
     # Content edition
@@ -54,15 +63,23 @@ Miscellaneous <- function(
   })
   
   # Get file ----
-  shinyFileChoose(input, "file",
-    roots = volumes,
-    session = session
-  )
-  rv$file <- eventReactive(input$file, {
-    req(input$file)
-    parseFilePaths(volumes, input$file)$datapath
-  })
-  
+  if(isTRUE(server)){
+    rv$file <- eventReactive(input$file, {
+      req(input$file)
+      input$file$datapath
+    })
+  }
+  else{
+    shinyFileChoose(input, "file",
+      roots = volumes,
+      session = session
+    )
+    rv$file <- eventReactive(input$file, {
+      req(input$file)
+      parseFilePaths(volumes, input$file)$datapath
+    })
+  }
+    
   observeEvent(rv$file(),{
     req(rv$file())
     updateTextAreaInput(

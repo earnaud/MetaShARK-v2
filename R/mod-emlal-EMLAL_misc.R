@@ -3,7 +3,7 @@
 #' @description UI for "last but not least" module
 #'
 #' @importFrom shiny h5
-MiscUI <- function(id, title, dev, savevar) {
+MiscUI <- function(id, title, dev, savevar, server) {
   ns <- NS(id)
   
   return(
@@ -26,14 +26,14 @@ MiscUI <- function(id, title, dev, savevar) {
             bsCollapsePanel(
               title = "Abstract",
               value = 5,
-              MiscellaneousUI(ns("abstract"))
+              MiscellaneousUI(ns("abstract"), server = server)
             ),
             
             # * Methods ----
             bsCollapsePanel(
               title = "Methods",
               value = 5,
-              MiscellaneousUI(ns("methods"))
+              MiscellaneousUI(ns("methods"), server = server)
             ),
             
             # * Keywords ----
@@ -83,7 +83,8 @@ MiscUI <- function(id, title, dev, savevar) {
                 ns("additional_info"),
                 help_label = tags$p(
                   "If you have additional information that doesn't fall under the scope of the abstract or methods (e.g. a list of research articles or theses derived from this dataset) about your dataset, you may share it here."
-                )
+                ),
+                server = server
               )
             )
             
