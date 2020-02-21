@@ -18,12 +18,14 @@ MetaShARK has a dedicated [dockerhub](https://hub.docker.com/r/eliearnaud/metash
 
 ## Installing MetaShARK
 
+### Local installation
+
 There are two versions of MetaShARK currently available:
 
 * Stable : this version is the last version described in the *RELEASES.md* file.
 * Dev : this version is the last version released, described later in this file. However, it might suffer some bugs.
 
-**If you are using Dev version, reinstall it regularly !** The dev team will try to push needed fixes at least once per day during dev maintenance.
+**If you are using Dev version, reinstall it regularly !** The dev team will try to push needed fixes at least once per week during dev maintenance.
 
 All dependencies are described in the DESCRIPTION file. You will also need to install the following system libraries, according to you OS:
 
@@ -37,26 +39,28 @@ All dependencies are described in the DESCRIPTION file. You will also need to in
 | redland     | librdf0-dev          | redland-devel        | librdf_dev  | redland     |
 | poppler-cpp | libpoppler-cpp-dev   | poppler-cpp-devel    | poppler_dev | poppler     |
 
-### Stable
-
-You can install the stable app as follow:
+You can install the app as follow (through command line, for Ubuntu):
 
 ```
-library(devtools)
-devtools::install_github("EDIorg/EMLassemblyline")
-install_github("earnaud/MetaShARK-v2", dependencies=TRUE)
+apt -y update
+apt -y upgrade 
+apt install -y r-base
+apt install -y libcurl4-openssl-dev libssh2-1-dev libssl-dev libxml2-dev # libgit2-dev 
+R -e 'install.packages("devtools")'
+apt install -y libv8-dev
+R -e 'devtools::install_github("EDIorg/EMLassemblyline", ref="fix_41")'
+apt install -y  libjq-dev librdf0-dev 
+apt-get install -y libpoppler-cpp-dev
+R -e 'install.packages(c("shinyBS","shinycssloaders","readtext"))'
+# Stable: 
+R -e 'devtools::install_github("earnaud/MetaShARK-v2", dependencies=TRUE)'
+# Dev:
+R -e 'devtools::install_github("earnaud/MetaShARK-v2", ref="dev", dependencies=TRUE)'
 ```
 
-### Dev
+### Dockerization
 
-You can install the dev app as follow:
-
-```
-library(devtools)
-devtools::install_github("EDIorg/EMLassemblyline")
-install.packages(c("readtext","shinyBS","shinycssloaders"))
-install_github("earnaud/MetaShARK-v2", ref = "dev", dependencies=TRUE)
-```
+You can access docker recipes 
 
 ## MetaShARK features 
 
