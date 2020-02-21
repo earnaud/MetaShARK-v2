@@ -278,6 +278,7 @@ SelectDP <- function(input, output, session,
   # * Load DP ----
   observeEvent(input$dp_load, {
     req(input$dp_list)
+    disable("dp_load")
     # variable operation - legibility purpose
     dp <- input$dp_list
     path <- paste0(rv$dp_location, dp, "_emldp")
@@ -292,6 +293,7 @@ SelectDP <- function(input, output, session,
       globals$EMLAL$NAVIGATE + 1
     )
     globals$EMLAL$HISTORY <- savevar$emlal$history
+    enable("dp_load")
   })
 
   # * Delete DP ----

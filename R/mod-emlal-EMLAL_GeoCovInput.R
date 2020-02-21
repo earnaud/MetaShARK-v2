@@ -163,6 +163,8 @@ insertGeoCovInput <- function(id, rv, ns){
 }
 
 #' @title GeoCovColumn
+#' 
+#' @description format as <content>(<origin file>)
 GeoCovColumn <- function(data.content, data.files){
   columns <- lapply(
     names(data.content),
@@ -189,18 +191,22 @@ organizeCoordinates <- function(coordCols, filesData){
 }
 
 #' @title extractCoordinates
+#' 
+#' @importFrom stringr str_extract_all
 extractCoordinates <- function(coordCols, Pattern, localWarnings, coordTags, rv){
   # Extract proper coordinates
   coordinates <- lapply(
     coordCols,
-    stringr::str_extract_all,
+    str_extract_all,
     Pattern, 
     simplify = TRUE
-  ) %>% 
-    lapply(., gsub, 
+  ) %>% # uniformize decimal separators
+    lapply(., 
+      gsub, 
       pattern = ",",
-      replacement = ".") %>%
-    as.data.frame(stringsAsFactors = FALSE)
+      replacement = "."
+    ) %>%
+    as.data.frame(., stringsAsFactors = FALSE)
   coordinates[] <- lapply(coordinates, as.numeric)
   
   # Check for having only two columns
@@ -210,9 +216,15 @@ extractCoordinates <- function(coordCols, Pattern, localWarnings, coordTags, rv)
       "One of your column provides more than one coordinate per row. This might be a range. Only the two first values have been kept.")
   }
   
-  if(dim(coordinates)[2] == 2){
+  if(dim(coordinates)[2] == 1){
+    coordinates <- cbind(coordinates, coordinates)
+    localWarnings <- c(localWarnings,
+      "Only one column has been provided: coordinates are considered as representing single sites.")
+  }
+  
+  if(dim(coordinates)[2] <= 2 && dim(coordinates)[2] > 0 ){
     
-    # assign West and East to columns
+    # assign West and East / North and South to columns
     coordinates[
       coordinates[,1] <= coordinates[,2],
       ] <- rev(coordinates[
@@ -233,10 +245,6 @@ extractCoordinates <- function(coordCols, Pattern, localWarnings, coordTags, rv)
       rv$columns$westBoundingCoordinate <- coordinates$W
     }
     
-    # Still wait for a second column.
-  } else {
-    localWarnings <- c(localWarnings,
-      "Two numbers must be provided in either one or two columns.")
   }
   
   return(

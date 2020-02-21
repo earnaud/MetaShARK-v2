@@ -21,6 +21,10 @@
   HOME <- path_home()
   DP.PATH <- paste0(HOME, "/dataPackagesOutput/emlAssemblyLine/")
   dir.create(DP.PATH, recursive = TRUE, showWarnings = FALSE)
+  TMP.PATH <-  paste0(HOME, "/EMLAL_tmp/")
+  # clear the temp
+  unlink(TMP.PATH, recursive = TRUE) 
+  dir.create(TMP.PATH, recursive = TRUE, showWarnings = FALSE)
 
   THRESHOLD <- list(
     dp_data_files = 500000
@@ -58,6 +62,7 @@
       dev = dev,
       THRESHOLDS = reactiveValues(data_files_size_max = 500000),
       DEFAULT.PATH = DP.PATH,
+      TEMP.PATH = TMP.PATH,
       HOME = HOME,
       PATHS = wwwPaths,
       # Formats lists
