@@ -177,7 +177,7 @@ GeoCov <- function(input, output, session, savevar, globals) {
   data.content <- lapply(data.files, fread)
   names(data.content) <- basename(data.files)
   
-  # format extracted content
+  # format extracted content - keep latlon-valid columns
   data.content.coordinates <- lapply(
     names(data.content),
     function(data.filename){
@@ -227,7 +227,6 @@ GeoCov <- function(input, output, session, savevar, globals) {
   observeEvent(input$latitude, {
     # validity check
     latCols <- input$latitude
-    # TODO re-check this test
     validate(
       need(latCols != "NA", "No valid column selected.")
     )

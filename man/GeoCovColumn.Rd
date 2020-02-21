@@ -7,5 +7,5 @@
 GeoCovColumn(data.content, data.files)
 }
 \description{
-GeoCovColumn
+format as <content>(<origin file>)
 }
