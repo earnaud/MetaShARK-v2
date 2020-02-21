@@ -60,7 +60,7 @@ R -e 'devtools::install_github("earnaud/MetaShARK-v2", ref="dev", dependencies=T
 
 ### Dockerization
 
-You can access docker recipes 
+You can access docker files and setup at [this repository](https://github.com/earnaud/MetaShARK_docker).
 
 ## MetaShARK features 
 
