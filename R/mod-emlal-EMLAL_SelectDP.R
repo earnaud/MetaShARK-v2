@@ -13,6 +13,7 @@ SelectDPUI <- function(id, title, width = 12, dev = FALSE, server) {
     fluidPage(
       title = "Organize data packages",
       # Data package location ----
+      if(!isTRUE(server))
       fluidRow(
         column(
           4,
@@ -31,7 +32,9 @@ SelectDPUI <- function(id, title, width = 12, dev = FALSE, server) {
           style = "text-align: left;"
         ),
         class = "inputBox"
-      ),
+      )
+      else 
+        NULL,
       tags$p("This is the location where your data packages will be
         saved. A folder will be created, respectively named
         after your input."),
@@ -175,22 +178,43 @@ SelectDP <- function(input, output, session,
         choiceNames = c("None selected", rv$dp_list),
         choiceValues = c("", rv$dp_list)
       ),
-      actionButton(ns("dp_load"), "Load"),
-      actionButton(ns("dp_delete"), "Delete",
-        class = "redButton"
-      )
+      actionButton(ns("dp_load"), "Load", icon = icon("folder-open")),
+      actionButton(ns("dp_delete"), "Delete", icon = icon("minus-circle"), class = "redButton"),
+      if(server)
+        downloadButton(ns("dp_download"), label = "Download .zip", icon = icon("file-download"))
+      else
+        NULL
     )
   })
 
+  output$dp_download <- downloadHandler(
+    filename = function(){
+      paste(input$dp_list, "zip", sep = ".")
+    },
+    content = function(file){
+      browser()
+      zip(
+        zipfile = file,
+        files = dir(
+          dir(globals$DEFAULT.PATH, full.names = TRUE),
+          recursive = TRUE,
+          full.names = TRUE)
+        )
+    },
+    contentType = "application/zip"
+  )
+  
   # toggle Load and Delete buttons
   observeEvent(input$dp_list, {
     if (input$dp_list != "") {
       enable("dp_load")
       enable("dp_delete")
+      enable("dp_download")
     }
     else {
       disable("dp_load")
       disable("dp_delete")
+      disable("dp_download")
     }
   })
 
