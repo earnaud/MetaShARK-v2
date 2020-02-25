@@ -313,7 +313,7 @@ Attributes <- function(input, output, session, savevar, globals) {
         #   
         #   print(filled)
         # }) # end of styles
-        # 
+        
         lapply(fields[-1], function(colname) {
           inputId <- paste(
             isolate(rv$current_file),

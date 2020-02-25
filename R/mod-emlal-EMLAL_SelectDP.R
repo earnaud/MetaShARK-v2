@@ -196,10 +196,11 @@ SelectDP <- function(input, output, session,
       zip(
         zipfile = file,
         files = dir(
-          dir(globals$DEFAULT.PATH, full.names = TRUE),
+          gsub("/+","/", dir(globals$DEFAULT.PATH, full.names = TRUE, pattern = input$dp_list)),
           recursive = TRUE,
-          full.names = TRUE)
+          full.names = TRUE
         )
+      )
     },
     contentType = "application/zip"
   )
