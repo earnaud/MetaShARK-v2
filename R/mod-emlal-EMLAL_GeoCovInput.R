@@ -110,6 +110,7 @@ GeoCovInput<- function(input, output, session,
     # print values into rv at selected index
     actualValues <- printReactiveValues(localRV)
     sapply(names(rv), function(rvid){
+      browser()
       rv[[rvid]][ind] <- actualValues[rvid]
     })
     
