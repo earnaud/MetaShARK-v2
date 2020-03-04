@@ -100,8 +100,8 @@ MakeEML <- function(input, output, session, savevar, globals) {
         dataset.title = .$SelectDP$dp_title,
         temporal.coverage = .$Misc$temporal_coverage,
         maintenance.description = "ongoing",
-        geographic.description = checkTruth(.$GeoCov$geographicDescription),
-        geographic.coordinates = checkTruth(.$GeoCov[,c("northBoundingCoordinate","southBoundingCoordinate","eastBoundingCoordinate","westBoundingCoordinate")]),
+        # geographic.description = checkTruth(.$GeoCov$geographicDescription),
+        # geographic.coordinates = checkTruth(.$GeoCov[,c("northBoundingCoordinate","southBoundingCoordinate","eastBoundingCoordinate","westBoundingCoordinate")]),
         data.table = basename(.$DataFiles$dp_data_files$datapath),
         # TODO add description inputs
         data.table.description = basename(.$DataFiles$dp_data_files$datapath),

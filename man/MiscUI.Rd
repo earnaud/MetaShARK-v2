@@ -7,7 +7,7 @@
 \usage{
 MiscUI(id, title, dev, savevar, server)
 
-Misc(input, output, session, savevar, globals)
+Misc(input, output, session, savevar, globals, server)
 }
 \description{
 UI for "last but not least" module

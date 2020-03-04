@@ -4,7 +4,17 @@
 \alias{PersonnelMod}
 \title{PersonnelMod}
 \usage{
-PersonnelMod(input, output, session, globals, rv, rmv_id, site_id, ref)
+PersonnelMod(
+  input,
+  output,
+  session,
+  globals,
+  rv,
+  rmv_id,
+  site_id,
+  ref,
+  role = NULL
+)
 }
 \description{
 server part for 'Personnel' module
