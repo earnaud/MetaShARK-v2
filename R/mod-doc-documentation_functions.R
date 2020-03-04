@@ -68,16 +68,20 @@ extractContent <- function(content, nsIndex) {
     # browser()
 
     #- reorganizing
-    out <- nt.titles(out, list(
-      remove = "emphasis",
-      remove = "citetitle",
-      replace = "module Name",
-      moveback = "documentation",
-      tocode = "literal Layout",
-      use = "title",
-      use = "para",
-      addurl = "ulink"
-    ))
+    out <- nt.titles(
+      out, 
+      list(
+        remove = "emphasis",
+        remove = "citetitle",
+        replace = "module Name",
+        moveback = "documentation",
+        tocode = "literal Layout",
+        use = "title",
+        use = "para",
+        addurl = "ulink"
+      ),
+      nsIndex = nsIndex
+    )
 
     out <- sapply(
       seq_along(out),
@@ -112,7 +116,7 @@ extractContent <- function(content, nsIndex) {
 }
 
 # Apply @action on elements from @vec named after @targets
-nt.titles <- function(vec, action_target) {
+nt.titles <- function(vec, action_target, nsIndex) {
   sapply(
     action_target,
     function(target) {
@@ -199,7 +203,7 @@ nt.titles <- function(vec, action_target) {
             )),
             internal = {
               eml.module.ns <- sub("(.*):.*", "\\1", work[1])
-              eml.module.name <- sub("^.*/([a-zA-Z]+)-.*$", "\\1", nsIndex[eml.module.ns])
+              eml.module.name <- sub("^.*/([a-zA-Z]+)-.*$", "\\1", nsIndex[eml.module.ns]) # TODO found nsIndex ref
               HTML(as.character(
                 tags$b(
                   sub(eml.module.ns, eml.module.name, work[1])
