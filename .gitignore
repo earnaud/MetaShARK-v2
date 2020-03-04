@@ -8,3 +8,5 @@ tutorial-metacat-pndb-r-interface.R
 changelog.txt
 .Rhistory
 .RData
+guidelinesBuilder2.R
+test_make_eml.R
