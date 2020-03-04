@@ -75,6 +75,25 @@ Personnel <- function(input, output, session, savevar, globals) {
   )
   
   # Fill Personnel ----
+  # Default created
+  observeEvent(TRUE, once = TRUE, {
+    rv$Personnel <- insertPersonnelInput(
+      "creator",
+      rv$Personnel,
+      ns,
+      globals,
+      role = "creator"
+    )
+    rv$Personnel <- insertPersonnelInput(
+      "contact",
+      rv$Personnel,
+      ns,
+      globals,
+      role = "contact"
+    )
+  })
+  
+  # User-dependant
   observeEvent(input$addui, {
     rv$Personnel <- insertPersonnelInput(
       as.numeric(input$addui),
@@ -167,7 +186,7 @@ Personnel <- function(input, output, session, savevar, globals) {
 #' @description module to document EML::Personnel
 #' 
 #' @importFrom shinyBS bsTooltip
-PersonnelModUI <- function(id, site_id, rmv_id, dev = FALSE) {
+PersonnelModUI <- function(id, site_id, rmv_id, role = NULL, dev = FALSE) {
   ns <- NS(id)
   
   div_id <- id
@@ -225,16 +244,14 @@ PersonnelModUI <- function(id, site_id, rmv_id, dev = FALSE) {
               )
             ),
             column(4,
-              selectInput(
-                ns("role"),
-                c("creator","PI (principal investigator)", "contact", "(other)"),
-                label = with_red_star("Role of person.")
-              ),
-              bsTooltip(
-                ns("role"),
-                "right",
-                "hover"
-              )
+              if(is.null(role))
+                selectInput(
+                  ns("role"),
+                  c("creator","PI (principal investigator)", "contact", "(other)"),
+                  label = with_red_star("Role of person.")
+                )
+              else
+                tags$b(role)
             ),
             column(4,
               hidden(
@@ -274,14 +291,15 @@ PersonnelModUI <- function(id, site_id, rmv_id, dev = FALSE) {
           ) # end of fluidRow 4
         )
       ),
-      # Trash ----
+      # Destroy ----
       column(1,
-        actionButton(
-          ns(rmv_id), 
-          "",
-          icon("trash"), 
-          class = "danger"
-        ),
+        if(is.null(role))
+          actionButton(
+            ns(rmv_id), 
+            "",
+            icon("trash"), 
+            class = "danger"
+          ),
         if(dev)
           actionButton(
             ns("dev"),
@@ -298,7 +316,7 @@ PersonnelModUI <- function(id, site_id, rmv_id, dev = FALSE) {
 #'
 #' @importFrom shiny insertUI removeUI
 PersonnelMod <- function(input, output, session, 
-  globals, rv, rmv_id, site_id, ref) {
+  globals, rv, rmv_id, site_id, ref, role = NULL) {
   ns <- session$ns
   
   if(globals$dev)
@@ -318,7 +336,7 @@ PersonnelMod <- function(input, output, session,
     electronicMailAddress = character(),
     # Personnel information
     userId = character(),
-    role = character(),
+    role = if(is.null(role)) character() else role,
     `role-other` = character(),
     # Project information
     projectTitle = NA,
@@ -510,7 +528,7 @@ PersonnelMod <- function(input, output, session,
   return(rv)
 }
 
-insertPersonnelInput <- function(id, rv, ns, globals){
+insertPersonnelInput <- function(id, rv, ns, globals, role = NULL){
   # NOTE warning: rv = rv$Personnel here !!!
   
   # initialize IDs ----
@@ -520,7 +538,7 @@ insertPersonnelInput <- function(id, rv, ns, globals){
   
   # Proper module server ----
   # create the UI 
-  newUI <- PersonnelModUI(ns(div_id), site_id, rmv_id, dev = globals$dev)
+  newUI <- PersonnelModUI(ns(div_id), site_id, rmv_id, role = role, dev = globals$dev)
   
   # insert the UI
   insertUI(
@@ -529,7 +547,7 @@ insertPersonnelInput <- function(id, rv, ns, globals){
   )
   
   # create the server
-  rv <- callModule(PersonnelMod, id, globals, rv, rmv_id, site_id, div_id)
+  rv <- callModule(PersonnelMod, id, globals, rv, rmv_id, site_id, div_id, role = role) 
   
   # Output ----
   return(rv)

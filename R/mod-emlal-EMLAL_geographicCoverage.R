@@ -147,7 +147,7 @@ GeoCov <- function(input, output, session, savevar, globals) {
   filesData <- lapply(savevar$emlal$DataFiles$dp_data_files$datapath, fread)
   names(filesData) <- basename(savevar$emlal$DataFiles$dp_data_files$datapath)
   
-  # Pre-fill UI fields ----
+  # Pre-fill fields ----
   saved_table <- fread(
     paste(
       savevar$emlal$SelectDP$dp_path,
@@ -158,17 +158,24 @@ GeoCov <- function(input, output, session, savevar, globals) {
     )
   )
   
+  # Retrieve geographic coverage
   if(all(dim(saved_table) != 0)) {
-    show(ns("slider_tips"))
-    
-    invisible(
-      sapply(1:dim(saved_table)[1], function(ui_id){
-        ui_id <- paste0(ui_id,"_loaded")
-        rv <- insertGeoCovInput(ui_id, rv, ns)
-        return(NULL)
-      })
-    )
+    savevar$emlal$GeoCov <- saved_table
   }
+  
+  # Deprecated: 
+  # used to generate one input field per row in Geographic_Description
+  # if(all(dim(saved_table) != 0)) {
+  #   show(ns("slider_tips"))
+  #   browser()
+  #   invisible(
+  #     sapply(1:dim(saved_table)[1], function(ui_id){
+  #       ui_id <- paste0(ui_id,"_loaded")
+  #       rv <- insertGeoCovInput(ui_id, rv, ns)
+  #       return(NULL)
+  #     })
+  #   )
+  # }
   
   # Use columns ----
   
@@ -177,7 +184,7 @@ GeoCov <- function(input, output, session, savevar, globals) {
   data.content <- lapply(data.files, fread)
   names(data.content) <- basename(data.files)
   
-  # format extracted content
+  # format extracted content - keep latlon-valid columns
   data.content.coordinates <- lapply(
     names(data.content),
     function(data.filename){
@@ -227,7 +234,6 @@ GeoCov <- function(input, output, session, savevar, globals) {
   observeEvent(input$latitude, {
     # validity check
     latCols <- input$latitude
-    # TODO re-check this test
     validate(
       need(latCols != "NA", "No valid column selected.")
     )
@@ -395,7 +401,8 @@ GeoCov <- function(input, output, session, savevar, globals) {
     choices = c(
       "no geographic coverage" = 0,
       "columns selection" = if(rv$columns$complete) 1 else NULL,
-      "custom edition" = if(rv$custom$complete) 2 else NULL
+      "custom edition" = if(rv$custom$complete) 2 else NULL,
+      "geographic_coverage.txt already filled" = if(!is.null(savevar$emlal$GeoCov)) 3 else NULL
     )
     
     nextTabModal <- modalDialog(
@@ -422,21 +429,21 @@ GeoCov <- function(input, output, session, savevar, globals) {
     removeModal()
     df <- NULL
     if(input$method == "columns selection"){
-      df <- cbind(
-        rv$columns$geographicDescription,
-        rv$columns$northBoundingCoordinate,
-        rv$columns$southBoundingCoordinate,
-        rv$columns$eastBoundingCoordinate,
-        rv$columns$westBoundingCoordinate
+      df <- data.frame(
+        geographicDescription = rv$columns$geographicDescription,
+        northBoundingCoordinate = rv$columns$northBoundingCoordinate,
+        southBoundingCoordinate = rv$columns$southBoundingCoordinate,
+        eastBoundingCoordinate = rv$columns$eastBoundingCoordinate,
+        westBoundingCoordinate = rv$columns$westBoundingCoordinate
       )
     }
     if(input$method == "custom edition"){
-      df <- cbind(
-        rv$custom$geographicDescription,
-        rv$custom$northBoundingCoordinate,
-        rv$custom$southBoundingCoordinate,
-        rv$custom$eastBoundingCoordinate,
-        rv$custom$westBoundingCoordinate
+      df <- data.frame(
+        geographicDescription = rv$custom$geographicDescription,
+        northBoundingCoordinate = rv$custom$northBoundingCoordinate,
+        southBoundingCoordinate = rv$custom$southBoundingCoordinate,
+        eastBoundingCoordinate = rv$custom$eastBoundingCoordinate,
+        westBoundingCoordinate = rv$custom$westBoundingCoordinate
       )
     }
     if(!is.null(df)){
@@ -452,9 +459,8 @@ GeoCov <- function(input, output, session, savevar, globals) {
         sep = "\t"
       )
       message("Geographic Coverage has been written.")
+      savevar$emlal$GeoCov <- df
     }
-    
-    savevar$emlal$GeoCov <- df
     
     globals$EMLAL$HISTORY <- c(globals$EMLAL$HISTORY, "GeoCov")
   }, priority = 1)

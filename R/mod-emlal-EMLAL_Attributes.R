@@ -66,7 +66,7 @@ AttributesUI <- function(id, title, dev) {
 #' observe eventReactive validate
 #' @importFrom shinyjs hide show enable disable
 #' @importFrom EMLassemblyline template_categorical_variables template_geographic_coverage
-#' @importFrom shinyBS bsCollapse bsCollapsePanel
+#' @importFrom shinyBS bsCollapse bsCollapsePanel updateCollapse
 Attributes <- function(input, output, session, savevar, globals) {
   ns <- session$ns
   
@@ -99,6 +99,21 @@ Attributes <- function(input, output, session, savevar, globals) {
     current_table = NULL,
     complete = FALSE
   )
+  pathDataObject <- paste0(savevar$emlal$SelectDP$dp_path, "/", savevar$emlal$SelectDP$dp_name, "/data_objects/")
+  previews <- sapply(
+    paste0(pathDataObject, list.files(pathDataObject, pattern = "preview_")),
+    fread,
+    data.table = FALSE
+  )
+  names(previews) <- basename(names(previews))
+  sapply(names(previews), function(file){
+    sapply(seq(previews[[file]]), function(att_ind){
+      # print(ns(paste0(file, "_", att_ind)))
+      # browser()
+      output[[paste0(file, "_", att_ind)]] <- renderTable(previews[[file]][att_ind])
+    }) # end of sapply: attribute
+  }) # end of sapply: file
+  
   
   # Navigation buttons ----
   # Previous
@@ -172,65 +187,82 @@ Attributes <- function(input, output, session, savevar, globals) {
       
       ui <- do.call(
         bsCollapse,
-        lapply(
-          seq(dim(rv$current_table)[1]),
-          fields = isolate(colnames(rv$current_table)),
-          function(row_index, fields){
-            # prepare variables
-            attribute_row <- isolate(rv$current_table[row_index,])
-            
-            return(
-              bsCollapsePanel(
-                title = attribute_row[ fields[1] ], # TEST
-                lapply(fields[-1], function(colname) {
-                  # prepare var
-                  saved_value <- isolate(rv$current_table[row_index, colname])
-                  inputId <- paste(
-                    isolate(rv$current_file),
-                    row_index,
-                    colname,
-                    sep = "-"
+        args = c(
+          lapply(
+            seq(dim(rv$current_table)[1]),
+            fields = isolate(colnames(rv$current_table)),
+            function(row_index, fields){
+              # prepare variables
+              attribute_row <- isolate(rv$current_table[row_index,])
+              
+              return(
+                bsCollapsePanel(
+                  title = attribute_row[ fields[1] ],
+                  tagList(
+                    column(9,
+                      lapply(fields[-1], function(colname) {
+                        # prepare var
+                        saved_value <- isolate(rv$current_table[row_index, colname])
+                        inputId <- paste(
+                          isolate(rv$current_file),
+                          row_index,
+                          colname,
+                          sep = "-"
+                        )
+                        
+                        # GUI
+                        switch(colname,
+                          attributeDefinition = textAreaInput(
+                            ns(inputId),
+                            value = saved_value,
+                            "Describe the attribute concisely"
+                          ),
+                          class = HTML(paste("<b>Detected class:</b>", as.vector(saved_value))),
+                          unit = if(isTruthy(saved_value))
+                            selectInput(
+                              ns(inputId),
+                              with_red_star("Select an unit"),
+                              unique(c(saved_value, globals$FORMAT$UNIT)),
+                              selected = saved_value
+                            ),
+                          dateTimeFormatString = if(isTruthy(saved_value))
+                            selectInput( # TODO add a module for hour format
+                              ns(inputId),
+                              with_red_star("Select a date format"),
+                              unique(c(saved_value, globals$FORMAT$DATE)),
+                              selected = saved_value
+                            ),
+                          missingValueCode = textInput(
+                            ns(inputId),
+                            "Code for missing value",
+                            value = saved_value
+                          ),
+                          missingValueCodeExplanation = textAreaInput(
+                            ns(inputId),
+                            "Explain Missing Values",
+                            value = saved_value
+                          ),
+                          NULL
+                        ) # end of switch
+                      }) # end of lapply colname
+                    ),
+                    column(3,
+                      h4("Preview:"),
+                      tableOutput({ns(
+                        paste0(
+                          names(previews)[rv$current_file],
+                          "_",
+                          row_index
+                        )
+                      )})
+                    ) # end of column
                   )
-                  
-                  # GUI
-                  switch(colname,
-                    attributeDefinition = textAreaInput(
-                      ns(inputId),
-                      value = saved_value,
-                      "Describe the attribute concisely"
-                    ),
-                    class = HTML(paste("<b>Detected class:</b>", as.vector(saved_value))),
-                    unit = if(isTruthy(saved_value))
-                      selectInput(
-                        ns(inputId),
-                        with_red_star("Select an unit"),
-                        unique(c(saved_value, globals$FORMAT$UNIT)),
-                        selected = saved_value
-                      ),
-                    dateTimeFormatString = if(isTruthy(saved_value))
-                      selectInput( # TODO add a module for hour format
-                        ns(inputId),
-                        with_red_star("Select a date format"),
-                        unique(c(saved_value, globals$FORMAT$DATE)),
-                        selected = saved_value
-                      ),
-                    missingValueCode = textInput(
-                      ns(inputId),
-                      "Code for missing value",
-                      value = saved_value
-                    ),
-                    missingValueCodeExplanation = textAreaInput(
-                      ns(inputId),
-                      "Explain Missing Values",
-                      value = saved_value
-                    ),
-                    NULL
-                  ) # end of switch
-                }) # end of lapply colname
-              ) # end of bsCollapsePanel
-            ) # end of return
-          }
-        ) # end of lapply : row_index
+                ) # end of bsCollapsePanel
+              ) # end of return
+            }
+          ), # end of lapply : row_index
+          id = ns("collapse")
+        )
       )
       return(ui)
     })
@@ -249,6 +281,39 @@ Attributes <- function(input, output, session, savevar, globals) {
       fields = colnames(rv$current_table),
       function(row_index, fields){
         
+        # TODO Update style: to correct
+        # observe({
+        #   # browser()
+        #   currentIDs <- names(input)[
+        #     grepl(
+        #       paste(
+        #         isolate(rv$current_file),
+        #         row_index,
+        #         sep = "-"
+        #       ),
+        #       names(input)
+        #     )]
+        #   
+        #   filled <- all(sapply(currentIDs, function(id){
+        #     if(grepl("date|unit", id))
+        #       isTruthy(input[[id]]) &&
+        #       !grepl("!Add.*here!", input[[id]])
+        #     else
+        #       TRUE
+        #   }))
+        #   print(filled)
+        #   filled <- if(filled) list("success") else list("danger")
+        #   names(filled) <- rv$current_table$attributeName[row_index]
+        #   
+        #   updateCollapse(
+        #     session = session,
+        #     ns("collapse"),
+        #     style = filled
+        #   )
+        #   
+        #   print(filled)
+        # }) # end of styles
+        
         lapply(fields[-1], function(colname) {
           inputId <- paste(
             isolate(rv$current_file),
@@ -263,6 +328,7 @@ Attributes <- function(input, output, session, savevar, globals) {
               isolate(rv$current_table[row_index, colname] <- input[[inputId]])
             })
           }
+          
         }) # end of lapply colname
         
       }) # end of lapply : row_index
@@ -297,8 +363,10 @@ Attributes <- function(input, output, session, savevar, globals) {
   # check for completeness
   observeEvent(rv$current_table, {
     rv$complete <- FALSE
-    req(!identical(rv$current_table, data.frame()))
     .attributes <- reactiveValuesToList(savevar$emlal$Attributes)
+    req(length(.attributes) != 0 &&
+        !any(sapply(.attributes, identical, y = data.frame)) &&
+        !identical(rv$current_table, data.frame()))
     
     rv$complete <- all(
       sapply(
@@ -312,6 +380,7 @@ Attributes <- function(input, output, session, savevar, globals) {
         }
       )
     )
+    
   }, priority = -1)
   
   # en/disable buttons
@@ -340,7 +409,6 @@ Attributes <- function(input, output, session, savevar, globals) {
       try(isolate(savevar$emlal$Attributes[[ rv$filenames[rv$current_file] ]] <- rv$current_table))
     }
     
-    # TODO add a withProgress
     withProgress(
       message = "Processing entered metadata ...",
       {
