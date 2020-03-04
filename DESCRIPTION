@@ -29,7 +29,11 @@ Imports:
     mime,
     shinyFiles,
     shinydashboard,
-    shinyjs
+    shinyjs,
+    shinyBS,
+    shinycssloaders,
+    readtext,
+    tagsinput
 RoxygenNote: 7.0.2
 URL: https://github.com/earnaud/MetaShARK-v2.git
 BugReports: https://github.com/earnaud/MetaShARK-v2.git/issues
