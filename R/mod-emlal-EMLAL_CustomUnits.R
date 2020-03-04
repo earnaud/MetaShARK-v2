@@ -99,71 +99,69 @@ CustomUnits <- function(input, output, session,
   )
   
   # Once-only triggered
-  observeEvent(TRUE,
-    {
-      # need to have filled Attributes
-      req(
-        isolate(
-          unlist(
-            reactiveValuesToList(
-              savevar$emlal$Attributes
-            )
+  observeEvent(TRUE, {
+    # need to have filled Attributes
+    req(
+      isolate(
+        unlist(
+          reactiveValuesToList(
+            savevar$emlal$Attributes
           )
         )
       )
-      disable("nav-nextTab")
-      rv$CU_Table <- fread(
-        paste(savevar$emlal$SelectDP$dp_path,
-          savevar$emlal$SelectDP$dp_name,
-          "metadata_templates",
-          "custom_units.txt",
-          sep = "/"
-        ),
-        data.table = FALSE,
-        stringsAsFactors = FALSE,
-        na.strings = NULL
-      )
-      
-      # get attributesNames and attributesFiles
-      sapply(names(savevar$emlal$Attributes), function(file_name) {
-        if (file_name != "custom_units") {
-          # shorten attributes' data frame name
-          tmp <- savevar$emlal$Attributes[[file_name]] 
-          if (any(tmp$unit == "custom")) {
-            # expand attributes' names list
-            rv$attributesNames <<- c(
-              rv$attributesNames,
-              tmp$attributeName[tmp$unit == "custom"]
-            )
-            # get the attribute's corresponding data file's name
-            rv$attributesFiles <<- c(
-              rv$attributesFiles,
-              rep(file_name, length(tmp$attributeName[tmp$unit == "custom"]))
-            )
-          }
-        }
-      })
-      
-      # correct CU_Table if needed
-      if (any(dim(rv$CU_Table) == 0)) {
-        isolate({
-          sapply(
-            1:length(rv$attributesNames),
-            function(i) {
-              rv$CU_Table[i, ] <- rep("", ncol(rv$CU_Table))
-            }
+    )
+    disable("nav-nextTab")
+    rv$CU_Table <- fread(
+      paste(savevar$emlal$SelectDP$dp_path,
+        savevar$emlal$SelectDP$dp_name,
+        "metadata_templates",
+        "custom_units.txt",
+        sep = "/"
+      ),
+      data.table = FALSE,
+      stringsAsFactors = FALSE,
+      na.strings = NULL
+    )
+    
+    # get attributesNames and attributesFiles
+    sapply(names(savevar$emlal$Attributes), function(file_name) {
+      if (file_name != "custom_units") {
+        # shorten attributes' data frame name
+        tmp <- savevar$emlal$Attributes[[file_name]] 
+        if (any(tmp$unit == "custom")) {
+          # expand attributes' names list
+          rv$attributesNames <<- c(
+            rv$attributesNames,
+            tmp$attributeName[tmp$unit == "custom"]
           )
-        })
+          # get the attribute's corresponding data file's name
+          rv$attributesFiles <<- c(
+            rv$attributesFiles,
+            rep(file_name, length(tmp$attributeName[tmp$unit == "custom"]))
+          )
+        }
       }
-      rv$CU_Table <- rv$CU_Table %>% 
-        mutate(parentSI = replace(.$parentSI, TRUE, "dimensionless")) %>% 
-        mutate(multiplierToSI = replace(.$multiplierToSI, TRUE, 1))
-      
-      # set current index (for attribute)
-      rv$current_index <- 1
-    },
-    once = TRUE
-  )
+    })
+    
+    # correct CU_Table if needed
+    if (any(dim(rv$CU_Table) == 0)) {
+      isolate({
+        sapply(
+          1:length(rv$attributesNames),
+          function(i) {
+            rv$CU_Table[i, ] <- rep("", ncol(rv$CU_Table))
+          }
+        )
+      })
+    }
+    rv$CU_Table <- rv$CU_Table %>% 
+      mutate(parentSI = replace(.$parentSI, TRUE, "dimensionless")) %>% 
+      mutate(multiplierToSI = replace(.$multiplierToSI, TRUE, 1))
+    
+    # set current index (for attribute)
+    rv$current_index <- 1
+  },
+  once = TRUE)
   
   # Multiply triggered
   observeEvent(rv$current_index, {
@@ -273,21 +271,21 @@ CustomUnits <- function(input, output, session,
             value = saved_value
           ),
           unitType = textInput(ns(colname),
-            label = span(colname, class = "redButton"),
+            label = with_red_star(colname),
             placeholder = "e.g. mass",
             value = saved_value
           ),
           parentSI = selectInput(ns(colname),
-            label = span(colname, class = "redButton"),
+            label = with_red_star(colname),
             choices = globals$FORMAT$UNIT[-1],
             selected = saved_value,
           ),
           multiplierToSI = numericInput(ns(colname),
-            label = span(colname, class = "redButton"),
+            label = with_red_star(colname),
             value = 1,
           ),
           description = textAreaInput(ns(colname),
-            label = span(colname, class = "redButton"),
+            label = with_red_star(colname),
             placeholder = "e.g. milligrams per gram",
             value = saved_value,
           )
@@ -344,7 +342,7 @@ CustomUnits <- function(input, output, session,
   })
   
   observe({
-    req(rv$complete)
+    req(names(input))
     
     if (rv$complete()) {
       enable("nav-nextTab")
@@ -381,7 +379,7 @@ CustomUnits <- function(input, output, session,
           )
         )
       )
-        globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE+1
+      globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE+1
     },
     priority = 1
   )

@@ -14,8 +14,7 @@ MiscellaneousUI <- function(id, help_label = NULL, server=FALSE){
           ns("file"), 
           "",
           multiple = FALSE,
-          buttonLabel = "Load file",
-          icon = icon("file")
+          buttonLabel = span("Load file", icon("file")),
         )
       else
         shinyFilesButton(
@@ -50,7 +49,7 @@ MiscellaneousUI <- function(id, help_label = NULL, server=FALSE){
 #' @import shinyFiles
 Miscellaneous <- function(
   input, output, session, savevar, 
-  rv
+  rv, server
 ){
   # Variable initialization ----
   ns <- session$ns

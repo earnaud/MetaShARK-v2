@@ -168,7 +168,8 @@ Misc <- function(input, output, session, savevar, globals, server) {
     Miscellaneous,
     "abstract",
     savevar,
-    rv = rv$abstract
+    rv = rv$abstract,
+    server = server
   )
   
   # Methods
@@ -176,7 +177,8 @@ Misc <- function(input, output, session, savevar, globals, server) {
     Miscellaneous,
     "methods",
     savevar,
-    rv = rv$methods
+    rv = rv$methods, 
+    server = server
   )
   
   # Keywords
@@ -228,7 +230,8 @@ Misc <- function(input, output, session, savevar, globals, server) {
     Miscellaneous,
     "additional_info",
     savevar,
-    rv = rv$additional_information
+    rv = rv$additional_information, 
+    server = server
   )
   
   # Navigation buttons ----

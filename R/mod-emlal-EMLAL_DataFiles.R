@@ -19,12 +19,14 @@ DataFilesUI <- function(id, title, dev = FALSE, server = FALSE) {
                     the 'Remove' button.<br>"),
         tags$div(
           if(isTRUE(server))
-            fileInput(
-              ns("add_data_files"),
-              "Select data file(s) from your dataset",
-              buttonLabel = "Load files",
-              multiple = TRUE,
-              icon = icon("plus-circle")
+            tagList(
+              "DISCLAIMER: any selected file will be immediately downloaded.",
+              fileInput(
+                ns("add_data_files"),
+                "Select data file(s) from your dataset",
+                buttonLabel = span("Load files", icon("plus-circle")),
+                multiple = TRUE
+              )
             )
           else
             shinyFilesButton(
@@ -36,11 +38,11 @@ DataFilesUI <- function(id, title, dev = FALSE, server = FALSE) {
             ),
           style = "display: inline-block; vertical-align: top;"
         ),
+        uiOutput(ns("data_files")),
         actionButton(ns("remove_data_files"), "Remove",
           icon = icon("minus-circle"),
           class = "redButton"
-        ),
-        uiOutput(ns("data_files"))
+        )
       ), # end of column 1
       column(
         2,
@@ -78,7 +80,10 @@ DataFiles <- function(input, output, session, savevar, globals, server) {
   rv <- reactiveValues(
     data_files = data.frame()
   )
-  volumes <- c(Home = globals$HOME, getVolumes()())
+  if(isTRUE(server))
+    rv$tmpPaths <- character()
+  if(!isTRUE(server))
+    volumes <- c(Home = globals$HOME, getVolumes()())
   updateFileListTrigger <- makeReactiveTrigger()
   
   # On arrival on screen
@@ -115,27 +120,27 @@ DataFiles <- function(input, output, session, savevar, globals, server) {
   
   # Data file upload ----
   # Add data files
-  if(!isTRUE(server))
+  if(!isTRUE(server)) {
     shinyFileChoose(
       input,
       "add_data_files",
       roots = volumes,
       session = session
     )
-  
+  }
+
   observeEvent(input$add_data_files, {
     # validity checks
     req(input$add_data_files)
     
     # actions
-    loadedFiles <- as.data.frame(
-      parseFilePaths(volumes, input$add_data_files)
-    )
-    loadedFiles <- cbind(
-      loadedFiles,
-      description = loadedFiles$name
-    )
-    
+    if(isTRUE(server))
+      loadedFiles <- input$add_data_files
+    else
+      loadedFiles <- as.data.frame(
+        parseFilePaths(volumes, input$add_data_files)
+      )
+
     if (identical(rv$data_files, data.frame())) {
       rv$data_files <- loadedFiles
     } else {
@@ -149,6 +154,17 @@ DataFiles <- function(input, output, session, savevar, globals, server) {
           ))
         }
       }
+    }
+    
+    # copies on the server
+    if(isTRUE(server)){
+      withProgress({
+        file.copy(rv$data_files$datapath, paste0(globals$TEMP.PATH, rv$data_files$name))
+        incProgress(1)
+      },
+      message = "Downloading data files")
+      
+      rv$data_files$datapath <- paste0(globals$TEMP.PATH, rv$data_files$name)
     }
     
     # variable modifications
@@ -258,6 +274,18 @@ DataFiles <- function(input, output, session, savevar, globals, server) {
         to = paste0(path, "/", dp, "/data_objects/"),
         recursive = TRUE
       )
+      cmd <- paste(
+        paste0("cd ", path, "/", dp, "/data_objects/"),
+        paste(
+          sapply(rv$data_files$name, function(fn){
+            paste0("head -n 6 ", fn, " > preview_", fn)
+          }),
+          collapse = "; "
+        ),
+        sep = "; "
+      )
+      system(cmd)
+      
       # -- modify paths in save variable
       tmp <- savevar$emlal$DataFiles$dp_data_files
       tmp$datapath <- sapply(
