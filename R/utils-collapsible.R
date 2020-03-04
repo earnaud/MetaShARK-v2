@@ -3,10 +3,11 @@
 #' @description A module to get a div collapsed by clicking on a link.
 #' 
 #' @param label A label appearing on the clickable link.
+#' @param ... any UI element
 #' 
 #' @importFrom shiny NS tagList actionLink icon div
 #' @importFrom shinyjs useShinyjs hidden 
-collapsibleUI <- function(id, label, ...) {
+collapsibleUI <- function(id, label, hidden = TRUE, ...) {
   ns <- NS(id)
   
   tagList(
@@ -14,20 +15,24 @@ collapsibleUI <- function(id, label, ...) {
     actionLink(
       ns("link"), 
       label, 
-      icon = icon("chevron-right")
+      icon = if(hidden) icon("chevron-right") else NULL
     ),
-    hidden(
+    if(hidden)
+      hidden(
+        div(
+          id = ns("area"),
+          ...,
+          style = "margin-left: 20px"
+        )
+      )
+    else
       div(
         id = ns("area"),
-        ...,
-        style = "margin-left: 20px"
+        ...
       )
-    )
   )
 }
 
-#' @title collapsible
-#' 
 #' @describeIn collapsibleUI
 #' 
 #' @importFrom shiny observeEvent updateActionButton icon
