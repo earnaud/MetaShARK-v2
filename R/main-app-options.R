@@ -58,9 +58,11 @@ appOptions <- function(input, output, session) {
 
   observeEvent(input$metacat_save, {
     if (input$test_metacat) {
-      options(dataone_test_token = input$auth_token)
+      globals$TOKEN$DATAONE.TEST.TOKEN <- input$auth_token
+      # options(dataone_test_token = input$auth_token)
     } else {
-      options(dataone_token = input$auth_token)
+      globals$TOKEN$DATAONE.TOKEN <- input$auth_token
+      # options(dataone_token = input$auth_token)
     }
     message("Metacat options set.")
   })

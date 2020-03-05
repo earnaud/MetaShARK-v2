@@ -102,9 +102,10 @@ MakeEML <- function(input, output, session, savevar, globals) {
         maintenance.description = "ongoing",
         # geographic.description = checkTruth(.$GeoCov$geographicDescription),
         # geographic.coordinates = checkTruth(.$GeoCov[,c("northBoundingCoordinate","southBoundingCoordinate","eastBoundingCoordinate","westBoundingCoordinate")]),
-        data.table = basename(.$DataFiles$dp_data_files$datapath),
+        data.table = .$DataFiles$dp_data_files$name,
+        data.table.name = .$DataFiles$dp_data_files$name,
         # TODO add description inputs
-        data.table.description = basename(.$DataFiles$dp_data_files$datapath),
+        data.table.description = .$DataFiles$dp_data_files$name,
         # TODO in data selection step, add data url
         # data.url = NULL,
         # TODO in data selection step, add entity differenciation
@@ -114,9 +115,9 @@ MakeEML <- function(input, output, session, savevar, globals) {
         # provenance = NULL,
         # TODO add user.id from options
         user.id = 'Test',
-        user.domain = 'EDI',
+        user.domain = 'EDI'
         # TODO check how to get a lsid?
-        package.id = NULL
+        # ,package.id = NULL
       )
     )
     

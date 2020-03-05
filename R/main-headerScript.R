@@ -99,6 +99,10 @@
         UNIT = UNIT.LIST,
         DATAONE = DATAONE.LIST,
         AUTHORITIES = TAXA.AUTHORITIES
+      ),
+      TOKEN = list(
+        DATAONE.TOKEN = NA_character_,
+        DATAONE.TEST.TOKEN = NA_character_
       )
     )
   # output

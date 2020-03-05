@@ -6,7 +6,7 @@
 #' @param id shiny module id
 #'
 #' @importFrom shiny NS tagList actionButton tags selectInput
-#' uiOutput textOutput icon
+#' uiOutput textOutput icon tabsetPanel tabPanel
 #' @importFrom data.table fread
 uploadUI <- function(id, dev, globals) {
   ns <- NS(id)
@@ -75,8 +75,13 @@ uploadUI <- function(id, dev, globals) {
       ), # end of upload tab
       # Update ----
       tabPanel(
-        title = "update"
-          
+        title = "update",
+        # 1. solr query ----
+        
+        # 2. select items to update ----
+        
+        # 3. select files ----
+        
       ) # end of update tab
     ) # end of tabSetPanel
   ) # end of tagList

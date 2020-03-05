@@ -37,7 +37,7 @@ uploadDP <- function(mn, cn, eml, data, scripts = c(), formats) {
   )
 
   # Edit metadata ----
-  message("Edit metadata ")
+  message("Editing metadata ...")
   doc$packageId <- id$metadata
   doc$dataset$maintenance$description <- "completed"
   doc$system <- mn@identifier
@@ -68,7 +68,7 @@ uploadDP <- function(mn, cn, eml, data, scripts = c(), formats) {
   write_eml(doc, eml)
 
   # Write DP ----
-  message("Write data package")
+  message("Writing data package ...")
   # Metadata object
   metadataObj <- new("DataObject",
     id = id$metadata,
@@ -111,7 +111,7 @@ uploadDP <- function(mn, cn, eml, data, scripts = c(), formats) {
 
   # Access rules ----
 
-  # Upload ! ----
+  # Upload ----
   eml_validate(doc)
   packageId <- uploadDataPackage(d1c, dp, public = TRUE)
 }
