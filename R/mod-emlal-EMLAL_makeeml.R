@@ -26,6 +26,7 @@ MakeEMLUI <- function(id, title, dev) {
         2,
         navSidebar(
           ns("nav"),
+          .next = FALSE,
           ... = tagList(
             if (dev) actionButton(ns("check"), "Dev Check")
           )

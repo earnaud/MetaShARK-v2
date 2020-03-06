@@ -5,12 +5,20 @@
 \alias{markdownInput}
 \title{markdownInputUI}
 \usage{
-markdownInputUI(id, preview = FALSE, value = "")
+markdownInputUI(
+  inputId,
+  label = "Text",
+  icon = TRUE,
+  preview = FALSE,
+  value = ""
+)
 
 markdownInput(input, output, session, preview = FALSE)
 }
 \arguments{
-\item{id}{character. Shiny module id}
+\item{inputId}{character. The input slot that will be used to access the value.}
+
+\item{label}{character. Display label for the control, or NULL for no label.}
 
 \item{preview}{logical. Shall a preview panel appear? (right-sided, 50\% width)}
 
@@ -21,12 +29,26 @@ A HTML `reactive` containing the formatted input. Do call it as a reactive.
 }
 \description{
 A shiny input module designed to allow the user to write markdown and render it as 
-a HTML fix. 
-
-It relies on the _Ace technology_ [https://ace.c9.io/#nav=about] with the package {shinyAce}.
+a HTML fix.
 }
 \section{Functions}{
 \itemize{
 \item \code{markdownInput}: Server side of the module.
 }}
 
+\examples{
+
+ui <- fluidPage(
+  markdownInputUI("md", label = "Write markdown here", preview = TRUE)
+)
+
+server <- function(input, output, session) {
+  callModule(markdownInput, "md", preview = TRUE)
+}
+
+shinyApp(ui, server)
+
+}
+\references{
+Ace technologies \url{https://ace.c9.io/#nav=about}
+}
