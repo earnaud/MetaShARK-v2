@@ -3,25 +3,41 @@
 #' @description A shiny input module designed to allow the user to write markdown and render it as 
 #' a HTML fix. 
 #' 
-#' It relies on the _Ace technology_ [https://ace.c9.io/#nav=about] with the package {shinyAce}.
-#' 
-#' @param id character. Shiny module id 
+#' @param inputId character. The input slot that will be used to access the value.
+#' @param label character. Display label for the control, or NULL for no label.
 #' @param preview logical. Shall a preview panel appear? (right-sided, 50\% width)
 #' @param value character. Initial value of the text input (default to "") 
 #' 
 #' @return A HTML `reactive` containing the formatted input. Do call it as a reactive.
 #' 
+#' @references Ace technologies \url{https://ace.c9.io/#nav=about}
+#' 
 #' @importFrom shinyAce aceEditor
-markdownInputUI <- function(id, preview = FALSE, value = "") {
-  ns <- NS(id)
+#' 
+#' @examples 
+#' 
+#' ui <- fluidPage(
+#'   markdownInputUI("md", label = "Write markdown here", preview = TRUE)
+#' )
+#' 
+#' server <- function(input, output, session) {
+#'   callModule(markdownInput, "md", preview = TRUE)
+#' }
+#' 
+#' shinyApp(ui, server)
+#' 
+markdownInputUI <- function(inputId, label = "Text", icon = TRUE, preview = FALSE, value = "") {
+  ns <- NS(inputId)
   div(
     fluidRow(
       column(if(preview) 6 else 12,
+        if(isFALSE(icon)) tags$b(label) else span(tags$b(label), "(", icon("markdown"), "supported)"),
         aceEditor(
           ns("md"),
           value = value, 
           mode = "markdown",
-          showLineNumbers = FALSE
+          showLineNumbers = FALSE,
+          tabSize = 2
         )
       ),
       if(preview)
@@ -40,12 +56,12 @@ markdownInputUI <- function(id, preview = FALSE, value = "") {
 #' @importFrom markdown markdownToHTML
 markdownInput <- function(input, output, session, preview = FALSE) {
   rv <- reactive({
-    HTML(markdownToHTML(file = NULL, text = input$md))
+    input$md
   })
   
   if(preview)
     output$preview <- renderUI({
-      rv()
+      HTML(markdownToHTML(file = NULL, text = rv()))
     })
   
   return(rv)

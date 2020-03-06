@@ -128,7 +128,7 @@ Misc <- function(input, output, session, savevar, globals, server) {
     abstract = reactiveValues(
       content = character(),
       file = paste(
-        savevar$emlal$SelectDP$dp_path,
+        isolate(savevar$emlal$SelectDP$dp_path),
         "abstract.txt",
         sep = "/"
       )
@@ -137,7 +137,7 @@ Misc <- function(input, output, session, savevar, globals, server) {
     methods = reactiveValues(
       content = character(),
       file = paste(
-        savevar$emlal$SelectDP$dp_path,
+        isolate(savevar$emlal$SelectDP$dp_path),
         "methods.txt",
         sep = "/"
       )
@@ -153,8 +153,8 @@ Misc <- function(input, output, session, savevar, globals, server) {
     additional_information = reactiveValues(
       content = character(),
       file = paste(
-        savevar$emlal$SelectDP$dp_path,
-        "additional_information.txt",
+        isolate(savevar$emlal$SelectDP$dp_path),
+        "additional_info.txt",
         sep = "/"
       )
     ),

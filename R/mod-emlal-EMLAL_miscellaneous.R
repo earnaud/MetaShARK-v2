@@ -9,34 +9,35 @@ MiscellaneousUI <- function(id, help_label = NULL, server=FALSE){
     column(4,
       tags$b(paste0("Select '", gsub(".*-(.*)$","\\1", id), "' file.")),
       tags$br(),
-      if(isTRUE(server))
-        fileInput(
-          ns("file"), 
-          "",
-          multiple = FALSE,
-          buttonLabel = span("Load file", icon("file")),
-        )
-      else
-        shinyFilesButton(
-          ns("file"), 
-          "Load file",
-          paste0("Select '", gsub(".*-(.*)$","\\1", id), "' file."),
-          multiple = FALSE,
-          icon = icon("file")
-        ),
-      textOutput(ns("selected"))
+      div(
+        if(isTRUE(server))
+          fileInput(
+            ns("file"), 
+            "",
+            multiple = FALSE,
+            buttonLabel = span("Load file", icon("file")),
+          )
+        else
+          shinyFilesButton(
+            ns("file"), 
+            "Load file",
+            paste0("Select '", gsub(".*-(.*)$","\\1", id), "' file."),
+            multiple = FALSE,
+            icon = icon("file")
+          )
+      ),
+      div(textOutput(ns("selected")), class = "ellipsis")
     ),
     # Content edition
     column(8,
       tagList(
         tags$b("Content"),
         help_label,
-        textAreaInput(
-          ns("content"), 
-          "", 
+        markdownInputUI(
+          ns("content"),
+          label = "",
           value = "",
-          width = "100%",
-          resize = "vertical"
+          preview = FALSE
         )
       )
     )
@@ -47,6 +48,7 @@ MiscellaneousUI <- function(id, help_label = NULL, server=FALSE){
 #' @title Miscellaneous
 #' 
 #' @import shinyFiles
+#' @importFrom shinyAce updateAceEditor
 Miscellaneous <- function(
   input, output, session, savevar, 
   rv, server
@@ -58,14 +60,14 @@ Miscellaneous <- function(
   # Get content ----
   observeEvent(input$content,{
     req(input$content)
-    rv$content <- input$content
+    rv$content <- callModule(markdownInput, content, preview = FALSE)
   })
   
   # Get file ----
   if(isTRUE(server)){
-    rv$file <- eventReactive(input$file, {
+    observeEvent(input$file, {
       req(input$file)
-      input$file$datapath
+      rv$file <- input$file$datapath
     })
   }
   else{
@@ -73,26 +75,33 @@ Miscellaneous <- function(
       roots = volumes,
       session = session
     )
-    rv$file <- eventReactive(input$file, {
+    observeEvent(input$file, {
       req(input$file)
-      parseFilePaths(volumes, input$file)$datapath
+      rv$file <- parseFilePaths(volumes, input$file)$datapath
     })
   }
     
-  observeEvent(rv$file(),{
-    req(rv$file())
-    updateTextAreaInput(
+  observeEvent({
+    rv$file
+    names(input)
+  },{
+    req(
+        isTruthy(input$file) ||
+          isTruthy(names(input))
+      )
+    browser()
+    updateAceEditor(
       session,
-      "content",
-      value = readPlainText(rv$file())
+      "content-md",
+      value = readPlainText(rv$file)
     )
   })
   
   # UI Verbose ----
   output$selected <- renderText({
     paste(
-      basename(rv$file()),
-      "\n(in:", dirname(rv$file()), ")"
+      basename(rv$file),
+      "\n(in:", dirname(rv$file), ")"
     )
   })
   
