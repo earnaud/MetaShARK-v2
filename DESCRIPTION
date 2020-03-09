@@ -27,13 +27,15 @@ Imports:
     shinyTree,
     fs,
     mime,
+    shinyAce,
     shinyFiles,
     shinydashboard,
     shinyjs,
     shinyBS,
     shinycssloaders,
-    readtext,
-    tagsinput
+    readtext
+Remotes:
+    ThinkR-open/tagsinput
 RoxygenNote: 7.0.2
 URL: https://github.com/earnaud/MetaShARK-v2.git
 BugReports: https://github.com/earnaud/MetaShARK-v2.git/issues
