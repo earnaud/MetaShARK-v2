@@ -27,6 +27,7 @@ Imports:
     shinyTree,
     fs,
     mime,
+    shinyAce,
     shinyFiles,
     shinydashboard,
     shinyjs,
