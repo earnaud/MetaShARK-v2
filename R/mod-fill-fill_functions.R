@@ -15,12 +15,12 @@ initReactive <- function(sublist = NULL, savevar = NULL) {
   if (!(is.null(sublist) || sublist %in% c("emlal", "metafin"))) {
     stop("Attempt to initialize savevar with inconsistent arguments")
   }
-  
+
   # re-creates a whole savevar
   if (is.null(sublist)) {
     savevar <- reactiveValues()
   }
-  
+
   # emlal reactivelist management
   if (is.null(sublist) || sublist == "emlal") {
     savevar$emlal <- reactiveValues(
@@ -42,7 +42,7 @@ initReactive <- function(sublist = NULL, savevar = NULL) {
         taxa.table = NULL,
         taxa.col = NULL,
         taxa.name.type = NULL,
-        taxa.authority =NULL
+        taxa.authority = NULL
       ),
       Personnel = reactiveValues(
         personnel = NULL
@@ -56,7 +56,7 @@ initReactive <- function(sublist = NULL, savevar = NULL) {
           content = character(),
           file = character()
         ),
-        keywords =reactiveValues(
+        keywords = reactiveValues(
           keywords = character(),
           keywordsThesaurus = character()
         ),
@@ -68,12 +68,12 @@ initReactive <- function(sublist = NULL, savevar = NULL) {
       )
     )
   }
-  
+
   # metafin reactivelist management
   if (is.null(sublist) || sublist == "metafin") {
     savevar$metafin <- reactiveValues()
   }
-  
+
   # differential returns
   return(if (is.null(sublist)) {
     savevar
@@ -88,33 +88,35 @@ initReactive <- function(sublist = NULL, savevar = NULL) {
 #' @describeIn initReactive
 #'
 #' @description save the `savevar` variable at wanted location
-#' 
-#' @importFrom shiny withProgress incProgress 
-saveReactive <- function(toSave, path, filename, id = NULL) {
+#'
+#' @importFrom shiny withProgress incProgress
+saveReactive <- function(savevar) {
+  path = savevar$emlal$SelectDP$dp_path
+  filename = savevar$emlal$SelectDP$dp_name
   location <- paste0(path, "/", filename, ".rds")
-  withProgress(
-    {
-      if (file.exists(location)) file.remove(location)
-      incProgress(1/4)
+  
+  withProgress({
+      if (file.exists(location)) 
+        file.remove(location)
+      incProgress(1 / 3)
       saveRDS(toSave, location)
-      incProgress(3/4)
+      incProgress(2 / 3)
     },
-    message = "Saving current metadata",
-    detail = if(!is.null(id)) paste("Module:", id) else ""
+    message = "Saving current metadata"
   )
 }
 
-#' @title readFilesText 
-#' 
+#' @title readFilesText
+#'
 #' @param files files basename located in the same directory or,
 #' if prefix = NULL, list of full filenames to read
-#' @param prefix common file prefix for all file names 
+#' @param prefix common file prefix for all file names
 #' specified in 'files'. By default, sep = "/"
-#' 
+#'
 #' @importFrom readtext readtext
-readPlainText <- function(files, prefix = NULL, sep = "/", ...){
-  if(is.null(prefix)) sep <- ""
-  
+readPlainText <- function(files, prefix = NULL, sep = "/", ...) {
+  if (is.null(prefix)) sep <- ""
+
   readtext(
     paste(
       prefix,
@@ -125,19 +127,21 @@ readPlainText <- function(files, prefix = NULL, sep = "/", ...){
 }
 
 #' @title checkTruth
-#' 
-#' @description check if `x` is truthy (as shiny::isTruthy) or not. 
+#'
+#' @description check if `x` is truthy (as shiny::isTruthy) or not.
 #' Returns the argument if truthy, or the `output` argument if not (default to NULL)
-#' 
+#'
 #' @param x argument to check fo truthiness
 #' @param output what to return if `x` is not truthy
-#' 
+#'
 #' @importFrom shiny isTruthy
-checkTruth <- function(x, output = NULL){
-  if(missing(x))
+checkTruth <- function(x, output = NULL) {
+  if (missing(x)) {
     stop("'x' is missing with no default.")
-  if(isTruthy(x) && isTruthy(unlist(x)))
+  }
+  if (isTruthy(x) && isTruthy(unlist(x))) {
     return(x)
-  else
+  } else {
     return(output)
+  }
 }

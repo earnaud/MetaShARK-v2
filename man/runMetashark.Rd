@@ -7,7 +7,7 @@
 runMetaShark(...)
 }
 \arguments{
-\item{server}{Logical. Is the app deployed in server or not? 
+\item{server}{Logical. Is the app deployed in server or not?
 If FALSE (default), the app is deployed for a local desktop usage.
 If TRUE, the app is deployed for a distant server usage. The main difference between
 both is the way filesystems will be used.}
@@ -29,7 +29,6 @@ precise description of input datasets.
 \examples{
 # run this to launch MetaShARK
 runMetashark()
-
 }
 \author{
 Elie Arnaud <elie.arnaud@mnhn.fr>

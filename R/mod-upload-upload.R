@@ -15,7 +15,7 @@ uploadUI <- function(id, dev, globals) {
 
   # TODO use `runjs` from shinyjs to update css : https://stackoverflow.com/questions/46045222/reactive-css-properties-in-r-shiny
   # TODO add update module
-  
+
   tagList(
     shiny::tabsetPanel(
       id = "upload",
@@ -36,7 +36,7 @@ uploadUI <- function(id, dev, globals) {
           style = "border-left: solid lightgrey; padding: 20px;" # TODO make it work via style.R
         ),
         tags$hr(),
-    
+
         # check authentication token ----
         tags$h3("Get your authentication token"),
         tags$div(
@@ -44,7 +44,7 @@ uploadUI <- function(id, dev, globals) {
           style = "border-left: solid lightgrey; padding: 20px;"
         ),
         tags$hr(),
-    
+
         # files input ----
         tags$h3("Select your data, script and metadata files"),
         tags$div(
@@ -60,14 +60,14 @@ uploadUI <- function(id, dev, globals) {
           style = "border-left: solid lightgrey; padding: 20px;"
         ),
         tags$hr(),
-    
+
         # Constraints ----
         # div(id="constraints_div",
         #     tags$h4("Add constraints between script and data files"),
         #     actionButton(ns("add_constraint"), "", icon = icon("plus"), width = "40px")
         # ),
         # tags$hr(),
-    
+
         actionButton(ns("process"), "Process",
           icon = icon("rocket"),
           width = "100%"
@@ -77,11 +77,10 @@ uploadUI <- function(id, dev, globals) {
       tabPanel(
         title = "update",
         # 1. solr query ----
-        
+
         # 2. select items to update ----
-        
+
         # 3. select files ----
-        
       ) # end of update tab
     ) # end of tabSetPanel
   ) # end of tagList

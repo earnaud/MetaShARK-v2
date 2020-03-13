@@ -28,7 +28,7 @@ markdownInput(input, output, session, preview = FALSE)
 A HTML `reactive` containing the formatted input. Do call it as a reactive.
 }
 \description{
-A shiny input module designed to allow the user to write markdown and render it as 
+A shiny input module designed to allow the user to write markdown and render it as
 a HTML fix.
 }
 \section{Functions}{
@@ -47,7 +47,6 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui, server)
-
 }
 \references{
 Ace technologies \url{https://ace.c9.io/#nav=about}

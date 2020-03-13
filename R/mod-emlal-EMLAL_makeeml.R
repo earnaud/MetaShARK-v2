@@ -1,6 +1,6 @@
 MakeEMLUI <- function(id, title, dev) {
   ns <- NS(id)
-  
+
   return(
     fluidPage(
       # Features UI ----
@@ -37,93 +37,91 @@ MakeEMLUI <- function(id, title, dev) {
 }
 
 #' @title MakeEML
-#' 
+#'
 #' @description server part of the make EML module
-#' 
-#' @importFrom EMLassemblyline make_eml
+#'
+#' @importFrom EMLassemblyline make_eml template_arguments
 MakeEML <- function(input, output, session, savevar, globals) {
   ns <- session$ns
-  
+
   if (globals$dev) {
     observeEvent(input$check, {
       browser()
     })
   }
-  
-  # Navigation buttons ----
+
+  # NSB ----
   callModule(
     onQuit, "nav",
     # additional arguments
-    globals, savevar,
-    savevar$emlal$SelectDP$dp_path,
-    savevar$emlal$SelectDP$dp_name
+    globals, savevar
   )
   callModule(
     onSave, "nav",
     # additional arguments
-    savevar,
-    savevar$emlal$SelectDP$dp_path,
-    savevar$emlal$SelectDP$dp_name
+    savevar
   )
-  callModule(
-    nextTab, "nav",
-    globals, "MakeEML"
-  )
+  # callModule(
+  #   nextTab, "nav",
+  #   globals, "MakeEML"
+  # )
   callModule(
     prevTab, "nav",
     globals
   )
-  
+
   # Make eml ----
   observeEvent(input$make_eml, {
     . <- savevar$emlal
-    
+
+    x <- template_arguments(
+      path = .$SelectDP$dp_path,
+      data.path = .$SelectDP$dp_data_path,
+      data.table = dir(.$SelectDP$dp_data_path)
+    )
+
+    x$path <- .$SelectDP$dp_path
+    x$data.path <- .$SelectDP$dp_data_path
+    # x$data.path <- paste(
+    #   .$SelectDP$dp_path,
+    #   .$SelectDP$dp_name,
+    #   "data_objects",
+    #   sep = "/"
+    # )
+    x$eml.path <- .$SelectDP$dp_eml_path
+    # x$eml.path <- paste(
+    #   .$SelectDP$dp_path,
+    #   .$SelectDP$dp_name,
+    #   "eml",
+    #   sep = "/"
+    # )
+    x$data.table <- dir(x$data.path)
+    x$data.table.name <- .$DataFiles$dp_data_files$name
+    x$data.table.description <- .$DataFiles$dp_data_files$description
+    x$dataset.title <- .$SelectDP$dp_title
+    x$maintenance.description <- "Ongoing"
+    # TODO package.id
+    x$package.id <- "Idontknowhowtogenerateproperid"
+    x$return.obj <- TRUE
+    x$temporal.coverage <- .$Misc$temporal_coverage
+    # TODO user domain (pndb?)
+    x$user.domain <- "UserDomain"
+    # TODO user id (orcid?)
+    x$user.id <- "UserID"
+    x$write.file <- TRUE
+
+    # Yet written in the files then used in make_eml
+    x$geographic.coordinates <- NULL
+    x$geographic.description <- NULL
+
     try(
-      make_eml(
-        path = paste(
-          .$SelectDP$dp_path,
-          .$SelectDP$dp_name,
-          "metadata_templates",
-          sep = "/"
-        ),
-        data.path = paste(
-          .$SelectDP$dp_path,
-          .$SelectDP$dp_name,
-          "data_objects",
-          sep = "/"
-        ),
-        eml.path = paste(
-          .$SelectDP$dp_path,
-          .$SelectDP$dp_name,
-          "eml",
-          sep = "/"
-        ),
-        dataset.title = .$SelectDP$dp_title,
-        temporal.coverage = .$Misc$temporal_coverage,
-        maintenance.description = "ongoing",
-        # geographic.description = checkTruth(.$GeoCov$geographicDescription),
-        # geographic.coordinates = checkTruth(.$GeoCov[,c("northBoundingCoordinate","southBoundingCoordinate","eastBoundingCoordinate","westBoundingCoordinate")]),
-        data.table = .$DataFiles$dp_data_files$name,
-        data.table.name = .$DataFiles$dp_data_files$name,
-        # TODO add description inputs
-        data.table.description = .$DataFiles$dp_data_files$name,
-        # TODO in data selection step, add data url
-        # data.url = NULL,
-        # TODO in data selection step, add entity differenciation
-        # other.entity = NULL,
-        # other.entity.description = NULL,
-        # TODO add EDI data repository ID
-        # provenance = NULL,
-        # TODO add user.id from options
-        user.id = 'Test',
-        user.domain = 'EDI'
-        # TODO check how to get a lsid?
-        # ,package.id = NULL
+      do.call(
+        make_eml,
+        x[names(x) %in% names(formals(make_eml))]
       )
     )
-    
+
     browser()
-    
   })
   # Output ----
   return(savevar)

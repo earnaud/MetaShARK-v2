@@ -7,5 +7,5 @@
 MiscellaneousUI(id, help_label = NULL, server = FALSE)
 }
 \description{
-MiscellaneousUI
+
 }

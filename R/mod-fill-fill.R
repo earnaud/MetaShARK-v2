@@ -21,7 +21,7 @@ fill <- function(input, output, session, globals, server) {
 
   # save variable
   savevar <- initReactive()
-  
+
   # action ----
   observeEvent(globals$EMLAL$NAVIGATE, {
     # resume where it was saved
