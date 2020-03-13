@@ -3,7 +3,7 @@
 #' @title followPath
 #'
 #' @description Takes a hierarchy list (tree), a path written in a vector pasted with sep, and returns the leaf
-#' 
+#'
 #' @param tree: explored hierarchy list thanks to path
 #' @param path: vector of characters matching some of tree names and
 #' separated with sep
@@ -29,7 +29,7 @@ followPath <- function(tree, path, sep = "/") {
   path <- path[!path == "Root"]
 
   while (length(path) != 0) {
-    tree <- tree[[ path[1] ]]
+    tree <- tree[[path[1]]]
     path <- path[-1]
   }
   return(tree)

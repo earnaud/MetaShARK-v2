@@ -21,9 +21,9 @@
   HOME <- path_home()
   DP.PATH <- paste0(HOME, "/dataPackagesOutput/emlAssemblyLine/")
   dir.create(DP.PATH, recursive = TRUE, showWarnings = FALSE)
-  TMP.PATH <-  paste0(HOME, "/EMLAL_tmp/")
+  TMP.PATH <- paste0(HOME, "/EMLAL_tmp/")
   # clear the temp
-  unlink(TMP.PATH, recursive = TRUE) 
+  unlink(TMP.PATH, recursive = TRUE)
   dir.create(TMP.PATH, recursive = TRUE, showWarnings = FALSE)
 
   THRESHOLD <- list(
@@ -38,26 +38,26 @@
     "YYYY-MM-DD hh", "YYYY-MM-DD hh:mm", "YYYY-MM-DD hh:mm:ss",
     "YYYY hh", "YYYY hh:mm", "YYYY hh:mm:ss"
   )
-  
+
   # Unit types
   UNIT.LIST <- c("custom", get_unitList()$units$name)
-  
+
   # Paths
-  wwwPaths <- system.file("resources", package="MetaShARK") %>% 
+  wwwPaths <- system.file("resources", package = "MetaShARK") %>%
     paste(., dir(.), sep = "/") %>%
-    as.list
+    as.list()
   names(wwwPaths) <- basename(unlist(wwwPaths))
-  
+
   # DataONE nodes
   # DATAONE.LIST <- dataone::listFormats(dataone::CNode())$MediaType
   DATAONE.LIST <- unlist(fread(wwwPaths$dataoneCNodesList.txt))
-  
+
   # Taxa authorities
   # TAXA.AUTHORITIES <-  taxonomyCleanr::view_taxa_authorities()
   TAXA.AUTHORITIES <- fread(wwwPaths$taxaAuthorities.txt)
-  
+
   # Build global variable
-  if(reactive)
+  if (reactive) {
     globals <- reactiveValues(
       dev = dev,
       THRESHOLDS = reactiveValues(data_files_size_max = 500000),
@@ -86,7 +86,7 @@
         NAVIGATE = 1
       )
     )
-  else
+  } else {
     globals <- list(
       dev = dev,
       THRESHOLDS = reactiveValues(data_files_size_max = 500000),
@@ -105,6 +105,7 @@
         DATAONE.TEST.TOKEN = NA_character_
       )
     )
+  }
   # output
   return(globals)
 }

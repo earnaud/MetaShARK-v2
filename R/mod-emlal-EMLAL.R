@@ -8,14 +8,15 @@
 #' @importFrom shinycssloaders withSpinner
 EMLALUI <- function(id, dev = FALSE) {
   ns <- NS(id)
-  
+
   fluidPage(
     style = "padding-top:2.5%;",
     box(
       collapsible = TRUE,
       width = 12,
       title = "About EML Assembly Line",
-      column(4,
+      column(
+        4,
         tags$h3("Authorship"),
         HTML(
           "<p>The `EML Assembly Line` package used in this module
@@ -34,7 +35,8 @@ EMLALUI <- function(id, dev = FALSE) {
           class = "logo"
         )
       ),
-      column(8,
+      column(
+        8,
         tags$h3("Usage"),
         HTML(
           "<p><b>EMLassemblyline</b> is a metadata builder for scientists
@@ -50,13 +52,14 @@ EMLALUI <- function(id, dev = FALSE) {
           incorporates <a href=\"https://environmentaldatainitiative.files.wordpress.com/2017/11/emlbestpractices-v3.pdf\">EML best practices</a>,
           is based on a simple file organization scheme, and is not tied to a specific data repository.</p>
           <i>(preface by Colin Smith, EDI)</i>
-        ")
+        "
+        )
       ) # end usage
     ),
     box(
       title = "EML Assembly Line",
       width = 12,
-      uiOutput(ns("currentUI"))  %>% withSpinner(color="#599cd4")
+      uiOutput(ns("currentUI")) %>% withSpinner(color = "#599cd4")
     ) # end variable UI
   ) # end fluidPage
 }
@@ -68,21 +71,24 @@ EMLALUI <- function(id, dev = FALSE) {
 #'
 #' @importFrom shiny observeEvent renderUI renderImage HTML callModule imageOutput
 EMLAL <- function(input, output, session,
-  savevar, globals, server) {
+                  savevar, globals, server) {
   ns <- session$ns
-  
-  output$`edi-logo` <- renderImage({
-    list(
-      src = system.file("media/EDI-logo.png", package="MetaShARK"),
-      contentType = "image/png",
-      width = "100%",
-      height = "100%"
-    )
-  }, deleteFile = FALSE)
-  
+
+  output$`edi-logo` <- renderImage(
+    {
+      list(
+        src = system.file("media/EDI-logo.png", package = "MetaShARK"),
+        contentType = "image/png",
+        width = "100%",
+        height = "100%"
+      )
+    },
+    deleteFile = FALSE
+  )
+
   # names of EMLAL steps
-  steps <- c("SelectDP", "DataFiles", "Attributes","CustomUnits","CatVars", "GeoCov", "TaxCov", "Misc", "MakeEML")
-  
+  steps <- c("SelectDP", "DataFiles", "Attributes", "CustomUnits", "CatVars", "GeoCov", "TaxCov", "Misc", "MakeEML")
+
   iteration <- 0 # varying namespace
   # Output ----
   observeEvent(globals$EMLAL$NAVIGATE, {
@@ -121,14 +127,14 @@ EMLAL <- function(input, output, session,
           id = ns(iteration),
           title = steps[globals$EMLAL$NAVIGATE],
           dev = globals$dev,
-          data.files = savevar$emlal$DataFiles$dp_data_files$datapath,
+          data.files = savevar$emlal$DataFiles$datapath,
           coordPattern = globals$PATTERNS$LATLON
         ),
         TaxCovUI(
           id = ns(iteration),
           title = steps[globals$EMLAL$NAVIGATE],
           dev = globals$dev,
-          data.files = savevar$emlal$DataFiles$dp_data_files$datapath,
+          data.files = savevar$emlal$DataFiles$datapath,
           taxa.authorities = globals$FORMAT$AUTHORITIES
         ),
         PersonnelUI(
@@ -155,16 +161,18 @@ EMLAL <- function(input, output, session,
         }
       )
     })
-    
+
     # Server ----
     savevar <- switch(globals$EMLAL$NAVIGATE,
       callModule(
         SelectDP, iteration,
-        savevar, globals, server = server
+        savevar, globals,
+        server = server
       ),
       callModule(
         DataFiles, iteration,
-        savevar, globals, server = server
+        savevar, globals,
+        server = server
       ),
       callModule(
         Attributes, iteration,
@@ -192,7 +200,8 @@ EMLAL <- function(input, output, session,
       ),
       callModule(
         Misc, iteration,
-        savevar, globals, server = server
+        savevar, globals,
+        server = server
       ),
       callModule(
         MakeEML, iteration,
@@ -207,7 +216,7 @@ EMLAL <- function(input, output, session,
       )
     )
   })
-  
+
   # Save variable
   return(savevar)
 }

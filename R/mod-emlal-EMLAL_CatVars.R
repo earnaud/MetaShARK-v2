@@ -79,22 +79,24 @@ CatVars <- function(input, output, session, savevar, globals) {
       # list catvar files
       rv$catvarFiles$full <- list.files(
         paste(
-          savevar$emlal$SelectDP$dp_path,
-          savevar$emlal$SelectDP$dp_name,
-          "metadata_templates",
-          sep = "/"
+          savevar$emlal$SelectDP$dp_metadata_path
+          # savevar$emlal$SelectDP$dp_path,
+          # savevar$emlal$SelectDP$dp_name,
+          # "metadata_templates",
+          # sep = "/"
         ),
-        "catvar",
+        pattern = "catvar",
         full.names = TRUE
       )
       rv$catvarFiles$short <- list.files(
         paste(
-          savevar$emlal$SelectDP$dp_path,
-          savevar$emlal$SelectDP$dp_name,
-          "metadata_templates",
-          sep = "/"
+          savevar$emlal$SelectDP$dp_metadata_path
+          # savevar$emlal$SelectDP$dp_path,
+          # savevar$emlal$SelectDP$dp_name,
+          # "metadata_templates",
+          # sep = "/"
         ),
-        "catvar"
+        pattern = "catvar"
       )
       rv$currentIndex <- 1
       sapply(rv$catvarFiles$full, function(file_name) {
@@ -112,7 +114,7 @@ CatVars <- function(input, output, session, savevar, globals) {
     # update rv$CatVars
     rv$CatVars <- fread(rv$catvarFiles$full[rv$currentIndex])
     if (all(is.na(rv$CatVars$definition))) {
-      rv$CatVars <- savevar$emlal$CatVars[[ rv$catvarFiles$short[rv$currentIndex] ]]
+      rv$CatVars <- savevar$emlal$CatVars[[rv$catvarFiles$short[rv$currentIndex]]]
     }
   }) # end of observeEvent
 
@@ -153,19 +155,16 @@ CatVars <- function(input, output, session, savevar, globals) {
     )
   })
 
+  # NSB ----
   callModule(
     onQuit, "nav",
     # additional arguments
-    globals, savevar,
-    savevar$emlal$SelectDP$dp_path,
-    savevar$emlal$SelectDP$dp_name
+    globals, savevar
   )
   callModule(
     onSave, "nav",
     # additional arguments
-    savevar,
-    savevar$emlal$SelectDP$dp_path,
-    savevar$emlal$SelectDP$dp_name
+    savevar
   )
   callModule(
     nextTab, "nav",
@@ -230,15 +229,13 @@ CatVars <- function(input, output, session, savevar, globals) {
   }) # end observeEvent
 
   # Saves ----
-  observeEvent(sapply(names(rv$codes), function(i) input[[i]]),
-    {
-      validate(
-        need(all(rv$CatVars$code %in% names(input)), "codes' inputs are not ready yet"),
-        need(all(rv$CatVars$code %in% names(rv$codes)), "codes' inputs are not ready yet")
-      )
-      rv$CatVars$definition <- printReactiveValues(rv$codes)[rv$CatVars$code]
-    }
-  )
+  observeEvent(sapply(names(rv$codes), function(i) input[[i]]), {
+    validate(
+      need(all(rv$CatVars$code %in% names(input)), "codes' inputs are not ready yet"),
+      need(all(rv$CatVars$code %in% names(rv$codes)), "codes' inputs are not ready yet")
+    )
+    rv$CatVars$definition <- printReactiveValues(rv$codes)[rv$CatVars$code]
+  })
 
   # Process data ----
   observeEvent(input[["nav-prevTab"]], {
@@ -256,7 +253,7 @@ CatVars <- function(input, output, session, savevar, globals) {
       )
     })
   })
-  
+
   # Output ----
   return(savevar)
 }

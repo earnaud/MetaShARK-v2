@@ -5,7 +5,7 @@
 #' @importFrom shiny NS fluidPage column fluidRow tagList tags icon actionButton uiOutput textOutput
 CustomUnitsUI <- function(id, title, dev) {
   ns <- NS(id)
-  
+
   return(
     fluidPage(
       # Features UI ----
@@ -14,20 +14,23 @@ CustomUnitsUI <- function(id, title, dev) {
         tags$h4("Custom units description"),
         fluidRow(
           fluidRow(
-            column(1,
+            column(
+              1,
               actionButton(
                 ns("attribute_prev"),
                 "",
                 icon("chevron-left")
               )
             ),
-            column(10,
+            column(
+              10,
               uiOutput(
                 ns("current_attribute"),
                 inline = TRUE
               )
             ),
-            column(1,
+            column(
+              1,
               actionButton(
                 ns("attribute_next"),
                 "",
@@ -64,29 +67,30 @@ CustomUnitsUI <- function(id, title, dev) {
 #' @importFrom shinyjs enable disable toggleState
 #' @importFrom dplyr select mutate filter %>%
 CustomUnits <- function(input, output, session,
-  savevar, globals) {
+                        savevar, globals) {
   ns <- session$ns
-  
+
   # DEV ----
   if (globals$dev) {
     observeEvent(input$check, {
       browser()
     })
   }
-  
+
   # fill the description fields with automatically filled field
   observeEvent(input$fill, {
     req(exists("rv"))
-    sapply(names(rv$CU_Table), function(field){
-      if(! field %in% c("parentSI", "multiplierToSI"))
+    sapply(names(rv$CU_Table), function(field) {
+      if (!field %in% c("parentSI", "multiplierToSI")) {
         rv$CU_Table[, field] <- "Automatically filled field."
-      else
+      } else {
         rv$CU_Table[, field] <- rv$attributes[[field]]()
+      }
     })
     savevar$emlal$Attributes$custom_units <- rv$CU_Table
   })
-  
-  
+
+
   # variable initialization ----
   rv <- reactiveValues(
     CU_Table = data.frame(),
@@ -97,72 +101,75 @@ CustomUnits <- function(input, output, session,
     attributes = reactiveValues(),
     complete = FALSE
   )
-  
+
   # Once-only triggered
-  observeEvent(TRUE, {
-    # need to have filled Attributes
-    req(
-      isolate(
-        unlist(
-          reactiveValuesToList(
-            savevar$emlal$Attributes
+  observeEvent(TRUE,
+    {
+      # need to have filled Attributes
+      req(
+        isolate(
+          unlist(
+            reactiveValuesToList(
+              savevar$emlal$Attributes
+            )
           )
         )
       )
-    )
-    disable("nav-nextTab")
-    rv$CU_Table <- fread(
-      paste(savevar$emlal$SelectDP$dp_path,
-        savevar$emlal$SelectDP$dp_name,
-        "metadata_templates",
-        "custom_units.txt",
-        sep = "/"
-      ),
-      data.table = FALSE,
-      stringsAsFactors = FALSE,
-      na.strings = NULL
-    )
-    
-    # get attributesNames and attributesFiles
-    sapply(names(savevar$emlal$Attributes), function(file_name) {
-      if (file_name != "custom_units") {
-        # shorten attributes' data frame name
-        tmp <- savevar$emlal$Attributes[[file_name]] 
-        if (any(tmp$unit == "custom")) {
-          # expand attributes' names list
-          rv$attributesNames <<- c(
-            rv$attributesNames,
-            tmp$attributeName[tmp$unit == "custom"]
-          )
-          # get the attribute's corresponding data file's name
-          rv$attributesFiles <<- c(
-            rv$attributesFiles,
-            rep(file_name, length(tmp$attributeName[tmp$unit == "custom"]))
-          )
-        }
-      }
-    })
-    
-    # correct CU_Table if needed
-    if (any(dim(rv$CU_Table) == 0)) {
-      isolate({
-        sapply(
-          1:length(rv$attributesNames),
-          function(i) {
-            rv$CU_Table[i, ] <- rep("", ncol(rv$CU_Table))
+      disable("nav-nextTab")
+      rv$CU_Table <- fread(
+        savevar$emlal$SelectDP$dp_metadata_path,
+        # paste(savevar$emlal$SelectDP$dp_path,
+        #   savevar$emlal$SelectDP$dp_name,
+        #   "metadata_templates",
+        #   "custom_units.txt",
+        #   sep = "/"
+        # ),
+        data.table = FALSE,
+        stringsAsFactors = FALSE,
+        na.strings = NULL
+      )
+
+      # get attributesNames and attributesFiles
+      sapply(names(savevar$emlal$Attributes), function(file_name) {
+        if (file_name != "custom_units") {
+          # shorten attributes' data frame name
+          tmp <- savevar$emlal$Attributes[[file_name]]
+          if (any(tmp$unit == "custom")) {
+            # expand attributes' names list
+            rv$attributesNames <<- c(
+              rv$attributesNames,
+              tmp$attributeName[tmp$unit == "custom"]
+            )
+            # get the attribute's corresponding data file's name
+            rv$attributesFiles <<- c(
+              rv$attributesFiles,
+              rep(file_name, length(tmp$attributeName[tmp$unit == "custom"]))
+            )
           }
-        )
+        }
       })
-    }
-    rv$CU_Table <- rv$CU_Table %>% 
-      mutate(parentSI = replace(.$parentSI, TRUE, "dimensionless")) %>% 
-      mutate(multiplierToSI = replace(.$multiplierToSI, TRUE, 1))
-    
-    # set current index (for attribute)
-    rv$current_index <- 1
-  },
-  once = TRUE)
-  
+
+      # correct CU_Table if needed
+      if (any(dim(rv$CU_Table) == 0)) {
+        isolate({
+          sapply(
+            1:length(rv$attributesNames),
+            function(i) {
+              rv$CU_Table[i, ] <- rep("", ncol(rv$CU_Table))
+            }
+          )
+        })
+      }
+      rv$CU_Table <- rv$CU_Table %>%
+        mutate(parentSI = replace(.$parentSI, TRUE, "dimensionless")) %>%
+        mutate(multiplierToSI = replace(.$multiplierToSI, TRUE, 1))
+
+      # set current index (for attribute)
+      rv$current_index <- 1
+    },
+    once = TRUE
+  )
+
   # Multiply triggered
   observeEvent(rv$current_index, {
     req(rv$current_index)
@@ -170,7 +177,7 @@ CustomUnits <- function(input, output, session,
     output$attributeFile <- renderText({
       paste("In", rv$attributesFiles[rv$current_index])
     })
-    
+
     # enable/disable units navigation button
     if (rv$current_index <= 1) {
       disable("attribute_prev")
@@ -178,7 +185,7 @@ CustomUnits <- function(input, output, session,
     else {
       enable("attribute_prev")
     }
-    
+
     if (rv$current_index >= length(rv$attributesNames)) {
       disable("attribute_next")
     }
@@ -186,15 +193,15 @@ CustomUnits <- function(input, output, session,
       enable("attribute_next")
     }
   })
-  
+
   observeEvent(rv$CU_Table, {
     req(rv$CU_Table)
     rv$ui <- colnames(rv$CU_Table)
     savevar$emlal$Attributes$custom_units <- rv$CU_Table
   })
-  
+
   # Navigation buttons ----
-  
+
   # Attribute selection
   observeEvent(input$attribute_prev, {
     req(rv$attributesNames, rv$current_index)
@@ -202,14 +209,14 @@ CustomUnits <- function(input, output, session,
       rv$current_index <- rv$current_index - 1
     }
   })
-  
+
   observeEvent(input$attribute_next, {
     req(rv$attributesNames, rv$current_index)
     if (rv$current_index < length(rv$attributesNames)) {
       rv$current_index <- rv$current_index + 1
     }
   })
-  
+
   output$current_attribute <- renderUI({
     div(rv$current_attribute,
       style = paste0(
@@ -225,21 +232,17 @@ CustomUnits <- function(input, output, session,
       )
     )
   })
-  
-  # NSB
+
+  # NSB ----
   callModule(
     onQuit, "nav",
     # additional arguments
-    globals, savevar,
-    savevar$emlal$SelectDP$dp_path,
-    savevar$emlal$SelectDP$dp_name
+    globals, savevar
   )
   callModule(
     onSave, "nav",
     # additional arguments
-    savevar,
-    savevar$emlal$SelectDP$dp_path,
-    savevar$emlal$SelectDP$dp_name
+    savevar
   )
   callModule(
     nextTab, "nav",
@@ -249,20 +252,20 @@ CustomUnits <- function(input, output, session,
     prevTab, "nav",
     globals
   )
-  
+
   # Procedurals ----
   # / UI ----
   # Warning: Error in choicesWithNames: argument "choices" is missing, with no default
   output$edit_CU <- renderUI({
     req(rv$ui)
-    
+
     # actions
     tagList(
       # write each attribute's characteristic
       lapply(rv$ui, function(colname) {
         # prepare var
         saved_value <- rv$CU_Table[rv$current_index, colname]
-        
+
         # UI
         switch(colname,
           id = textInput(ns(colname),
@@ -293,17 +296,17 @@ CustomUnits <- function(input, output, session,
       }) # end of lapply colname
     ) # end of tagList
   }) # end of UI
-  
+
   # / Servers ----
   observe({
     req(any(rv$ui %in% names(input)))
-    
+
     sapply(names(rv$CU_Table), function(rvName) {
       rv$attributes[[rvName]] <- eventReactive(input[[rvName]],
         {
           # get input value
           enter <- input[[rvName]]
-          
+
           # check obtained value
           if (is.list(enter)) {
             enter <- unlist(enter)
@@ -314,7 +317,7 @@ CustomUnits <- function(input, output, session,
       ) # end eventReactive
     }) # end sapply
   }) # end observe
-  
+
   # Saves ----
   observeEvent(
     {
@@ -335,15 +338,15 @@ CustomUnits <- function(input, output, session,
       )[names(rv$CU_Table)]
     }
   )
-  
+
   rv$complete <- reactive({
     req(rv$CU_Table)
     all(sapply(unlist(rv$CU_Table), isTruthy))
   })
-  
+
   observe({
     req(names(input))
-    
+
     if (rv$complete()) {
       enable("nav-nextTab")
       output$warning_completeness <- renderText(NULL)
@@ -352,15 +355,14 @@ CustomUnits <- function(input, output, session,
       output$warning_completeness <- renderText("All fields must be filled.")
     }
   })
-  
+
   # Process data ----
   observeEvent(input[["nav-nextTab"]],
     {
       fwrite(
         rv$CU_Table,
-        paste(savevar$emlal$SelectDP$dp_path,
-          savevar$emlal$SelectDP$dp_name,
-          "metadata_templates",
+        paste(
+          savevar$emlal$SelectDP$dp_metadata_path,
           "custom_units.txt",
           sep = "/"
         ),
@@ -369,28 +371,31 @@ CustomUnits <- function(input, output, session,
       # avoid catvar filling if not templated
       if (
         !any(
-          grepl("catvar", 
+          grepl(
+            "catvar",
             dir(
-              paste(savevar$emlal$SelectDP$dp_path,
-                savevar$emlal$SelectDP$dp_name,
-                "metadata_templates",
-                sep = "/")
+              savevar$emlal$SelectDP$dp_metadata_path
+              # paste(savevar$emlal$SelectDP$dp_path,
+              #   savevar$emlal$SelectDP$dp_name,
+              #   "metadata_templates",
+              #   sep = "/")
             )
           )
         )
-      )
-      globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE+1
+      ) {
+        globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1
+      }
     },
     priority = 1
   )
-  
+
   observeEvent(input[["nav-prevTab"]],
     {
-      
+
     },
     priority = 1
   )
-  
+
   # Output ----
   return(savevar)
 }

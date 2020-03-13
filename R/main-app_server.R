@@ -9,29 +9,32 @@
   # get app arguments
   appArgs <- golem::get_golem_options()
   dev <- appArgs$dev
-  server = appArgs$server
-  
+  server <- appArgs$server
+
   if (!is.logical(dev) || is.null(dev)) dev <- FALSE
   # initialize global variables
   globals <- .globalScript(dev)
   savevar <- NULL
 
   ## DEV: do things by clicking a button
-  if(dev){
+  if (dev) {
     observeEvent(input$check, {
       browser()
     })
   }
-  
+
   ## esthetics ----
-  output$logo <- renderImage({
-    list(
-      src = system.file("media/logo.png", package="MetaShARK"),
-      contentType = "image/png",
-      width = "200px",
-      height = "50px"
-    )
-  }, deleteFile = FALSE)
+  output$logo <- renderImage(
+    {
+      list(
+        src = system.file("media/logo.png", package = "MetaShARK"),
+        contentType = "image/png",
+        width = "200px",
+        height = "50px"
+      )
+    },
+    deleteFile = FALSE
+  )
 
   # Head bar server ----
   # Options

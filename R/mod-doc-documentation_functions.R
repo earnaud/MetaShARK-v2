@@ -49,8 +49,8 @@ extractContent <- function(content, nsIndex) {
     {
       ulinks.ind <- which(grepl("ulink", attr(out, "names"))) # ulinks are always structured the same way
       # browser()
-      out[ ulinks.ind[1:length(ulinks.ind) %% 3 == 1] ] <- paste(out[ ulinks.ind[1:length(ulinks.ind) %% 3 == 1] ], # raw text
-        out[ ulinks.ind[1:length(ulinks.ind) %% 3 == 2] ], # URL
+      out[ulinks.ind[1:length(ulinks.ind) %% 3 == 1]] <- paste(out[ulinks.ind[1:length(ulinks.ind) %% 3 == 1]], # raw text
+        out[ulinks.ind[1:length(ulinks.ind) %% 3 == 2]], # URL
         sep = "[RECOGNIZED]"
       )
     }
@@ -69,7 +69,7 @@ extractContent <- function(content, nsIndex) {
 
     #- reorganizing
     out <- nt.titles(
-      out, 
+      out,
       list(
         remove = "emphasis",
         remove = "citetitle",
@@ -260,7 +260,7 @@ commonPath <- function(li, name) {
 #'
 #' Takes a hierarchy list (tree), a path written in a vector pasted
 #' with sep = sep, and returns the targetted node
-#' 
+#'
 #' @param tree: explored hierarchy list thanks to @path
 #' @param path: vector of characters matching some of @tree names and
 #'              separated with @sep
@@ -286,7 +286,7 @@ followPath <- function(tree, path, sep = "/") {
   path <- path[!path == "Root"]
 
   while (length(path) != 0) {
-    tree <- tree[[ path[1] ]]
+    tree <- tree[[path[1]]]
     path <- path[-1]
   }
 
