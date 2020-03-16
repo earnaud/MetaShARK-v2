@@ -18,7 +18,7 @@
 #'
 #' @export
 uploadDP <- function(mn, cn, eml, data, scripts = c(), formats) {
-  # Set variables ----
+  # Set variables -----------------------------------------------------
   message("Set variables")
   # set arguments
   mn <- MNode(mn)
@@ -36,8 +36,8 @@ uploadDP <- function(mn, cn, eml, data, scripts = c(), formats) {
     scripts = c()
   )
 
-  # Edit metadata ----
-  message("Edit metadata ")
+  # Edit metadata -----------------------------------------------------
+  message("Editing metadata ...")
   doc$packageId <- id$metadata
   doc$dataset$maintenance$description <- "completed"
   doc$system <- mn@identifier
@@ -67,8 +67,8 @@ uploadDP <- function(mn, cn, eml, data, scripts = c(), formats) {
   # Commit metadata
   write_eml(doc, eml)
 
-  # Write DP ----
-  message("Write data package")
+  # Write DP -----------------------------------------------------
+  message("Writing data package ...")
   # Metadata object
   metadataObj <- new("DataObject",
     id = id$metadata,
@@ -106,12 +106,12 @@ uploadDP <- function(mn, cn, eml, data, scripts = c(), formats) {
     })
   }
 
-  # Constraints ----
+  # Constraints -----------------------------------------------------
 
 
-  # Access rules ----
+  # Access rules -----------------------------------------------------
 
-  # Upload ! ----
+  # Upload -----------------------------------------------------
   eml_validate(doc)
   packageId <- uploadDataPackage(d1c, dp, public = TRUE)
 }

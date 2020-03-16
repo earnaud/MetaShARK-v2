@@ -17,12 +17,12 @@ fillUI <- function(id, dev = FALSE) {
 #' @importFrom shiny observeEvent callModule
 fill <- function(input, output, session, globals, server) {
   ns <- session$ns
-  # variable initialization ----
+  # variable initialization -----------------------------------------------------
 
   # save variable
   savevar <- initReactive()
-  
-  # action ----
+
+  # action -----------------------------------------------------
   observeEvent(globals$EMLAL$NAVIGATE, {
     # resume where it was saved
     savevar$emlal$step <- globals$EMLAL$NAVIGATE
@@ -37,6 +37,6 @@ fill <- function(input, output, session, globals, server) {
     savevar, globals, server
   )
 
-  # Output ----
+  # Output -----------------------------------------------------
   return(savevar)
 }

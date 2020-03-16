@@ -6,17 +6,18 @@
 #' @importFrom shinyjs hidden disabled
 TaxCovUI <- function(id, title, dev, data.files, taxa.authorities) {
   ns <- NS(id)
-  
+
   return(
     fluidPage(
-      # Features UI ----
+      # Features UI -----------------------------------------------------
       column(
         10,
         fluidRow(
           tags$h4(title),
           tags$p("This step is facultative."),
           # taxa.table(s)
-          column(6,
+          column(
+            6,
             selectizeInput(
               ns("taxa.table"),
               "Files containing taxonomic references",
@@ -32,10 +33,11 @@ TaxCovUI <- function(id, title, dev, data.files, taxa.authorities) {
               )
             )
           ),
-          column(6,
+          column(
+            6,
             checkboxGroupInput(
               ns("taxa.name.type"),
-              "Select one or both taxonomic name notation", 
+              "Select one or both taxonomic name notation",
               c("scientific", "common")
             ),
             selectizeInput(
@@ -47,7 +49,7 @@ TaxCovUI <- function(id, title, dev, data.files, taxa.authorities) {
           )
         )
       ), # end of column1
-      # Navigation UI ----
+      # Navigation UI -----------------------------------------------------
       column(
         2,
         navSidebar(
@@ -73,64 +75,67 @@ TaxCovUI <- function(id, title, dev, data.files, taxa.authorities) {
 #' @importFrom EMLassemblyline template_taxonomic_coverage
 TaxCov <- function(input, output, session, savevar, globals) {
   ns <- session$ns
-  
+
   if (globals$dev) {
     observeEvent(input$check, {
       browser()
     })
   }
-  
-  # Variable Initialization ----
+
+  # Variable Initialization -----------------------------------------------------
   rv <- reactiveValues()
-  
-  observeEvent(TRUE, {
-    req(names(input))
-    
-    rv$taxa.table = savevar$emlal$Taxcov$taxa.table
-    rv$taxa.col = savevar$emlal$Taxcov$taxa.col
-    rv$taxa.name.type = savevar$emlal$Taxcov$taxa.name.type
-    rv$taxa.authority = savevar$emlal$Taxcov$taxa.authority
-    
-    updateVar <- rv$taxa.table
-    updateSelectizeInput(
-      session,
-      "taxa.table",
-      selected = updateVar
-    )
-    
-    updateVar <- rv$taxa.col
-    updateSelectizeInput(
-      session,
-      "taxa.col",
-      selected = updateVar
-    )
-    
-    updateVar <- rv$taxa.name.type
-    if(updateVar == "both")
-      updateVar = c("scientific", "common")
-    updateSelectizeInput(
-      session,
-      "taxa.name.type",
-      selected = updateVar
-    )
-    
-    updateVar <- rv$taxa.authority
-    updateSelectizeInput(
-      session,
-      "taxa.authority",
-      selected = updateVar
-    )
-  }, 
-  once = TRUE)
-  
-  # Taxonomic coverage input ----
-  
+
+  observeEvent(TRUE,
+    {
+      req(names(input))
+
+      rv$taxa.table <- savevar$emlal$Taxcov$taxa.table
+      rv$taxa.col <- savevar$emlal$Taxcov$taxa.col
+      rv$taxa.name.type <- savevar$emlal$Taxcov$taxa.name.type
+      rv$taxa.authority <- savevar$emlal$Taxcov$taxa.authority
+
+      updateVar <- rv$taxa.table
+      updateSelectizeInput(
+        session,
+        "taxa.table",
+        selected = updateVar
+      )
+
+      updateVar <- rv$taxa.col
+      updateSelectizeInput(
+        session,
+        "taxa.col",
+        selected = updateVar
+      )
+
+      updateVar <- rv$taxa.name.type
+      if (updateVar == "both") {
+        updateVar <- c("scientific", "common")
+      }
+      updateSelectizeInput(
+        session,
+        "taxa.name.type",
+        selected = updateVar
+      )
+
+      updateVar <- rv$taxa.authority
+      updateSelectizeInput(
+        session,
+        "taxa.authority",
+        selected = updateVar
+      )
+    },
+    once = TRUE
+  )
+
+  # Taxonomic coverage input -----------------------------------------------------
+
   # Taxa files
-  observe({
+  observeEvent(input$taxa.table, {
     # invalid-selected/no value(s)
-    if(!isTruthy(input$taxa.table)){
+    if (!isTruthy(input$taxa.table)) {
       disable("taxa.col")
-      
+
       updateSelectizeInput(
         session,
         "taxa.col",
@@ -140,74 +145,71 @@ TaxCov <- function(input, output, session, savevar, globals) {
     # valid-selected value(s)
     else {
       enable("taxa.col")
-      
+
       taxa.col.list <- lapply(input$taxa.table, function(file) {
-        all.files <- savevar$emlal$DataFiles$dp_data_files
+        all.files <- savevar$emlal$DataFiles
         file <- all.files[all.files$name == file, "datapath"]
         df <- fread(file)
         return(colnames(df))
       })
       names(taxa.col.list) <- input$taxa.table
-      
+
       updateSelectizeInput(
         session,
         "taxa.col",
         choices = taxa.col.list
       )
     }
-    
+
     # save
     rv$taxa.table <- list(input$taxa.table)
     savevar$emlal$TaxCov$taxa.table <- rv$taxa.table
   })
-  
+
   # Taxa columns to read
   observeEvent(input$taxa.col, {
     req(input$taxa.col)
-    
+
     rv$taxa.col <- input$taxa.col
     savevar$emlal$TaxCov$taxa.col <- rv$taxa.col
   })
-  
+
   # Taxa columns to read
   observeEvent(input$taxa.name.type, {
     req(input$taxa.name.type)
-    
+
     rv$taxa.name.type <- input$taxa.name.type
-    
-    if("scientific" %in% rv$taxa.name.type &&
-        "common" %in% rv$taxa.name.type)
+
+    if ("scientific" %in% rv$taxa.name.type &&
+      "common" %in% rv$taxa.name.type) {
       rv$taxa.name.type <- "both"
+    }
     savevar$emlal$TaxCov$taxa.name.type <- rv$taxa.name.type
   })
-  
+
   # Taxa columns to read
   observeEvent(input$taxa.authority, {
     req(input$taxa.authority)
-    
+
     rv$taxa.authority <- input$taxa.authority
-    
+
     rv$taxa.authority <- globals$FORMAT$AUTHORITIES %>%
       filter(authority == rv$taxa.authority) %>%
       select(id) %>%
-      unlist
+      unlist()
     savevar$emlal$TaxCov$taxa.authority <- rv$taxa.authority
   })
-  
-  # Navigation buttons ----
+
+  # NSB -----------------------------------------------------
   callModule(
     onQuit, "nav",
     # additional arguments
-    globals, savevar,
-    savevar$emlal$SelectDP$dp_path,
-    savevar$emlal$SelectDP$dp_name
+    globals, savevar
   )
   callModule(
     onSave, "nav",
     # additional arguments
-    savevar,
-    savevar$emlal$SelectDP$dp_path,
-    savevar$emlal$SelectDP$dp_name
+    savevar
   )
   # callModule(
   #   nextTab, "nav",
@@ -217,24 +219,24 @@ TaxCov <- function(input, output, session, savevar, globals) {
     prevTab, "nav",
     globals
   )
-  
-  # Complete ----
+
+  # Complete -----------------------------------------------------
   observe({
     rv$complete <- all(
       length(rv$taxa.table) > 0 &&
         length(rv$taxa.col) > 0 &&
         length(rv$taxa.name.type) > 0 &&
-        length(rv$taxa.authority) > 0 
+        length(rv$taxa.authority) > 0
     )
   })
-  
-  # Process data ----
+
+  # Process data -----------------------------------------------------
   observeEvent(input$`nav-nextTab`, {
-    choices = c(
-      "Yes - Taxonomic coverage will be written as file" = if(rv$complete) 1 else NULL,
+    choices <- c(
+      "Yes - Taxonomic coverage will be written as file" = if (rv$complete) 1 else NULL,
       "No - Taxonomic coverage will be left blank" = 0
     )
-    
+
     nextTabModal <- modalDialog(
       title = "Proceed Taxonomic Coverage",
       tagList(
@@ -247,58 +249,51 @@ TaxCov <- function(input, output, session, savevar, globals) {
       ),
       footer = tagList(
         modalButton("Cancel"),
-        actionButton(ns("confirm"),"Proceed")
+        actionButton(ns("confirm"), "Proceed")
       )
     )
-    
+
     showModal(nextTabModal)
   })
-  
-  observeEvent(input$confirm, {
-    removeModal()
-    globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE+1
-    globals$EMLAL$HISTORY <- c(globals$EMLAL$HISTORY, "TaxCov")
-    
-    if(input$filled != "0"){
-      # edit template
-      withProgress({
-        # Remove existing template coverage file
-        file_location <- paste(
-          savevar$emlal$SelectDP$dp_path,
-          savevar$emlal$SelectDP$dp_name,
-          "metadata_templates",
-          "taxonomic_coverage.txt",
-          sep = "/"
+
+  observeEvent(input$confirm,
+    {
+      removeModal()
+      globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1
+      globals$EMLAL$HISTORY <- c(globals$EMLAL$HISTORY, "TaxCov")
+      
+      if (input$filled == "1") {
+        # edit template
+        withProgress(
+          {
+            # Remove existing template coverage file
+            file_location <- paste(
+              savevar$emlal$SelectDP$dp_metadata_path,
+              "taxonomic_coverage.txt",
+              sep = "/"
+            )
+            if (file.exists(file_location)) {
+              file.remove(file_location)
+            }
+            incProgress(1/3)
+            # Template coverage
+            template_taxonomic_coverage(
+              savevar$emlal$SelectDP$dp_metadata_path,
+              savevar$emlal$SelectDP$dp_data_path,
+              taxa.table = rv$taxa.table,
+              taxa.col = rv$taxa.col,
+              taxa.name.type = rv$taxa.name.type,
+              taxa.authority = rv$taxa.authority
+            )
+            incProgress(2/3)
+          },
+          message = "Writing Taxonomic coverage"
         )
-        if(file.exists(file_location))
-          file.remove(file_location)
-        incProgress(0.1)
-        # Template coverage
-        template_taxonomic_coverage(
-          paste(
-            savevar$emlal$SelectDP$dp_path,
-            savevar$emlal$SelectDP$dp_name,
-            "metadata_templates",
-            sep = "/"
-          ),
-          paste(
-            savevar$emlal$SelectDP$dp_path,
-            savevar$emlal$SelectDP$dp_name,
-            "data_objects",
-            sep = "/"
-          ),
-          taxa.table = rv$taxa.table,
-          taxa.col = rv$taxa.col,
-          taxa.name.type = rv$taxa.name.type,
-          taxa.authority = rv$taxa.authority
-        )
-        incProgress(0.9)
-      },
-      message = "Writing Taxonomic coverage")
-    }
-    
-  }, priority = 1)
-  
-  # Output ----
+      }
+    },
+    priority = 1
+  )
+
+  # Output -----------------------------------------------------
   return(savevar)
 }

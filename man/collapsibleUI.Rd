@@ -5,17 +5,19 @@
 \alias{collapsible}
 \title{collapsibleUI}
 \usage{
-collapsibleUI(id, label, hidden = TRUE, ...)
+collapsibleUI(id, label, hidden = TRUE, ..., class = NULL)
 
 collapsible(input, output, session)
 }
 \arguments{
-\item{label}{A label appearing on the clickable link.}
+\item{label}{character. A label appearing on the clickable link.}
 
-\item{...}{any UI element}
+\item{...}{shiny UI elements. Any UI element displayed as core content.}
+
+\item{class}{character. CSS class to apply to ... .}
 }
 \description{
-A module to get a div collapsed by clicking on a link.
+A shiny module to get a div collapsed by clicking on a link.
 }
 \section{Functions}{
 \itemize{

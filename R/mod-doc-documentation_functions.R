@@ -49,8 +49,8 @@ extractContent <- function(content, nsIndex) {
     {
       ulinks.ind <- which(grepl("ulink", attr(out, "names"))) # ulinks are always structured the same way
       # browser()
-      out[ ulinks.ind[1:length(ulinks.ind) %% 3 == 1] ] <- paste(out[ ulinks.ind[1:length(ulinks.ind) %% 3 == 1] ], # raw text
-        out[ ulinks.ind[1:length(ulinks.ind) %% 3 == 2] ], # URL
+      out[ulinks.ind[1:length(ulinks.ind) %% 3 == 1]] <- paste(out[ulinks.ind[1:length(ulinks.ind) %% 3 == 1]], # raw text
+        out[ulinks.ind[1:length(ulinks.ind) %% 3 == 2]], # URL
         sep = "[RECOGNIZED]"
       )
     }
@@ -68,16 +68,20 @@ extractContent <- function(content, nsIndex) {
     # browser()
 
     #- reorganizing
-    out <- nt.titles(out, list(
-      remove = "emphasis",
-      remove = "citetitle",
-      replace = "module Name",
-      moveback = "documentation",
-      tocode = "literal Layout",
-      use = "title",
-      use = "para",
-      addurl = "ulink"
-    ))
+    out <- nt.titles(
+      out,
+      list(
+        remove = "emphasis",
+        remove = "citetitle",
+        replace = "module Name",
+        moveback = "documentation",
+        tocode = "literal Layout",
+        use = "title",
+        use = "para",
+        addurl = "ulink"
+      ),
+      nsIndex = nsIndex
+    )
 
     out <- sapply(
       seq_along(out),
@@ -112,7 +116,7 @@ extractContent <- function(content, nsIndex) {
 }
 
 # Apply @action on elements from @vec named after @targets
-nt.titles <- function(vec, action_target) {
+nt.titles <- function(vec, action_target, nsIndex) {
   sapply(
     action_target,
     function(target) {
@@ -199,7 +203,7 @@ nt.titles <- function(vec, action_target) {
             )),
             internal = {
               eml.module.ns <- sub("(.*):.*", "\\1", work[1])
-              eml.module.name <- sub("^.*/([a-zA-Z]+)-.*$", "\\1", nsIndex[eml.module.ns])
+              eml.module.name <- sub("^.*/([a-zA-Z]+)-.*$", "\\1", nsIndex[eml.module.ns]) # TODO found nsIndex ref
               HTML(as.character(
                 tags$b(
                   sub(eml.module.ns, eml.module.name, work[1])
@@ -256,7 +260,7 @@ commonPath <- function(li, name) {
 #'
 #' Takes a hierarchy list (tree), a path written in a vector pasted
 #' with sep = sep, and returns the targetted node
-#' 
+#'
 #' @param tree: explored hierarchy list thanks to @path
 #' @param path: vector of characters matching some of @tree names and
 #'              separated with @sep
@@ -282,7 +286,7 @@ followPath <- function(tree, path, sep = "/") {
   path <- path[!path == "Root"]
 
   while (length(path) != 0) {
-    tree <- tree[[ path[1] ]]
+    tree <- tree[[path[1]]]
     path <- path[-1]
   }
 

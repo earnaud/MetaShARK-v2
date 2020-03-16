@@ -8,26 +8,29 @@ CustomUnitsUI <- function(id, title, dev) {
   
   return(
     fluidPage(
-      # Features UI ----
+      # Features UI -----------------------------------------------------
       column(
         10,
         tags$h4("Custom units description"),
         fluidRow(
           fluidRow(
-            column(1,
+            column(
+              1,
               actionButton(
                 ns("attribute_prev"),
                 "",
                 icon("chevron-left")
               )
             ),
-            column(10,
+            column(
+              10,
               uiOutput(
                 ns("current_attribute"),
                 inline = TRUE
               )
             ),
-            column(1,
+            column(
+              1,
               actionButton(
                 ns("attribute_next"),
                 "",
@@ -39,7 +42,7 @@ CustomUnitsUI <- function(id, title, dev) {
           uiOutput(ns("edit_CU"))
         )
       ), # end of column1
-      # NSB ----
+      # NSB -----------------------------------------------------
       column(
         2,
         navSidebar(ns("nav"),
@@ -67,7 +70,7 @@ CustomUnits <- function(input, output, session,
   savevar, globals) {
   ns <- session$ns
   
-  # DEV ----
+  # DEV -----------------------------------------------------
   if (globals$dev) {
     observeEvent(input$check, {
       browser()
@@ -77,17 +80,19 @@ CustomUnits <- function(input, output, session,
   # fill the description fields with automatically filled field
   observeEvent(input$fill, {
     req(exists("rv"))
-    sapply(names(rv$CU_Table), function(field){
-      if(! field %in% c("parentSI", "multiplierToSI"))
+    sapply(names(rv$CU_Table), function(field) {
+      if (!field %in% c("parentSI", "multiplierToSI")) {
         rv$CU_Table[, field] <- "Automatically filled field."
-      else
+      } else if (field == "id") {
+        rv$CU_Table[, field] <- paste0("unit-", 1:dim(rv$CU_Table)[1])
+      } else {
         rv$CU_Table[, field] <- rv$attributes[[field]]()
+      }
     })
-    savevar$emlal$Attributes$custom_units <- rv$CU_Table
   })
   
   
-  # variable initialization ----
+  # variable initialization -----------------------------------------------------
   rv <- reactiveValues(
     CU_Table = data.frame(),
     attributesNames = c(),
@@ -98,72 +103,66 @@ CustomUnits <- function(input, output, session,
     complete = FALSE
   )
   
-  # Once-only triggered
-  observeEvent(TRUE, {
-    # need to have filled Attributes
-    req(
-      isolate(
-        unlist(
-          reactiveValuesToList(
-            savevar$emlal$Attributes
-          )
-        )
-      )
-    )
-    disable("nav-nextTab")
-    rv$CU_Table <- fread(
-      paste(savevar$emlal$SelectDP$dp_path,
-        savevar$emlal$SelectDP$dp_name,
-        "metadata_templates",
-        "custom_units.txt",
-        sep = "/"
-      ),
-      data.table = FALSE,
-      stringsAsFactors = FALSE,
-      na.strings = NULL
-    )
-    
-    # get attributesNames and attributesFiles
-    sapply(names(savevar$emlal$Attributes), function(file_name) {
-      if (file_name != "custom_units") {
-        # shorten attributes' data frame name
-        tmp <- savevar$emlal$Attributes[[file_name]] 
-        if (any(tmp$unit == "custom")) {
-          # expand attributes' names list
-          rv$attributesNames <<- c(
-            rv$attributesNames,
-            tmp$attributeName[tmp$unit == "custom"]
-          )
-          # get the attribute's corresponding data file's name
-          rv$attributesFiles <<- c(
-            rv$attributesFiles,
-            rep(file_name, length(tmp$attributeName[tmp$unit == "custom"]))
-          )
-        }
-      }
-    })
-    
-    # correct CU_Table if needed
-    if (any(dim(rv$CU_Table) == 0)) {
-      isolate({
-        sapply(
-          1:length(rv$attributesNames),
-          function(i) {
-            rv$CU_Table[i, ] <- rep("", ncol(rv$CU_Table))
-          }
-        )
-      })
-    }
-    rv$CU_Table <- rv$CU_Table %>% 
-      mutate(parentSI = replace(.$parentSI, TRUE, "dimensionless")) %>% 
-      mutate(multiplierToSI = replace(.$multiplierToSI, TRUE, 1))
-    
-    # set current index (for attribute)
-    rv$current_index <- 1
-  },
-  once = TRUE)
+  rv$CU_Table <- fread(
+    paste(
+      savevar$emlal$SelectDP$dp_metadata_path,
+      "custom_units.txt",
+      sep = "/"
+    ),
+    data.table = FALSE,
+    stringsAsFactors = FALSE,
+    na.strings = NULL
+  )
   
-  # Multiply triggered
+  attributeFiles <- list.files(
+    savevar$emlal$SelectDP$dp_metadata_path,
+    pattern = "attributes", 
+    full.names = TRUE
+  )
+  # browser()
+  sapply(attributeFiles, function(file_name) {
+    # read attribute file
+    tmp <- fread(
+      file_name, 
+      stringsAsFactors = FALSE, 
+      data.table = FALSE
+    )
+    # detect interesting rows -- "custom" or else
+    tmp_ind <- !(tmp$unit %in% c("", globals$FORMAT$UNIT) &
+        tmp$unit != "custom")
+    if (any(tmp_ind)) {
+      # expand attributes' names list
+      rv$attributesNames <<- c(
+        rv$attributesNames,
+        tmp$attributeName[tmp_ind]
+      )
+      # get the attribute's corresponding data file's basename
+      rv$attributesFiles <<- c(
+        rv$attributesFiles,
+        rep(basename(file_name), length(tmp$attributeName[tmp_ind]))
+      )
+    }
+  })
+  
+  # correct CU_Table if needed
+  if (any(dim(rv$CU_Table) == 0)) {
+    isolate({
+      sapply(
+        1:length(rv$attributesNames),
+        function(i) {
+          rv$CU_Table[i, ] <- rep("", ncol(rv$CU_Table))
+        }
+      )
+    })
+  }
+  rv$CU_Table <- rv$CU_Table %>%
+    mutate(parentSI = replace(.$parentSI, TRUE, "dimensionless")) %>%
+    mutate(multiplierToSI = replace(.$multiplierToSI, TRUE, 1))
+  
+  # set current index (for attribute)
+  rv$current_index <- 1
+  
+  # Navigation buttons -----------------------------------------------------
   observeEvent(rv$current_index, {
     req(rv$current_index)
     rv$current_attribute <- rv$attributesNames[rv$current_index]
@@ -190,10 +189,7 @@ CustomUnits <- function(input, output, session,
   observeEvent(rv$CU_Table, {
     req(rv$CU_Table)
     rv$ui <- colnames(rv$CU_Table)
-    savevar$emlal$Attributes$custom_units <- rv$CU_Table
   })
-  
-  # Navigation buttons ----
   
   # Attribute selection
   observeEvent(input$attribute_prev, {
@@ -226,21 +222,32 @@ CustomUnits <- function(input, output, session,
     )
   })
   
-  # NSB
+  # NSB -----------------------------------------------------
   callModule(
     onQuit, "nav",
     # additional arguments
-    globals, savevar,
-    savevar$emlal$SelectDP$dp_path,
-    savevar$emlal$SelectDP$dp_name
+    globals, savevar
   )
   callModule(
     onSave, "nav",
     # additional arguments
-    savevar,
-    savevar$emlal$SelectDP$dp_path,
-    savevar$emlal$SelectDP$dp_name
+    savevar
   )
+  observeEvent(input[["nav-save"]], {
+    # write filled tables
+    withProgress(
+      fwrite(
+        rv$CU_Table,
+        paste(
+          savevar$emlal$SelectDP$dp_metadata_path,
+          "custom_units.txt",
+          sep = "/"
+        ),
+        sep = "\t"
+      ),
+      message = "Writing filled tables"
+    )
+  })
   callModule(
     nextTab, "nav",
     globals, "CustomUnits"
@@ -250,8 +257,8 @@ CustomUnits <- function(input, output, session,
     globals
   )
   
-  # Procedurals ----
-  # / UI ----
+  # Procedurals -----------------------------------------------------
+  # / UI -----------------------------------------------------
   # Warning: Error in choicesWithNames: argument "choices" is missing, with no default
   output$edit_CU <- renderUI({
     req(rv$ui)
@@ -262,13 +269,12 @@ CustomUnits <- function(input, output, session,
       lapply(rv$ui, function(colname) {
         # prepare var
         saved_value <- rv$CU_Table[rv$current_index, colname]
-        
         # UI
         switch(colname,
           id = textInput(ns(colname),
             label = with_red_star(colname),
             placeholder = "e.g. milligramsPerGram",
-            value = saved_value
+            value = if(isTruthy(saved_value)) saved_value else "custom"
           ),
           unitType = textInput(ns(colname),
             label = with_red_star(colname),
@@ -294,7 +300,7 @@ CustomUnits <- function(input, output, session,
     ) # end of tagList
   }) # end of UI
   
-  # / Servers ----
+  # / Servers -----------------------------------------------------
   observe({
     req(any(rv$ui %in% names(input)))
     
@@ -315,7 +321,7 @@ CustomUnits <- function(input, output, session,
     }) # end sapply
   }) # end observe
   
-  # Saves ----
+  # Saves -----------------------------------------------------
   observeEvent(
     {
       input$id
@@ -353,44 +359,55 @@ CustomUnits <- function(input, output, session,
     }
   })
   
-  # Process data ----
-  observeEvent(input[["nav-nextTab"]],
-    {
-      fwrite(
-        rv$CU_Table,
-        paste(savevar$emlal$SelectDP$dp_path,
-          savevar$emlal$SelectDP$dp_name,
-          "metadata_templates",
-          "custom_units.txt",
-          sep = "/"
-        ),
-        sep = "\t"
-      )
-      # avoid catvar filling if not templated
-      if (
-        !any(
-          grepl("catvar", 
-            dir(
-              paste(savevar$emlal$SelectDP$dp_path,
-                savevar$emlal$SelectDP$dp_name,
-                "metadata_templates",
-                sep = "/")
-            )
+  # Process data -----------------------------------------------------
+  observeEvent(input[["nav-nextTab"]], {
+    # Write modified Attributes units
+    tmp <- data.frame(
+      file = rv$attributesFiles,
+      attributeName = rv$attributesNames,
+      value = rv$CU_Table$id,
+      stringsAsFactors = FALSE
+    )
+    
+    browser()
+    sapply(unique(tmp$file), function(filename){
+      file_ind <- tmp$file == filename
+      tmp_attr <- tmp$attributeName[file_ind]
+      filename <- list.files(savevar$emlal$SelectDP$dp_metadata_path, pattern = filename, full.names = TRUE)
+      
+      df <- fread(filename, stringsAsFactors = FALSE, data.table = FALSE)
+      df[df$attributeName %in% tmp_attr, "unit"] <- tmp$value[file_ind]
+      fwrite(df, filename, sep = "\t")
+    })
+    browser()
+    
+    # Write Custom Units
+    fwrite(
+      rv$CU_Table,
+      paste(
+        savevar$emlal$SelectDP$dp_metadata_path,
+        "custom_units.txt",
+        sep = "/"
+      ),
+      sep = "\t"
+    )
+    # avoid catvar filling if not templated
+    if (
+      !any(
+        grepl(
+          "catvar",
+          dir(
+            savevar$emlal$SelectDP$dp_metadata_path
           )
         )
       )
-      globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE+1
-    },
-    priority = 1
+    ) {
+      globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1
+    }
+  },
+  priority = 1
   )
   
-  observeEvent(input[["nav-prevTab"]],
-    {
-      
-    },
-    priority = 1
-  )
-  
-  # Output ----
+  # Output -----------------------------------------------------
   return(savevar)
 }

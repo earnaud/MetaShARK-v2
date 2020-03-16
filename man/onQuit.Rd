@@ -7,9 +7,9 @@
 \alias{prevTab}
 \title{Navigation server}
 \usage{
-onQuit(input, output, session, globals, toSave, path, filename)
+onQuit(input, output, session, globals, savevar)
 
-onSave(input, output, session, toSave, path, filename)
+onSave(input, output, session, savevar)
 
 nextTab(input, output, session, globals, previous)
 

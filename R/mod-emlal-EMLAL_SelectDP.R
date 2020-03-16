@@ -12,34 +12,36 @@ SelectDPUI <- function(id, title, width = 12, dev = FALSE, server) {
   return(
     fluidPage(
       title = "Organize data packages",
-      # Data package location ----
-      if(!isTRUE(server))
-      fluidRow(
-        column(
-          4,
-          if(isTRUE(server))
-            tags$b("Data Package will be saved in:")
-          else
-            shinyDirButton(
-              ns("dp_location"),
-              "Choose directory",
-              "DP save location",
-              icon = icon("folder-open")
-            )
-        ),
-        column(8,
-          textOutput(ns("dp_location")),
-          style = "text-align: left;"
-        ),
-        class = "inputBox"
-      )
-      else 
-        NULL,
+      # Data package location -----------------------------------------------------
+      if (!isTRUE(server)) {
+        fluidRow(
+          column(
+            4,
+            if (isTRUE(server)) {
+              tags$b("Data Package will be saved in:")
+            } else {
+              shinyDirButton(
+                ns("dp_location"),
+                "Choose directory",
+                "DP save location",
+                icon = icon("folder-open")
+              )
+            }
+          ),
+          column(8,
+            textOutput(ns("dp_location")),
+            style = "text-align: left;"
+          ),
+          class = "inputBox"
+        )
+      } else {
+        NULL
+      },
       tags$p("This is the location where your data packages will be
         saved. A folder will be created, respectively named
         after your input."),
       fluidRow(
-        # Load existing DP ----
+        # Load existing DP -----------------------------------------------------
         column(
           ceiling(width / 2),
           tags$h4("Edit existing data package",
@@ -47,7 +49,7 @@ SelectDPUI <- function(id, title, width = 12, dev = FALSE, server) {
           ),
           uiOutput(ns("dp_list"))
         ),
-        # Create DP ----
+        # Create DP -----------------------------------------------------
         column(
           floor(width / 2),
           tags$h4("Create new data package",
@@ -93,7 +95,7 @@ SelectDPUI <- function(id, title, width = 12, dev = FALSE, server) {
 #' @importFrom EMLassemblyline template_directories template_core_metadata
 SelectDP <- function(input, output, session,
                      savevar, globals, server) {
-  # variable initialization ----
+  # variable initialization -----------------------------------------------------
   ns <- session$ns
   DP.path <- globals$DEFAULT.PATH
 
@@ -112,9 +114,9 @@ SelectDP <- function(input, output, session,
   observeEvent(input$dev, {
     browser()
   })
-  
-  # DP location ----
-  if(!isTRUE(server)){
+
+  # DP location -----------------------------------------------------
+  if (!isTRUE(server)) {
     volumes <- c(Home = globals$HOME, base = getVolumes()())
 
     # chose DP location
@@ -127,10 +129,10 @@ SelectDP <- function(input, output, session,
     observeEvent(input$dp_location, {
       # validity checks
       req(input$dp_location)
-  
+
       # variable initialization
       save <- rv$dp_location
-  
+
       # actions
       rv$dp_location <- parseDirPath(volumes, input$dp_location)
       if (is.na(rv$dp_location)) {
@@ -144,13 +146,13 @@ SelectDP <- function(input, output, session,
       rv$dp_location <- input$dp_location
     })
   }
-    
+
   # Render selected DP location
   output$dp_location <- renderText({
     rv$dp_location
   })
 
-  # DP load ----
+  # DP load -----------------------------------------------------
   # reset input if user comes back on this screen
   # fetch list of DP at selected location
   observeEvent(rv$dp_location, {
@@ -180,23 +182,24 @@ SelectDP <- function(input, output, session,
       ),
       actionButton(ns("dp_load"), "Load", icon = icon("folder-open")),
       actionButton(ns("dp_delete"), "Delete", icon = icon("minus-circle"), class = "redButton"),
-      if(server)
+      if (server) {
         downloadButton(ns("dp_download"), label = "Download .zip", icon = icon("file-download"))
-      else
+      } else {
         NULL
+      }
     )
   })
 
   output$dp_download <- downloadHandler(
-    filename = function(){
+    filename = function() {
       paste(input$dp_list, "zip", sep = ".")
     },
-    content = function(file){
+    content = function(file) {
       browser()
       zip(
         zipfile = file,
         files = dir(
-          gsub("/+","/", dir(globals$DEFAULT.PATH, full.names = TRUE, pattern = input$dp_list)),
+          gsub("/+", "/", dir(globals$DEFAULT.PATH, full.names = TRUE, pattern = input$dp_list)),
           recursive = TRUE,
           full.names = TRUE
         )
@@ -204,7 +207,7 @@ SelectDP <- function(input, output, session,
     },
     contentType = "application/zip"
   )
-  
+
   # toggle Load and Delete buttons
   observeEvent(input$dp_list, {
     if (input$dp_list != "") {
@@ -219,7 +222,7 @@ SelectDP <- function(input, output, session,
     }
   })
 
-  # DP create ----
+  # DP create -----------------------------------------------------
   # check name input
   rv$valid_name <- FALSE
   output$dp_create <- renderUI({
@@ -253,12 +256,15 @@ SelectDP <- function(input, output, session,
   })
 
   # license choice
-  rv$dp_license <- reactive({
-    input$license
+  observeEvent(input$license, {
+    rv$dp_license <- input$license
   })
+  # rv$dp_license <- reactive({
+  #   input$license
+  # })
 
-  # DP management - on clicks ----
-  # * Create DP ---- 
+  # DP management - on clicks -----------------------------------------------------
+  # * Create DP -----------------------------------------------------
   observeEvent(input$dp_create, {
     req(input$dp_name)
     req(rv$valid_name)
@@ -267,12 +273,15 @@ SelectDP <- function(input, output, session,
     dp <- input$dp_name
     path <- paste0(rv$dp_location, dp, "_emldp")
     title <- input$dp_title
-    license <- rv$dp_license()
+    license <- rv$dp_license
 
     # save in empty dedicated variable
     savevar$emlal <- initReactive("emlal", savevar)
     savevar$emlal$SelectDP$dp_name <- dp
     savevar$emlal$SelectDP$dp_path <- path
+    savevar$emlal$SelectDP$dp_metadata_path <- paste(path, dp, "metadata_templates", sep = "/")
+    savevar$emlal$SelectDP$dp_data_path <- paste(path, dp, "data_objects", sep = "/")
+    savevar$emlal$SelectDP$dp_eml_path <- paste(path, dp, "eml", sep = "/")
     savevar$emlal$SelectDP$dp_title <- title
 
     # verbose
@@ -284,23 +293,23 @@ SelectDP <- function(input, output, session,
     globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1
     globals$EMLAL$HISTORY <- "create"
 
-    dir.create(path)
+    dir.create(path, recursive = TRUE)
 
-    saveReactive(savevar, path, dp) # initial "commit"
+    # initial "commit"
+    saveReactive(savevar)
 
+    # EAL template import
     template_directories(
-      path,
-      dp
+      savevar$emlal$SelectDP$dp_path ,
+      savevar$emlal$SelectDP$dp_name
     )
-
     template_core_metadata(
-      path,
+      savevar$emlal$SelectDP$dp_metadata_path ,
       license
     )
-
   })
 
-  # * Load DP ----
+  # * Load DP -----------------------------------------------------
   observeEvent(input$dp_load, {
     req(input$dp_list)
     disable("dp_load")
@@ -321,7 +330,7 @@ SelectDP <- function(input, output, session,
     enable("dp_load")
   })
 
-  # * Delete DP ----
+  # * Delete DP -----------------------------------------------------
   observeEvent(input$dp_delete, {
     req(input$dp_list)
 
@@ -359,6 +368,6 @@ SelectDP <- function(input, output, session,
     removeModal()
   })
 
-  # Output ----
+  # Output -----------------------------------------------------
   return(savevar)
 }

@@ -16,8 +16,8 @@
 #' @importFrom shiny NS HTML tags
 navSidebar <- function(id, class = "navSidebar",
                        .prev = TRUE, .next = TRUE,
-                        disableNext = FALSE,
-                        disablePrev = FALSE,
+                       disableNext = FALSE,
+                       disablePrev = FALSE,
                        ...) {
   ns <- NS(id)
 
@@ -30,8 +30,8 @@ navSidebar <- function(id, class = "navSidebar",
       tags$h4("Navigation"),
       quitButton(id),
       saveButton(id),
-      if(disablePrev) disabled(preBut) else preBut,
-      if(disableNext) disabled(nexBut) else nexBut,
+      if (disablePrev) disabled(preBut) else preBut,
+      if (disableNext) disabled(nexBut) else nexBut,
       arguments
     ),
     class = class
@@ -82,7 +82,7 @@ prevTabButton <- function(id) {
   )
 }
 
-## Associated server functions ----
+## Associated server functions -----------------------------------------------------
 
 #' @title Navigation server
 #'
@@ -91,7 +91,7 @@ prevTabButton <- function(id) {
 #'
 #' @importFrom shiny modalDialog tagList modalButton actionButton icon observeEvent req showModal removeModal
 onQuit <- function(input, output, session,
-                   globals, toSave, path, filename) {
+                   globals, savevar) {
   ns <- session$ns
 
   # modal dialog for quitting data description
@@ -100,27 +100,36 @@ onQuit <- function(input, output, session,
     "Are you sure to leave? Some of your metadata have maybe not been saved.",
     footer = tagList(
       modalButton("Cancel"),
-      actionButton(ns("save_quit_button"), "Save & Quit"),
-      actionButton(ns("quit_button"), "Quit", icon("times-circle"),
+      actionButton(
+        ns("save_quit_button"), 
+        "Save & Quit"
+      ),
+      actionButton(
+        ns("quit_button"), 
+        "Quit",
+        icon("times-circle"),
         class = "redButton"
       )
     )
   )
 
   # show modal on 'quit' button clicked
-  observeEvent(input$quit,
-    {
+  observeEvent(input$quit, {
       req(input$quit)
       showModal(quitModal)
-    },
-    priority = -1
-  )
+    }, priority = -1)
 
   # calls saveRDS method and quits
   observeEvent(input$save_quit_button, {
     req(input$quit)
     removeModal()
-    saveReactive(toSave, path, filename)
+    file.remove(
+      list.files(
+        savevar$emlal$SelectDP$dp_data_path,
+        pattern = "preview___"
+      )
+    )
+    saveReactive(savevar)
     globals$EMLAL$NAVIGATE <- 1
   })
 
@@ -128,6 +137,12 @@ onQuit <- function(input, output, session,
   observeEvent(input$quit_button, {
     req(input$quit)
     removeModal()
+    file.remove(
+      list.files(
+        savevar$emlal$SelectDP$dp_data_path,
+        pattern = "preview___"
+      )
+    )
     globals$EMLAL$NAVIGATE <- 1
   })
 }
@@ -136,16 +151,11 @@ onQuit <- function(input, output, session,
 #'
 #' @importFrom shiny observeEvent
 onSave <- function(input, output, session,
-                   toSave, path, filename) {
-  ns <- session$ns
-  id <- gsub("-$","",ns(""))
-
-  observeEvent(input$save,
-    {
-      saveReactive(toSave, path, filename, id)
-    },
-    priority = -1
-  )
+                   savevar) {
+  observeEvent(input$save, {
+    req(input$save)
+    saveReactive(savevar)
+  }, priority = -1)
 }
 
 #' @describeIn onQuit
@@ -175,50 +185,7 @@ prevTab <- function(input, output, session,
   )
 }
 
-# Files management ----
-
-#' @title create DP directory
-#'
-#' @description EML assembly line convenience function for templating directories and
-#' avoiding duplicating it. A similarly named and located directory will be whatever deleted.
-#'
-#' @importFrom shiny showModal modalDialog span modalButton
-#' @importFrom EMLassemblyline template_directories
-DataFilesFolder <- function(DP.location, DP.name, data.location) {
-  if (dir.exists(paste0(DP.location, DP.name))) {
-    unlink(paste0(DP.location, DP.name), recursive = TRUE)
-    showModal(modalDialog(
-      title = "Information: directory deleted",
-      span(paste0(DP.location, DP.name), "has been deleted and replaced by a new empty data package."),
-      footer = modalButton("Close"),
-      easyClose = TRUE
-    ))
-  }
-
-  template_directories(
-    path = DP.location,
-    dir.name = DP.name
-  )
-}
-
-# EAL Templates ----
-
-# very local function
-saveInput <- function(RV) {
-  # save attributes
-  RV$attributesTable[RV$current_attribute, ] <- printReactiveValues(
-    RV$attributes
-  )[names(RV$attributesTable)]
-
-  return(RV)
-}
-
-# build a unique id from file, attribute and colname - attribute_tables
-buildInputID <- function(filename, attribute, colname) {
-  paste(filename, attribute, colname, sep = "_")
-}
-
-# Misc ----
+# Misc -----------------------------------------------------
 
 # R to JS boolean
 r2js.boolean <- function(condition) {
@@ -238,10 +205,4 @@ printReactiveValues <- function(values) {
       }
     }
   )
-}
-
-# increase a variable by 1
-passcat <- function(i) {
-  i <<- i + 1
-  cat(i, "\n")
 }

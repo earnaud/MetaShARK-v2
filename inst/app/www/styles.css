@@ -40,3 +40,16 @@
 .valid {
   color: green;
 }
+
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+textarea {
+  min-width: 30%;
+  max-width: 100%;
+  min-height: 35px;
+  max-height: 350px;
+}
