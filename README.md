@@ -3,7 +3,7 @@
 <img src="./inst/media/logo.png" alt="" width="50%">
 
 **Stable Server address:** http://openstack-192-168-100-121.genouest.org/  ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`  
-**Dev Server address:** http://openstack-192-168-100-116.genouest.org/ ![Active](https://placehold.it/15/c5f015/000000?text=+) `Active`
+**Dev Server address:** http://openstack-192-168-100-116.genouest.org/ ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Active`
 
 Metadata Shiny-Automated Resources & Knowledge
 _First released on 15-04-2019_  
@@ -44,7 +44,7 @@ You can install the app as follow (through command line, for Ubuntu):
 ```
 apt -y update
 apt -y upgrade 
-apt install -y r-base
+apt install -y r-basehttps://placehold.it/15/FF0000/000000?text=+
 apt install -y libcurl4-openssl-dev libssh2-1-dev libssl-dev libxml2-dev # libgit2-dev 
 R -e 'install.packages("devtools")'
 apt install -y libv8-dev
@@ -62,7 +62,7 @@ R -e 'devtools::install_github("earnaud/MetaShARK-v2", ref="dev", dependencies=T
 
 You can access docker files and setup at [this repository](https://github.com/earnaud/MetaShARK_docker).
 
-## MetaShARK features 
+## MetaShARK features
 
 ### Documentation
 
@@ -85,6 +85,10 @@ Some references are given that sustain the base principles of this work.
 
 ## Releases
 
+### Pre-release 20200316 - Fully functional !
+
+Here we are ! The full EML Assembly Line workflow has been done with MetaShARK. Even if the app might still suffer some bugs, the main steps are accessible. However, it stills only support tabulated file.
+
 ### Pre-Release 20200204 - EML Assembly Line (dev version)
 
 Here it comes ! The first pre-release allowing the user to describe his dataset according to the [EML Assembly Line](https://ediorg.github.io/EMLassemblyline/articles/overview.html) recommendations. Please note this version is **still in development** and some features might suffer bugs. Consequently, do not hesitate to [open an issue](https://github.com/earnaud/MetaShARK-v2/issues).
@@ -99,14 +103,14 @@ MetaShARK/EAL supports:
 * automated\* categorical variables description
 * geographic, taxonomic\*\* and temporal coverages
 * description of persons involved (possibly through ORCID)
+* Metadata automated\* generation at EML format
 
 \* automation still requires user's verification
 \*\* see Known Bugs below
 
 #### Known Bugs
 
-* Taxonomic coverage still suffers some errors in its core functions: see [this issue](https://github.com/EDIorg/EDIutils/issues/12)
-* **Make EML** currently does not work (badly). 
+* (No false modesty: main reported bugs have been corrected) *
 
 ## Authors
 * Elie Arnaud (developper) - elie.arnaud@mnhn.fr
