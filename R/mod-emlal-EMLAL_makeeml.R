@@ -3,7 +3,7 @@ MakeEMLUI <- function(id, title, dev) {
 
   return(
     fluidPage(
-      # Features UI ----
+      # Features UI -----------------------------------------------------
       column(
         10,
         fluidRow(
@@ -21,7 +21,7 @@ MakeEMLUI <- function(id, title, dev) {
           )
         )
       ), # end of column1
-      # Navigation UI ----
+      # Navigation UI -----------------------------------------------------
       column(
         2,
         navSidebar(
@@ -50,7 +50,7 @@ MakeEML <- function(input, output, session, savevar, globals) {
     })
   }
 
-  # NSB ----
+  # NSB -----------------------------------------------------
   callModule(
     onQuit, "nav",
     # additional arguments
@@ -70,34 +70,24 @@ MakeEML <- function(input, output, session, savevar, globals) {
     globals
   )
 
-  # Make eml ----
+  # Make eml -----------------------------------------------------
   observeEvent(input$make_eml, {
+    req(input$make_eml)
+    
     . <- savevar$emlal
 
     x <- template_arguments(
-      path = .$SelectDP$dp_path,
+      path = .$SelectDP$dp_metadata_path,
       data.path = .$SelectDP$dp_data_path,
       data.table = dir(.$SelectDP$dp_data_path)
     )
 
-    x$path <- .$SelectDP$dp_path
+    x$path <- .$SelectDP$dp_metadata_path
     x$data.path <- .$SelectDP$dp_data_path
-    # x$data.path <- paste(
-    #   .$SelectDP$dp_path,
-    #   .$SelectDP$dp_name,
-    #   "data_objects",
-    #   sep = "/"
-    # )
     x$eml.path <- .$SelectDP$dp_eml_path
-    # x$eml.path <- paste(
-    #   .$SelectDP$dp_path,
-    #   .$SelectDP$dp_name,
-    #   "eml",
-    #   sep = "/"
-    # )
     x$data.table <- dir(x$data.path)
-    x$data.table.name <- .$DataFiles$dp_data_files$name
-    x$data.table.description <- .$DataFiles$dp_data_files$description
+    x$data.table.name <- .$DataFiles$table_name
+    x$data.table.description <- .$DataFiles$description
     x$dataset.title <- .$SelectDP$dp_title
     x$maintenance.description <- "Ongoing"
     # TODO package.id
@@ -115,14 +105,15 @@ MakeEML <- function(input, output, session, savevar, globals) {
     x$geographic.description <- NULL
 
     try(
-      do.call(
+      out <- do.call(
         make_eml,
         x[names(x) %in% names(formals(make_eml))]
       )
     )
-
+    
     browser()
+    
   })
-  # Output ----
+  # Output -----------------------------------------------------
   return(savevar)
 }

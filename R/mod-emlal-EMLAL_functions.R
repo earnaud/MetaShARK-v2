@@ -82,7 +82,7 @@ prevTabButton <- function(id) {
   )
 }
 
-## Associated server functions ----
+## Associated server functions -----------------------------------------------------
 
 #' @title Navigation server
 #'
@@ -185,7 +185,7 @@ prevTab <- function(input, output, session,
   )
 }
 
-# Misc ----
+# Misc -----------------------------------------------------
 
 # R to JS boolean
 r2js.boolean <- function(condition) {

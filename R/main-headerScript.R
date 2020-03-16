@@ -53,8 +53,7 @@
   DATAONE.LIST <- unlist(fread(wwwPaths$dataoneCNodesList.txt))
 
   # Taxa authorities
-  # TAXA.AUTHORITIES <-  taxonomyCleanr::view_taxa_authorities()
-  TAXA.AUTHORITIES <- fread(wwwPaths$taxaAuthorities.txt)
+  TAXA.AUTHORITIES <-  taxonomyCleanr::view_taxa_authorities()
 
   # Build global variable
   if (reactive) {

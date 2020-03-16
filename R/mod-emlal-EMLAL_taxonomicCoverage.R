@@ -9,7 +9,7 @@ TaxCovUI <- function(id, title, dev, data.files, taxa.authorities) {
 
   return(
     fluidPage(
-      # Features UI ----
+      # Features UI -----------------------------------------------------
       column(
         10,
         fluidRow(
@@ -49,7 +49,7 @@ TaxCovUI <- function(id, title, dev, data.files, taxa.authorities) {
           )
         )
       ), # end of column1
-      # Navigation UI ----
+      # Navigation UI -----------------------------------------------------
       column(
         2,
         navSidebar(
@@ -82,7 +82,7 @@ TaxCov <- function(input, output, session, savevar, globals) {
     })
   }
 
-  # Variable Initialization ----
+  # Variable Initialization -----------------------------------------------------
   rv <- reactiveValues()
 
   observeEvent(TRUE,
@@ -128,10 +128,10 @@ TaxCov <- function(input, output, session, savevar, globals) {
     once = TRUE
   )
 
-  # Taxonomic coverage input ----
+  # Taxonomic coverage input -----------------------------------------------------
 
   # Taxa files
-  observe({
+  observeEvent(input$taxa.table, {
     # invalid-selected/no value(s)
     if (!isTruthy(input$taxa.table)) {
       disable("taxa.col")
@@ -200,7 +200,7 @@ TaxCov <- function(input, output, session, savevar, globals) {
     savevar$emlal$TaxCov$taxa.authority <- rv$taxa.authority
   })
 
-  # NSB ----
+  # NSB -----------------------------------------------------
   callModule(
     onQuit, "nav",
     # additional arguments
@@ -220,7 +220,7 @@ TaxCov <- function(input, output, session, savevar, globals) {
     globals
   )
 
-  # Complete ----
+  # Complete -----------------------------------------------------
   observe({
     rv$complete <- all(
       length(rv$taxa.table) > 0 &&
@@ -230,7 +230,7 @@ TaxCov <- function(input, output, session, savevar, globals) {
     )
   })
 
-  # Process data ----
+  # Process data -----------------------------------------------------
   observeEvent(input$`nav-nextTab`, {
     choices <- c(
       "Yes - Taxonomic coverage will be written as file" = if (rv$complete) 1 else NULL,
@@ -261,46 +261,31 @@ TaxCov <- function(input, output, session, savevar, globals) {
       removeModal()
       globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1
       globals$EMLAL$HISTORY <- c(globals$EMLAL$HISTORY, "TaxCov")
-
-      if (input$filled != "0") {
+      
+      if (input$filled == "1") {
         # edit template
         withProgress(
           {
             # Remove existing template coverage file
             file_location <- paste(
               savevar$emlal$SelectDP$dp_metadata_path,
-              # savevar$emlal$SelectDP$dp_path,
-              # savevar$emlal$SelectDP$dp_name,
-              # "metadata_templates",
               "taxonomic_coverage.txt",
               sep = "/"
             )
             if (file.exists(file_location)) {
               file.remove(file_location)
             }
-            incProgress(0.1)
+            incProgress(1/3)
             # Template coverage
             template_taxonomic_coverage(
               savevar$emlal$SelectDP$dp_metadata_path,
-              # paste(
-              #   savevar$emlal$SelectDP$dp_path,
-              #   savevar$emlal$SelectDP$dp_name,
-              #   "metadata_templates",
-              #   sep = "/"
-              # ),
               savevar$emlal$SelectDP$dp_data_path,
-              # paste(
-              #   savevar$emlal$SelectDP$dp_path,
-              #   savevar$emlal$SelectDP$dp_name,
-              #   "data_objects",
-              #   sep = "/"
-              # ),
               taxa.table = rv$taxa.table,
               taxa.col = rv$taxa.col,
               taxa.name.type = rv$taxa.name.type,
               taxa.authority = rv$taxa.authority
             )
-            incProgress(0.9)
+            incProgress(2/3)
           },
           message = "Writing Taxonomic coverage"
         )
@@ -309,6 +294,6 @@ TaxCov <- function(input, output, session, savevar, globals) {
     priority = 1
   )
 
-  # Output ----
+  # Output -----------------------------------------------------
   return(savevar)
 }

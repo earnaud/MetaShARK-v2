@@ -42,7 +42,7 @@ multiFIlesInputUI <- function(id, helpText = NULL) {
 multiFIlesInput <- function(input, output, session) {
   ns <- session$ns
 
-  # Variable initialization ----
+  # Variable initialization -----------------------------------------------------
   rv <- reactiveValues(
     # to save
     files = data.frame()
@@ -50,7 +50,7 @@ multiFIlesInput <- function(input, output, session) {
   )
   volumes <- c(Home = fs::path_home(), getVolumes()())
 
-  # Add data files ----
+  # Add data files -----------------------------------------------------
   shinyFileChoose(input, "add_files",
     roots = volumes,
     # defaultRoot = HOME,
@@ -83,7 +83,7 @@ multiFIlesInput <- function(input, output, session) {
     }
   })
 
-  # Remove data files ----
+  # Remove data files -----------------------------------------------------
   observeEvent(input$remove_files, {
 
     # validity check
@@ -95,7 +95,7 @@ multiFIlesInput <- function(input, output, session) {
     ]
   })
 
-  # Display data files ----
+  # Display data files -----------------------------------------------------
   output$files <- renderUI({
 
     # actions
@@ -111,6 +111,6 @@ multiFIlesInput <- function(input, output, session) {
     }
   })
 
-  # Out -----
+  # Out ------------------------------------------------------
   return(reactive(rv$files))
 }

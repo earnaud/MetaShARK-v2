@@ -8,7 +8,7 @@ MiscUI <- function(id, title, dev, savevar, server) {
 
   return(
     fluidPage(
-      # Features UI ----
+      # Features UI -----------------------------------------------------
       column(
         10,
         fluidRow(
@@ -22,23 +22,23 @@ MiscUI <- function(id, title, dev, savevar, server) {
           bsCollapse(
             id = ns("Miscs"),
 
-            # * Abstract ----
+            # * Abstract -----------------------------------------------------
             bsCollapsePanel(
               title = "Abstract",
               value = 5,
               MiscellaneousUI(ns("abstract"), server = server)
             ),
 
-            # * Methods ----
+            # * Methods -----------------------------------------------------
             bsCollapsePanel(
-              title = "Methods",
+              title = with_red_star("Methods"),
               value = 5,
               MiscellaneousUI(ns("methods"), server = server)
             ),
 
-            # * Keywords ----
+            # * Keywords -----------------------------------------------------
             bsCollapsePanel(
-              title = "Keywords",
+              title = with_red_star("Keywords"),
               value = 3,
               tagList(
                 column(
@@ -61,7 +61,7 @@ MiscUI <- function(id, title, dev, savevar, server) {
               )
             ),
 
-            # * Temporal coverage ----
+            # * Temporal coverage -----------------------------------------------------
             bsCollapsePanel(
               title = "Temporal coverage",
               value = 4,
@@ -78,7 +78,7 @@ MiscUI <- function(id, title, dev, savevar, server) {
               )
             ),
 
-            # * Additional Info ----
+            # * Additional Info -----------------------------------------------------
             bsCollapsePanel(
               title = "Additional Info",
               value = 5,
@@ -93,7 +93,7 @@ MiscUI <- function(id, title, dev, savevar, server) {
           )
         )
       ), # end of column1
-      # Navigation UI ----
+      # Navigation UI -----------------------------------------------------
       column(
         2,
         navSidebar(
@@ -123,7 +123,7 @@ Misc <- function(input, output, session, savevar, globals, server) {
     })
   }
 
-  # Variable initialization ----
+  # Variable initialization -----------------------------------------------------
   rv <- reactiveValues(
     # Abstract
     abstract = reactiveValues(
@@ -163,7 +163,7 @@ Misc <- function(input, output, session, savevar, globals, server) {
     complete = FALSE
   )
 
-  # Fill ----
+  # Fill -----------------------------------------------------
   # Abstract
   rv$abstract <- callModule(
     Miscellaneous,
@@ -235,7 +235,7 @@ Misc <- function(input, output, session, savevar, globals, server) {
     server = server
   )
 
-  # NSB ----
+  # NSB -----------------------------------------------------
   callModule(
     onQuit, "nav",
     # additional arguments
@@ -255,12 +255,11 @@ Misc <- function(input, output, session, savevar, globals, server) {
     globals
   )
 
-  # Complete ----
+  # Complete -----------------------------------------------------
   observe({
     rv$complete <- all(
-      # keywords
-      isTruthy(rv$keywords$keywords)
-      # check temporal coverage
+      isTruthy(rv$keywords$keywords) &&
+        isTruthy(rv$methods)
     )
 
     if (rv$complete) {
@@ -270,27 +269,22 @@ Misc <- function(input, output, session, savevar, globals, server) {
     }
   })
 
-  # Process data ----
+  # Process data -----------------------------------------------------
   observeEvent(input[["nav-nextTab"]],
     {
       savevar$emlal$Misc <- rv
-
+      browser()
+      
       message("Writing 'abstract.txt'.")
       write.text(
-        rv$abstract$content,
-        paste0(
-          savevar$emlal$SelectDP$dp_metadata_path,
-          "/abstract.txt"
-        )
+        rv$abstract$content(),
+        rv$abstract$file
       )
 
       message("Writing 'methods.txt'.")
       write.text(
-        rv$methods$content,
-        paste0(
-          savevar$emlal$SelectDP$dp_metadata_path,
-          "/methods.txt"
-        )
+        rv$methods$content(),
+        rv$methods$file
       )
 
       message("Writing 'keywords.txt'.")
@@ -308,11 +302,8 @@ Misc <- function(input, output, session, savevar, globals, server) {
 
       message("Writing 'additional_info.txt'.")
       write.text(
-        rv$additional_info$content,
-        paste0(
-          savevar$emlal$SelectDP$dp_metadata_path,
-          "/additional_info.txt"
-        )
+        rv$additional_info$content(),
+        rv$additional_info$file
       )
 
       message("Done with Misc.")
@@ -320,6 +311,6 @@ Misc <- function(input, output, session, savevar, globals, server) {
     priority = 1
   )
 
-  # Output ----
+  # Output -----------------------------------------------------
   return(savevar)
 }

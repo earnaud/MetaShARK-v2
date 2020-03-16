@@ -7,7 +7,7 @@
 \usage{
 initReactive(sublist = NULL, savevar = NULL)
 
-saveReactive(toSave, path, filename, id = NULL)
+saveReactive(savevar)
 }
 \arguments{
 \item{sublist}{either NULL, "emlal", "metafin" to precise which sublist to initialize (NULL initializes the whole variable)}

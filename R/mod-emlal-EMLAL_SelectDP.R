@@ -12,7 +12,7 @@ SelectDPUI <- function(id, title, width = 12, dev = FALSE, server) {
   return(
     fluidPage(
       title = "Organize data packages",
-      # Data package location ----
+      # Data package location -----------------------------------------------------
       if (!isTRUE(server)) {
         fluidRow(
           column(
@@ -41,7 +41,7 @@ SelectDPUI <- function(id, title, width = 12, dev = FALSE, server) {
         saved. A folder will be created, respectively named
         after your input."),
       fluidRow(
-        # Load existing DP ----
+        # Load existing DP -----------------------------------------------------
         column(
           ceiling(width / 2),
           tags$h4("Edit existing data package",
@@ -49,7 +49,7 @@ SelectDPUI <- function(id, title, width = 12, dev = FALSE, server) {
           ),
           uiOutput(ns("dp_list"))
         ),
-        # Create DP ----
+        # Create DP -----------------------------------------------------
         column(
           floor(width / 2),
           tags$h4("Create new data package",
@@ -95,7 +95,7 @@ SelectDPUI <- function(id, title, width = 12, dev = FALSE, server) {
 #' @importFrom EMLassemblyline template_directories template_core_metadata
 SelectDP <- function(input, output, session,
                      savevar, globals, server) {
-  # variable initialization ----
+  # variable initialization -----------------------------------------------------
   ns <- session$ns
   DP.path <- globals$DEFAULT.PATH
 
@@ -115,7 +115,7 @@ SelectDP <- function(input, output, session,
     browser()
   })
 
-  # DP location ----
+  # DP location -----------------------------------------------------
   if (!isTRUE(server)) {
     volumes <- c(Home = globals$HOME, base = getVolumes()())
 
@@ -152,7 +152,7 @@ SelectDP <- function(input, output, session,
     rv$dp_location
   })
 
-  # DP load ----
+  # DP load -----------------------------------------------------
   # reset input if user comes back on this screen
   # fetch list of DP at selected location
   observeEvent(rv$dp_location, {
@@ -222,7 +222,7 @@ SelectDP <- function(input, output, session,
     }
   })
 
-  # DP create ----
+  # DP create -----------------------------------------------------
   # check name input
   rv$valid_name <- FALSE
   output$dp_create <- renderUI({
@@ -263,8 +263,8 @@ SelectDP <- function(input, output, session,
   #   input$license
   # })
 
-  # DP management - on clicks ----
-  # * Create DP ----
+  # DP management - on clicks -----------------------------------------------------
+  # * Create DP -----------------------------------------------------
   observeEvent(input$dp_create, {
     req(input$dp_name)
     req(rv$valid_name)
@@ -299,11 +299,17 @@ SelectDP <- function(input, output, session,
     saveReactive(savevar)
 
     # EAL template import
-    template_directories(path, dp)
-    template_core_metadata(path, license)
+    template_directories(
+      savevar$emlal$SelectDP$dp_path ,
+      savevar$emlal$SelectDP$dp_name
+    )
+    template_core_metadata(
+      savevar$emlal$SelectDP$dp_metadata_path ,
+      license
+    )
   })
 
-  # * Load DP ----
+  # * Load DP -----------------------------------------------------
   observeEvent(input$dp_load, {
     req(input$dp_list)
     disable("dp_load")
@@ -324,7 +330,7 @@ SelectDP <- function(input, output, session,
     enable("dp_load")
   })
 
-  # * Delete DP ----
+  # * Delete DP -----------------------------------------------------
   observeEvent(input$dp_delete, {
     req(input$dp_list)
 
@@ -362,6 +368,6 @@ SelectDP <- function(input, output, session,
     removeModal()
   })
 
-  # Output ----
+  # Output -----------------------------------------------------
   return(savevar)
 }

@@ -4,7 +4,7 @@ PersonnelUI <- function(id, title, dev) {
 
   return(
     fluidPage(
-      # Features UI ----
+      # Features UI -----------------------------------------------------
       column(
         10,
         fluidRow(
@@ -27,7 +27,7 @@ PersonnelUI <- function(id, title, dev) {
         ),
         tags$div(id = ns("inserthere"))
       ), # end of column1
-      # Navigation UI ----
+      # Navigation UI -----------------------------------------------------
       column(
         2,
         navSidebar(
@@ -55,7 +55,7 @@ Personnel <- function(input, output, session, savevar, globals) {
     })
   }
 
-  # Variable initialization ----
+  # Variable initialization -----------------------------------------------------
   rv <- reactiveValues(
     Personnel = reactiveValues(
       id = numeric(),
@@ -76,7 +76,7 @@ Personnel <- function(input, output, session, savevar, globals) {
     )
   )
 
-  # Fill Personnel ----
+  # Fill Personnel -----------------------------------------------------
   # Default created
   observeEvent(TRUE, once = TRUE, {
     rv$Personnel <- insertPersonnelInput(
@@ -105,7 +105,7 @@ Personnel <- function(input, output, session, savevar, globals) {
     )
   })
 
-  # NSB ----
+  # NSB -----------------------------------------------------
   callModule(
     onQuit, "nav",
     # additional arguments
@@ -125,7 +125,7 @@ Personnel <- function(input, output, session, savevar, globals) {
     globals
   )
 
-  # Complete ----
+  # Complete -----------------------------------------------------
   observe({
     rv$complete <- all(
       # Personnel
@@ -143,7 +143,7 @@ Personnel <- function(input, output, session, savevar, globals) {
     }
   })
 
-  # Process data ----
+  # Process data -----------------------------------------------------
   observeEvent(input[["nav-nextTab"]], {
     message("Writing 'Personnel.txt'.")
 
@@ -174,7 +174,7 @@ Personnel <- function(input, output, session, savevar, globals) {
     )
   })
 
-  # Output ----
+  # Output -----------------------------------------------------
   return(savevar)
 }
 
@@ -195,11 +195,11 @@ PersonnelModUI <- function(id, site_id, rmv_id, role = NULL, dev = FALSE) {
     fluidRow(
       style = "inputBox",
       class = "inputBox",
-      # Form ----
+      # Form -----------------------------------------------------
       column(
         11,
         tagList(
-          # * Basic identity ----
+          # * Basic identity -----------------------------------------------------
           fluidRow(
             column(
               4,
@@ -223,7 +223,7 @@ PersonnelModUI <- function(id, site_id, rmv_id, role = NULL, dev = FALSE) {
               )
             )
           ), # end of fluidRow 1
-          # * Contact ----
+          # * Contact -----------------------------------------------------
           fluidRow(
             column(
               8,
@@ -240,7 +240,7 @@ PersonnelModUI <- function(id, site_id, rmv_id, role = NULL, dev = FALSE) {
               )
             )
           ), # end of fluidRow 2
-          # * Personnel identification ----
+          # * Personnel identification -----------------------------------------------------
           fluidRow(
             column(
               4,
@@ -274,7 +274,7 @@ PersonnelModUI <- function(id, site_id, rmv_id, role = NULL, dev = FALSE) {
               )
             )
           ), # end of fluidRow 3
-          # * Project information ----
+          # * Project information -----------------------------------------------------
           div(
             id = "project_information",
             fluidRow(
@@ -303,7 +303,7 @@ PersonnelModUI <- function(id, site_id, rmv_id, role = NULL, dev = FALSE) {
           ) # end of fluidRow 4
         )
       ),
-      # Destroy ----
+      # Destroy -----------------------------------------------------
       column(
         1,
         if (is.null(role)) {
@@ -340,7 +340,7 @@ PersonnelMod <- function(input, output, session,
     })
   }
 
-  # Variable initialization ----
+  # Variable initialization -----------------------------------------------------
   localRV <- reactiveValues(
     id = ref,
     # Basic Identity
@@ -360,7 +360,7 @@ PersonnelMod <- function(input, output, session,
     fundingNumber = NA
   )
 
-  # Basic Identity ----
+  # Basic Identity -----------------------------------------------------
   name.pattern <- globals$PATTERNS$NAME
 
   observeEvent(input$givenName, {
@@ -379,7 +379,7 @@ PersonnelMod <- function(input, output, session,
     }
   })
 
-  # Contact ----
+  # Contact -----------------------------------------------------
   mail.pattern <- globals$PATTERNS$EMAIL
 
   observeEvent(input$organizationName, {
@@ -394,7 +394,7 @@ PersonnelMod <- function(input, output, session,
     }
   })
 
-  # Personnel identification ----
+  # Personnel identification -----------------------------------------------------
   orcid.pattern <- globals$PATTERNS$ORCID
 
   observeEvent(input$userId, {
@@ -479,7 +479,7 @@ PersonnelMod <- function(input, output, session,
     }
   })
 
-  # Project information ----
+  # Project information -----------------------------------------------------
   observeEvent(input$projectTitle, {
     req(input$projectTitle)
     if (input$role == "PI (principal investigator") {
@@ -501,7 +501,7 @@ PersonnelMod <- function(input, output, session,
     }
   })
 
-  # Metadata save ----
+  # Metadata save -----------------------------------------------------
   observe({
     # Fetch correct index
     ind <- if (ref %in% rv$id) {
@@ -525,7 +525,7 @@ PersonnelMod <- function(input, output, session,
     }
   })
 
-  # Remove UI ----
+  # Remove UI -----------------------------------------------------
   observeEvent(input[[rmv_id]],
     {
       # remove the UI
@@ -548,19 +548,19 @@ PersonnelMod <- function(input, output, session,
     autoDestroy = TRUE
   )
 
-  # Output ----
+  # Output -----------------------------------------------------
   return(rv)
 }
 
 insertPersonnelInput <- function(id, rv, ns, globals, role = NULL) {
   # NOTE warning: rv = rv$Personnel here !!!
 
-  # initialize IDs ----
+  # initialize IDs -----------------------------------------------------
   div_id <- id
   site_id <- paste0("site_", div_id)
   rmv_id <- paste0("rmv_", div_id)
 
-  # Proper module server ----
+  # Proper module server -----------------------------------------------------
   # create the UI
   newUI <- PersonnelModUI(ns(div_id), site_id, rmv_id, role = role, dev = globals$dev)
 
@@ -573,6 +573,6 @@ insertPersonnelInput <- function(id, rv, ns, globals, role = NULL) {
   # create the server
   rv <- callModule(PersonnelMod, id, globals, rv, rmv_id, site_id, div_id, role = role)
 
-  # Output ----
+  # Output -----------------------------------------------------
   return(rv)
 }

@@ -23,7 +23,7 @@
     })
   }
 
-  ## esthetics ----
+  ## esthetics -----------------------------------------------------
   output$logo <- renderImage(
     {
       list(
@@ -36,7 +36,7 @@
     deleteFile = FALSE
   )
 
-  # Head bar server ----
+  # Head bar server -----------------------------------------------------
   # Options
   observeEvent(input$appOptions, {
     updateTabItems(session, "side_menu", "appOptions")
@@ -49,7 +49,7 @@
     stopApp()
   })
 
-  ## modules called ----
+  ## modules called -----------------------------------------------------
   observeEvent(input$side_menu, {
     savevar <- switch(input$side_menu,
       # welcome - no server
