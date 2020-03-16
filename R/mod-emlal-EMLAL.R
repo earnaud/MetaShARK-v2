@@ -90,10 +90,10 @@ EMLAL <- function(input, output, session,
   steps <- c("SelectDP", "DataFiles", "Attributes", "CustomUnits", "CatVars", "GeoCov", "TaxCov", "Misc", "MakeEML")
 
   iteration <- 0 # varying namespace
-  # Output ----
+  # Output -----------------------------------------------------
   observeEvent(globals$EMLAL$NAVIGATE, {
     iteration <<- iteration + 1
-    # UI ----
+    # UI -----------------------------------------------------
     output$currentUI <- renderUI({
       switch(globals$EMLAL$NAVIGATE,
         SelectDPUI(
@@ -162,7 +162,7 @@ EMLAL <- function(input, output, session,
       )
     })
 
-    # Server ----
+    # Server -----------------------------------------------------
     savevar <- switch(globals$EMLAL$NAVIGATE,
       callModule(
         SelectDP, iteration,

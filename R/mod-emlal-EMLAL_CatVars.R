@@ -5,10 +5,10 @@
 #' @importFrom shiny NS fluidPage column fluidRow actionButton tags tagList
 CatVarsUI <- function(id, title, dev) {
   ns <- NS(id)
-
+  
   return(
     fluidPage(
-      # Features UI ----
+      # Features UI -----------------------------------------------------
       h4(title),
       column(
         10,
@@ -36,7 +36,7 @@ CatVarsUI <- function(id, title, dev) {
           uiOutput(ns("edit_catvar"))
         )
       ), # end of column1
-      # Navigation UI ----
+      # Navigation UI -----------------------------------------------------
       column(
         2,
         navSidebar(ns("nav"),
@@ -58,22 +58,22 @@ CatVarsUI <- function(id, title, dev) {
 #' @importFrom shinyBS bsCollapse bsCollapsePanel
 CatVars <- function(input, output, session, savevar, globals) {
   ns <- session$ns
-
-  # DEV ----
+  
+  # DEV -----------------------------------------------------
   if (globals$dev) {
     observeEvent(input$check, {
       browser()
     })
   }
-
-  # Initialization ----
+  
+  # Initialization -----------------------------------------------------
   rv <- reactiveValues(
     catvarFiles = c(),
     currentIndex = 0,
     CatVars = reactiveValues(),
     codes = reactiveValues()
   )
-
+  
   observeEvent(TRUE,
     {
       # list catvar files
@@ -109,7 +109,7 @@ CatVars <- function(input, output, session, savevar, globals) {
     },
     once = TRUE
   )
-
+  
   observeEvent(rv$currentIndex, {
     # update rv$CatVars
     rv$CatVars <- fread(rv$catvarFiles$full[rv$currentIndex])
@@ -117,8 +117,8 @@ CatVars <- function(input, output, session, savevar, globals) {
       rv$CatVars <- savevar$emlal$CatVars[[rv$catvarFiles$short[rv$currentIndex]]]
     }
   }) # end of observeEvent
-
-  # Navigation buttons ----
+  
+  # Navigation buttons -----------------------------------------------------
   # ** files
   observeEvent(input$file_prev,
     {
@@ -154,8 +154,8 @@ CatVars <- function(input, output, session, savevar, globals) {
       )
     )
   })
-
-  # NSB ----
+  
+  # NSB -----------------------------------------------------
   callModule(
     onQuit, "nav",
     # additional arguments
@@ -174,49 +174,50 @@ CatVars <- function(input, output, session, savevar, globals) {
     prevTab, "nav",
     globals
   )
-
-  # Procedurals ----
-  # /UI ----
-  output$edit_catvar <- renderUI({
+  
+  # Procedurals -----------------------------------------------------
+  # /UI -----------------------------------------------------
+  observeEvent(rv$currentIndex, {
     req(rv$CatVars)
     CatVars <- isolate(rv$CatVars)
-    do.call(
-      bsCollapse,
-      c(
-        id = rv$catvarFiles$short[rv$currentIndex],
-        ... = lapply(unique(CatVars$attributeName), function(attribute) {
-          # get code for each attribute
-          codes <- CatVars %>%
-            dplyr::filter(attributeName == attribute) %>%
-            dplyr::select(code)
-          # collapse box
-          bsCollapsePanel(
-            title = attribute,
-            value = attribute,
-            tagList(
-              lapply(sapply(codes, as.list), function(cod) {
-                # input for each code
-                textAreaInput(ns(cod), cod, value = CatVars %>% filter(attributeName == attribute, code == cod) %>% select(definition))
-              })
-            ) # end of "tagapply" -- text areas
-          ) # end of bsCollapsePanel
-        }) # end of "tagapply" -- collapse boxes
-      ) # end of args
-    ) # end of do.call
-  }) # end of renderUI
-
-  # /Server ----
+    
+    output$edit_catvar <- renderUI({
+      do.call(
+        bsCollapse,
+        c(
+          id = rv$catvarFiles$short[rv$currentIndex],
+          ... = lapply(unique(CatVars$attributeName), function(attribute) {
+            # get code for each attribute
+            codes <- CatVars %>%
+              dplyr::filter(attributeName == attribute) %>%
+              dplyr::select(code)
+            # collapse box
+            bsCollapsePanel(
+              title = attribute,
+              value = attribute,
+              tagList(
+                lapply(sapply(codes, as.list), function(cod) {
+                  # input for each code
+                  textAreaInput(ns(cod), cod, value = CatVars %>% filter(attributeName == attribute, code == cod) %>% select(definition))
+                })
+              ) # end of "tagapply" -- text areas
+            ) # end of bsCollapsePanel
+          }), # end of "tagapply" -- collapse boxes
+          multiple = FALSE
+        ) # end of args
+      ) # end of do.call
+    }) # end of renderUI
+    
+  })
+  
+  # /Server -----------------------------------------------------
   observeEvent(rv$currentIndex, {
-    # req(any(names(rv$codes)) %in% names(input))
-    # validate(
-    #   need(all(rv$CatVars$code %in% names(input)), "codes' inputs are not ready yet")
-    # )
     sapply(rv$CatVars$code, function(cod) {
       rv$codes[[cod]] <- eventReactive(input[[cod]],
         {
           # get input value
           enter <- input[[cod]]
-
+          
           # check obtained value
           if (is.list(enter)) {
             enter <- unlist(enter)
@@ -227,8 +228,8 @@ CatVars <- function(input, output, session, savevar, globals) {
       ) # end eventReactive
     }) # end sapply
   }) # end observeEvent
-
-  # Saves ----
+  
+  # Saves -----------------------------------------------------
   observeEvent(sapply(names(rv$codes), function(i) input[[i]]), {
     validate(
       need(all(rv$CatVars$code %in% names(input)), "codes' inputs are not ready yet"),
@@ -236,8 +237,8 @@ CatVars <- function(input, output, session, savevar, globals) {
     )
     rv$CatVars$definition <- printReactiveValues(rv$codes)[rv$CatVars$code]
   })
-
-  # Process data ----
+  
+  # Process data -----------------------------------------------------
   observeEvent(input[["nav-prevTab"]], {
     if (tail(globals$EMLAL$HISTORY, 1) != "CustomUnits") {
       globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE - 1
@@ -253,7 +254,7 @@ CatVars <- function(input, output, session, savevar, globals) {
       )
     })
   })
-
-  # Output ----
+  
+  # Output -----------------------------------------------------
   return(savevar)
 }

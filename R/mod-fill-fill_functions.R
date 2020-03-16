@@ -1,6 +1,6 @@
 # fill_functions.R
 
-# Manage savevar variable ----
+# Manage savevar variable -----------------------------------------------------
 #' @title initReactive
 #'
 #' @description EMLAL module specific function. Initialize `savevar` variable.
@@ -31,11 +31,7 @@ initReactive <- function(sublist = NULL, savevar = NULL) {
         dp_path = NULL,
         dp_title = NULL
       ),
-      DataFiles = reactiveValues(
-        dp_data_files = NULL
-      ),
-      Attributes = reactiveValues(),
-      # CustomUnits: just edit file
+      DataFiles = data.frame(),
       CatVars = reactiveValues(),
       GeoCov = data.frame(),
       TaxCov = reactiveValues(
@@ -99,7 +95,7 @@ saveReactive <- function(savevar) {
       if (file.exists(location)) 
         file.remove(location)
       incProgress(1 / 3)
-      saveRDS(toSave, location)
+      saveRDS(savevar, location)
       incProgress(2 / 3)
     },
     message = "Saving current metadata"

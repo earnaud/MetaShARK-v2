@@ -35,8 +35,7 @@ MiscellaneousUI <- function(id, help_label = NULL, server = FALSE) {
       div(textOutput(ns("selected")), class = "ellipsis")
     ),
     # Content edition
-    column(
-      8,
+    column(8,
       tagList(
         tags$b("Content"),
         help_label,
@@ -58,22 +57,19 @@ MiscellaneousUI <- function(id, help_label = NULL, server = FALSE) {
 #' @importFrom shinyAce updateAceEditor
 #' @importFrom fs path_home
 Miscellaneous <- function(input, output, session, savevar, rv, server) {
-  # Variable initialization ----
+  # Variable initialization -----------------------------------------------------
   ns <- session$ns
   volumes <- c(Home = fs::path_home(), getVolumes()())
 
-  # Get content ----
-  observeEvent(input$content, {
-    req(input$content)
-    rv$content <- callModule(markdownInput, content, preview = FALSE)
-  })
+  # Get content -----------------------------------------------------
+  rv$content <- callModule(markdownInput, "content", preview = FALSE)
 
-  # Get file ----
+  # Get file -----------------------------------------------------
   if (isTRUE(server)) {
     observeEvent(input$file, {
       req(input$file)
       rv$file <- input$file$datapath
-    })
+    }, priority = 1)
   }
   else {
     shinyFileChoose(input, "file",
@@ -83,29 +79,22 @@ Miscellaneous <- function(input, output, session, savevar, rv, server) {
     observeEvent(input$file, {
       req(input$file)
       rv$file <- parseFilePaths(volumes, input$file)$datapath
-    })
+    }, priority = 1)
   }
 
-  observeEvent(
-    {
-      rv$file
-      names(input)
-    },
-    {
-      req(
-        isTruthy(input$file) ||
-          isTruthy(names(input))
-      )
-      browser()
-      updateAceEditor(
-        session,
-        "content-md",
-        value = readPlainText(rv$file)
-      )
-    }
-  )
+  observeEvent(input$file, {
+    req(
+      isTruthy(input$file) ||
+        isTruthy(names(input))
+    )
+    updateAceEditor(
+      session,
+      "content-md",
+      value = readPlainText(rv$file)
+    )
+  }, priority = 0)
 
-  # UI Verbose ----
+  # UI Verbose
   output$selected <- renderText({
     paste(
       basename(rv$file),
@@ -113,6 +102,6 @@ Miscellaneous <- function(input, output, session, savevar, rv, server) {
     )
   })
 
-  # Output ----
+  # Output -----------------------------------------------------
   return(rv)
 }

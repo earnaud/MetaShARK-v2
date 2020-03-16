@@ -76,7 +76,7 @@ DataFiles <- function(input, output, session, savevar, globals, server) {
     })
   }
   
-  # Variable initialization ----
+  # Variable initialization -----------------------------------------------------
   rv <- reactiveValues(
     data_files = data.frame(),
     files_list = character()
@@ -100,7 +100,7 @@ DataFiles <- function(input, output, session, savevar, globals, server) {
     }
   })
   
-  # NSB ----
+  # NSB -----------------------------------------------------
   callModule(
     onQuit, "nav",
     # additional arguments
@@ -116,8 +116,8 @@ DataFiles <- function(input, output, session, savevar, globals, server) {
     globals, "DataFiles"
   )
   
-  # Data file upload ----
-  # * Add data files ----
+  # Data file upload -----------------------------------------------------
+  # * Add data files -----------------------------------------------------
   if (!isTRUE(server)) {
     shinyFileChoose(
       input,
@@ -178,11 +178,13 @@ DataFiles <- function(input, output, session, savevar, globals, server) {
     savevar$emlal$DataFiles <- rv$data_files
   })
   
-  # * Remove data files ----
+  # * Remove data files -----------------------------------------------------
   observeEvent(input$remove_data_files, {
     
     # validity check
     req(input$select_data_files)
+    
+    rv$files_list <- rv$files_list[!(rv$files_list %in% input$select_data_files)]
     
     # actions
     rv$data_files <- rv$data_files[
@@ -193,14 +195,13 @@ DataFiles <- function(input, output, session, savevar, globals, server) {
     savevar$emlal$DataFiles <- rv$data_files
   })
   
-  # Display data files ----
+  # Display data files -----------------------------------------------------
   # -- UI
   observeEvent(rv$files_list, {
     req(rv$files_list)
     df <- isolate(rv$data_files)
     
     output$data_files <- renderUI({
-      message("evaluated")
       disable("nav-nextTab")
       validate(
         need(
@@ -266,7 +267,6 @@ DataFiles <- function(input, output, session, savevar, globals, server) {
       sapply(rv$data_files$name, function(id) {
         callModule(collapsible, id)
         ind <- match(id, rv$data_files$name)
-        message("server")
         # Data name
         observeEvent(input[[paste0(ind, "-dataName")]], {
           isolate(
@@ -288,7 +288,7 @@ DataFiles <- function(input, output, session, savevar, globals, server) {
       })
     })
     
-  # Warnings ----
+  # Warnings -----------------------------------------------------
   # data size
   output$warning_data_size <- renderText({
     if (sum(rv$data_files$size) > globals$THRESHOLDS$data_files_size_max) {
@@ -307,7 +307,7 @@ DataFiles <- function(input, output, session, savevar, globals, server) {
     savevar$emlal$DataFiles <- rv$data_files
   })
     
-  # Process files ----
+  # Process files -----------------------------------------------------
   # Template table
   observeEvent(input[["nav-nextTab"]],
     {
@@ -363,6 +363,6 @@ DataFiles <- function(input, output, session, savevar, globals, server) {
     priority = 1
   )
   
-  # Output ----
+  # Output -----------------------------------------------------
   return(savevar)
 }

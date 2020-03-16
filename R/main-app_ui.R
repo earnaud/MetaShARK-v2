@@ -35,7 +35,7 @@
         title = span(imageOutput("logo", inline = TRUE)),
         titleWidth = menuWidth
       ),
-      ## Menus ----
+      ## Menus -----------------------------------------------------
       dashboardSidebar(
         useShinyjs(),
         sidebarMenu(
@@ -70,7 +70,7 @@
         if (appArgs$dev) actionButton("check", "Dev Check"),
         width = menuWidth
       ), # end sidebar
-      ## Content ----
+      ## Content -----------------------------------------------------
       dashboardBody(
         tags$script(HTML("$('body').addClass('fixed');")),
         tabItems(

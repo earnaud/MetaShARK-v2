@@ -19,12 +19,12 @@ uploadUI <- function(id, dev, globals) {
   tagList(
     shiny::tabsetPanel(
       id = "upload",
-      # Upload ----
+      # Upload -----------------------------------------------------
       tabPanel(
         title = "upload",
         if (dev) actionButton(ns("dev"), "Dev"),
         tags$hr(),
-        # select endpoint ----
+        # select endpoint -----------------------------------------------------
         tags$h3("Select your MetaCat portal"),
         tags$div(
           tags$p("'dev' portals are under construction. No guarantee is given of their consistance.
@@ -37,7 +37,7 @@ uploadUI <- function(id, dev, globals) {
         ),
         tags$hr(),
 
-        # check authentication token ----
+        # check authentication token -----------------------------------------------------
         tags$h3("Get your authentication token"),
         tags$div(
           tags$p("The authentication token must be set in the MetaShARK options."),
@@ -45,7 +45,7 @@ uploadUI <- function(id, dev, globals) {
         ),
         tags$hr(),
 
-        # files input ----
+        # files input -----------------------------------------------------
         tags$h3("Select your data, script and metadata files"),
         tags$div(
           tags$h4("Metadata (one file expected)"),
@@ -61,7 +61,7 @@ uploadUI <- function(id, dev, globals) {
         ),
         tags$hr(),
 
-        # Constraints ----
+        # Constraints -----------------------------------------------------
         # div(id="constraints_div",
         #     tags$h4("Add constraints between script and data files"),
         #     actionButton(ns("add_constraint"), "", icon = icon("plus"), width = "40px")
@@ -73,14 +73,14 @@ uploadUI <- function(id, dev, globals) {
           width = "100%"
         )
       ), # end of upload tab
-      # Update ----
+      # Update -----------------------------------------------------
       tabPanel(
         title = "update",
-        # 1. solr query ----
+        # 1. solr query -----------------------------------------------------
 
-        # 2. select items to update ----
+        # 2. select items to update -----------------------------------------------------
 
-        # 3. select files ----
+        # 3. select files -----------------------------------------------------
       ) # end of update tab
     ) # end of tabSetPanel
   ) # end of tagList
@@ -114,7 +114,7 @@ upload <- function(input, output, session, dev,
     })
   }
 
-  # Select endpoint ----
+  # Select endpoint -----------------------------------------------------
   endpoint <- reactive({
     input$endpoint
   })
@@ -139,7 +139,7 @@ upload <- function(input, output, session, dev,
     }
   })
 
-  # Token input ----
+  # Token input -----------------------------------------------------
   observe({
     if (!is.character(options("dataone_token")) ||
       !is.character(options("dataone_test_token")) ||
@@ -158,7 +158,7 @@ upload <- function(input, output, session, dev,
     }
   })
 
-  # Files input ----
+  # Files input -----------------------------------------------------
   rvFiles <- reactiveValues(
     md = callModule(multiFIlesInput, "metadata"),
     data = callModule(multiFIlesInput, "data"),
@@ -185,7 +185,7 @@ upload <- function(input, output, session, dev,
     }
   })
 
-  # Process ----
+  # Process -----------------------------------------------------
   observeEvent(input$process, {
     disable("process")
     uploadDP(

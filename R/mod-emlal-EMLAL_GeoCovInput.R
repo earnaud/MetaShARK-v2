@@ -69,7 +69,7 @@ GeoCovInputUI <- function(id, site_id, rmv_id) {
 GeoCovInput <- function(input, output, session,
                         rv, rmv_id, site_id, ref) {
 
-  # Metadata acquisition ----
+  # Metadata acquisition -----------------------------------------------------
   localRV <- reactiveValues(
     id = ref,
     geographicDescription = "",
@@ -106,7 +106,7 @@ GeoCovInput <- function(input, output, session,
     priority = 1
   )
 
-  # Metadata save ----
+  # Metadata save -----------------------------------------------------
   observeEvent(
     {
       input$site_description
@@ -131,7 +131,7 @@ GeoCovInput <- function(input, output, session,
     priority = 0
   )
 
-  # Remove UI ----
+  # Remove UI -----------------------------------------------------
   observeEvent(input[[rmv_id]],
     {
       # remove the UI
@@ -148,7 +148,7 @@ GeoCovInput <- function(input, output, session,
     autoDestroy = TRUE
   )
 
-  # Output ----
+  # Output -----------------------------------------------------
   return(rv)
 }
 
@@ -162,12 +162,12 @@ GeoCovInput <- function(input, output, session,
 insertGeoCovInput <- function(id, rv, ns) {
   # !!! warning: rv = rv$custom here !!!
 
-  # initialize IDs ----
+  # initialize IDs -----------------------------------------------------
   div_id <- id
   site_id <- paste0("site_", div_id)
   rmv_id <- paste0("rmv_", div_id)
 
-  # Proper module server ----
+  # Proper module server -----------------------------------------------------
   # create the UI
   newUI <- GeoCovInputUI(ns(div_id), site_id, rmv_id)
 
@@ -180,7 +180,7 @@ insertGeoCovInput <- function(id, rv, ns) {
     rv, rmv_id, site_id, id
   )
 
-  # Output ----
+  # Output -----------------------------------------------------
   return(rv)
 }
 

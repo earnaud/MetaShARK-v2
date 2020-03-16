@@ -8,16 +8,15 @@ AttributesUI <- function(id, title, dev) {
   
   return(
     fluidPage(
-      # Inputs ----
+      # Inputs -----------------------------------------------------
       column(
         10,
         tags$h4("Data table attributes"),
-        span(
-          paste("Even if EML Assembly Line automatically infers most
+        tagList("Even if EML Assembly Line automatically infers most
               of your data's metadata, some steps need you to check
               out. Please check the following attribute, and fill
-              in at least the", with_red_star("mandatory
-              elements."))
+              in at least the",
+              with_red_star("mandatory elements.")
         ),
         fluidRow(
           column(1,
@@ -45,7 +44,7 @@ AttributesUI <- function(id, title, dev) {
         )
       ), # end of column
       
-      # NSB ----
+      # NSB -----------------------------------------------------
       column(
         2,
         navSidebar(
@@ -83,7 +82,7 @@ Attributes <- function(input, output, session, savevar, globals) {
         table <- rv$tables[[ind]]
         sapply(colnames(table), function(col){
           if (col %in% c("missingValueCodeExplanation", "attributeDefinition", "missingValueCode")){
-            rv$tables[[ind]][[col]] <- rep("Lorem Ipsum", dim(table)[1])
+            rv$tables[[ind]][[col]] <- rep("LoremIpsum", dim(table)[1])
             # Update values
             if(ind == rv$current_file){
               sapply(1:dim(rv$tables[[ind]])[1], function(item){
@@ -94,7 +93,8 @@ Attributes <- function(input, output, session, savevar, globals) {
             }
           }
           if (col %in% c("dateTimeFormatString")){
-            rv$tables[[ind]][[col]] <- rep(globals$FORMAT$DATE[3], dim(table)[1])
+            dat_row <- which(rv$tables[[ind]]$class == "Date")
+            rv$tables[[ind]][dat_row, col] <- rep(globals$FORMAT$DATE[3], length(dat_row))
             # Update values
             if(ind == rv$current_file){
               sapply(1:dim(rv$tables[[ind]])[1], function(item){
@@ -105,7 +105,8 @@ Attributes <- function(input, output, session, savevar, globals) {
             }
           }
           if (col %in% c("unit")){
-            rv$tables[[ind]][[col]] <- rep(globals$FORMAT$UNIT[1], dim(table)[1])
+            num_row <- which(rv$tables[[ind]]$class == "numeric")
+            rv$tables[[ind]][num_row, col] <- rep(globals$FORMAT$UNIT[1], length(num_row))
             # Update values
             if(ind == rv$current_file){
               sapply(1:dim(rv$tables[[ind]])[1], function(item){
@@ -122,7 +123,7 @@ Attributes <- function(input, output, session, savevar, globals) {
     }) # end of observeEvent
   }
   
-  # variable initialization ----
+  # variable initialization -----------------------------------------------------
   rv <- reactiveValues(
     data.filepath = savevar$emlal$DataFiles$datapath,
     filepath = savevar$emlal$DataFiles$metadatapath,
@@ -140,7 +141,7 @@ Attributes <- function(input, output, session, savevar, globals) {
     stringsAsFactors = FALSE
   )
   
-  # Navigation buttons ----
+  # Navigation buttons -----------------------------------------------------
   # Previous
   observeEvent(input$file_prev, {
     req(rv$current_file > 1)
@@ -194,7 +195,7 @@ Attributes <- function(input, output, session, savevar, globals) {
     )
   )
   
-  # generate UI ----
+  # generate UI -----------------------------------------------------
   observeEvent(rv$current_file, {
     req(rv$current_file)
     req(!identical(rv$current_table, data.frame()))
@@ -267,7 +268,7 @@ Attributes <- function(input, output, session, savevar, globals) {
                           },
                           missingValueCode = textInput(
                             ns(inputId),
-                            "Code for missing value",
+                            "Code for missing value (max 1 word)",
                             value = saved_value
                           ),
                           missingValueCodeExplanation = textAreaInput(
@@ -298,7 +299,7 @@ Attributes <- function(input, output, session, savevar, globals) {
     priority = 0
   ) # end of observeEvent
   
-  # generate server ----
+  # generate server -----------------------------------------------------
   observeEvent(names(input), {
     req(
       !identical(rv$t_table, data.frame()),
@@ -359,7 +360,25 @@ Attributes <- function(input, output, session, savevar, globals) {
           if (inputId %in% names(input)) {
             observeEvent(input[[inputId]], {
               req(input[[inputId]])
-              isolate(rv$current_table[row_index, colname] <- input[[inputId]])
+              if(grepl("missingValueCode", inputId)){
+                if(grepl(" ", input[[inputId]])){
+                  message("missingValueCode evaluated")
+                  updateTextInput(
+                    session, 
+                    inputId, 
+                    value = strsplit(input[[inputId]], " ")[[1]][1]
+                  )
+                  showNotification(
+                    ui = HTML("<code>missingValueCode</code> fields are limited to a <b>single word.</b>"),
+                    duration = 3,
+                    type = "warning"
+                  )
+                }
+                isolate(rv$current_table[row_index, colname] <- strsplit(input[[inputId]], " ")[[1]][1])
+              }
+              else
+                isolate(rv$current_table[row_index, colname] <- input[[inputId]])
+              
             })
           }
           
@@ -368,7 +387,7 @@ Attributes <- function(input, output, session, savevar, globals) {
     ) # end of lapply : row_index
   }) # end of observeEvent
   
-  # NSB ----
+  # NSB -----------------------------------------------------
   callModule(
     onQuit, "nav",
     # additional arguments
@@ -379,6 +398,23 @@ Attributes <- function(input, output, session, savevar, globals) {
     # additional arguments
     savevar
   )
+  observeEvent(input[["nav-save"]], {
+    # write filled tables
+    withProgress(
+      sapply(
+        seq_along(rv$filenames),
+        function(cur_ind) {
+          incProgress(1/length(rv$filenames))
+          # write filled tables
+          fn <- rv$filenames[cur_ind]
+          path <- savevar$emlal$DataFiles$metadatapath[cur_ind]
+          table <- rv$tables[[cur_ind]]
+          fwrite(table, path, sep = "\t")
+        }
+      ), # end of sapply
+      message = "Writing filled tables"
+    )
+  })
   callModule(
     nextTab, "nav",
     globals, "attributes"
@@ -388,10 +424,9 @@ Attributes <- function(input, output, session, savevar, globals) {
     globals
   )
   
-  # Saves ----
+  # Saves -----------------------------------------------------
   # check for completeness
-  observeEvent(rv$tables,
-    {
+  observeEvent(rv$tables, {
       rv$complete <- FALSE
       req(
         length(rv$tables) != 0 &&
@@ -413,6 +448,7 @@ Attributes <- function(input, output, session, savevar, globals) {
           ) # lapply
         ) # unlist
       ) # all
+      
     }, 
     priority = -1
   )
@@ -437,7 +473,7 @@ Attributes <- function(input, output, session, savevar, globals) {
     }
   })
   
-  # Process data ----
+  # Process data -----------------------------------------------------
   observeEvent(input[["nav-nextTab"]],
     {
       req(isTRUE(rv$complete))
@@ -452,15 +488,15 @@ Attributes <- function(input, output, session, savevar, globals) {
           # write filled tables
           fn <- rv$filenames[cur_ind]
           path <- savevar$emlal$DataFiles$metadatapath[cur_ind]
-          table <- rv$tables[[fn]]
-          
+          table <- rv$tables[[cur_ind]]
           fwrite(table, path, sep = "\t")
-          . <- 2
+          
           # check for direction: CustomUnits or CatVars
-          if ("custom" %in% rv$tables[[fn]][, "unit"]) {
+          . <- 2
+          if ("custom" %in% rv$tables[[cur_ind]][, "unit"]) {
             . <- 0
           } # custom units
-          if ("categorical" %in% rv$tables[[fn]][, "class"]) {
+          if ("categorical" %in% rv$tables[[cur_ind]][, "class"]) {
             . <- c(., 1) # categorical variables
           }
           return(.)
@@ -494,6 +530,6 @@ Attributes <- function(input, output, session, savevar, globals) {
     priority = 1
   )
   
-  # Output ----
+  # Output -----------------------------------------------------
   return(savevar)
 }
