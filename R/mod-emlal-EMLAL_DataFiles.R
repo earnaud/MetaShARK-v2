@@ -13,14 +13,13 @@ DataFilesUI <- function(id, title, dev = FALSE, server = FALSE) {
       column(
         10,
         tags$h4("Data files"),
-        HTML("When selecting your files, you can't select
-                    folders. You can delete file(s) from your
-                    selection by ticking their box and clicking
-                    the 'Remove' button.<br>"),
+        tags$p("When selecting your files, you can't select
+          folders. You can delete file(s) from your selection
+          by ticking their box and clicking the 'Remove' button."),
+        tags$p("DISCLAIMER: MetaShARK only supports tabulated files."),
         tags$div(
-          if(isTRUE(server))
+          if (isTRUE(server)) {
             tagList(
-              "DISCLAIMER: any selected file will be immediately downloaded.",
               fileInput(
                 ns("add_data_files"),
                 "Select data file(s) from your dataset",
@@ -28,14 +27,15 @@ DataFilesUI <- function(id, title, dev = FALSE, server = FALSE) {
                 multiple = TRUE
               )
             )
-          else
+          } else {
             shinyFilesButton(
               ns("add_data_files"),
               "Load files",
               "Select data file(s) from your dataset",
               multiple = TRUE,
               icon = icon("plus-circle")
-            ),
+            )
+          },
           style = "display: inline-block; vertical-align: top;"
         ),
         uiOutput(ns("data_files")),
@@ -76,51 +76,49 @@ DataFiles <- function(input, output, session, savevar, globals, server) {
     })
   }
   
-  # Variable initialization ----
+  # Variable initialization -----------------------------------------------------
   rv <- reactiveValues(
-    data_files = data.frame()
+    data_files = data.frame(),
+    files_list = character()
   )
-  if(isTRUE(server))
+  if (isTRUE(server)) {
     rv$tmpPaths <- character()
-  if(!isTRUE(server))
+  }
+  if (!isTRUE(server)) {
     volumes <- c(Home = globals$HOME, getVolumes()())
+  }
   updateFileListTrigger <- makeReactiveTrigger()
   
   # On arrival on screen
   observeEvent(globals$EMLAL$HISTORY, {
     # dev: might evolve in `switch` if needed furtherly
-    rv$data_files <- if (all(dim(savevar$emlal$DataFiles$dp_data_files) == c(0,0))) { # from create button in SelectDP
-      data.frame()
+    if (all(dim(savevar$emlal$DataFiles) == c(0, 0))) { # from create button in SelectDP
+      rv$data_files <- data.frame()
     } else {
-      savevar$emlal$DataFiles$dp_data_files
+      rv$data_files <- savevar$emlal$DataFiles
+      rv$files_list = rv$data_files$name
     }
-    
-    updateFileListTrigger$trigger()
   })
   
-  # Navigation buttons ----
+  # NSB -----------------------------------------------------
   callModule(
     onQuit, "nav",
     # additional arguments
-    globals, savevar,
-    savevar$emlal$SelectDP$dp_path,
-    savevar$emlal$SelectDP$dp_name
+    globals, savevar
   )
   callModule(
     onSave, "nav",
     # additional arguments
-    savevar,
-    savevar$emlal$SelectDP$dp_path,
-    savevar$emlal$SelectDP$dp_name
+    savevar
   )
   callModule(
     nextTab, "nav",
     globals, "DataFiles"
   )
   
-  # Data file upload ----
-  # Add data files
-  if(!isTRUE(server)) {
+  # Data file upload -----------------------------------------------------
+  # * Add data files -----------------------------------------------------
+  if (!isTRUE(server)) {
     shinyFileChoose(
       input,
       "add_data_files",
@@ -128,20 +126,25 @@ DataFiles <- function(input, output, session, savevar, globals, server) {
       session = session
     )
   }
-
+  
   observeEvent(input$add_data_files, {
     # validity checks
     req(input$add_data_files)
     
-    # actions
-    if(isTRUE(server))
+    # retrieve data files info
+    if (isTRUE(server)) {
       loadedFiles <- input$add_data_files
-    else
+    } else {
       loadedFiles <- as.data.frame(
         parseFilePaths(volumes, input$add_data_files)
       )
-
-    if (identical(rv$data_files, data.frame())) {
+    }
+    # add URL, description and table name columns
+    loadedFiles$url <- rep("", dim(loadedFiles)[1])
+    loadedFiles$description <- rep("", dim(loadedFiles)[1])
+    loadedFiles$table_name <- rep("", dim(loadedFiles)[1])
+    
+    if (any(dim(rv$data_files) == 0)) {
       rv$data_files <- loadedFiles
     } else {
       for (filename in loadedFiles$name) {
@@ -157,82 +160,135 @@ DataFiles <- function(input, output, session, savevar, globals, server) {
     }
     
     # copies on the server
-    if(isTRUE(server)){
-      withProgress({
-        file.copy(rv$data_files$datapath, paste0(globals$TEMP.PATH, rv$data_files$name))
-        incProgress(1)
-      },
-      message = "Downloading data files")
+    if (isTRUE(server)) {
+      withProgress(
+        {
+          file.copy(rv$data_files$datapath, paste0(globals$TEMP.PATH, rv$data_files$name))
+          incProgress(1)
+        },
+        message = "Downloading data files"
+      )
       
       rv$data_files$datapath <- paste0(globals$TEMP.PATH, rv$data_files$name)
     }
     
+    rv$files_list <- rv$data_files$name
+    
     # variable modifications
-    savevar$emlal$DataFiles$dp_data_files <- rv$data_files
+    savevar$emlal$DataFiles <- rv$data_files
   })
   
-  # Remove data files
+  # * Remove data files -----------------------------------------------------
   observeEvent(input$remove_data_files, {
     
     # validity check
     req(input$select_data_files)
     
+    rv$files_list <- rv$files_list[!(rv$files_list %in% input$select_data_files)]
+    
     # actions
     rv$data_files <- rv$data_files[
       rv$data_files$name != input$select_data_files,
       ]
+    
+    # variable modifications
+    savevar$emlal$DataFiles <- rv$data_files
   })
   
-  # Display data files
-  output$data_files <- renderUI({
-    updateFileListTrigger$depend()
+  # Display data files -----------------------------------------------------
+  # -- UI
+  observeEvent(rv$files_list, {
+    req(rv$files_list)
+    df <- isolate(rv$data_files)
     
-    # actions
-    if (!any(dim(rv$data_files) == 0) &&
-        !is.null(rv$data_files)) {
+    output$data_files <- renderUI({
+      disable("nav-nextTab")
+      validate(
+        need(
+          !any(dim(df) == 0) && !is.null(df),
+          "Select files to describe."
+        )
+      )
       enable("nav-nextTab")
+      
       checkboxGroupInput(ns("select_data_files"),
         "Select files to delete (all files here will be kept otherwise)",
-        # choices = rv$data_files$name
         choiceNames = lapply(
-          rv$data_files$name,
-          function(label){
-            id = match(label, rv$data_files$name)
+          df$name,
+          function(label) {
+            id <- match(label, df$name)
             collapsibleUI(
               id = ns(id),
               label = label,
               hidden = FALSE,
-              textAreaInput(
-                ns(paste0(id,"-dataDesc")),
-                "Data File Description",
-                value = label
+              class = "inputBox",
+              tagList(
+                fluidRow(
+                  column(6,
+                    textInput(
+                      ns(paste0(id, "-dataName")),
+                      "Data table name",
+                      value = label
+                    )
+                  ),
+                  column(6,
+                    URL_Input_UI(
+                      ns(paste0(id, "-dataURL")),
+                      label = "Data remote location"
+                    )
+                  ),
+                ),
+                fluidRow(
+                  column(12,
+                    textAreaInput(
+                      ns(paste0(id, "-dataDesc")),
+                      "Data Table Description",
+                      value = paste("Content of", label),
+                      width = "100%"
+                    )
+                  )
+                )
               )
             )
           }
         ),
-        choiceValues = rv$data_files$name
+        choiceValues = df$name
       )
-    }
-    else {
-      disable("nav-nextTab")
-      return(NULL)
-    }
-  })
-  
-  observeEvent(names(input), {
-    req(any(grep("dataDesc", names(input))))
-    sapply(rv$data_files$name, function(id){
-      callModule(collapsible, id)
-      print(ns(id))
-      ind <- match(id, rv$data_files$name)
-      id <- paste0(id,"-dataDesc")
-      observeEvent(input$id, {
-        rv$data_file[ind, "description"] <- input$id
-      })
     })
   })
-  
-  # Warnings ----
+
+    # -- Server
+    observeEvent(names(input), {
+      req(
+        any(grepl("dataName", names(input))) ||
+          any(grepl("dataURL", names(input))) ||
+          any(grepl("dataDesc", names(input)))
+      )
+      sapply(rv$data_files$name, function(id) {
+        callModule(collapsible, id)
+        ind <- match(id, rv$data_files$name)
+        # Data name
+        observeEvent(input[[paste0(ind, "-dataName")]], {
+          isolate(
+          rv$data_files[ind, "table_name"] <- input[[paste0(ind, "-dataName")]]
+          )
+        })
+        # Data URL
+        observeEvent(input[[paste0(ind, "-dataURL")]], {
+          isolate(
+          rv$data_files[ind, "url"] <- callModule(URL_Input, paste0(ind, "-dataURL"))
+          )
+        })
+        # Description
+        observeEvent(input[[paste0(ind, "-dataDesc")]], {
+          isolate(
+          rv$data_files[ind, "description"] <- input[[paste0(ind, "-dataDesc")]]
+          )
+        })
+      })
+    })
+    
+  # Warnings -----------------------------------------------------
   # data size
   output$warning_data_size <- renderText({
     if (sum(rv$data_files$size) > globals$THRESHOLDS$data_files_size_max) {
@@ -245,84 +301,68 @@ DataFiles <- function(input, output, session, savevar, globals, server) {
     }
   })
   
-  # overwrite files
-  output$warning_overwrite <- renderText({
-    if (identical(
-      dir(paste0(path, "/", dp, "/data_objects/")),
-      character(0)
-    )
-    ) {
-      paste("WARNING:", "Selected files will overwrite
-            already loaded ones.")
-    } else {
-      ""
-    }
+  observeEvent(rv$data_files, {
+    req(isTruthy(rv$data_files) &&
+        all(dim(rv$data_files) != 0))
+    savevar$emlal$DataFiles <- rv$data_files
   })
-  
-  # Process files ----
+    
+  # Process files -----------------------------------------------------
   # Template table
   observeEvent(input[["nav-nextTab"]],
     {
-      # variable initialization
-      dp <- savevar$emlal$SelectDP$dp_name
-      path <- savevar$emlal$SelectDP$dp_path
-      
       # actions
       # -- copy files to <dp>_emldp/<dp>/data_objects
       sapply(rv$data_files$datapath,
         file.copy,
-        to = paste0(path, "/", dp, "/data_objects/"),
+        to = savevar$emlal$SelectDP$dp_data_path,
         recursive = TRUE
       )
-      cmd <- paste(
-        paste0("cd ", path, "/", dp, "/data_objects/"),
-        paste(
-          sapply(rv$data_files$name, function(fn){
-            paste0("head -n 6 ", fn, " > preview_", fn)
-          }),
-          collapse = "; "
-        ),
-        sep = "; "
-      )
-      system(cmd)
       
       # -- modify paths in save variable
-      tmp <- savevar$emlal$DataFiles$dp_data_files
+      tmp <- savevar$emlal$DataFiles
       tmp$datapath <- sapply(
         rv$data_files$name,
-        function(dpname) {
-          force(dpname)
-          paste0(path, "/", dp, "/data_objects/", dpname)
+        function(fname) {
+          force(fname)
+          paste0(savevar$emlal$SelectDP$dp_data_path, "/", fname)
         }
       )
+      # Set metadatapath
       tmp$metadatapath <- sapply(
         rv$data_files$name,
-        function(dpname) {
-          force(dpname)
-          paste0(
-            path, "/", dp, "/metadata_templates/",
+        function(fname) {
+          force(fname)
+          paste(
+            savevar$emlal$SelectDP$dp_metadata_path,
             sub(
               "(.*)\\.[a-zA-Z0-9]*$",
               "attributes_\\1.txt",
-              dpname
-            )
+              fname
+            ),
+            sep = "/"
           )
         }
       )
-      savevar$emlal$DataFiles$dp_data_files <- tmp
+      # Set table name
+      tmp$table_name <- rv$data_files$table_name
+      # Set description
+      tmp$description <- rv$data_files$description
+      # Set URL
+      tmp$url <- rv$data_files$url
+      
+      savevar$emlal$DataFiles <- tmp
       
       # EMLAL templating function
       template_table_attributes(
-        path = paste0(path, "/", dp, "/metadata_templates"),
-        data.path = paste0(path, "/", dp, "/data_objects"),
-        data.table = rv$data_files$name
+        path = savevar$emlal$SelectDP$dp_metadata_path,
+        data.path = savevar$emlal$SelectDP$dp_data_path,
+        data.table = savevar$emlal$DataFiles$name
       )
-      
-      message(ns(": Done!"))
     },
     priority = 1
   )
   
-  # Output ----
+  # Output -----------------------------------------------------
   return(savevar)
 }

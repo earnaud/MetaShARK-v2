@@ -1,101 +1,107 @@
 #' @title MiscellaneousUI
+#'
+#' @description 
 #' 
-#' 
-MiscellaneousUI <- function(id, help_label = NULL, server=FALSE){
+#' @importFrom shiny NS fluidRow column tags fileInput span icon 
+#' textOutput div tagList 
+#' @importFrom shinyFiles shinyFilesButton 
+MiscellaneousUI <- function(id, help_label = NULL, server = FALSE) {
   ns <- NS(id)
-  
+
   fluidRow(
     # file selection
-    column(4,
-      tags$b(paste0("Select '", gsub(".*-(.*)$","\\1", id), "' file.")),
+    column(
+      4,
+      tags$b(paste0("Select '", gsub(".*-(.*)$", "\\1", id), "' file.")),
       tags$br(),
-      if(isTRUE(server))
-        fileInput(
-          ns("file"), 
-          "",
-          multiple = FALSE,
-          buttonLabel = span("Load file", icon("file")),
-        )
-      else
-        shinyFilesButton(
-          ns("file"), 
-          "Load file",
-          paste0("Select '", gsub(".*-(.*)$","\\1", id), "' file."),
-          multiple = FALSE,
-          icon = icon("file")
-        ),
-      textOutput(ns("selected"))
+      div(
+        if (isTRUE(server)) {
+          fileInput(
+            ns("file"),
+            "",
+            multiple = FALSE,
+            buttonLabel = span("Load file", icon("file")),
+          )
+        } else {
+          shinyFilesButton(
+            ns("file"),
+            "Load file",
+            paste0("Select '", gsub(".*-(.*)$", "\\1", id), "' file."),
+            multiple = FALSE,
+            icon = icon("file")
+          )
+        }
+      ),
+      div(textOutput(ns("selected")), class = "ellipsis")
     ),
     # Content edition
     column(8,
       tagList(
         tags$b("Content"),
         help_label,
-        textAreaInput(
-          ns("content"), 
-          "", 
+        markdownInputUI(
+          ns("content"),
+          label = "",
           value = "",
-          width = "100%",
-          resize = "vertical"
+          preview = FALSE
         )
       )
     )
   ) # end of fluidRow
-  
 }
 
 #' @title Miscellaneous
-#' 
-#' @import shinyFiles
-Miscellaneous <- function(
-  input, output, session, savevar, 
-  rv, server
-){
-  # Variable initialization ----
+#'  
+#' @importFrom shiny req observeEvent isTruthy 
+#' @importFrom shinyFiles getVolumes shinyFileChoose parseFilePaths
+#' @importFrom shinyAce updateAceEditor
+#' @importFrom fs path_home
+Miscellaneous <- function(input, output, session, savevar, rv, server) {
+  # Variable initialization -----------------------------------------------------
   ns <- session$ns
-  volumes = c(Home = fs::path_home(), getVolumes()())
-  
-  # Get content ----
-  observeEvent(input$content,{
-    req(input$content)
-    rv$content <- input$content
-  })
-  
-  # Get file ----
-  if(isTRUE(server)){
-    rv$file <- eventReactive(input$file, {
+  volumes <- c(Home = fs::path_home(), getVolumes()())
+
+  # Get content -----------------------------------------------------
+  rv$content <- callModule(markdownInput, "content", preview = FALSE)
+
+  # Get file -----------------------------------------------------
+  if (isTRUE(server)) {
+    observeEvent(input$file, {
       req(input$file)
-      input$file$datapath
-    })
+      rv$file <- input$file$datapath
+    }, priority = 1)
   }
-  else{
+  else {
     shinyFileChoose(input, "file",
       roots = volumes,
       session = session
     )
-    rv$file <- eventReactive(input$file, {
+    observeEvent(input$file, {
       req(input$file)
-      parseFilePaths(volumes, input$file)$datapath
-    })
+      rv$file <- parseFilePaths(volumes, input$file)$datapath
+    }, priority = 1)
   }
-    
-  observeEvent(rv$file(),{
-    req(rv$file())
-    updateTextAreaInput(
-      session,
-      "content",
-      value = readPlainText(rv$file())
+
+  observeEvent(input$file, {
+    req(
+      isTruthy(input$file) ||
+        isTruthy(names(input))
     )
-  })
-  
-  # UI Verbose ----
+    updateAceEditor(
+      session,
+      "content-md",
+      value = readPlainText(rv$file)
+    )
+  }, priority = 0)
+
+  # UI Verbose
   output$selected <- renderText({
     paste(
-      basename(rv$file()),
-      "\n(in:", dirname(rv$file()), ")"
+      basename(rv$file),
+      "\n(in:", dirname(rv$file), ")"
     )
   })
-  
-  # Output ----
+
+  # Output -----------------------------------------------------
   return(rv)
 }

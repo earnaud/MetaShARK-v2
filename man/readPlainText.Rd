@@ -10,7 +10,7 @@ readPlainText(files, prefix = NULL, sep = "/", ...)
 \item{files}{files basename located in the same directory or,
 if prefix = NULL, list of full filenames to read}
 
-\item{prefix}{common file prefix for all file names 
+\item{prefix}{common file prefix for all file names
 specified in 'files'. By default, sep = "/"}
 }
 \description{

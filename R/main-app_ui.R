@@ -7,32 +7,35 @@
 #' @importFrom shinydashboard dashboardPage dashboardHeader dashboardSidebar sidebarMenu menuItem dashboardBody tabItems tabItem
 #' @importFrom shinyjs useShinyjs hidden
 .app_ui <- function() {
-  
   appArgs <- get_golem_options()
   dev <- appArgs$dev
-  server = appArgs$server
-  
+  server <- appArgs$server
+
   # prepare variable
   menuWidth <- "250px"
   if (!is.logical(appArgs$dev) || is.null(appArgs$dev)) appArgs$dev <- FALSE
   globals <- .globalScript(appArgs$dev, reactive = FALSE)
-  
+
   # action
   tagList(
-    includeCSS(system.file("app/www/styles.css", package="MetaShARK")),
+    includeCSS(system.file("app/www/styles.css", package = "MetaShARK")),
     # List the first level UI elements here
     dashboardPage(
       title = "MetaShARK",
       dashboardHeader(
         tags$li(class = "dropdown", actionLink("appOptions", "", icon("gear"))),
-        tags$li(class = "dropdown", 
-          if(!isTRUE(appArgs$server)) actionLink("close", "", icon("power-off"))
-          else NULL
+        tags$li(
+          class = "dropdown",
+          if (!isTRUE(appArgs$server)) {
+            actionLink("close", "", icon("power-off"))
+          } else {
+            NULL
+          }
         ),
         title = span(imageOutput("logo", inline = TRUE)),
         titleWidth = menuWidth
       ),
-      ## Menus ----
+      ## Menus -----------------------------------------------------
       dashboardSidebar(
         useShinyjs(),
         sidebarMenu(
@@ -67,7 +70,7 @@
         if (appArgs$dev) actionButton("check", "Dev Check"),
         width = menuWidth
       ), # end sidebar
-      ## Content ----
+      ## Content -----------------------------------------------------
       dashboardBody(
         tags$script(HTML("$('body').addClass('fixed');")),
         tabItems(

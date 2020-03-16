@@ -12,6 +12,6 @@ checkTruth(x, output = NULL)
 \item{output}{what to return if `x` is not truthy}
 }
 \description{
-check if `x` is truthy (as shiny::isTruthy) or not. 
+check if `x` is truthy (as shiny::isTruthy) or not.
 Returns the argument if truthy, or the `output` argument if not (default to NULL)
 }
