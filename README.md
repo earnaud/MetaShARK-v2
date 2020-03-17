@@ -3,7 +3,9 @@
 <img src="./inst/media/logo.png" alt="" width="50%">
 
 **Stable Server address:** http://openstack-192-168-100-121.genouest.org/  ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`  
-**Dev Server address:** http://openstack-192-168-100-116.genouest.org/ ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance`
+**Dev Server address:** http://openstack-192-168-100-116.genouest.org/ ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`  
+<!-- ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`  -->
+<!-- ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance` -->
 
 Metadata Shiny-Automated Resources & Knowledge
 _First released on 15-04-2019_  
