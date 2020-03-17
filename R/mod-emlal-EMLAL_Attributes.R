@@ -379,6 +379,7 @@ Attributes <- function(input, output, session, savevar, globals) {
               else
                 isolate(rv$current_table[row_index, colname] <- input[[inputId]])
               
+              rv$tables[[rv$current_file]] <- rv$current_table
             })
           }
           

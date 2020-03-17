@@ -273,7 +273,6 @@ Misc <- function(input, output, session, savevar, globals, server) {
   observeEvent(input[["nav-nextTab"]],
     {
       savevar$emlal$Misc <- rv
-      browser()
       
       message("Writing 'abstract.txt'.")
       write.text(
