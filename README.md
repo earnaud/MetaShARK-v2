@@ -112,7 +112,7 @@ MetaShARK/EAL supports:
 
 #### Known Bugs
 
-* (No false modesty: main reported bugs have been corrected) *
+* An EAL issue occurs: on the first time you try to write an EML file, you might have an error concerning "ns_lookup()". Re-trying to write EML then makes it.
 
 ## Authors
 * Elie Arnaud (developper) - elie.arnaud@mnhn.fr
