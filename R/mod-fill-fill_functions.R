@@ -25,6 +25,7 @@ initReactive <- function(sublist = NULL, savevar = NULL) {
   if (is.null(sublist) || sublist == "emlal") {
     savevar$emlal <- reactiveValues(
       step = 0,
+      quick = FALSE,
       history = character(),
       SelectDP = reactiveValues(
         dp_name = NULL,

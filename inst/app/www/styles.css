@@ -32,6 +32,11 @@
 	padding: 0;
 }
 
+.leftMargin {
+  border-left: solid lightgrey; 
+  padding: 20px;
+}
+
 .danger {
   color: white;
   background-color: red;

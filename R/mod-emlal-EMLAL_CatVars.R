@@ -37,14 +37,7 @@ CatVarsUI <- function(id, title, dev) {
         )
       ), # end of column1
       # Navigation UI -----------------------------------------------------
-      column(
-        2,
-        navSidebar(ns("nav"),
-          ... = tagList(
-            if (dev) actionButton(ns("check"), "Dev Check")
-          )
-        )
-      ) # end of column2
+      column(2, navSidebar(ns("nav")) )
     ) # end of fluidPage
   ) # end of return
 }
@@ -58,13 +51,6 @@ CatVarsUI <- function(id, title, dev) {
 #' @importFrom shinyBS bsCollapse bsCollapsePanel
 CatVars <- function(input, output, session, savevar, globals) {
   ns <- session$ns
-  
-  # DEV -----------------------------------------------------
-  if (globals$dev) {
-    observeEvent(input$check, {
-      browser()
-    })
-  }
   
   # Initialization -----------------------------------------------------
   rv <- reactiveValues(

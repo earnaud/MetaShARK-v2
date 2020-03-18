@@ -20,12 +20,26 @@ MakeEMLUI <- function(id, title, dev) {
           ),
           textOutput(ns("warnings")),
           tags$br(),
-          hidden(
-            actionButton(
-              ns("publish"), 
-              "Publish", 
-              icon("share-alt"), 
-              width = "50%"
+          fluidRow(
+            column(6,
+              hidden(
+                actionButton(
+                  ns("publish"), 
+                  "Publish", 
+                  icon("share-alt"), 
+                  width = "50%"
+                )
+              )
+            ),
+            column(6,
+              hidden(
+                actionButton(
+                  ns("emldown"), 
+                  "Write emldown", 
+                  icon("markdown"), 
+                  width = "50%"
+                )
+              )
             )
           )
         )
@@ -145,6 +159,7 @@ MakeEML <- function(input, output, session, savevar, globals) {
     # updateTabItems(session, "side_menu", "upload")
     globals$EMLAL$NAVIGATE <- 1
   })
+  
   
   # Output -----------------------------------------------------
   return(savevar)

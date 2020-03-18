@@ -10,14 +10,12 @@ TaxCovUI <- function(id, title, dev, data.files, taxa.authorities) {
   return(
     fluidPage(
       # Features UI -----------------------------------------------------
-      column(
-        10,
+      column(10,
         fluidRow(
           tags$h4(title),
           tags$p("This step is facultative."),
           # taxa.table(s)
-          column(
-            6,
+          column(6,
             selectizeInput(
               ns("taxa.table"),
               "Files containing taxonomic references",
@@ -49,17 +47,7 @@ TaxCovUI <- function(id, title, dev, data.files, taxa.authorities) {
           )
         )
       ), # end of column1
-      # Navigation UI -----------------------------------------------------
-      column(
-        2,
-        navSidebar(
-          ns("nav"),
-          # disableNext = TRUE,
-          ... = tagList(
-            if (dev) actionButton(ns("check"), "Dev Check")
-          )
-        )
-      ) # end of column2
+      column(2, navSidebar(ns("nav")) )
     ) # end of fluidPage
   ) # end of return
 }
@@ -75,12 +63,6 @@ TaxCovUI <- function(id, title, dev, data.files, taxa.authorities) {
 #' @importFrom EMLassemblyline template_taxonomic_coverage
 TaxCov <- function(input, output, session, savevar, globals) {
   ns <- session$ns
-
-  if (globals$dev) {
-    observeEvent(input$check, {
-      browser()
-    })
-  }
 
   # Variable Initialization -----------------------------------------------------
   rv <- reactiveValues()
@@ -196,7 +178,7 @@ TaxCov <- function(input, output, session, savevar, globals) {
     rv$taxa.authority <- globals$FORMAT$AUTHORITIES %>%
       filter(authority == rv$taxa.authority) %>%
       select(id) %>%
-      unlist()
+      unlist
     savevar$emlal$TaxCov$taxa.authority <- rv$taxa.authority
   })
 
