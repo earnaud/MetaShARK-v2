@@ -4,12 +4,14 @@
 \alias{uploadDP}
 \title{uploadDP}
 \usage{
-uploadDP(mn, cn, eml, data, scripts = c(), formats)
+uploadDP(mn, cn, token, eml, data, scripts = c(), formats, use.doi = FALSE)
 }
 \arguments{
 \item{mn}{Member Node URL.}
 
 \item{cn}{Contributing Node URL.}
+
+\item{token}{Dataone (test) token.}
 
 \item{eml}{Metadata file path (XML validating NCEAS' EML Schema)}
 

@@ -18,7 +18,9 @@ appOptionsUI <- function(id, dev) {
           value = options("dataone_token")
         ),
         checkboxInput(ns("test_metacat"), "Test MetaCat", value = TRUE),
-        actionButton(ns("metacat_save"), "Save")
+        actionButton(ns("metacat_save"), "Save"),
+        if(dev)
+          textOutput(ns("verbose_token"))
       ),
       column(
         4,
@@ -39,19 +41,19 @@ appOptionsUI <- function(id, dev) {
 #'
 #' @description server part of the appOptions module. Allow the user to change several settings in the app.
 #'
-#' @importFrom shiny observeEvent updateTextAreaInput
-appOptions <- function(input, output, session) {
+#' @importFrom shiny observeEvent updateTextAreaInput showNotification
+appOptions <- function(input, output, session, globals, server) {
   observeEvent(input$test_metacat, {
     if (input$test_metacat) {
       updateTextAreaInput(session,
         "auth_token",
-        value = options("dataone_test_token")[[1]]
+        value = globals$TOKEN$DATAONE.TEST.TOKEN
       )
     }
     else {
       updateTextAreaInput(session,
         "auth_token",
-        value = options("dataone_token")[[1]]
+        value = globals$TOKEN$DATAONE.TOKEN
       )
     }
   })
@@ -59,11 +61,9 @@ appOptions <- function(input, output, session) {
   observeEvent(input$metacat_save, {
     if (input$test_metacat) {
       globals$TOKEN$DATAONE.TEST.TOKEN <- input$auth_token
-      # options(dataone_test_token = input$auth_token)
     } else {
       globals$TOKEN$DATAONE.TOKEN <- input$auth_token
-      # options(dataone_token = input$auth_token)
     }
-    message("Metacat options set.")
+    showNotification("Dataone token set.", type="message")
   })
 }

@@ -27,16 +27,7 @@ PersonnelUI <- function(id, title, dev) {
         ),
         tags$div(id = ns("inserthere"))
       ), # end of column1
-      # Navigation UI -----------------------------------------------------
-      column(
-        2,
-        navSidebar(
-          ns("nav"),
-          ... = tagList(
-            if (dev) actionButton(ns("check"), "Dev Check")
-          )
-        )
-      ) # end of column2
+      column(2, navSidebar(ns("nav")) )
     ) # end of fluidPage
   ) # end of return
 }
@@ -48,12 +39,6 @@ PersonnelUI <- function(id, title, dev) {
 #'
 Personnel <- function(input, output, session, savevar, globals) {
   ns <- session$ns
-
-  if (globals$dev) {
-    observeEvent(input$check, {
-      browser()
-    })
-  }
 
   # Variable initialization -----------------------------------------------------
   rv <- reactiveValues(
@@ -185,7 +170,7 @@ Personnel <- function(input, output, session, savevar, globals) {
 #' @description module to document EML::Personnel
 #'
 #' @importFrom shinyBS bsTooltip
-PersonnelModUI <- function(id, site_id, rmv_id, role = NULL, dev = FALSE) {
+PersonnelModUI <- function(id, site_id, rmv_id, role = NULL) {
   ns <- NS(id)
 
   div_id <- id
@@ -196,27 +181,23 @@ PersonnelModUI <- function(id, site_id, rmv_id, role = NULL, dev = FALSE) {
       style = "inputBox",
       class = "inputBox",
       # Form -----------------------------------------------------
-      column(
-        11,
+      column(11,
         tagList(
           # * Basic identity -----------------------------------------------------
           fluidRow(
-            column(
-              4,
+            column(4,
               textInput(
                 ns("givenName"),
                 label = with_red_star("First name of person.")
               )
             ),
-            column(
-              4,
+            column(4,
               textInput(
                 ns("middleInitial"),
                 label = "Middle initial of person."
               )
             ),
-            column(
-              4,
+            column(4,
               textInput(
                 ns("surName"),
                 label = with_red_star("Last name of person.")
@@ -225,15 +206,13 @@ PersonnelModUI <- function(id, site_id, rmv_id, role = NULL, dev = FALSE) {
           ), # end of fluidRow 1
           # * Contact -----------------------------------------------------
           fluidRow(
-            column(
-              8,
+            column(8,
               textInput(
                 ns("organizationName"),
                 label = with_red_star("Name of organization the person is associated with.")
               )
             ),
-            column(
-              4,
+            column(4,
               textInput(
                 ns("electronicMailAddress"),
                 label = with_red_star("Email address of person.")
@@ -242,15 +221,13 @@ PersonnelModUI <- function(id, site_id, rmv_id, role = NULL, dev = FALSE) {
           ), # end of fluidRow 2
           # * Personnel identification -----------------------------------------------------
           fluidRow(
-            column(
-              4,
+            column(4,
               textInput(
                 ns("userId"),
                 label = "ORCID of person"
               )
             ),
-            column(
-              4,
+            column(4,
               if (is.null(role)) {
                 selectInput(
                   ns("role"),
@@ -261,8 +238,7 @@ PersonnelModUI <- function(id, site_id, rmv_id, role = NULL, dev = FALSE) {
                 tags$b(role)
               }
             ),
-            column(
-              4,
+            column(4,
               hidden(
                 div(
                   id = ns("role-other"),
@@ -278,22 +254,19 @@ PersonnelModUI <- function(id, site_id, rmv_id, role = NULL, dev = FALSE) {
           div(
             id = "project_information",
             fluidRow(
-              column(
-                4,
+              column(4,
                 textInput(
                   ns("projectTitle"),
                   label = "Title of the project this dataset was created under."
                 )
               ),
-              column(
-                4,
+              column(4,
                 textInput(
                   ns("fundingAgency"),
                   label = "Name of the entity funding the creation of this dataset."
                 )
               ),
-              column(
-                4,
+              column(4,
                 textInput(
                   ns("fundingNumber"),
                   label = "Number of the grant or award that supported creation of this dataset"
@@ -304,20 +277,13 @@ PersonnelModUI <- function(id, site_id, rmv_id, role = NULL, dev = FALSE) {
         )
       ),
       # Destroy -----------------------------------------------------
-      column(
-        1,
+      column(1,
         if (is.null(role)) {
           actionButton(
             ns(rmv_id),
             "",
             icon("trash"),
             class = "danger"
-          )
-        },
-        if (dev) {
-          actionButton(
-            ns("dev"),
-            "Dev"
           )
         }
       )
@@ -333,12 +299,6 @@ PersonnelModUI <- function(id, site_id, rmv_id, role = NULL, dev = FALSE) {
 PersonnelMod <- function(input, output, session,
                          globals, rv, rmv_id, site_id, ref, role = NULL) {
   ns <- session$ns
-
-  if (globals$dev) {
-    observeEvent(input$dev, {
-      browser()
-    })
-  }
 
   # Variable initialization -----------------------------------------------------
   localRV <- reactiveValues(
@@ -562,7 +522,7 @@ insertPersonnelInput <- function(id, rv, ns, globals, role = NULL) {
 
   # Proper module server -----------------------------------------------------
   # create the UI
-  newUI <- PersonnelModUI(ns(div_id), site_id, rmv_id, role = role, dev = globals$dev)
+  newUI <- PersonnelModUI(ns(div_id), site_id, rmv_id, role = role)
 
   # insert the UI
   insertUI(

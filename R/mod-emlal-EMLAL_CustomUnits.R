@@ -48,7 +48,6 @@ CustomUnitsUI <- function(id, title, dev) {
         navSidebar(ns("nav"),
           ... = tagList(
             textOutput(ns("warning_completeness")),
-            if (dev) actionButton(ns("check"), "Dev Check"),
             if (dev) actionButton(ns("fill"), "Fill")
           )
         )
@@ -71,26 +70,21 @@ CustomUnits <- function(input, output, session,
   ns <- session$ns
   
   # DEV -----------------------------------------------------
-  if (globals$dev) {
-    observeEvent(input$check, {
-      browser()
+  # fill the description fields with automatically filled field
+  if(globals$dev || isTRUE(savevar$quick)){
+    observeEvent(input$fill, {
+      req(exists("rv"))
+      sapply(names(rv$CU_Table), function(field) {
+        if (!field %in% c("parentSI", "multiplierToSI")) {
+          rv$CU_Table[, field] <- "Automatically filled field."
+        } else if (field == "id") {
+          rv$CU_Table[, field] <- paste0("unit-", 1:dim(rv$CU_Table)[1])
+        } else {
+          rv$CU_Table[, field] <- rv$attributes[[field]]()
+        }
+      })
     })
   }
-  
-  # fill the description fields with automatically filled field
-  observeEvent(input$fill, {
-    req(exists("rv"))
-    sapply(names(rv$CU_Table), function(field) {
-      if (!field %in% c("parentSI", "multiplierToSI")) {
-        rv$CU_Table[, field] <- "Automatically filled field."
-      } else if (field == "id") {
-        rv$CU_Table[, field] <- paste0("unit-", 1:dim(rv$CU_Table)[1])
-      } else {
-        rv$CU_Table[, field] <- rv$attributes[[field]]()
-      }
-    })
-  })
-  
   
   # variable initialization -----------------------------------------------------
   rv <- reactiveValues(

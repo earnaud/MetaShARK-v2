@@ -55,6 +55,7 @@ SelectDPUI <- function(id, title, width = 12, dev = FALSE, server) {
           tags$h4("Create new data package",
             style = "text-align:center"
           ),
+          checkboxInput(ns("quick"), "Quick mode", value = TRUE),
 
           # Data package title
           textInput(ns("dp_name"), "Data package name",
@@ -97,13 +98,12 @@ SelectDP <- function(input, output, session,
                      savevar, globals, server) {
   # variable initialization -----------------------------------------------------
   ns <- session$ns
-  DP.path <- globals$DEFAULT.PATH
 
   # local values - to save will communicate with other modules
   rv <- reactiveValues(
     # to save
     # Default DP location
-    dp_location = DP.path,
+    dp_location = globals$DEFAULT.PATH,
     dp_name = character(),
     dp_title = character(),
     # local only
@@ -283,6 +283,7 @@ SelectDP <- function(input, output, session,
     savevar$emlal$SelectDP$dp_data_path <- paste(path, dp, "data_objects", sep = "/")
     savevar$emlal$SelectDP$dp_eml_path <- paste(path, dp, "eml", sep = "/")
     savevar$emlal$SelectDP$dp_title <- title
+    savevar$emlal$quick <- input$quick
 
     # verbose
     message("Creating:", path, "\n", sep = "")
@@ -322,6 +323,7 @@ SelectDP <- function(input, output, session,
     # actions
     savevar$emlal <- initReactive("emlal", savevar)
     savevar$emlal <- readRDS(paste0(path, "/", dp, ".rds"))$emlal
+    savevar$emlal$quick <- isTRUE(savevar$emlal$quick)
     globals$EMLAL$NAVIGATE <- ifelse(savevar$emlal$step > 1, # resume where max reached
       savevar$emlal$step,
       globals$EMLAL$NAVIGATE + 1

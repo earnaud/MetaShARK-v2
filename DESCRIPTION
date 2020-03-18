@@ -33,7 +33,11 @@ Imports:
     shinyjs,
     shinyBS,
     shinycssloaders,
-    readtext
+    readtext,
+    RCurl,
+    config,
+    markdown,
+    stringr
 Remotes:
     ThinkR-open/tagsinput
 RoxygenNote: 7.1.0

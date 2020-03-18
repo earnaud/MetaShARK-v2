@@ -93,16 +93,7 @@ MiscUI <- function(id, title, dev, savevar, server) {
           )
         )
       ), # end of column1
-      # Navigation UI -----------------------------------------------------
-      column(
-        2,
-        navSidebar(
-          ns("nav"),
-          ... = tagList(
-            if (dev) actionButton(ns("check"), "Dev Check")
-          )
-        )
-      ) # end of column2
+      column(2, navSidebar(ns("nav")) )
     ) # end of fluidPage
   ) # end of return
 }
@@ -116,12 +107,6 @@ MiscUI <- function(id, title, dev, savevar, server) {
 #' @importFrom shinyjs enable disable
 Misc <- function(input, output, session, savevar, globals, server) {
   ns <- session$ns
-
-  if (globals$dev) {
-    observeEvent(input$check, {
-      browser()
-    })
-  }
 
   # Variable initialization -----------------------------------------------------
   rv <- reactiveValues(

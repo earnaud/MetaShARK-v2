@@ -86,15 +86,7 @@ GeoCovUI <- function(id, title, dev, data.files, coordPattern) {
           )
         )
       ), # end of column1
-      # Navigation UI -----------------------------------------------------
-      column(
-        2,
-        navSidebar(ns("nav"),
-          ... = tagList(
-            if (dev) actionButton(ns("check"), "Dev Check")
-          )
-        )
-      ) # end of column2
+      column(2, navSidebar(ns("nav")) )
     ) # end of fluidPage
   ) # end of return
 }
@@ -110,12 +102,6 @@ GeoCovUI <- function(id, title, dev, data.files, coordPattern) {
 #' @importFrom EMLassemblyline template_geographic_coverage
 GeoCov <- function(input, output, session, savevar, globals) {
   ns <- session$ns
-  
-  if (globals$dev) {
-    observeEvent(input$check, {
-      browser()
-    })
-  }
   
   # Variable initialization -----------------------------------------------------
   

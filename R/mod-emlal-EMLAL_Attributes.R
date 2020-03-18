@@ -16,7 +16,7 @@ AttributesUI <- function(id, title, dev) {
               of your data's metadata, some steps need you to check
               out. Please check the following attribute, and fill
               in at least the",
-              with_red_star("mandatory elements.")
+          with_red_star("mandatory elements.")
         ),
         fluidRow(
           column(1,
@@ -50,7 +50,7 @@ AttributesUI <- function(id, title, dev) {
         navSidebar(
           ns("nav"),
           ... = tagList(
-            if (dev) actionButton(ns("check"), "Dev Check"),
+            # if (dev) actionButton(ns("check"), "Dev Check"),
             if (dev) actionButton(ns("fill"), "Fill")
           )
         )
@@ -72,54 +72,54 @@ AttributesUI <- function(id, title, dev) {
 Attributes <- function(input, output, session, savevar, globals) {
   ns <- session$ns
   
-  if (globals$dev) {
-    observeEvent(input$check, {
-      browser()
-    })
-    
-    observeEvent(input$fill, {
+  if (globals$dev || isTRUE(savevar$emlal$quick)) {
+    .fill <- function(rv = rv){
       lapply(seq(rv$tables), function(ind){
         table <- rv$tables[[ind]]
         sapply(colnames(table), function(col){
-          if (col %in% c("missingValueCodeExplanation", "attributeDefinition", "missingValueCode")){
-            rv$tables[[ind]][[col]] <- rep("LoremIpsum", dim(table)[1])
-            # Update values
-            if(ind == rv$current_file){
-              sapply(1:dim(rv$tables[[ind]])[1], function(item){
-                inputId <- paste(ind, item, col, sep = "-")
-                if(inputId %in% names(input))
-                  updateTextAreaInput(session, inputId, value = rv$tables[[ind]][item,col])
-              })
-            }
+          # Set values
+          if (col == "attributeDefinition"){
+            rv$tables[[ind]][[col]] <- paste("Description for", rv$tables[[ind]][["attributeName"]])
           }
-          if (col %in% c("dateTimeFormatString")){
+          if (col %in% c("missingValueCodeExplanation",  "missingValueCode")){
+            rv$tables[[ind]][[col]] <- rep("Lorem Ipsum", dim(table)[1])
+          }
+          if (col == "dateTimeFormatString"){
             dat_row <- which(rv$tables[[ind]]$class == "Date")
             rv$tables[[ind]][dat_row, col] <- rep(globals$FORMAT$DATE[3], length(dat_row))
-            # Update values
-            if(ind == rv$current_file){
-              sapply(1:dim(rv$tables[[ind]])[1], function(item){
-                inputId <- paste(ind, item, col, sep = "-")
-                if(inputId %in% names(input))
-                  updateSelectInput(session, inputId, selected = rv$tables[[ind]][item,col])
-              })
-            }
           }
-          if (col %in% c("unit")){
-            num_row <- which(rv$tables[[ind]]$class == "numeric")
-            rv$tables[[ind]][num_row, col] <- rep(globals$FORMAT$UNIT[1], length(num_row))
-            # Update values
-            if(ind == rv$current_file){
-              sapply(1:dim(rv$tables[[ind]])[1], function(item){
-                inputId <- paste(ind, item, col, sep = "-")
-                if(inputId %in% names(input))
+          if (col == "unit"){
+            uni_row <- which(rv$tables[[ind]]$class == "numeric")
+            rv$tables[[ind]][uni_row, col] <- rep(globals$FORMAT$UNIT[1], length(uni_row))
+          }
+          
+          # Update values
+          if(ind == rv$current_file){
+            sapply(1:dim(rv$tables[[ind]])[1], function(item){
+              inputId <- paste(ind, item, col, sep = "-")
+              if(inputId %in% names(input)){
+                if(col %in% c("unit", "dateTimeFormatString"))
                   updateSelectInput(session, inputId, selected = rv$tables[[ind]][item,col])
-              })
-            }
+                if(col %in% c("attributeDefinition", "missingValueCode", "missingValueCodeExplanation"))
+                  updateTextAreaInput(session, inputId, value = rv$tables[[ind]][item,col])
+              }
+            })
           }
         }) # end of sapply
+        
+        # Update current table
         if(ind == rv$current_file)
           rv$current_table <- rv$tables[[ind]]
+        
+        return(rv)
       }) # end of lapply
+    } # end of .fill
+  }
+  
+  # DEV 
+  if (globals$dev) {
+    observeEvent(input$fill, {
+      rv <- .fill(rv)
     }) # end of observeEvent
   }
   
@@ -140,6 +140,10 @@ Attributes <- function(input, output, session, savevar, globals) {
     data.table = FALSE,
     stringsAsFactors = FALSE
   )
+  
+  if(isTRUE(savevar$emlal$quick)){
+    rv <- .fill(rv)
+  }
   
   # Navigation buttons -----------------------------------------------------
   # Previous
@@ -428,29 +432,29 @@ Attributes <- function(input, output, session, savevar, globals) {
   # Saves -----------------------------------------------------
   # check for completeness
   observeEvent(rv$tables, {
-      rv$complete <- FALSE
-      req(
-        length(rv$tables) != 0 &&
-          !any(sapply(rv$tables, identical, y = data.frame()))
-      )
-      
-      rv$complete <- all(
-        unlist(
-          lapply(
-            rv$tables,
-            function(table) {
-              isTruthy(table) &&
-                all(sapply(table$attributeName, isTruthy)) &&
-                all(sapply(table$attributeDefinition, isTruthy)) &&
-                all(sapply(table$class, isTruthy)) &&
-                !any(grepl("!Add.*here!", table$unit)) &&
-                !any(grepl("!Add.*here!", table$dateTimeFormatString))
-            }
-          ) # lapply
-        ) # unlist
-      ) # all
-      
-    }, 
+    rv$complete <- FALSE
+    req(
+      length(rv$tables) != 0 &&
+        !any(sapply(rv$tables, identical, y = data.frame()))
+    )
+    
+    rv$complete <- all(
+      unlist(
+        lapply(
+          rv$tables,
+          function(table) {
+            isTruthy(table) &&
+              all(sapply(table$attributeName, isTruthy)) &&
+              all(sapply(table$attributeDefinition, isTruthy)) &&
+              all(sapply(table$class, isTruthy)) &&
+              !any(grepl("!Add.*here!", table$unit)) &&
+              !any(grepl("!Add.*here!", table$dateTimeFormatString))
+          }
+        ) # lapply
+      ) # unlist
+    ) # all
+    
+  }, 
     priority = -1
   )
   

@@ -9,7 +9,7 @@ DataFilesUI <- function(id, title, dev = FALSE, server = FALSE) {
   
   return(
     fluidPage(
-      # main panel
+      # Features -----------------------------------------------------
       column(
         10,
         tags$h4("Data files"),
@@ -44,6 +44,7 @@ DataFilesUI <- function(id, title, dev = FALSE, server = FALSE) {
           class = "redButton"
         )
       ), # end of column 1
+      # NSB -----------------------------------------------------
       column(
         2,
         navSidebar(ns("nav"),
@@ -52,8 +53,7 @@ DataFilesUI <- function(id, title, dev = FALSE, server = FALSE) {
             textOutput(ns("warning_data_size")),
             textOutput(ns("overwrite"))
           )
-        ),
-        if (dev) actionButton(ns("checkDataFiles"), "Dev")
+        )
       )
     ) # end fluidPage
   ) # end return
@@ -69,12 +69,6 @@ DataFilesUI <- function(id, title, dev = FALSE, server = FALSE) {
 #' @importFrom EMLassemblyline template_table_attributes
 DataFiles <- function(input, output, session, savevar, globals, server) {
   ns <- session$ns
-  
-  if (globals$dev) {
-    observeEvent(input$checkDataFiles, {
-      browser()
-    })
-  }
   
   # Variable initialization -----------------------------------------------------
   rv <- reactiveValues(

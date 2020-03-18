@@ -49,8 +49,7 @@
   names(wwwPaths) <- basename(unlist(wwwPaths))
 
   # DataONE nodes
-  # DATAONE.LIST <- dataone::listFormats(dataone::CNode())$MediaType
-  DATAONE.LIST <- unlist(fread(wwwPaths$dataoneCNodesList.txt))
+  DATAONE.LIST <- dataone::listFormats(dataone::CNode())$MediaType
 
   # Taxa authorities
   TAXA.AUTHORITIES <-  taxonomyCleanr::view_taxa_authorities()
@@ -83,7 +82,8 @@
       EMLAL = reactiveValues(
         HISTORY = character(),
         NAVIGATE = 1
-      )
+      ),
+      TOKEN = reactiveValues()
     )
   } else {
     globals <- list(
