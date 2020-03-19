@@ -22,25 +22,37 @@ MakeEMLUI <- function(id, title, dev) {
           tags$br(),
           fluidRow(
             column(6,
-              hidden(
-                actionButton(
-                  ns("publish"), 
-                  "Publish", 
-                  icon("share-alt"), 
-                  width = "50%"
-                )
+              tags$div(id="publish",
+                tags$b("Publish data package"),
+                "You can head to the Upload tab and publish 
+                your data package to a metacat repository."
               )
             ),
             column(6,
-              hidden(
-                actionButton(
-                  ns("emldown"), 
-                  "Write emldown", 
-                  icon("markdown"), 
+              tags$b("Generate a summary of your data package."),
+              tags$i("(clicking on the below button will open a preview)"),
+              # radioButtons(
+              #   inputId = ns("format"),
+              #   label = "Chose your output format",
+              #   choices = c("HTML", "PDF"), 
+              #   selected = "HTML", 
+              #   inline = TRUE, 
+              #   width = "50%"
+              # ),
+              actionButton(
+                ns("emldown"), 
+                "Write emldown", 
+                icon("file-code"), 
+                width = "50%"
+              ),
+              disabled(
+                downloadButton(
+                  ns("download_emldown"),
+                  "Download emldown",
                   width = "50%"
                 )
               )
-            )
+            ) # End of emldown
           )
         )
       ), # end of column1
@@ -51,7 +63,7 @@ MakeEMLUI <- function(id, title, dev) {
           ns("nav"),
           .next = FALSE,
           ... = tagList(
-            if (dev) actionButton(ns("check"), "Dev Check")
+            actionButton(ns("check"), "Dev Check")
           )
         )
       ) # end of column2
@@ -64,16 +76,20 @@ MakeEMLUI <- function(id, title, dev) {
 #' @description server part of the make EML module
 #' 
 #' @importFrom shiny showNotification renderText validate need req isTruthy observeEvent
-#' @importFrom shinyjs show
+#' @importFrom shinyjs show enable
 #' @importFrom EMLassemblyline make_eml template_arguments
+#' @importFrom emldown render_eml
 MakeEML <- function(input, output, session, savevar, globals) {
   ns <- session$ns
   
-  if (globals$dev) {
-    observeEvent(input$check, {
-      browser()
-    })
-  }
+  observeEvent(input$check, {
+    browser()
+  })
+  
+  outFile <- paste0(
+    savevar$emlal$SelectDP$dp_path,
+    "/emldown/emldown.html"
+  )
   
   # NSB -----------------------------------------------------
   callModule(
@@ -144,22 +160,76 @@ MakeEML <- function(input, output, session, savevar, globals) {
       return(NULL)
     })
     
-    if(class(out) != "try-error")
+    if(class(out) != "try-error"){
       show("publish", anim = TRUE, time = 0.25)
+      show("emldown", anim = TRUE, time = 0.25)
+    }
     
   })
   
-  # Publish -----------------------------------------------------
-  if(isTruthy(dir(savevar$emlal$SelectDP$dp_eml_path)))
-    show("publish", anim = TRUE, time = 0.25)
   
-  observeEvent(input$publish, {
-    req(input$publish)
+  # emldown -----------------------------------------------------
+  observeEvent(input$emldown, {
+    disable("emldown")
     
-    # updateTabItems(session, "side_menu", "upload")
-    globals$EMLAL$NAVIGATE <- 1
+    emlFile <- dir(
+      savevar$emlal$SelectDP$dp_eml_path,
+      full.names = TRUE,
+      pattern = "localid"
+    )
+    
+    enable("emldown")
+    req(file.exists(emlFile) && isTruthy(emlFile))
+    disable("emldown")
+    
+    dir.create(dirname(outFile), recursive = TRUE)
+    
+    old.wd <- getwd()
+    setwd(dirname(outFile))
+    out <- render_eml(
+      file = emlFile,
+      open = TRUE,
+      outfile = outFile,
+      publish_mode = TRUE
+    )
+    setwd(old.wd)
+    
+    # if(input$format != "HTML"){
+    #   rmarkdown::pandoc_convert(
+    #     input = outFile,
+    #     to = tolower(input$format),
+    #     from = "html",
+    #     output = gsub("html$","pdf", outFile)
+    #   )
+    # }
+    
+    browser()
+    if(file.exists(outFile)){
+      enable("download_emldown")
+      showNotification("emldown generated", type="message")
+    }
+    
+    enable("emldown")
   })
   
+  output$download_emldown <- downloadHandler(
+    filename = function() {
+      paste(
+        savevar$emlal$SelectDP$dp_name,
+        "_emldown.zip"
+      )
+    },
+    content = function(file) {
+      zip(
+        zipfile = file,
+        files = dir(
+          dirname(outFile),
+          recursive = TRUE,
+          full.names = TRUE
+        )
+      )
+    }
+  )
   
   # Output -----------------------------------------------------
   return(savevar)
