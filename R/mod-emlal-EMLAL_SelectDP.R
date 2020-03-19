@@ -195,7 +195,6 @@ SelectDP <- function(input, output, session,
       paste(input$dp_list, "zip", sep = ".")
     },
     content = function(file) {
-      browser()
       zip(
         zipfile = file,
         files = dir(
