@@ -27,7 +27,7 @@ welcomeUI <- function(id) {
           work of Michener et al.</a>. Since then, it has been developped by the 
           <b>NCEAS</b> (National Center for Ecological Analysis and Synthesis)
           and is mainly accessible through the <b>KNB</b> (Knowledge Network for
-          Biodiversity) and its <a href='https://github.com/NCEAS/eml'>git</a>.
+          Biodiversity) and its <a href='https://github.com/NCEAS/eml'>github repository</a>.
           However, MetaShARK offers a <a href='#shiny-tab-documentation'>documentation
           section</a> dedicated to EML. </p>
         </div>
