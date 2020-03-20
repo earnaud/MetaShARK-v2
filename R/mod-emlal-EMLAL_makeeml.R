@@ -224,8 +224,7 @@ MakeEML <- function(input, output, session, savevar, globals) {
         zipfile = file,
         files = dir(
           dirname(outFile),
-          recursive = TRUE,
-          full.names = TRUE
+          recursive = TRUE
         )
       )
     }

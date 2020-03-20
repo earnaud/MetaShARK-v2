@@ -28,19 +28,18 @@ docUI <- function(id) {
       box(
         width = 12,
         title = "Check original documentation",
-        "This documentation is brought to you from XSD files downloaded from
-          <a href=''>this git</a>. You can visit the original documentation by 
-          chosing a module name and clicking the 'GO' button below:",
-        column(
-          6,
+        HTML("<p>This documentation is brought to you from XSD files downloaded 
+        from <a href='https://eml.ecoinformatics.org/schema/'>this site</a>.
+        You can visit the original documentation by chosing a module
+        name and clicking the 'GO' button below.</p>"),
+        column(6,
           selectInput(ns("select-module"), NULL,
             moduleNames,
             selected = moduleNames[25],
             multiple = FALSE
           )
         ),
-        column(
-          6,
+        column(6,
           actionButton(ns("visit-module"), "Go !",
             icon = icon("external-link-alt")
           )

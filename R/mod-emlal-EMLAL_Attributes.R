@@ -50,7 +50,7 @@ AttributesUI <- function(id, title, dev) {
         navSidebar(
           ns("nav"),
           ... = tagList(
-            # if (dev) actionButton(ns("check"), "Dev Check"),
+            if (dev) actionButton(ns("dev"), "Dev Check"),
             if (dev) actionButton(ns("fill"), "Fill")
           )
         )
@@ -111,16 +111,19 @@ Attributes <- function(input, output, session, savevar, globals) {
         if(ind == rv$current_file)
           rv$current_table <- rv$tables[[ind]]
         
-        return(rv)
       }) # end of lapply
+      return(rv)
     } # end of .fill
   }
   
   # DEV 
   if (globals$dev) {
     observeEvent(input$fill, {
+      req(input$fill)
       rv <- .fill(rv)
     }) # end of observeEvent
+    
+    observeEvent(input$dev, {browser()})
   }
   
   # variable initialization -----------------------------------------------------
@@ -366,13 +369,13 @@ Attributes <- function(input, output, session, savevar, globals) {
               req(input[[inputId]])
               if(grepl("missingValueCode", inputId)){
                 if(grepl(" ", input[[inputId]])){
-                  message("missingValueCode evaluated")
                   updateTextInput(
                     session, 
                     inputId, 
                     value = strsplit(input[[inputId]], " ")[[1]][1]
                   )
                   showNotification(
+                    id = session$ns("mvc_update"),
                     ui = HTML("<code>missingValueCode</code> fields are limited to a <b>single word.</b>"),
                     duration = 3,
                     type = "warning"
@@ -459,8 +462,12 @@ Attributes <- function(input, output, session, savevar, globals) {
   )
   
   # en/disable buttons
-  observe({
-    req(names(input))
+  observeEvent(rv, {
+    req(
+      isTruthy(names(input)) && 
+        isTruthy(names(rv))
+    )
+    
     if (rv$current_file == 1) {
       disable("file_prev")
     } else {
