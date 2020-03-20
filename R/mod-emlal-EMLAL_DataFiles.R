@@ -346,12 +346,11 @@ DataFiles <- function(input, output, session, savevar, globals, server) {
       tmp$url <- rv$data_files$url
       
       savevar$emlal$DataFiles <- tmp
-      
       # EMLAL templating function
       template_table_attributes(
         path = savevar$emlal$SelectDP$dp_metadata_path,
         data.path = savevar$emlal$SelectDP$dp_data_path,
-        data.table = savevar$emlal$DataFiles$name
+        data.table = savevar$emlal$DataFiles$name 
       )
     },
     priority = 1
