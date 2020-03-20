@@ -515,10 +515,10 @@ Attributes <- function(input, output, session, savevar, globals) {
         }
       )
       
-      if (any(nextStep == 1)) {
+      if (any(unlist(nextStep) == 1)) {
         templateCatvars <- TRUE
       }
-      nextStep <- min(nextStep)
+      nextStep <- min(unlist(nextStep))
       
       # EMLAL: template new fields if needed
       if (isTRUE(templateCatvars)) { # might not be defined

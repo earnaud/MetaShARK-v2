@@ -60,41 +60,24 @@ CatVars <- function(input, output, session, savevar, globals) {
     codes = reactiveValues()
   )
   
-  observeEvent(TRUE,
-    {
-      # list catvar files
-      rv$catvarFiles$full <- list.files(
-        paste(
-          savevar$emlal$SelectDP$dp_metadata_path
-          # savevar$emlal$SelectDP$dp_path,
-          # savevar$emlal$SelectDP$dp_name,
-          # "metadata_templates",
-          # sep = "/"
-        ),
-        pattern = "catvar",
-        full.names = TRUE
-      )
-      rv$catvarFiles$short <- list.files(
-        paste(
-          savevar$emlal$SelectDP$dp_metadata_path
-          # savevar$emlal$SelectDP$dp_path,
-          # savevar$emlal$SelectDP$dp_name,
-          # "metadata_templates",
-          # sep = "/"
-        ),
-        pattern = "catvar"
-      )
-      rv$currentIndex <- 1
-      sapply(rv$catvarFiles$full, function(file_name) {
-        savevar$emlal$CatVars[[basename(file_name)]] <- fread(file_name)
-        if (all(is.na(savevar$emlal$CatVars[[basename(file_name)]]$definition))) {
-          savevar$emlal$CatVars[[basename(file_name)]] <- savevar$emlal$CatVars[[basename(file_name)]] %>%
-            mutate(definition = replace(.$definition, TRUE, paste("Value:", .$code, "for attribute:", .$attributeName)))
-        }
-      })
-    },
-    once = TRUE
+  # list catvar files
+  rv$catvarFiles$full <- list.files(
+    savevar$emlal$SelectDP$dp_metadata_path,
+    pattern = "catvar",
+    full.names = TRUE
   )
+  rv$catvarFiles$short <- list.files(
+    savevar$emlal$SelectDP$dp_metadata_path,
+    pattern = "catvar"
+  )
+  rv$currentIndex <- 1
+  sapply(rv$catvarFiles$full, function(file_name) {
+    savevar$emlal$CatVars[[basename(file_name)]] <- fread(file_name, stringsAsFactors = FALSE)
+    if (all(is.na(savevar$emlal$CatVars[[basename(file_name)]]$definition))) {
+      savevar$emlal$CatVars[[basename(file_name)]] <- savevar$emlal$CatVars[[basename(file_name)]] %>%
+        mutate(definition = replace(.$definition, TRUE, paste("Value:", .$code, "for attribute:", .$attributeName)))
+    }
+  })
   
   observeEvent(rv$currentIndex, {
     # update rv$CatVars
@@ -183,8 +166,9 @@ CatVars <- function(input, output, session, savevar, globals) {
               value = attribute,
               tagList(
                 lapply(sapply(codes, as.list), function(cod) {
+                  id <- match(cod, codes)
                   # input for each code
-                  textAreaInput(ns(cod), cod, value = CatVars %>% filter(attributeName == attribute, code == cod) %>% select(definition))
+                  textAreaInput(ns(id), cod, value = CatVars %>% filter(attributeName == attribute, code == cod) %>% select(definition))
                 })
               ) # end of "tagapply" -- text areas
             ) # end of bsCollapsePanel
@@ -199,10 +183,12 @@ CatVars <- function(input, output, session, savevar, globals) {
   # /Server -----------------------------------------------------
   observeEvent(rv$currentIndex, {
     sapply(rv$CatVars$code, function(cod) {
-      rv$codes[[cod]] <- eventReactive(input[[cod]],
-        {
+      if(cod %in% names(input)){
+        id <- match(cod, codes)
+        message("* catvar verbose:", id)
+        rv$codes[[id]] <- eventReactive(input[[id]], {
           # get input value
-          enter <- input[[cod]]
+          enter <- input[[id]]
           
           # check obtained value
           if (is.list(enter)) {
@@ -211,7 +197,8 @@ CatVars <- function(input, output, session, savevar, globals) {
           return(enter)
         },
         ignoreNULL = TRUE
-      ) # end eventReactive
+        ) # end eventReactive
+      }
     }) # end sapply
   }) # end observeEvent
   
