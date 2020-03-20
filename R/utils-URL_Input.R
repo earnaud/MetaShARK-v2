@@ -10,7 +10,7 @@ URL_Input_UI <- function(id, label = "URL", width = "100%") {
   ns <- NS(id)
 
   tagList(
-    textInput(ns("url"), label, placeholder = "http://https://github.com/earnaud/MetaShARK-v2"),
+    textInput(ns("url"), label, placeholder = "https://github.com/earnaud/MetaShARK-v2"),
     textOutput(ns("warnings"))
   )
 }

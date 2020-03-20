@@ -55,27 +55,35 @@ SelectDPUI <- function(id, title, width = 12, dev = FALSE, server) {
           tags$h4("Create new data package",
             style = "text-align:center"
           ),
-          checkboxInput(ns("quick"), "Quick mode", value = TRUE),
-
+          checkboxInput(
+            ns("quick"),
+            tags$b("Quick mode"),
+            value = TRUE
+          ),
           # Data package title
-          textInput(ns("dp_name"), "Data package name",
+          textInput(
+            ns("dp_name"),
+            "Data package name",
             placeholder = paste0(Sys.Date(), "_project")
           ),
-          textInput(ns("dp_title"), "Dataset title",
+          textInput(
+            ns("dp_title"),
+            "Dataset title",
             placeholder = "Any title is a title"
           ),
           tags$div(
             id = "license-help",
-            selectInput(ns("license"),
+            selectInput(
+              ns("license"),
               "Select an Intellectual Rights License:",
               c("CCBY", "CC0"),
               multiple = FALSE
             )
           ),
           HTML("License: <br>
-                      <b>CC0:</b> public domain. <br>
-                      <b>CC-BY-4.0:</b> open source with authorship. <br>
-                      For more details, visit Creative Commons."),
+               <b>CC0:</b> public domain. <br>
+               <b>CC-BY-4.0:</b> open source with authorship. <br>
+               For more details, visit Creative Commons."),
           # DP creation
           uiOutput(ns("dp_create"))
         ) # end column2
@@ -249,19 +257,30 @@ SelectDP <- function(input, output, session,
       )
     )
     rv$valid_name <- TRUE
-    rv$dp_name <- input$dp_name
-    rv$dp_title <- input$dp_title
     return(actionButton(ns("dp_create"), "Create"))
   })
 
+  observeEvent(input$quick, {
+    req(input$dp_name %in% c("", paste0(Sys.Date(), "_project"))) # Do not change a yet changed name
+    if(input$quick)
+      updateTextInput(session, "dp_name", value = paste0(Sys.Date(), "_project"))
+    else
+      updateTextInput(session, "dp_name", placeholder = paste0(Sys.Date(), "_project"))
+  })
+  
+  observeEvent(input$dp_name, {
+    rv$dp_name <- input$dp_name
+  })
+  
+  observeEvent(input$dp_title, {
+    rv$dp_title <- input$dp_title
+  })
+  
   # license choice
   observeEvent(input$license, {
     rv$dp_license <- input$license
   })
-  # rv$dp_license <- reactive({
-  #   input$license
-  # })
-
+  
   # DP management - on clicks -----------------------------------------------------
   # * Create DP -----------------------------------------------------
   observeEvent(input$dp_create, {

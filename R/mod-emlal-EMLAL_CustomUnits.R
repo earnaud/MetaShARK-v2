@@ -363,7 +363,6 @@ CustomUnits <- function(input, output, session,
       stringsAsFactors = FALSE
     )
     
-    browser()
     sapply(unique(tmp$file), function(filename){
       file_ind <- tmp$file == filename
       tmp_attr <- tmp$attributeName[file_ind]
@@ -373,7 +372,6 @@ CustomUnits <- function(input, output, session,
       df[df$attributeName %in% tmp_attr, "unit"] <- tmp$value[file_ind]
       fwrite(df, filename, sep = "\t")
     })
-    browser()
     
     # Write Custom Units
     fwrite(
