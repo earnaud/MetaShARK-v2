@@ -3,6 +3,7 @@
 #' @description UI for "last but not least" module
 #'
 #' @importFrom shiny h5
+#' @importFrom tagsinput tagsTextInput
 MiscUI <- function(id, title, dev, savevar, server) {
   ns <- NS(id)
 
@@ -43,7 +44,7 @@ MiscUI <- function(id, title, dev, savevar, server) {
               tagList(
                 column(
                   6,
-                  tagsinput::tagsTextInput(
+                  tagsTextInput(
                     ns("keywords"),
                     tags$p("List the keywords that best describe your dataset.
                   Type a 'tab' to separate each keyword.")

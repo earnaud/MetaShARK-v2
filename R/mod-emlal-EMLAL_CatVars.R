@@ -110,11 +110,12 @@ CatVars <- function(input, output, session, savevar, globals) {
   output$current_file <- renderUI({
     tags$div(
       rv$catvarFiles$short[rv$currentIndex],
+      class = "ellipsis",
       style = paste0(
         "display: inline-block;
-        font-size:20pt;
+        font-size:14pt;
         text-align:center;
-        width:66%;
+        width:100%;
         background: linear-gradient(90deg, #3c8dbc ",
         round(100 * rv$currentIndex / length(rv$catvarFiles$short)),
         "%, white ",
@@ -158,8 +159,8 @@ CatVars <- function(input, output, session, savevar, globals) {
           ... = lapply(unique(CatVars$attributeName), function(attribute) {
             # get code for each attribute
             codes <- CatVars %>%
-              dplyr::filter(attributeName == attribute) %>%
-              dplyr::select(code)
+              filter(attributeName == attribute) %>%
+              select(code)
             # collapse box
             bsCollapsePanel(
               title = attribute,

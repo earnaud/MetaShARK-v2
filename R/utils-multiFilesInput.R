@@ -39,6 +39,7 @@ multiFIlesInputUI <- function(id, helpText = NULL) {
 #'
 #' @importFrom shiny reactiveValues observeEvent req renderUI checkboxGroupInput
 #' @importFrom shinyFiles getVolumes shinyFileChoose parseFilePaths
+#' @importFrom fs path_home
 multiFIlesInput <- function(input, output, session) {
   ns <- session$ns
 
@@ -48,7 +49,7 @@ multiFIlesInput <- function(input, output, session) {
     files = data.frame()
     # local only
   )
-  volumes <- c(Home = fs::path_home(), getVolumes()())
+  volumes <- c(Home = path_home(), getVolumes()())
 
   # Add data files -----------------------------------------------------
   shinyFileChoose(input, "add_files",

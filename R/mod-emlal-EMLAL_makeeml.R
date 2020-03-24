@@ -39,11 +39,13 @@ MakeEMLUI <- function(id, title, dev) {
               #   inline = TRUE, 
               #   width = "50%"
               # ),
-              actionButton(
-                ns("emldown"), 
-                "Write emldown", 
-                icon("file-code"), 
-                width = "50%"
+              disabled(
+                actionButton(
+                  ns("emldown"), 
+                  "Write emldown", 
+                  icon("file-code"), 
+                  width = "50%"
+                )
               ),
               disabled(
                 downloadButton(
@@ -114,55 +116,74 @@ MakeEML <- function(input, output, session, savevar, globals) {
   # Make eml -----------------------------------------------------
   observeEvent(input$make_eml, {
     req(input$make_eml)
-    
-    . <- savevar$emlal
-    
-    x <- template_arguments(
-      path = .$SelectDP$dp_metadata_path,
-      data.path = .$SelectDP$dp_data_path,
-      data.table = dir(.$SelectDP$dp_data_path)
-    )
-    
-    x$path <- .$SelectDP$dp_metadata_path
-    x$data.path <- .$SelectDP$dp_data_path
-    x$eml.path <- .$SelectDP$dp_eml_path
-    x$data.table <- dir(x$data.path)
-    x$data.table.name <- .$DataFiles$table_name
-    x$data.table.description <- .$DataFiles$description
-    x$dataset.title <- .$SelectDP$dp_title
-    x$maintenance.description <- "Ongoing"
-    # TODO package.id
-    x$package.id <- "localid"
-    x$return.obj <- TRUE
-    x$temporal.coverage <- .$Misc$temporal_coverage
-    # TODO user domain (pndb?)
-    x$user.domain <- "UserDomain"
-    # TODO user id (orcid?)
-    x$user.id <- "UserID"
-    x$write.file <- TRUE
-    
-    # Yet written in the files then used in make_eml
-    x$geographic.coordinates <- NULL
-    x$geographic.description <- NULL
-    
-    out <- try(
-      do.call(
-        make_eml,
-        x[names(x) %in% names(formals(make_eml))]
+    withProgress({
+      . <- savevar$emlal
+      
+      x <- template_arguments(
+        path = .$SelectDP$dp_metadata_path,
+        data.path = .$SelectDP$dp_data_path,
+        data.table = dir(.$SelectDP$dp_data_path)
       )
-    )
+      
+      incProgress(0.3)
+      
+      
+      x$path <- .$SelectDP$dp_metadata_path
+      x$data.path <- .$SelectDP$dp_data_path
+      x$eml.path <- .$SelectDP$dp_eml_path
+      x$data.table <- dir(x$data.path)
+      x$data.table.name <- .$DataFiles$table_name
+      x$data.table.description <- .$DataFiles$description
+      x$dataset.title <- .$SelectDP$dp_title
+      x$maintenance.description <- "Ongoing"
+      # TODO package.id
+      x$package.id <- "localid"
+      x$return.obj <- TRUE
+      x$temporal.coverage <- .$Misc$temporal_coverage
+      # TODO user domain (pndb?)
+      x$user.domain <- "UserDomain"
+      # TODO user id (orcid?)
+      x$user.id <- "UserID"
+      x$write.file <- TRUE
+      
+      # Yet written in the files then used in make_eml
+      x$geographic.coordinates <- NULL
+      x$geographic.description <- NULL
+      
+      incProgress(0.2)
+      
+      
+      test = 0
+      out = ""
+      while(grepl("^Error in ns_lookup", out[1]) && test < 5){
+        test <- test+1
+        out <- try(
+          do.call(
+            make_eml,
+            x[names(x) %in% names(formals(make_eml))]
+          )
+        )
+      }
+      
+      incProgress(0.4)
+      
+    }, 
+    message = "Writing EML ...",
+    value = 0.1)
     
     output$warnings <- renderText({
       validate(
-        need(class(out) != "try-error", out[1])
+        need(
+          class(out) != "try-error", 
+          out[1])
       )
       showNotification("EML written !", type = "message")
       return(NULL)
     })
     
     if(class(out) != "try-error"){
-      show("publish", anim = TRUE, time = 0.25)
-      show("emldown", anim = TRUE, time = 0.25)
+      enable("publish", anim = TRUE, time = 0.25)
+      enable("emldown", anim = TRUE, time = 0.25)
     }
     
   })
@@ -203,14 +224,13 @@ MakeEML <- function(input, output, session, savevar, globals) {
     #   )
     # }
     
-    browser()
     if(file.exists(outFile)){
       enable("download_emldown")
       showNotification("emldown generated", type="message")
     }
     
     enable("emldown")
-  })
+  }, ignoreInit = TRUE)
   
   output$download_emldown <- downloadHandler(
     filename = function() {

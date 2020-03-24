@@ -110,9 +110,10 @@ uploadUI <- function(id, dev, globals) {
 #'
 #' @importFrom shiny observeEvent reactive textInput tags
 # observe renderUI reactiveValues callModule showNotification
-#' @importFrom dplyr filter select
+#' @importFrom dplyr filter select %>% 
 #' @importFrom shinyjs enable disable
 #' @importFrom data.table fread fwrite
+#' @importFrom mime guess_type
 upload <- function(input, output, session, globals) {
   ns <- session$ns
   
@@ -136,15 +137,15 @@ upload <- function(input, output, session, globals) {
         placeholder = "https://openstack-192-168-100-67.genouest.org/metacat/d1/mn/v2/"
       )
     } else {
-      tags$p(paste("Current endpoint:", registeredEndpoints %>% dplyr::filter(mn == endpoint()) %>% dplyr::select(URL)))
+      tags$p(paste("Current endpoint:", registeredEndpoints %>% filter(mn == endpoint()) %>% select(URL)))
     }
   })
   
   memberNode <- reactive({
     if (endpoint() != "Other") {
       registeredEndpoints %>%
-        dplyr::filter(mn == endpoint()) %>%
-        dplyr::select(URL)
+        filter(mn == endpoint()) %>%
+        select(URL)
     } else {
       input$`actual-endpoint`
     }
@@ -253,8 +254,8 @@ upload <- function(input, output, session, globals) {
       head(n=1)
     
     out <- uploadDP(
-      mn = as.character(registeredEndpoints %>% dplyr::filter(mn == endpoint()) %>% dplyr::select(URL)),
-      cn = as.character(registeredEndpoints %>% dplyr::filter(mn == endpoint()) %>% dplyr::select(cn)),
+      mn = as.character(registeredEndpoints %>% filter(mn == endpoint()) %>% select(URL)),
+      cn = as.character(registeredEndpoints %>% filter(mn == endpoint()) %>% select(cn)),
       token = list(
         test = globals$TOKEN$DATAONE.TEST.TOKEN,
         prod = globals$TOKEN$DATAONE.TOKEN
@@ -265,12 +266,12 @@ upload <- function(input, output, session, globals) {
       ),
       data = list(
         file = rvFiles$data()$datapath,
-        format = mime::guess_type(rvFiles$data()$datapath)
+        format = guess_type(rvFiles$data()$datapath)
       ),
       scripts = if(dim(rvFiles$scr())[1] > 0)
         list(
           file = rvFiles$scr()$datapath,
-          format = mime::guess_type(rvFiles$scr()$datapath)
+          format = guess_type(rvFiles$scr()$datapath)
         )
       else
         c(),

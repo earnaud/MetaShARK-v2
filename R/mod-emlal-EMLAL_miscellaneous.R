@@ -59,7 +59,7 @@ MiscellaneousUI <- function(id, help_label = NULL, server = FALSE) {
 Miscellaneous <- function(input, output, session, savevar, rv, server) {
   # Variable initialization -----------------------------------------------------
   ns <- session$ns
-  volumes <- c(Home = fs::path_home(), getVolumes()())
+  volumes <- c(Home = path_home(), getVolumes()())
 
   # Get content -----------------------------------------------------
   rv$content <- callModule(markdownInput, "content", preview = FALSE)
