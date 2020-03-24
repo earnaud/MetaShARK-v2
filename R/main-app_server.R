@@ -6,8 +6,10 @@
 #' @importFrom shinydashboard updateTabItems
 #' @importFrom golem get_golem_options
 .app_server <- function(input, output, session) {
+  message("server")
+  
   # get app arguments
-  appArgs <- golem::get_golem_options()
+  appArgs <- get_golem_options()
   dev <- appArgs$dev
   server <- appArgs$server
 

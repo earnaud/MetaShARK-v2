@@ -36,7 +36,9 @@ PersonnelUI <- function(id, title, dev) {
 #'
 #' @description server part of Personnel module
 #'
-#'
+#' @importFrom shiny reactiveValues callModule observeEvent observe isTruthy 
+#' @importFrom shinyjs enable disable
+#' @importFrom data.table fwrite
 Personnel <- function(input, output, session, savevar, globals) {
   ns <- session$ns
 
@@ -167,7 +169,7 @@ Personnel <- function(input, output, session, savevar, globals) {
 
 #' @title PersonnelModUI
 #'
-#' @description module to document EML::Personnel
+#' @description module to document EML Personnel
 #'
 #' @importFrom shinyBS bsTooltip
 PersonnelModUI <- function(id, site_id, rmv_id, role = NULL) {
@@ -293,9 +295,11 @@ PersonnelModUI <- function(id, site_id, rmv_id, role = NULL) {
 
 #' @title PersonnelMod
 #'
-#' @description server part for 'Personnel' module
+#' @describeIn PersonnelModUI
 #'
 #' @importFrom shiny insertUI removeUI
+#' @importFrom rorcid as.orcid orcid_person orcid_employments orcid_email orcid_fundings 
+#' @importFrom stringr str_extract
 PersonnelMod <- function(input, output, session,
                          globals, rv, rmv_id, site_id, ref, role = NULL) {
   ns <- session$ns
@@ -354,19 +358,25 @@ PersonnelMod <- function(input, output, session,
     }
   })
 
-  # Personnel identification -----------------------------------------------------
+  # (ORCID) Personnel identification -----------------------------------------------------
   orcid.pattern <- globals$PATTERNS$ORCID
 
   observeEvent(input$userId, {
     req(input$userId)
     localRV$userId <- input$userId
-    if (grepl(orcid.pattern, input$userId) &&
-      class(rorcid::as.orcid(input$userId)) != "try-error") { # NOTE quite dirty ...
+    
+    if (grepl(orcid.pattern, input$userId))
+      localRV$userId <- str_extract(localRV$userId, orcid.pattern)
+    
+    if (
+      grepl(orcid.pattern, input$userId) &&
+        isTruthy(try(as.orcid(input$userId)))
+    ) {
       orcid <- input$userId
       orcid_info <- list()
 
       # names
-      orcid_info$names <- rorcid::orcid_person(orcid)[[orcid]]$name
+      orcid_info$names <- orcid_person(orcid)[[orcid]]$name
       if (isTruthy(unlist(orcid_info$names$`given-names`$value))) {
         rv$givenName <- orcid_info$names$`given-names`$value
         updateTextInput(session, "givenName", value = rv$givenName)
@@ -377,7 +387,7 @@ PersonnelMod <- function(input, output, session,
       }
 
       # organization
-      orcid_info$employment <- rorcid::orcid_employments(orcid)[[orcid]]$`affiliation-group`$summaries[[1]]
+      orcid_info$employment <- orcid_employments(orcid)[[orcid]]$`affiliation-group`$summaries[[1]]
       if (isTruthy(unlist(orcid_info$employment$`employment-summary.organization.name`))) {
         rv$organizationName <- orcid_info$employment$`employment-summary.organization.name`
         updateTextInput(session, "organizationName", value = rv$organizationName)
@@ -390,14 +400,14 @@ PersonnelMod <- function(input, output, session,
       }
 
       # email
-      orcid_info$email <- rorcid::orcid_email(orcid)[[orcid]]$email
+      orcid_info$email <- orcid_email(orcid)[[orcid]]$email
       if (isTruthy(unlist(orcid_info$email$email))) {
         rv$electronicMailAddress <- orcid_info$email$email
         updateTextInput(session, "electronicMailAddress", value = rv$electronicMailAddress)
       }
 
       # fundings
-      orcid_info$fundings <- rorcid::orcid_fundings(orcid)[[orcid]]$group$`funding-summary`[[1]]
+      orcid_info$fundings <- orcid_fundings(orcid)[[orcid]]$group$`funding-summary`[[1]]
       if (isTruthy(unlist(orcid_info$fundings$`title.title.value`))) {
         rv$projectTitle <- orcid_info$fundings$`title.title.value`
         updateTextInput(session, "projectTitle", value = rv$projectTitle)
@@ -409,7 +419,7 @@ PersonnelMod <- function(input, output, session,
       if (isTruthy(unlist(orcid_info$fundings$`put-code`))) {
         rv$fundingNumber <- orcid_info$fundings$`put-code`
         updateTextInput(session, "fundingAgency", value = rv$fundingAgency)
-        # NOTE post Git issue concerning: 'EAL::fundingNumber == ORCID::put-code'?
+        # NOTE post Git issue concerning: 'EAL fundingNumber == ORCID::put-code'?
       }
     } else {
       message("Input 'userId' is not a valid ORCID.")
@@ -512,6 +522,11 @@ PersonnelMod <- function(input, output, session,
   return(rv)
 }
 
+#' @title insertPersonnelInput
+#' 
+#' @description helper function to insert PersonnelMod* functions. Calling this from
+#' a shiny server will insert PersonnelModUI and create its server part. Provided with
+#' features to delete them.
 insertPersonnelInput <- function(id, rv, ns, globals, role = NULL) {
   # NOTE warning: rv = rv$Personnel here !!!
 

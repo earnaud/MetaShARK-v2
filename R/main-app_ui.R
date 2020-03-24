@@ -7,8 +7,9 @@
 #' @importFrom shinydashboard dashboardPage dashboardHeader dashboardSidebar sidebarMenu menuItem dashboardBody tabItems tabItem
 #' @importFrom shinyjs useShinyjs hidden
 .app_ui <- function() {
+  message("ui")
   # get app arguments
-  appArgs <- golem::get_golem_options()
+  appArgs <- get_golem_options()
   dev <- appArgs$dev
   server <- appArgs$server
 
