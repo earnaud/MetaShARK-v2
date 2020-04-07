@@ -2,57 +2,41 @@
 % Please edit documentation in R/mod-emlal-EMLAL_functions.R
 \name{navSidebar}
 \alias{navSidebar}
-\alias{quitButton}
-\alias{saveButton}
-\alias{nextTabButton}
-\alias{prevTabButton}
-\title{Navigation sidebar}
+\alias{onQuit}
+\alias{onSave}
+\alias{nextTab}
+\alias{prevTab}
+\title{navSidebar}
 \usage{
-navSidebar(
-  id,
-  class = "navSidebar",
-  .prev = TRUE,
-  .next = TRUE,
-  disableNext = FALSE,
-  disablePrev = FALSE,
-  ...
-)
+navSidebar(id, globals, savevar)
 
-quitButton(id)
+onQuit(input, output, session, globals, savevar, NSB)
 
-saveButton(id)
+onSave(input, output, session, savevar, NSB)
 
-nextTabButton(id)
+nextTab(input, output, session, globals, NSB)
 
-prevTabButton(id)
+prevTab(input, output, session, globals, NSB)
 }
 \arguments{
-\item{id}{shiny id}
+\item{id}{shiny server id}
 
-\item{class}{css class style. Default is set to "navSidebar":
-.navSidebar {
-  width: 100%;
-  text-align: center;
-  padding: 0;
-}}
+\item{globals}{MetaShARK globals variable}
 
-\item{.prev}{logical. Do you want a "Previous" actionButton? (prevTabButton)}
-
-\item{.next}{logical. Do you want a "Next" actionButton? (nextTabButton)}
-
-\item{...}{UI tags set at the bottom of the navigation side bar}
+\item{savevar}{MetaShARK savevar variable}
 }
 \description{
-UI part for shiny navigation sidebar module
+server part for shiny navigation sidebar module (see [navSidebar()]).
+The functions are very specific and thus are not exported.
 }
 \section{Functions}{
 \itemize{
-\item \code{quitButton}: Quit button.
+\item \code{onQuit}: 
 
-\item \code{saveButton}: Save button.
+\item \code{onSave}: 
 
-\item \code{nextTabButton}: Next button.
+\item \code{nextTab}: 
 
-\item \code{prevTabButton}: Prev button.
+\item \code{prevTab}: 
 }}
 

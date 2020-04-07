@@ -8,16 +8,15 @@
 # @importFrom shinyBS bsTooltip
 GeoCovInputUI <- function(id, site_id, rmv_id) {
   ns <- NS(id)
-
+  
   div_id <- id
-
+  
   tags$div(
     id = site_id,
     fluidRow(
       column(2, "Description", style = "text-align: right"),
       column(9, textInput(ns("site_description"), "", site_id)),
-      column(
-        1,
+      column(1,
         actionButton(
           ns(rmv_id),
           "",
@@ -66,9 +65,10 @@ GeoCovInputUI <- function(id, site_id, rmv_id) {
 #'
 #' @importFrom shiny observeEvent removeUI
 #' @importFrom dplyr slice %>%
+#' @importFrom shinyjs onclick
 GeoCovInput <- function(input, output, session,
-                        rv, rmv_id, site_id, ref) {
-
+  rv, rmv_id, site_id, ref) {
+  
   # Metadata acquisition -----------------------------------------------------
   localRV <- reactiveValues(
     id = ref,
@@ -78,7 +78,7 @@ GeoCovInput <- function(input, output, session,
     eastBoundingCoordinate = 0,
     westBoundingCoordinate = 0
   )
-
+  
   # site description
   observeEvent(input$site_description,
     {
@@ -105,7 +105,7 @@ GeoCovInput <- function(input, output, session,
     },
     priority = 1
   )
-
+  
   # Metadata save -----------------------------------------------------
   observeEvent(
     {
@@ -119,7 +119,7 @@ GeoCovInput <- function(input, output, session,
       if (is.na(ind)) {
         ind <- length(rv$id) + 1
       }
-
+      
       # print values into rv at selected index
       actualValues <- printReactiveValues(localRV)
       sapply(names(rv), function(rvid) {
@@ -130,24 +130,19 @@ GeoCovInput <- function(input, output, session,
     ignoreInit = TRUE,
     priority = 0
   )
-
+  
   # Remove UI -----------------------------------------------------
-  observeEvent(input[[rmv_id]],
-    {
-      # remove the UI
-      removeUI(selector = paste0("#", site_id), immediate = TRUE)
-
-      # unload the UI
-      ind <- match(ref, rv$id)
-      sapply(names(rv), function(rvid) {
-        rv[[rvid]] <- rv[[rvid]][-ind]
-      })
-    },
-    ignoreInit = TRUE,
-    once = TRUE,
-    autoDestroy = TRUE
-  )
-
+  onclick(rmv_id, {
+    # remove the UI
+    removeUI(selector = paste0("#", site_id), immediate = TRUE)
+    
+    # unload the UI
+    ind <- match(ref, rv$id)
+    sapply(names(rv), function(rvid) {
+      rv[[rvid]] <- rv[[rvid]][-ind]
+    })
+  })
+  
   # Output -----------------------------------------------------
   return(rv)
 }
@@ -161,25 +156,25 @@ GeoCovInput <- function(input, output, session,
 #' @importFrom shiny callModule
 insertGeoCovInput <- function(id, rv, ns) {
   # !!! warning: rv = rv$custom here !!!
-
+  
   # initialize IDs -----------------------------------------------------
   div_id <- id
   site_id <- paste0("site_", div_id)
   rmv_id <- paste0("rmv_", div_id)
-
+  
   # Proper module server -----------------------------------------------------
   # create the UI
   newUI <- GeoCovInputUI(ns(div_id), site_id, rmv_id)
-
+  
   # insert the UI
   insertUI(selector = "#inserthere", ui = newUI)
-
+  
   # create the server
   rv <- callModule(
     GeoCovInput, div_id,
     rv, rmv_id, site_id, id
   )
-
+  
   # Output -----------------------------------------------------
   return(rv)
 }
@@ -231,7 +226,7 @@ extractCoordinates <- function(coordCols, Pattern, localWarnings, coordTags, rv)
     ) %>%
     as.data.frame(., stringsAsFactors = FALSE)
   coordinates[] <- lapply(coordinates, as.numeric)
-
+  
   # Check for having only two columns
   if (dim(coordinates)[2] > 2) {
     coordinates <- coordinates[, 1:2]
@@ -240,7 +235,7 @@ extractCoordinates <- function(coordCols, Pattern, localWarnings, coordTags, rv)
       "One of your column provides more than one coordinate per row. This might be a range. Only the two first values have been kept."
     )
   }
-
+  
   if (dim(coordinates)[2] == 1) {
     coordinates <- cbind(coordinates, coordinates)
     localWarnings <- c(
@@ -248,22 +243,22 @@ extractCoordinates <- function(coordCols, Pattern, localWarnings, coordTags, rv)
       "Only one column has been provided: coordinates are considered as representing single sites."
     )
   }
-
+  
   if (dim(coordinates)[2] <= 2 && dim(coordinates)[2] > 0) {
-
+    
     # assign West and East / North and South to columns
     coordinates[
       coordinates[, 1] <= coordinates[, 2],
-    ] <- rev(coordinates[
-      coordinates[, 1] <= coordinates[, 2],
-    ])
-
+      ] <- rev(coordinates[
+        coordinates[, 1] <= coordinates[, 2],
+        ])
+    
     # Rename columns
     colnames(coordinates) <- coordTags
     if (all(coordinates[, 1] <= coordinates[, 2])) {
       colnames(coordinates) <- rev(coordTags)
     }
-
+    
     if (identical(coordTags, c("N", "S"))) {
       rv$columns$northBoundingCoordinate <- coordinates$N
       rv$columns$southBoundingCoordinate <- coordinates$S
@@ -273,7 +268,7 @@ extractCoordinates <- function(coordCols, Pattern, localWarnings, coordTags, rv)
       rv$columns$westBoundingCoordinate <- coordinates$W
     }
   }
-
+  
   return(
     list(
       rv = rv,

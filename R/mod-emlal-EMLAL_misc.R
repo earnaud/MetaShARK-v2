@@ -6,95 +6,111 @@
 #' @importFrom tagsinput tagsTextInput
 MiscUI <- function(id, title, dev, savevar, server) {
   ns <- NS(id)
-
+  
+  keywords <- fread(
+    paste0(savevar$emlal$SelectDP$dp_metadata_path, "/keywords.txt"),
+    data.table = FALSE,
+    stringsAsFactors = FALSE
+  )
+  
   return(
     fluidPage(
       # Features UI -----------------------------------------------------
-      column(
-        10,
-        fluidRow(
-          HTML("
+      fluidRow(
+        HTML("
             <h5>DISCLAIMER</h5>
             <ul>
               <li>Do not use special characters, symbols, formatting, or hyperlinks (URLs are acceptable).</li>
               <li>Any file selected will not be overwritten but will be used as a template.</li>
             </ul>
           "),
-          bsCollapse(
-            id = ns("Miscs"),
-
-            # * Abstract -----------------------------------------------------
-            bsCollapsePanel(
-              title = "Abstract",
-              value = 5,
-              MiscellaneousUI(ns("abstract"), server = server)
-            ),
-
-            # * Methods -----------------------------------------------------
-            bsCollapsePanel(
-              title = with_red_star("Methods"),
-              value = 5,
-              MiscellaneousUI(ns("methods"), server = server)
-            ),
-
-            # * Keywords -----------------------------------------------------
-            bsCollapsePanel(
-              title = with_red_star("Keywords"),
-              value = 3,
-              tagList(
-                column(
-                  6,
-                  tagsTextInput(
-                    ns("keywords"),
-                    tags$p("List the keywords that best describe your dataset.
-                  Type a 'tab' to separate each keyword.")
-                  )
-                ),
-                column(
-                  6,
-                  tags$h4("Associated thesaurus"),
-                  tags$p("NOTE: use of thesaurus will be improved. Currently,
+        bsCollapse(
+          id = ns("Miscs"),
+          
+          # * Abstract -----------------------------------------------------
+          bsCollapsePanel(
+            title = "Abstract",
+            value = 1,
+            MiscellaneousUI(
+              ns("abstract"),
+              server = server,
+              value = readPlainText(
+                paste0(savevar$emlal$SelectDP$dp_metadata_path, "/abstract.txt")
+              )
+            )
+          ),
+          
+          # * Methods -----------------------------------------------------
+          bsCollapsePanel(
+            title = with_red_star("Methods"),
+            value = 2,
+            MiscellaneousUI(
+              ns("methods"),
+              server = server,
+              value = readPlainText(
+                paste0(savevar$emlal$SelectDP$dp_metadata_path, "/methods.txt")
+              )
+            )
+          ),
+          
+          # * Keywords -----------------------------------------------------
+          bsCollapsePanel(
+            title = with_red_star("Keywords"),
+            value = 3,
+            tagList(
+              column(6,
+                tagsTextInput(
+                  ns("keywords"),
+                  tags$p("List the keywords that best describe your dataset.
+                    Type a 'tab' to separate each keyword."),
+                  value = if(checkTruth(keywords)) keywords[, 1] else c()
+                )
+              ),
+              column(6,
+                tags$h4("Associated thesaurus"),
+                tags$p("NOTE: use of thesaurus will be improved. Currently,
                     no control is made about thesaurus input field and this
                     can be invalided."),
-                  tags$p("You may associate a thesaurus to each keyword."),
-                  uiOutput(ns("thesaurus"))
+                tags$p("You may associate a thesaurus to each keyword."),
+                uiOutput(ns("thesaurus"))
+              )
+            )
+          ),
+          
+          # * Temporal coverage -----------------------------------------------------
+          bsCollapsePanel(
+            title = "Temporal coverage",
+            value = 4,
+            fluidRow(
+              column(10,
+                offset = 1,
+                dateRangeInput(
+                  ns("temporal_coverage"),
+                  "Dates between which dataset's content was produced",
+                  max = Sys.Date(),
+                  autoclose = FALSE
                 )
               )
-            ),
-
-            # * Temporal coverage -----------------------------------------------------
-            bsCollapsePanel(
-              title = "Temporal coverage",
-              value = 4,
-              fluidRow(
-                column(10,
-                  offset = 1,
-                  dateRangeInput(
-                    ns("temporal_coverage"),
-                    "Dates between which dataset's content was produced",
-                    max = Sys.Date(),
-                    autoclose = FALSE
-                  )
-                )
-              )
-            ),
-
-            # * Additional Info -----------------------------------------------------
-            bsCollapsePanel(
-              title = "Additional Info",
-              value = 5,
-              MiscellaneousUI(
-                ns("additional_info"),
-                help_label = tags$p(
-                  "If you have additional information that doesn't fall under the scope of the abstract or methods (e.g. a list of research articles or theses derived from this dataset) about your dataset, you may share it here."
-                ),
-                server = server
+            )
+          ),
+          
+          # * Additional Info -----------------------------------------------------
+          bsCollapsePanel(
+            title = "Additional Info",
+            value = 5,
+            MiscellaneousUI(
+              ns("additional_info"),
+              help_label = tags$p(
+                "If you have additional information that doesn't fall under the scope of the abstract or methods (e.g. a list of research articles or theses derived from this dataset) about your dataset, you may share it here."
+              ),
+              server = server,
+              value = readPlainText(
+                paste0(savevar$emlal$SelectDP$dp_metadata_path, "/additional_info.txt")
               )
             )
           )
         )
-      ), # end of column1
-      column(2, navSidebar(ns("nav")) )
+      )
     ) # end of fluidPage
   ) # end of return
 }
@@ -106,9 +122,16 @@ MiscUI <- function(id, title, dev, savevar, server) {
 #'
 #' @importFrom shiny dateRangeInput
 #' @importFrom shinyjs enable disable
-Misc <- function(input, output, session, savevar, globals, server) {
+Misc <- function(input, output, session,
+  savevar, globals, server, NSB) {
   ns <- session$ns
-
+  
+  if(globals$dev)
+    onclick("dev", {
+      req(globals$EMLAL$NAVIGATE == 8)
+      browser()
+    }, asis=TRUE)
+  
   # Variable initialization -----------------------------------------------------
   rv <- reactiveValues(
     # Abstract
@@ -144,13 +167,11 @@ Misc <- function(input, output, session, savevar, globals, server) {
         "additional_info.txt",
         sep = "/"
       )
-    ),
-    # Complete
-    complete = FALSE
+    )
   )
-
+  
   # Fill -----------------------------------------------------
-  # Abstract
+  # * Abstract ====
   rv$abstract <- callModule(
     Miscellaneous,
     "abstract",
@@ -158,8 +179,8 @@ Misc <- function(input, output, session, savevar, globals, server) {
     rv = rv$abstract,
     server = server
   )
-
-  # Methods
+  
+  # * Methods ====
   rv$methods <- callModule(
     Miscellaneous,
     "methods",
@@ -167,11 +188,20 @@ Misc <- function(input, output, session, savevar, globals, server) {
     rv = rv$methods,
     server = server
   )
-
-  # Keywords
+  
+  # * Keywords ====
+  # if (isTruthy(savevar$emlal$Misc$keywords$keywords)) {
+  #   rv$keywords <- savevar$emlal$Misc$keywords
+  #   updateTextInput(
+  #     session,
+  #     "keywords",
+  #     value = rv$keywords$keywords
+  #   )
+  # }
   observeEvent(input$keywords, {
-    rv$keywords$keywords <- input$keywords
-
+    req(input$keywords)
+    rv$keywords$keywords <- unique(input$keywords)
+    
     output$thesaurus <- renderUI({
       validate(
         need(rv$keywords$keywords, "No keyword input")
@@ -181,13 +211,14 @@ Misc <- function(input, output, session, savevar, globals, server) {
           keyword <- rv$keywords$keywords[k_id]
           textInput(
             ns(paste0("thesaurus-for-", keyword)),
-            keyword
+            keyword,
+            value = rv$keywords$keywordsThesaurus[k_id]
           )
         })
       )
     })
   })
-
+  
   # NOTE observers are still active after being deleted
   observe({
     validate(
@@ -206,13 +237,22 @@ Misc <- function(input, output, session, savevar, globals, server) {
       rv$keywords$keywordsThesaurus[k_id] <- input[[input_id]]
     })
   })
-
-  # Temporal coverage
+  
+  # * Temporal coverage ====
+  if (!is.null(savevar$emlal$temporal_coverage)) {
+    rv$temporal_coverage <- savevar$emlal$temporal_coverage
+    updateDateRangeInput(
+      session,
+      "temporal_coverage",
+      start = rv$temporal_coverage[1],
+      end = rv$temporal_coverage[2]
+    )
+  }
   observeEvent(input$temporal_coverage, {
     rv$temporal_coverage <- input$temporal_coverage
   })
-
-  # Additional information
+  
+  # * Additional information ====
   rv$additional_info <- callModule(
     Miscellaneous,
     "additional_info",
@@ -220,82 +260,90 @@ Misc <- function(input, output, session, savevar, globals, server) {
     rv = rv$additional_information,
     server = server
   )
-
-  # NSB -----------------------------------------------------
-  callModule(
-    onQuit, "nav",
-    # additional arguments
-    globals, savevar
-  )
-  callModule(
-    onSave, "nav",
-    # additional arguments
-    savevar
-  )
-  callModule(
-    nextTab, "nav",
-    globals, "Misc"
-  )
-  callModule(
-    prevTab, "nav",
-    globals
-  )
-
-  # Complete -----------------------------------------------------
+  
+  # Saves -----------------------------------------------------
   observe({
-    rv$complete <- all(
+    globals$EMLAL$COMPLETE_CURRENT <- all(
       isTruthy(rv$keywords$keywords) &&
-        isTruthy(rv$methods)
+        isTruthy(rv$methods$content()) &&
+        isTruthy(rv$temporal_coverage)
     )
-
-    if (rv$complete) {
-      enable("nav-nextTab")
-    } else {
-      disable("nav-nextTab")
-    }
   })
-
+  
+  observeEvent(NSB$SAVE, {
+    req(globals$EMLAL$CURRENT == "Miscellaneous")
+    
+    savevar <- .saveMisc(
+      savevar = savevar,
+      rv = rv
+    )
+  }, ignoreInit = TRUE)
+  
   # Process data -----------------------------------------------------
-  observeEvent(input[["nav-nextTab"]],
-    {
-      savevar$emlal$Misc <- rv
-      
-      message("Writing 'abstract.txt'.")
-      write.text(
-        rv$abstract$content(),
-        rv$abstract$file
-      )
-
-      message("Writing 'methods.txt'.")
-      write.text(
-        rv$methods$content(),
-        rv$methods$file
-      )
-
-      message("Writing 'keywords.txt'.")
-      fwrite(
-        data.frame(
-          keyword = rv$keywords$keywords,
-          keywordThesaurus = rv$keywords$keywordsThesaurus
-        ),
-        paste0(
-          savevar$emlal$SelectDP$dp_metadata_path,
-          "/keywords.txt"
-        ),
-        sep = "\t"
-      )
-
-      message("Writing 'additional_info.txt'.")
-      write.text(
-        rv$additional_info$content(),
-        rv$additional_info$file
-      )
-
-      message("Done with Misc.")
-    },
+  observeEvent(NSB$NEXT, {
+    req(globals$EMLAL$CURRENT == "Miscellaneous")
+    
+    savevar <- .saveMisc(
+      savevar = savevar,
+      rv = rv
+    )
+  },
+    ignoreInit = TRUE,
     priority = 1
   )
-
+  
   # Output -----------------------------------------------------
+  return(savevar)
+}
+
+.saveMisc <- function(savevar, rv){
+  withProgress({
+    savevar$emlal$Misc <- rv
+    
+    setProgress(
+      value = 0.25,
+      message = "Writing 'abstract.txt'."
+    )
+    write.text(
+      rv$abstract$content(),
+      rv$abstract$file
+    )
+    
+    setProgress(
+      value = 0.25,
+      "Writing 'methods.txt'."
+    )
+    write.text(
+      rv$methods$content(),
+      rv$methods$file
+    )
+    
+    setProgress(
+      value = 0.25,
+      "Writing 'keywords.txt'."
+    )
+    fwrite(
+      data.frame(
+        keyword = rv$keywords$keywords,
+        keywordThesaurus = rv$keywords$keywordsThesaurus
+      ),
+      paste0(
+        savevar$emlal$SelectDP$dp_metadata_path,
+        "/keywords.txt"
+      ),
+      sep = "\t"
+    )
+    
+    setProgress(
+      value = 0.25,
+      "Writing 'additional_info.txt'."
+    )
+    write.text(
+      rv$additional_info$content(),
+      rv$additional_info$file
+    )
+  },
+    message = "Processing Miscellaneous.")
+  
   return(savevar)
 }

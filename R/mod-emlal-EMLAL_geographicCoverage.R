@@ -10,83 +10,79 @@ GeoCovUI <- function(id, title, dev, data.files, coordPattern) {
   return(
     fluidPage(
       # Features UI -----------------------------------------------------
-      column(
-        10,
-        fluidRow(
-          tags$h4(title),
-          tags$p("This step is optional."),
-          tags$p("Make sure all of your locations are stored in a
+      fluidRow(
+        tags$h4(title),
+        tags$p("This step is optional."),
+        tags$p("Make sure all of your locations are stored in a
             single file, under 3 columns: one for the site description
             and two others for latitude and longitude. Southern latitude
             and western longitude can be noted with negative values."),
-          bsCollapse(
-            id = ns("method"),
-            bsCollapsePanel(
-              title = "Use dataset's geographic variables",
-              value = 1,
-              tagList(
-                selectInput(
-                  ns("site"),
-                  "Choose a column for sites:",
-                  c("None" = "")
-                ),
-                selectizeInput(
-                  ns("latitude"),
-                  "Choose a column for latitude:",
-                  c("None" = ""),
-                  options = list(
-                    placeholder = "Please select an option below",
-                    onInitialize = I('function() { this.setValue(""); }'),
-                    maxItems = 2
+        bsCollapse(
+          id = ns("method"),
+          bsCollapsePanel(
+            title = "Use dataset's geographic variables",
+            value = 1,
+            tagList(
+              selectInput(
+                ns("site"),
+                "Choose a column for sites:",
+                c("None" = "")
+              ),
+              selectizeInput(
+                ns("latitude"),
+                "Choose a column for latitude:",
+                c("None" = ""),
+                options = list(
+                  placeholder = "Please select an option below",
+                  onInitialize = I('function() { this.setValue(""); }'),
+                  maxItems = 2
+                )
+              ),
+              div(
+                id = ns("latiWarn"),
+                textOutput(ns("latitude-warning"))
+              ),
+              selectizeInput(
+                ns("longitude"),
+                "Choose a column for longitude:",
+                c("None" = ""),
+                options = list(
+                  placeholder = "Please select an option below",
+                  onInitialize = I('function() { this.setValue(""); }'),
+                  maxItems = 2
+                )
+              ),
+              div(
+                id = ns("longWarn"),
+                textOutput(ns("longitude-warning"))
+              )
+            )
+          ),
+          bsCollapsePanel(
+            title = "Fill geographic template",
+            value = 2,
+            fluidRow(
+              column(
+                2,
+                actionButton(ns("addui"), "", icon("plus")),
+              ),
+              column(
+                10,
+                hidden(
+                  tags$div(
+                    id = ns("slider_tips"),
+                    HTML("You can detail a more precise number by using the left/right (or down/up) arrows 
+                      of your keyboard. Precision can be given at 0.01°. Items can be removed by
+                      using the Delete (&#9003) keyboard."),
+                    style = "position: left"
                   )
-                ),
-                div(
-                  id = ns("latiWarn"),
-                  textOutput(ns("latitude-warning"))
-                ),
-                selectizeInput(
-                  ns("longitude"),
-                  "Choose a column for longitude:",
-                  c("None" = ""),
-                  options = list(
-                    placeholder = "Please select an option below",
-                    onInitialize = I('function() { this.setValue(""); }'),
-                    maxItems = 2
-                  )
-                ),
-                div(
-                  id = ns("longWarn"),
-                  textOutput(ns("longitude-warning"))
                 )
               )
             ),
-            bsCollapsePanel(
-              title = "Fill geographic template",
-              value = 2,
-              fluidRow(
-                column(
-                  2,
-                  actionButton(ns("addui"), "", icon("plus")),
-                ),
-                column(
-                  10,
-                  hidden(
-                    tags$div(
-                      id = ns("slider_tips"),
-                      HTML("You can detail a more precise number by using the left/right (or down/up) arrows 
-                      of your keyboard. Precision can be given at 0.01°. Items can be removed by
-                      using the Delete (&#9003) keyboard."),
-                      style = "position: left"
-                    )
-                  )
-                )
-              ),
-              tags$div(id = "inserthere")
-            )
+            tags$div(id = "inserthere")
           )
         )
-      ), # end of column1
-      column(2, navSidebar(ns("nav")) )
+      )
     ) # end of fluidPage
   ) # end of return
 }
@@ -95,13 +91,20 @@ GeoCovUI <- function(id, title, dev, data.files, coordPattern) {
 #'
 #' @description server part for the Geographic Coverage module
 #'
-#' @importFrom shiny observeEvent callModule
+#' @importFrom shiny observeEvent callModule showNotification reactiveValues
 #' @importFrom shinyBS updateCollapse
 #' @importFrom stringr str_extract_all
 #' @importFrom dplyr %>%
 #' @importFrom EMLassemblyline template_geographic_coverage
-GeoCov <- function(input, output, session, savevar, globals) {
+#' @importFrom shinyjs onclick show
+GeoCov <- function(input, output, session, 
+  savevar, globals, NSB) {
   ns <- session$ns
+  if(globals$dev)
+    onclick("dev", {
+      req(globals$EMLAL$NAVIGATE == 5)
+      browser()
+    }, asis=TRUE)
   
   # Variable initialization -----------------------------------------------------
   
@@ -121,7 +124,7 @@ GeoCov <- function(input, output, session, savevar, globals) {
       westBoundingCoordinate = numeric()
     ),
     custom = reactiveValues(
-      complete = logical(),
+      complete = FALSE,
       id = numeric(),
       geographicDescription = character(),
       northBoundingCoordinate = numeric(),
@@ -131,11 +134,11 @@ GeoCov <- function(input, output, session, savevar, globals) {
     )
   )
   
-  # Get all data in an object to avoid possible multiple loadings
-  filesData <- lapply(savevar$emlal$DataFiles$datapath, fread)
-  names(filesData) <- basename(savevar$emlal$DataFiles$datapath)
+  # # Get all data in an object to avoid possible multiple loadings
+  # filesData <- lapply(savevar$emlal$DataFiles$datapath, fread)
+  # names(filesData) <- basename(savevar$emlal$DataFiles$datapath)
   
-  # Pre-fill fields -----------------------------------------------------
+  # Pre-fill -----------------------------------------------------
   saved_table <- fread(
     paste(
       savevar$emlal$SelectDP$dp_metadata_path,
@@ -147,9 +150,12 @@ GeoCov <- function(input, output, session, savevar, globals) {
   # Retrieve geographic coverage
   if (all(dim(saved_table) != 0)) {
     savevar$emlal$GeoCov <- saved_table
+    NSB$tagList <- tags$p("Geographic coverage already set.")
   }
+  else
+    NSB$tagList <- tagList()
   
-  # Use columns -----------------------------------------------------
+  # Fill columns -----------------------------------------------------
   
   # Prepare content
   data.files <- savevar$emlal$DataFiles$datapath
@@ -199,7 +205,7 @@ GeoCov <- function(input, output, session, savevar, globals) {
       gsub(")$", "", .) %>%
       strsplit(., " (", TRUE) %>%
       unlist()
-    rv$columns$geographicDescription <- filesData[[toRead[2]]][[toRead[1]]]
+    rv$columns$geographicDescription <- data.content[[toRead[2]]][[toRead[1]]]
   })
   
   # ** Latitude -----------------------------------------------------
@@ -212,7 +218,7 @@ GeoCov <- function(input, output, session, savevar, globals) {
       )
       
       # initialize variables
-      latCols <- organizeCoordinates(latCols, filesData)
+      latCols <- organizeCoordinates(latCols, data.content)
       latPattern <- globals$PATTERNS$LATLON
       latWarnings <- NULL
       
@@ -230,7 +236,7 @@ GeoCov <- function(input, output, session, savevar, globals) {
     validate(
       need(is.null(rv$warnings$latWarnings), rv$warnings$latWarnings)
     )
-    return("Correct")
+    return(NULL)
   })
   
   # ** Longitude -----------------------------------------------------
@@ -243,7 +249,7 @@ GeoCov <- function(input, output, session, savevar, globals) {
       )
       
       # initialize variables
-      lonCols <- organizeCoordinates(lonCols, filesData)
+      lonCols <- organizeCoordinates(lonCols, data.content)
       lonPattern <- globals$PATTERNS$LATLON
       lonWarnings <- NULL
       
@@ -305,54 +311,98 @@ GeoCov <- function(input, output, session, savevar, globals) {
   )
   
   # Fill custom -----------------------------------------------------
-  observeEvent(input$addui,
-    {
-      show("slider_tips")
-    },
-    once = TRUE
-  )
-  
-  observeEvent(input$addui, {
+  onclick("addui", {
+    show("slider_tips")
     rv$custom <- insertGeoCovInput(as.numeric(input$addui), rv$custom, ns)
   })
   
-  # NSB -----------------------------------------------------
-  callModule(
-    onQuit, "nav",
-    # additional arguments
-    globals, savevar
-  )
-  callModule(
-    onSave, "nav",
-    # additional arguments
-    savevar
-  )
-  observeEvent(input[["nav-save"]], {
-    df.columns <- try(
-      data.frame(
-        geographicDescription = rv$columns$geographicDescription,
-        northBoundingCoordinate = rv$columns$northBoundingCoordinate,
-        southBoundingCoordinate = rv$columns$southBoundingCoordinate,
-        eastBoundingCoordinate = rv$columns$eastBoundingCoordinate,
-        westBoundingCoordinate = rv$columns$westBoundingCoordinate
-      ),
-      silent= TRUE
-    ) 
-    df.custom <- try(
-      data.frame(
-        geographicDescription = rv$custom$geographicDescription,
-        northBoundingCoordinate = rv$custom$northBoundingCoordinate,
-        southBoundingCoordinate = rv$custom$southBoundingCoordinate,
-        eastBoundingCoordinate = rv$custom$eastBoundingCoordinate,
-        westBoundingCoordinate = rv$custom$westBoundingCoordinate
-      ),
-      silent= TRUE
+  # Saves -----------------------------------------------------
+  globals$EMLAL$COMPLETE_CURRENT <- TRUE
+  observe({
+    rv$columns$complete <-isTruthy(rv$columns$geographicDescription) &&
+      isTruthy(rv$columns$northBoundingCoordinate) &&
+      isTruthy(rv$columns$southBoundingCoordinate) &&
+      isTruthy(rv$columns$eastBoundingCoordinate) &&
+      isTruthy(rv$columns$westBoundingCoordinate)
+  })
+  
+  observe({
+    rv$custom$complete <-isTruthy(rv$custom$geographicDescription) &&
+      isTruthy(rv$custom$northBoundingCoordinate) &&
+      isTruthy(rv$custom$southBoundingCoordinate) &&
+      isTruthy(rv$custom$eastBoundingCoordinate) &&
+      isTruthy(rv$custom$westBoundingCoordinate)
+  })
+  
+  observeEvent(NSB$SAVE, {
+    req(tail(globals$EMLAL$HISTORY,1) == "Geographic Coverage")
+    
+    df <- .saveGeoCov(rv)
+    savevar$emlal$GeoCov <- if(!is.null(df$columns)){
+      showNotification("Geographic coverage saved (columns)", type = "message")
+      return(df$columns)
+    } else if(!is.null(df$custom)){
+      showNotification("Geographic coverage saved (custom)", type = "message")
+      return(df$custom)
+    } else NULL
+  }, ignoreInit = TRUE)
+  
+  # Process data -----------------------------------------------------
+  observeEvent(NSB$PREV, {
+    req(globals$EMLAL$CURRENT == "Geographic Coverage")
+    
+    if (!"Categorical Variables" %in% globals$EMLAL$HISTORY)
+      globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE - 1
+  }, ignoreInit = TRUE)
+  
+  observeEvent(NSB$NEXT, {
+    req(globals$EMLAL$CURRENT == "Geographic Coverage")
+    
+    # Create modal
+    choices <- c(
+      "Columns selection" = if (rv$columns$complete) 1 else NULL,
+      "Custom edition" = if (rv$custom$complete) 2 else NULL,
+      "No geographic coverage" = 0
     )
-    df <- if(attributes(df.columns)$class != "try-error")
-      df.columns else if(attributes(df.custom)$class != "try-error") 
-        df.custom else NULL
-    # write to file
-    if (!is.null(df)) {
+    
+    nextTabModal <- modalDialog(
+      title = "Proceed Geographic Coverage",
+      tagList(
+        "You are getting ready to proceed. Please select one of the following:",
+        radioButtons(
+          ns("method"),
+          "Method for Geographic Coverage:",
+          choices = choices
+        ),
+        actionButton(ns("modal-dev"), "Dev")
+      ),
+      easyClose = FALSE,
+      footer = tagList(
+        modalButton("Cancel"),
+        actionButton(ns("confirm"), "Proceed")
+      )
+    )
+    
+    showModal(nextTabModal)
+  },
+    priority = 1,
+    ignoreInit = TRUE
+  )
+  
+  onclick("confirm", {
+    removeModal()
+    globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1
+    NSB$tagList <- tagList()
+    
+    df <- .saveGeoCov(rv)
+    savevar$emlal$GeoCov <- switch(input$method, 
+      `0` = df$default,
+      `1` = df$columns,
+      `2` = df$custom)
+    
+    # Write data
+    if (!is.null(savevar$emlal$GeoCov)) {
+      df <- savevar$emlal$GeoCov
       fwrite(
         df,
         paste(
@@ -362,130 +412,38 @@ GeoCov <- function(input, output, session, savevar, globals) {
         ),
         sep = "\t"
       )
-      message("Geographic Coverage has been written.")
-      savevar$emlal$GeoCov <- df
-    }
-  })
-  # NOTE nav-nextTab has been disabled in this module
-  # callModule(
-  #   nextTab, "nav",
-  #   globals, "GeoCov"
-  # )
-  callModule(
-    prevTab, "nav",
-    globals
-  )
-  
-  # Complete -----------------------------------------------------
-  observe({
-    if (isTruthy(rv$columns$geographicDescription) &&
-        isTruthy(rv$columns$northBoundingCoordinate) &&
-        isTruthy(rv$columns$southBoundingCoordinate) &&
-        isTruthy(rv$columns$eastBoundingCoordinate) &&
-        isTruthy(rv$columns$westBoundingCoordinate)
-    ) {
-      rv$columns$complete <- TRUE
-    } else {
-      rv$columns$complete <- FALSE
-    }
-  })
-  
-  observe({
-    if (isTruthy(rv$custom$geographicDescription) &&
-        isTruthy(rv$custom$northBoundingCoordinate) &&
-        isTruthy(rv$custom$southBoundingCoordinate) &&
-        isTruthy(rv$custom$eastBoundingCoordinate) &&
-        isTruthy(rv$custom$westBoundingCoordinate)
-    ) {
-      rv$custom$complete <- TRUE
-    } else {
-      rv$custom$complete <- FALSE
-    }
-  })
-  
-  observeEvent(input$confirm, {
-    removeModal()
-    globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1
-  })
-  
-  # Process data -----------------------------------------------------
-  observeEvent(input[["nav-prevTab"]], {
-    if (tail(globals$EMLAL$HISTORY, 1) == "CustomUnits") {
-      globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE - 1
-    } else if (tail(globals$EMLAL$HISTORY, 1) == "template") {
-      globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE - 2
-    }
-  })
-  observeEvent(input[["nav-nextTab"]],
-    {
-      # Create modal
-      choices <- c(
-        "no geographic coverage" = 0,
-        "columns selection" = if (rv$columns$complete) 1 else NULL,
-        "custom edition" = if (rv$custom$complete) 2 else NULL
+      showNotification(
+        "Geographic Coverage has been written.",
+        type = "message"
       )
-      
-      nextTabModal <- modalDialog(
-        title = "Proceed Geographic Coverage",
-        tagList(
-          "You are getting ready to proceed. Please select one of the following:",
-          radioButtons(
-            ns("method"),
-            "Method for Geographic Coverage:",
-            choices = choices
-          ),
-          actionButton(ns("modal-dev"), "Dev")
-        ),
-        footer = tagList(
-          modalButton("Cancel"),
-          actionButton(ns("confirm"), "Proceed")
-        )
-      )
-      
-      showModal(nextTabModal)
-    },
-    priority = 1
-  )
-  
-  observeEvent(input$confirm,
-    {
-      removeModal()
-      df <- if (isTRUE(input$method == 1)) {
-        data.frame(
-          geographicDescription = rv$columns$geographicDescription,
-          northBoundingCoordinate = rv$columns$northBoundingCoordinate,
-          southBoundingCoordinate = rv$columns$southBoundingCoordinate,
-          eastBoundingCoordinate = rv$columns$eastBoundingCoordinate,
-          westBoundingCoordinate = rv$columns$westBoundingCoordinate
-        )
-      } else if (isTRUE(input$method == 2)) {
-        data.frame(
-          geographicDescription = rv$custom$geographicDescription,
-          northBoundingCoordinate = rv$custom$northBoundingCoordinate,
-          southBoundingCoordinate = rv$custom$southBoundingCoordinate,
-          eastBoundingCoordinate = rv$custom$eastBoundingCoordinate,
-          westBoundingCoordinate = rv$custom$westBoundingCoordinate
-        )
-      } else NULL
-      if (!is.null(df)) {
-        fwrite(
-          df,
-          paste(
-            savevar$emlal$SelectDP$dp_metadata_path,
-            "geographic_coverage.txt",
-            sep = "/"
-          ),
-          sep = "\t"
-        )
-        message("Geographic Coverage has been written.")
-        savevar$emlal$GeoCov <- df
-      }
-      
-      globals$EMLAL$HISTORY <- c(globals$EMLAL$HISTORY, "GeoCov")
-    },
-    priority = 1
-  )
+    }
+  })
   
   # Output -----------------------------------------------------
   return(savevar)
+}
+
+#' @importFrom shiny reactiveValues
+.saveGeoCov <- function(rv){
+  df <- list(
+    default = NULL,
+    columns = if(rv$columns$complete)
+      data.frame(
+        geographicDescription = rv$columns$geographicDescription,
+        northBoundingCoordinate = rv$columns$northBoundingCoordinate,
+        southBoundingCoordinate = rv$columns$southBoundingCoordinate,
+        eastBoundingCoordinate = rv$columns$eastBoundingCoordinate,
+        westBoundingCoordinate = rv$columns$westBoundingCoordinate
+      ),
+    custom = if(rv$custom$complete)
+      data.frame(
+        geographicDescription = rv$custom$geographicDescription,
+        northBoundingCoordinate = rv$custom$northBoundingCoordinate,
+        southBoundingCoordinate = rv$custom$southBoundingCoordinate,
+        eastBoundingCoordinate = rv$custom$eastBoundingCoordinate,
+        westBoundingCoordinate = rv$custom$westBoundingCoordinate
+      )
+  )
+  
+  return(df)
 }

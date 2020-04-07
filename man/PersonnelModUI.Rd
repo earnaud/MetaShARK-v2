@@ -5,7 +5,7 @@
 \alias{PersonnelMod}
 \title{PersonnelModUI}
 \usage{
-PersonnelModUI(id, site_id, rmv_id, role = NULL)
+PersonnelModUI(id, div_id, site_id, rmv_id, role = NULL, saved = NULL)
 
 PersonnelMod(
   input,
@@ -16,7 +16,8 @@ PersonnelMod(
   rmv_id,
   site_id,
   ref,
-  role = NULL
+  role = NULL,
+  saved = NULL
 )
 }
 \description{

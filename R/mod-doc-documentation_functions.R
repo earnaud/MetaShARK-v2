@@ -203,7 +203,7 @@ nt.titles <- function(vec, action_target, nsIndex) {
             )),
             internal = {
               eml.module.ns <- sub("(.*):.*", "\\1", work[1])
-              eml.module.name <- sub("^.*/([a-zA-Z]+)-.*$", "\\1", nsIndex[eml.module.ns]) # TODO found nsIndex ref
+              eml.module.name <- sub("^.*/([a-zA-Z]+)-.*$", "\\1", nsIndex[eml.module.ns])
               HTML(as.character(
                 tags$b(
                   sub(eml.module.ns, eml.module.name, work[1])

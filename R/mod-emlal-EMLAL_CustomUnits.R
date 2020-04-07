@@ -8,50 +8,33 @@ CustomUnitsUI <- function(id, title, dev) {
   
   return(
     fluidPage(
-      # Features UI -----------------------------------------------------
-      column(
-        10,
-        tags$h4("Custom units description"),
+      tags$h4("Custom units description"),
+      fluidRow(
         fluidRow(
-          fluidRow(
-            column(
-              1,
-              actionButton(
-                ns("attribute_prev"),
-                "",
-                icon("chevron-left")
-              )
-            ),
-            column(
-              10,
-              uiOutput(
-                ns("current_attribute"),
-                inline = TRUE
-              )
-            ),
-            column(
-              1,
-              actionButton(
-                ns("attribute_next"),
-                "",
-                icon("chevron-right")
-              )
+          column(1,
+            actionButton(
+              ns("attribute_prev"),
+              "",
+              icon("chevron-left")
             )
           ),
-          textOutput(ns("attributeFile")),
-          uiOutput(ns("edit_CU"))
-        )
-      ), # end of column1
-      # NSB -----------------------------------------------------
-      column(
-        2,
-        navSidebar(ns("nav"),
-          ... = tagList(
-            textOutput(ns("warning_completeness")),
-            if (dev) actionButton(ns("fill"), "Fill")
+          column(10,
+            uiOutput(
+              ns("current_attribute"),
+              inline = TRUE
+            )
+          ),
+          column(1,
+            actionButton(
+              ns("attribute_next"),
+              "",
+              icon("chevron-right")
+            )
           )
-        )
-      ) # end of column2
+        ),
+        textOutput(ns("attributeFile")),
+        uiOutput(ns("edit_CU"))
+      )
     ) # end of fluidPage
   ) # end of return
 }
@@ -63,15 +46,15 @@ CustomUnitsUI <- function(id, title, dev) {
 #' @importFrom shiny observeEvent reactiveValues observe req isolate callModule renderUI tagList textInput selectInput
 #' numericInput textAreaInput eventReactive reactiveValuesToList
 #' @importFrom data.table fread
-#' @importFrom shinyjs enable disable toggleState
+#' @importFrom shinyjs onclick enable disable toggleState
 #' @importFrom dplyr select mutate filter %>%
 CustomUnits <- function(input, output, session,
-  savevar, globals) {
+  savevar, globals, NSB) {
   ns <- session$ns
   
-  # DEV -----------------------------------------------------
+  # DEV
   # fill the description fields with automatically filled field
-  if(globals$dev || isTRUE(savevar$quick)){
+  if (globals$dev || isTRUE(savevar$quick)) {
     observeEvent(input$fill, {
       req(exists("rv"))
       sapply(names(rv$CU_Table), function(field) {
@@ -93,8 +76,8 @@ CustomUnits <- function(input, output, session,
     attributesFiles = c(),
     current_index = integer(),
     current_attribute = c(),
-    attributes = reactiveValues(),
-    complete = FALSE
+    attributes = reactiveValues()
+    # complete = FALSE
   )
   
   rv$CU_Table <- fread(
@@ -110,15 +93,15 @@ CustomUnits <- function(input, output, session,
   
   attributeFiles <- list.files(
     savevar$emlal$SelectDP$dp_metadata_path,
-    pattern = "attributes", 
+    pattern = "attributes",
     full.names = TRUE
   )
   # browser()
   sapply(attributeFiles, function(file_name) {
     # read attribute file
     tmp <- fread(
-      file_name, 
-      stringsAsFactors = FALSE, 
+      file_name,
+      stringsAsFactors = FALSE,
       data.table = FALSE
     )
     # detect interesting rows -- "custom" or else
@@ -186,14 +169,14 @@ CustomUnits <- function(input, output, session,
   })
   
   # Attribute selection
-  observeEvent(input$attribute_prev, {
+  onclick("attribute_prev", {
     req(rv$attributesNames, rv$current_index)
     if (rv$current_index > 1) {
       rv$current_index <- rv$current_index - 1
     }
   })
   
-  observeEvent(input$attribute_next, {
+  onclick("attribute_next", {
     req(rv$attributesNames, rv$current_index)
     if (rv$current_index < length(rv$attributesNames)) {
       rv$current_index <- rv$current_index + 1
@@ -216,18 +199,20 @@ CustomUnits <- function(input, output, session,
     )
   })
   
-  # NSB -----------------------------------------------------
-  callModule(
-    onQuit, "nav",
-    # additional arguments
-    globals, savevar
-  )
-  callModule(
-    onSave, "nav",
-    # additional arguments
-    savevar
-  )
-  observeEvent(input[["nav-save"]], {
+  # ex NSB -----------------------------------------------------
+  # callModule(
+  #   onQuit, "nav",
+  #   # additional arguments
+  #   globals, savevar
+  # )
+  # callModule(
+  #   onSave, "nav",
+  #   # additional arguments
+  #   savevar
+  # )
+  observeEvent(NSB$SAVE, {
+    req(tail(globals$EMLAL$HISTORY,1) == "Custom Units")
+    
     # write filled tables
     withProgress(
       fwrite(
@@ -242,17 +227,16 @@ CustomUnits <- function(input, output, session,
       message = "Writing filled tables"
     )
   })
-  callModule(
-    nextTab, "nav",
-    globals, "CustomUnits"
-  )
-  callModule(
-    prevTab, "nav",
-    globals
-  )
+  # callModule(
+  #   nextTab, "nav",
+  #   globals, "Custom Units"
+  # )
+  # callModule(
+  #   prevTab, "nav",
+  #   globals
+  # )
   
-  # Procedurals -----------------------------------------------------
-  # / UI -----------------------------------------------------
+  # * UI -----------------------------------------------------
   # Warning: Error in choicesWithNames: argument "choices" is missing, with no default
   output$edit_CU <- renderUI({
     req(rv$ui)
@@ -268,7 +252,7 @@ CustomUnits <- function(input, output, session,
           id = textInput(ns(colname),
             label = with_red_star(colname),
             placeholder = "e.g. milligramsPerGram",
-            value = if(isTruthy(saved_value)) saved_value else "custom"
+            value = if (isTruthy(saved_value)) saved_value else "custom"
           ),
           unitType = textInput(ns(colname),
             label = with_red_star(colname),
@@ -294,7 +278,7 @@ CustomUnits <- function(input, output, session,
     ) # end of tagList
   }) # end of UI
   
-  # / Servers -----------------------------------------------------
+  # * Servers -----------------------------------------------------
   observe({
     req(any(rv$ui %in% names(input)))
     
@@ -336,25 +320,19 @@ CustomUnits <- function(input, output, session,
     }
   )
   
-  rv$complete <- reactive({
+  observeEvent(rv$CU_Table, {
     req(rv$CU_Table)
-    all(sapply(unlist(rv$CU_Table), isTruthy))
-  })
-  
-  observe({
-    req(names(input))
-    
-    if (rv$complete()) {
-      enable("nav-nextTab")
-      output$warning_completeness <- renderText(NULL)
-    } else {
-      disable("nav-nextTab")
-      output$warning_completeness <- renderText("All fields must be filled.")
-    }
+    globals$EMLAL$COMPLETE_CURRENT <- all(sapply(unlist(rv$CU_Table), isTruthy))
+    if(globals$EMLAL$COMPLETE_CURRENT)
+      NSB$tagList <- tags$p("")
+    else
+      NSB$tagList <- tags$p("All fields must be filled.")
   })
   
   # Process data -----------------------------------------------------
-  observeEvent(input[["nav-nextTab"]], {
+  observeEvent(NSB$NEXT, {
+    req(tail(globals$EMLAL$HISTORY,1) == "Custom Units")
+    
     # Write modified Attributes units
     tmp <- data.frame(
       file = rv$attributesFiles,
@@ -363,7 +341,7 @@ CustomUnits <- function(input, output, session,
       stringsAsFactors = FALSE
     )
     
-    sapply(unique(tmp$file), function(filename){
+    sapply(unique(tmp$file), function(filename) {
       file_ind <- tmp$file == filename
       tmp_attr <- tmp$attributeName[file_ind]
       filename <- list.files(savevar$emlal$SelectDP$dp_metadata_path, pattern = filename, full.names = TRUE)
@@ -384,20 +362,15 @@ CustomUnits <- function(input, output, session,
       sep = "\t"
     )
     # avoid catvar filling if not templated
-    if (
-      !any(
-        grepl(
-          "catvar",
-          dir(
-            savevar$emlal$SelectDP$dp_metadata_path
-          )
-        )
-      )
-    ) {
+    if (!any(grepl(
+      "catvar",
+      dir(savevar$emlal$SelectDP$dp_metadata_path)
+    ))) {
       globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1
     }
   },
-  priority = 1
+    priority = 1,
+    ignoreInit = TRUE
   )
   
   # Output -----------------------------------------------------

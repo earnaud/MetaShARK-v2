@@ -4,7 +4,7 @@
 \alias{insertPersonnelInput}
 \title{insertPersonnelInput}
 \usage{
-insertPersonnelInput(id, rv, ns, globals, role = NULL)
+insertPersonnelInput(id, rv, ns, globals, role = NULL, saved = NULL)
 }
 \description{
 helper function to insert PersonnelMod* functions. Calling this from

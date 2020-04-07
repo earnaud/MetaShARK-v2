@@ -4,7 +4,7 @@
 \alias{checkTruth}
 \title{checkTruth}
 \usage{
-checkTruth(x, output = NULL)
+checkTruth(x)
 }
 \arguments{
 \item{x}{argument to check fo truthiness}
