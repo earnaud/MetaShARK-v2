@@ -28,8 +28,8 @@
 .navSidebar {
   max-width: 75px;
   max-width: 100px;
-	text-align: center;
-	padding: 0;
+  text-align: center;
+  padding: 0;
 }
 
 .leftMargin {
@@ -50,6 +50,10 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.text-title {
+  text-align: center;
 }
 
 textarea {

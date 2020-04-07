@@ -13,107 +13,110 @@
 #' @param formats List of DataONE CN supported [formats](https://cn.dataone.org/cn/v2/formats)
 #'
 #' @importFrom dataone generateIdentifier CNode MNode D1Client uploadDataPackage
-#' @importFrom datapack addMember 
+#' @importFrom datapack addMember
 #' @importFrom EML read_eml write_eml eml_validate
 #' @importFrom mime guess_type
 uploadDP <- function(
-  # essential
-  mn, 
-  cn,
-  token,
-  eml, 
-  data,
-  # facultative
-  scripts = c(), 
-  formats,
-  use.doi = FALSE
-) {
+                     # essential
+                     mn,
+                     cn,
+                     token,
+                     eml,
+                     data,
+                     # facultative
+                     scripts = c(),
+                     formats,
+                     use.doi = FALSE) {
   # Set variables -----------------------------------------------------
-  
+
   message("Init")
-  
+
   cn <- CNode(cn)
   mn <- MNode(mn)
-  if(use.doi)
-    doi <- generateIdentifier(mn, "DOI") # TODO check this feature
-  
+  if (use.doi) {
+    doi <- generateIdentifier(mn, "DOI")
+  } # TODO check this feature
+
   # # Write DP -----------------------------------------------------
-  
+
   # set data package
   dp <- new("DataPackage")
-  
+
   message("Metadata")
-  
+
   # Add metadata to the data package
   metadataObj <- new(
-    "DataObject", 
+    "DataObject",
     # id = if(use.doi) doi else NULL,
     format = eml$format,
     filename = eml$file
   )
   dp <- addMember(dp, metadataObj)
-  
+
   message("Data")
-  
+
   # Add data to the data package
   dataObjs <- sapply(
-    seq(data$file), 
-    function(d, metadataObj = metadataObj){
+    seq(data$file),
+    function(d, metadataObj = metadataObj) {
       # add data object
       dataObj <- new(
         "DataObject",
         format = data$format[d],
-        filename = data$file[d]) 
+        filename = data$file[d]
+      )
       dp <- addMember(dp, dataObj, metadataObj)
       return(dataObj)
     }
   )
-  
+
   message("Scripts")
-  
+
   # Add scripts to the data package
-  if(length(scripts) != 0)
+  if (length(scripts) != 0) {
     progObjs <- sapply(
       seq(scripts$file),
-      function(s, metadataObj = metadataObj){
+      function(s, metadataObj = metadataObj) {
         progObj <- new(
           "DataObject",
           format = scripts$format[s],
-          filename = scripts$file[s]) 
+          filename = scripts$file[s]
+        )
         dp <- addMember(dp, progObj, metadataObj)
-        
+
         return(progObj)
       }
     )
-  
+  }
+
   # # Access rules -----------------------------------------------------
-  
+
   message("Access")
-  
-  accessRules = NA # TODO allow customized access rules
-  
+
+  accessRules <- NA # TODO allow customized access rules
+
   # # Upload -----------------------------------------------------
-  
+
   d1c <- D1Client(cn, mn)
-  
+
   message("Upload")
-  
-  options(dataone_test_token = token$test) 
+
+  options(dataone_test_token = token$test)
   options(dataone_token = token$prod)
-  
+
   packageId <- try(
     uploadDataPackage(
-      d1c, 
-      dp, 
+      d1c,
+      dp,
       public = TRUE,
-      accessRules = accessRules, 
-      quiet=FALSE
+      accessRules = accessRules,
+      quiet = FALSE
     )
   )
-  
+
   options(dataone_test_token = NULL)
   options(dataone_token = NULL)
-  
+
   return(packageId)
 }
 
@@ -124,7 +127,7 @@ uploadDP <- function(
 #' @importFrom shiny NS span div selectInput actionButton icon
 describeWorkflowUI <- function(id, sources, targets) {
   ns <- NS(id)
-  
+
   span(
     id = ns("span"),
     div(selectInput(ns("script"), "Source script", sources),
@@ -147,11 +150,11 @@ describeWorkflowUI <- function(id, sources, targets) {
 describeWorkflow <- function(input, output, session) {
   ns <- session$ns
   rv <- reactiveValues()
-  
+
   # Get
   rv$source <- reactive(input$script)
   rv$target <- reactive(input$data)
-  
+
   # Remove
   observeEvent(input$remove, {
     removeUI(
@@ -159,7 +162,7 @@ describeWorkflow <- function(input, output, session) {
     )
     rv <- NULL
   })
-  
+
   # Output
   return(
     rv

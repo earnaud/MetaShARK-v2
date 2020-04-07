@@ -4,7 +4,7 @@
 \alias{CustomUnits}
 \title{CustomUnitsUI}
 \usage{
-CustomUnits(input, output, session, savevar, globals)
+CustomUnits(input, output, session, savevar, globals, NSB)
 }
 \description{
 server part of the CustomUnits module.

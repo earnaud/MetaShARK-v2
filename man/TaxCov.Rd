@@ -4,7 +4,7 @@
 \alias{TaxCov}
 \title{Taxonomic coverage}
 \usage{
-TaxCov(input, output, session, savevar, globals)
+TaxCov(input, output, session, savevar, globals, NSB)
 }
 \description{
 server part for the Taxonomic Coverage module

@@ -10,34 +10,31 @@ CatVarsUI <- function(id, title, dev) {
     fluidPage(
       # Features UI -----------------------------------------------------
       h4(title),
-      column(
-        10,
+      fluidRow(
+        # Navigation
         fluidRow(
-          tags$h4("Categorical variables"),
-          fluidRow(
-            tagList(
-              actionButton(ns("file_prev"),
-                "",
-                icon("chevron-left"),
-                width = "12%"
-              ),
-              uiOutput(ns("current_file"),
-                inline = TRUE
-              ),
-              actionButton(ns("file_next"),
-                "",
-                icon("chevron-right"),
-                width = "12%"
-              )
-            ),
-            style = "padding: 5px;"
+          column(1,
+            actionButton(ns("file_prev"),
+              "",
+              icon("chevron-left")
+            )
           ),
-          # content form
-          uiOutput(ns("edit_catvar"))
-        )
-      ), # end of column1
-      # Navigation UI -----------------------------------------------------
-      column(2, navSidebar(ns("nav")) )
+          column(10,
+            uiOutput(ns("current_file"),
+              inline = TRUE
+            )
+          ),
+          column(1,
+            actionButton(ns("file_next"),
+              "",
+              icon("chevron-right")
+            )
+          ),
+          style = "padding: 5px;"
+        ),
+        # content form
+        uiOutput(ns("edit_catvar"))
+      )
     ) # end of fluidPage
   ) # end of return
 }
@@ -49,67 +46,124 @@ CatVarsUI <- function(id, title, dev) {
 #' @importFrom shiny observeEvent callModule tags tagList reactiveValues renderUI textAreaInput
 #' @importFrom dplyr %>% filter select mutate
 #' @importFrom shinyBS bsCollapse bsCollapsePanel
-CatVars <- function(input, output, session, savevar, globals) {
+#' @importFrom shinyjs onclick
+CatVars <- function(input, output, session, 
+  savevar, globals, NSB) {
   ns <- session$ns
+  if(globals$dev)
+    onclick("dev", {
+      req(globals$EMLAL$NAVIGATE == 4)
+      browser()
+    }, asis=TRUE)
   
-  # Initialization -----------------------------------------------------
+  # variables initialization -----------------------------------------------------
   rv <- reactiveValues(
-    catvarFiles = c(),
-    currentIndex = 0,
-    CatVars = reactiveValues(),
-    codes = reactiveValues()
+    catvarFiles = list.files(
+      savevar$emlal$SelectDP$dp_metadata_path,
+      pattern = "catvar",
+      full.names = TRUE
+    ),
+    currentIndex = 1
   )
   
-  # list catvar files
-  rv$catvarFiles$full <- list.files(
-    savevar$emlal$SelectDP$dp_metadata_path,
-    pattern = "catvar",
-    full.names = TRUE
-  )
-  rv$catvarFiles$short <- list.files(
-    savevar$emlal$SelectDP$dp_metadata_path,
-    pattern = "catvar"
-  )
-  rv$currentIndex <- 1
-  sapply(rv$catvarFiles$full, function(file_name) {
-    savevar$emlal$CatVars[[basename(file_name)]] <- fread(file_name, stringsAsFactors = FALSE)
-    if (all(is.na(savevar$emlal$CatVars[[basename(file_name)]]$definition))) {
-      savevar$emlal$CatVars[[basename(file_name)]] <- savevar$emlal$CatVars[[basename(file_name)]] %>%
-        mutate(definition = replace(.$definition, TRUE, paste("Value:", .$code, "for attribute:", .$attributeName)))
+  # update current file
+  observeEvent(rv$currentIndex, {
+    rv$currentFile <- basename(rv$catvarFiles[rv$currentIndex])
+  }, priority = 1, ignoreInit = FALSE)
+  
+  # Set each reactivevalues per file
+  sapply(rv$catvarFiles, function(file_path){
+    file_name <- basename(file_path)
+    rv[[file_name]] <- reactiveValues()
+    
+    # * Init data frame ====
+    rv[[file_name]]$CatVars <- fread(
+      file_path,
+      data.table = FALSE,
+      stringsAsFactors = FALSE,
+      na.strings = "NA"
+      ) %>% 
+      mutate(
+        definition = if(definition == "NA" || is.na(definition))
+          paste("Value:", code, "for attribute:", attributeName)
+        else
+          definition
+      )
+    
+    # * Write UI ====
+    .content <- lapply(unique(rv[[file_name]]$CatVars$attributeName), function(attribute){
+        # get codes aka values for `attribute` in catvar_*.txt
+        codes <- rv[[file_name]]$CatVars %>%
+          filter(attributeName == attribute) %>%
+          select(code)
+        
+        bsCollapsePanel(
+          title = attribute,
+          # value = attribute,
+          ... = tagList(
+            lapply(unlist(codes), function(cod){
+              inputId <- paste(attribute, cod, sep="-")
+              
+              textAreaInput(
+                ns(inputId), 
+                cod,
+                value = rv[[file_name]]$CatVars %>%
+                  filter(attributeName == attribute, code == cod) %>%
+                  select(definition)
+              ) 
+            })
+          ) # end of "tagapply" -- text areas
+        ) # end of bsCollapsePanel
+      }) # end of "tagapply" -- collapse boxes
+    rv[[file_name]]$UI <- do.call(
+      bsCollapse,
+      c(
+        .content,
+        id = file_name,
+        multiple = FALSE
+      )
+    )
+    
+    # * Write server ====
+    rv[[file_name]]$obs <- sapply(seq(dim(rv[[file_name]]$CatVars)[1]), function(row){
+      inputId <- paste(
+        rv[[file_name]]$CatVars$attributeName[row],
+        rv[[file_name]]$CatVars$code[row], 
+        sep="-"
+      )
+      
+      return(
+        observeEvent(input[[inputId]], {
+          req(input[[inputId]])
+          rv[[file_name]]$CatVars[row, "definition"] <- input[[inputId]]
+        }, suspended = TRUE)
+      )
+    })
+  })
+  
+  # Navigation buttons -----------------------------------------------------
+  # Previous file
+  onclick("file_prev", {
+    req(rv$currentIndex, rv$catvarFiles)
+    savevar$emlal$CatVars[[rv$currentFile]] <- rv[[rv$currentFile]]$CatVars
+    if (rv$currentIndex > 1) {
+      rv$currentIndex <- rv$currentIndex - 1
     }
   })
   
-  observeEvent(rv$currentIndex, {
-    # update rv$CatVars
-    rv$CatVars <- fread(rv$catvarFiles$full[rv$currentIndex])
-    if (all(is.na(rv$CatVars$definition))) {
-      rv$CatVars <- savevar$emlal$CatVars[[rv$catvarFiles$short[rv$currentIndex]]]
+  # Next file
+  onclick("file_next", {
+    req(rv$currentIndex, rv$catvarFiles)
+    savevar$emlal$CatVars[[rv$currentFile]] <- rv[[rv$currentFile]]$CatVars
+    if (rv$currentIndex < length(rv$catvarFiles)) {
+      rv$currentIndex <- rv$currentIndex + 1
     }
-  }) # end of observeEvent
+  })
   
-  # Navigation buttons -----------------------------------------------------
-  # ** files
-  observeEvent(input$file_prev,
-    {
-      req(rv$currentIndex)
-      if (rv$currentIndex > 1) {
-        rv$currentIndex <- rv$currentIndex - 1
-      }
-    },
-    priority = -1
-  )
-  observeEvent(input$file_next,
-    {
-      req(rv$currentIndex, rv$catvarFiles$short)
-      if (rv$currentIndex < length(rv$catvarFiles$short)) {
-        rv$currentIndex <- rv$currentIndex + 1
-      }
-    },
-    priority = -1
-  )
+  # Current file
   output$current_file <- renderUI({
     tags$div(
-      rv$catvarFiles$short[rv$currentIndex],
+      rv$currentFile,
       class = "ellipsis",
       style = paste0(
         "display: inline-block;
@@ -117,117 +171,68 @@ CatVars <- function(input, output, session, savevar, globals) {
         text-align:center;
         width:100%;
         background: linear-gradient(90deg, #3c8dbc ",
-        round(100 * rv$currentIndex / length(rv$catvarFiles$short)),
+        round(100 * rv$currentIndex / length(rv$catvarFiles)),
         "%, white ",
-        round(100 * rv$currentIndex / length(rv$catvarFiles$short)),
+        round(100 * rv$currentIndex / length(rv$catvarFiles)),
         "%);"
       )
     )
   })
   
-  # NSB -----------------------------------------------------
-  callModule(
-    onQuit, "nav",
-    # additional arguments
-    globals, savevar
-  )
-  callModule(
-    onSave, "nav",
-    # additional arguments
-    savevar
-  )
-  callModule(
-    nextTab, "nav",
-    globals, "CatVars"
-  )
-  callModule(
-    prevTab, "nav",
-    globals
-  )
+  # Set UI -----------------------------------------------------
+  output$edit_catvar <- renderUI({
+    validate(
+      need(rv[[rv$currentFile]]$UI, "No UI set.")
+    )
+    rv[[rv$currentFile]]$UI
+  }) # end of renderUI
   
-  # Procedurals -----------------------------------------------------
-  # /UI -----------------------------------------------------
-  observeEvent(rv$currentIndex, {
-    req(rv$CatVars)
-    CatVars <- isolate(rv$CatVars)
-    
-    output$edit_catvar <- renderUI({
-      do.call(
-        bsCollapse,
-        c(
-          id = rv$catvarFiles$short[rv$currentIndex],
-          ... = lapply(unique(CatVars$attributeName), function(attribute) {
-            # get code for each attribute
-            codes <- CatVars %>%
-              filter(attributeName == attribute) %>%
-              select(code)
-            # collapse box
-            bsCollapsePanel(
-              title = attribute,
-              value = attribute,
-              tagList(
-                lapply(sapply(codes, as.list), function(cod) {
-                  id <- match(cod, codes)
-                  # input for each code
-                  textAreaInput(ns(id), cod, value = CatVars %>% filter(attributeName == attribute, code == cod) %>% select(definition))
-                })
-              ) # end of "tagapply" -- text areas
-            ) # end of bsCollapsePanel
-          }), # end of "tagapply" -- collapse boxes
-          multiple = FALSE
-        ) # end of args
-      ) # end of do.call
-    }) # end of renderUI
-    
-  })
+  # Set Server -----------------------------------------------------
   
-  # /Server -----------------------------------------------------
+  # Suspend observers
   observeEvent(rv$currentIndex, {
-    sapply(rv$CatVars$code, function(cod) {
-      if(cod %in% names(input)){
-        id <- match(cod, codes)
-        message("* catvar verbose:", id)
-        rv$codes[[id]] <- eventReactive(input[[id]], {
-          # get input value
-          enter <- input[[id]]
-          
-          # check obtained value
-          if (is.list(enter)) {
-            enter <- unlist(enter)
-          }
-          return(enter)
-        },
-        ignoreNULL = TRUE
-        ) # end eventReactive
-      }
-    }) # end sapply
-  }) # end observeEvent
+    req(rv$currentFile)
+    sapply(rv[[rv$currentFile]]$obs, function(obs){
+      obs$suspend()
+    })
+  }, priority = 2)
+  
+  # Run observers
+  observeEvent(rv$currentFile, {
+    sapply(rv[[rv$currentFile]]$obs, function(obs){
+      showNotification(id="test", "Obs ok")
+      obs$resume()
+    })
+  }, priority = 0)
   
   # Saves -----------------------------------------------------
-  observeEvent(sapply(names(rv$codes), function(i) input[[i]]), {
-    validate(
-      need(all(rv$CatVars$code %in% names(input)), "codes' inputs are not ready yet"),
-      need(all(rv$CatVars$code %in% names(rv$codes)), "codes' inputs are not ready yet")
-    )
-    rv$CatVars$definition <- printReactiveValues(rv$codes)[rv$CatVars$code]
+  observe({
+    complete <- sapply(basename(rv$catvarFiles), function(file_name){
+      all(sapply(rv[[file_name]]$CatVars$definition, isTruthy))
+    })
+    
+    globals$EMLAL$COMPLETE_CURRENT <- all(complete)
+    
+    req(isTRUE(complete[rv$currentIndex]))
+    
+    savevar$emlal$CatVars[[rv$currentFile]] <- rv[[rv$currentFile]]$CatVars
   })
   
   # Process data -----------------------------------------------------
-  observeEvent(input[["nav-prevTab"]], {
-    if (tail(globals$EMLAL$HISTORY, 1) != "CustomUnits") {
-      globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE - 1
-    }
-  })
-  observeEvent(input[["nav-nextTab"]], {
-    # write catvar templates
-    sapply(rv$catvarFiles$full, function(file_name) {
+  observeEvent(NSB$NEXT, {
+    req(globals$EMLAL$CURRENT == "Categorical Variables")
+    
+    sapply(rv$catvarFiles, function(file_path){
+      file_name <- basename(file_path)
+      savevar$emlal$CatVars[[file_name]] <- rv[[file_name]]$CatVars
+      
       fwrite(
-        savevar$emlal$CatVars[[basename(file_name)]],
-        file_name,
+        savevar$emlal$CatVars[[file_name]],
+        file_path,
         sep = "\t"
       )
     })
-  })
+  }, priority = 1, ignoreInit = TRUE)
   
   # Output -----------------------------------------------------
   return(savevar)

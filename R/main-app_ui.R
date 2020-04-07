@@ -7,7 +7,6 @@
 #' @importFrom shinydashboard dashboardPage dashboardHeader dashboardSidebar sidebarMenu menuItem dashboardBody tabItems tabItem
 #' @importFrom shinyjs useShinyjs hidden
 .app_ui <- function() {
-  message("ui")
   # get app arguments
   appArgs <- get_golem_options()
   dev <- appArgs$dev
@@ -67,7 +66,11 @@
               tabName = "appOptions",
               icon = icon("gear")
             )
-          )
+          ),
+          if(globals$dev)
+            actionButton(
+              "dev", "DEV CHECK"
+            )
         ),
         width = menuWidth
       ), # end sidebar

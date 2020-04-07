@@ -14,5 +14,5 @@ then every item will be collapsed into a single vector.}
 }
 \description{
 Applies 'writeLines' in a friendly way. This function has been
-quickly designed to allow the writing of text files.
+quickly designed to allow the writing of plain text files.
 }

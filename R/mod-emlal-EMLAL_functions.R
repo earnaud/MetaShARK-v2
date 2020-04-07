@@ -1,4 +1,4 @@
-#' @title Navigation sidebar
+#' @title navSidebarUI
 #'
 #' @description UI part for shiny navigation sidebar module
 #'
@@ -14,31 +14,26 @@
 #' @param ... UI tags set at the bottom of the navigation side bar
 #'
 #' @importFrom shiny NS HTML tags
-navSidebar <- function(id, class = "navSidebar",
-                       .prev = TRUE, .next = TRUE,
-                       disableNext = FALSE,
-                       disablePrev = FALSE,
-                       ...) {
+navSidebarUI <- function(id, class = "navSidebar", 
+  .prev = TRUE, .next=TRUE) {
   ns <- NS(id)
-
-  # variable initialization
-  preBut <- if (.prev) prevTabButton(id) else HTML(NULL)
-  nexBut <- if (.next) nextTabButton(id) else HTML(NULL)
-  arguments <- list(...)
+  
   div(
+    id = "navsidebar",
     verticalLayout(
       tags$h4("Navigation"),
       quitButton(id),
       saveButton(id),
-      if (disablePrev) disabled(preBut) else preBut,
-      if (disableNext) disabled(nexBut) else nexBut,
-      arguments
+      if(.prev) prevTabButton(id) else NULL,
+      if(.next) nextTabButton(id) else FALSE,
+      # arguments,
+      uiOutput(ns("NSB_customUI"))
     ),
     class = class
   )
 }
 
-#' @describeIn navSidebar Quit button.
+#' @describeIn navSidebarUI
 #'
 #' @importFrom shiny NS actionButton icon
 quitButton <- function(id) {
@@ -49,7 +44,7 @@ quitButton <- function(id) {
   )
 }
 
-#' @describeIn navSidebar Save button.
+#' @describeIn navSidebarUI
 #'
 #' @importFrom shiny NS actionButton icon
 saveButton <- function(id) {
@@ -60,7 +55,7 @@ saveButton <- function(id) {
   )
 }
 
-#' @describeIn navSidebar Next button.
+#' @describeIn navSidebarUI
 #'
 #' @importFrom shiny NS actionButton icon
 nextTabButton <- function(id) {
@@ -71,7 +66,7 @@ nextTabButton <- function(id) {
   )
 }
 
-#' @describeIn navSidebar Prev button.
+#' @describeIn navSidebarUI
 #'
 #' @importFrom shiny NS actionButton icon
 prevTabButton <- function(id) {
@@ -84,16 +79,48 @@ prevTabButton <- function(id) {
 
 ## Associated server functions -----------------------------------------------------
 
-#' @title Navigation server
+#' @title navSidebar
 #'
 #' @description server part for shiny navigation sidebar module (see [navSidebar()]).
 #' The functions are very specific and thus are not exported.
 #'
-#' @importFrom shiny modalDialog tagList modalButton actionButton icon observeEvent req showModal removeModal
-onQuit <- function(input, output, session,
-                   globals, savevar) {
-  ns <- session$ns
+#' @param id shiny server id
+#' @param globals MetaShARK globals variable
+#' @param savevar MetaShARK savevar variable
+#'
+#' @importFrom shiny callModule
+navSidebar <- function(id, globals, savevar) {
+  NSB <- reactiveValues(
+    SAVE = 0,
+    NEXT = 0,
+    PREV = 0,
+    taglist = tagList()
+  )
+  
+  NSB <- callModule(onQuit, id, globals, savevar, NSB)
+  NSB <- callModule(onSave, id, savevar, NSB)
+  NSB <- callModule(prevTab, id, globals,  NSB)
+  NSB <- callModule(nextTab, id, globals, NSB)
+  
+  callModule(
+    function(input, output, session, x = NSB$tagList) {
+      output$NSB_customUI <- renderUI({x})
+    },
+    id
+  )
+  
+  return(NSB)
+}
 
+#' @describeIn navSidebar
+#'
+#' @importFrom shiny modalDialog tagList modalButton actionButton
+#' icon observeEvent req showModal removeModal
+#' @importFrom shinyjs onclick
+onQuit <- function(input, output, session,
+  globals, savevar, NSB) {
+  ns <- session$ns
+  
   # modal dialog for quitting data description
   quitModal <- modalDialog(
     title = "You are leaving data description",
@@ -101,88 +128,124 @@ onQuit <- function(input, output, session,
     footer = tagList(
       modalButton("Cancel"),
       actionButton(
-        ns("save_quit_button"), 
+        ns("save_quit_button"),
         "Save & Quit"
       ),
       actionButton(
-        ns("quit_button"), 
+        ns("quit_button"),
         "Quit",
         icon("times-circle"),
         class = "redButton"
       )
     )
   )
-
+  
   # show modal on 'quit' button clicked
-  observeEvent(input$quit, {
-      req(input$quit)
-      showModal(quitModal)
-    }, priority = -1)
-
+  onclick("quit", {
+    req(input$quit)
+    showModal(quitModal)
+  })
+  
   # calls saveRDS method and quits
-  observeEvent(input$save_quit_button, {
+  onclick("save_quit_button", {
     req(input$quit)
+    req(input$save_quit_button)
     removeModal()
+    
+    NSB$tagList <- tagList()
+    NSB$SAVE <- NSB$SAVE+1
+    saveReactive(savevar)
+    globals$EMLAL$HISTORY <- "SelectDP"
+    globals$EMLAL$NAVIGATE <- 1
+    
     file.remove(
       list.files(
         savevar$emlal$SelectDP$dp_data_path,
-        pattern = "preview___"
+        pattern = "preview_"
       )
     )
-    saveReactive(savevar)
-    globals$EMLAL$NAVIGATE <- 1
   })
-
+  
   # quits simply
-  observeEvent(input$quit_button, {
+  onclick("quit_button", {
     req(input$quit)
     removeModal()
+    
+    NSB$tagList <- tagList()
+    globals$EMLAL$HISTORY <- "SelectDP"
+    globals$EMLAL$NAVIGATE <- 1
+    
     file.remove(
       list.files(
         savevar$emlal$SelectDP$dp_data_path,
         pattern = "preview___"
       )
     )
-    globals$EMLAL$NAVIGATE <- 1
   })
+  
+  return(NSB)
 }
 
-#' @describeIn onQuit
+#' @describeIn navSidebar
 #'
 #' @importFrom shiny observeEvent
-onSave <- function(input, output, session,
-                   savevar) {
-  observeEvent(input$save, {
+#' @importFrom shinyjs onclick
+onSave <- function(input, output, session, savevar, NSB) {
+  
+  onclick("save", {
     req(input$save)
+    NSB$SAVE <- NSB$SAVE+1
+  })
+  
+  observeEvent(NSB$SAVE, {
     saveReactive(savevar)
-  }, priority = -1)
+  }, priority = -1, ignoreInit = TRUE)
+  
+  return(NSB)
 }
 
-#' @describeIn onQuit
+#' @describeIn navSidebar
 #'
 #' @importFrom shiny observeEvent
+#' @importFrom shinyjs onclick enable disable
 nextTab <- function(input, output, session,
-                    globals, previous) {
-  observeEvent(input$nextTab,
-    {
+  globals, NSB) {
+  observe({
+    req(isTRUE(globals$EMLAL$COMPLETE_CURRENT) ||
+        isFALSE(globals$EMLAL$COMPLETE_CURRENT))
+    
+    if (isFALSE(globals$EMLAL$COMPLETE_CURRENT)) {
+      disable("nextTab")
+    } else if (isTRUE(globals$EMLAL$COMPLETE_CURRENT)) {
+      enable("nextTab")
+    }
+  })
+  
+  onclick("nextTab", {
+    req(isTRUE(globals$EMLAL$COMPLETE_CURRENT))
+    if(!globals$EMLAL$CURRENT %in% c("Geographic Coverage", "Taxonomic Coverage")){
       globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1
-      globals$EMLAL$HISTORY <- c(globals$EMLAL$HISTORY, previous)
-    },
-    priority = -1
-  )
+      NSB$tagList <- tagList()
+    }
+    NSB$NEXT <- NSB$NEXT+1
+  })
+  
+  return(NSB)
 }
-#' @describeIn onQuit
+#' @describeIn navSidebar
 #'
 #' @importFrom shiny observeEvent
+#' @importFrom shinyjs onclick
 prevTab <- function(input, output, session,
-                    globals) {
-  observeEvent(input$prevTab,
-    {
-      globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE - 1
-      globals$EMLAL$HISTORY <- head(globals$EMLAL$HISTORY, -1)
-    },
-    priority = -1
-  )
+  globals, NSB) {
+  
+  onclick("prevTab", {
+    globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE - 1
+    NSB$tagList <- tagList()
+    NSB$PREV <- NSB$PREV+1
+  })
+  
+  return(NSB)
 }
 
 # Misc -----------------------------------------------------

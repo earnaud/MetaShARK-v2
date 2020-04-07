@@ -53,7 +53,7 @@
   DATAONE.LIST <- listFormats(CNode())$MediaType
 
   # Taxa authorities
-  TAXA.AUTHORITIES <-  view_taxa_authorities()
+  TAXA.AUTHORITIES <- view_taxa_authorities()
 
   # Build global variable
   if (reactive) {
@@ -77,12 +77,14 @@
         LATLON = "[+-]?[[:digit:]]+[.,]*[[:digit:]]*",
         NAME = "^[[:alpha:] \\'\\.\\-]+$",
         EMAIL = "^[^@]+@[^@]+\\.[[:alpha:]]",
-        ORCID = "\\d{4}-\\d{4}-\\d{4}-(\\d{4}|\\d{3}X)$"
+        ORCID = "\\d{4}-\\d{4}-\\d{4}-(\\d{4}|\\d{3}X)"
       ),
       # navigation variable in EMLAL module
       EMLAL = reactiveValues(
-        HISTORY = character(),
-        NAVIGATE = 1
+        HISTORY = "SelectDP",
+        NAVIGATE = 1,
+        CURRENT = "SelectDP",
+        COMPLETE_CURRENT = FALSE
       ),
       TOKEN = reactiveValues()
     )

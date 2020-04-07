@@ -5,7 +5,7 @@
 \alias{saveReactive}
 \title{initReactive}
 \usage{
-initReactive(sublist = NULL, savevar = NULL)
+initReactive(sublist = NULL, savevar = NULL, glob)
 
 saveReactive(savevar)
 }

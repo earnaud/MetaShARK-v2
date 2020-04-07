@@ -8,15 +8,14 @@
 #' @importFrom shinycssloaders withSpinner
 EMLALUI <- function(id, dev = FALSE) {
   ns <- NS(id)
-
+  
   fluidPage(
     style = "padding-top:2.5%;",
     box(
       collapsible = TRUE,
       width = 12,
       title = "About EML Assembly Line",
-      column(
-        4,
+      column(4,
         tags$h3("Authorship"),
         HTML(
           "<p>The `EML Assembly Line` package used in this module
@@ -57,9 +56,16 @@ EMLALUI <- function(id, dev = FALSE) {
       ) # end usage
     ),
     box(
-      title = "EML Assembly Line",
+      title = span(
+        div("EML Assembly Line", style = "padding-right: 15px"),
+        uiOutput(ns("chain")),
+        style = "display: inline-flex"
+      ),
       width = 12,
-      uiOutput(ns("currentUI")) %>% withSpinner(color = "#599cd4")
+      fluidRow(
+        uiOutput(ns("currentUI")) %>%
+          withSpinner(color = "#599cd4")
+      )
     ) # end variable UI
   ) # end fluidPage
 }
@@ -69,11 +75,12 @@ EMLALUI <- function(id, dev = FALSE) {
 #' @description server part of the EMLAL module. Allow the user to use a front-end shiny interface to the EML Assembly Line package, from
 #' Environmental Data Initiative.
 #'
-#' @importFrom shiny observeEvent renderUI renderImage HTML callModule imageOutput
+#' @importFrom shiny observeEvent renderUI renderImage HTML callModule imageOutput actionLink icon
+#' @importFrom shinyBS tipify
 EMLAL <- function(input, output, session,
-                  savevar, globals, server) {
+  savevar, globals, server) {
   ns <- session$ns
-
+  
   output$`edi-logo` <- renderImage(
     {
       list(
@@ -85,17 +92,124 @@ EMLAL <- function(input, output, session,
     },
     deleteFile = FALSE
   )
-
+  
+  # NSB -----------------------------------------------------
   # names of EMLAL steps
-  steps <- c("SelectDP", "DataFiles", "Attributes", "CustomUnits", "CatVars", "GeoCov", "TaxCov", "Misc", "MakeEML")
-
-  iteration <- 0 # varying namespace
+  steps <- c("SelectDP", "Data Files", "Attributes", "Categorical Variables", "Geographic Coverage", "Taxonomic Coverage", "Personnel", "Miscellaneous", "Make EML")
+  
+  NSB <- navSidebar("nav", globals, savevar)
+  
   # Output -----------------------------------------------------
+  iteration <- 0 # varying namespace
   observeEvent(globals$EMLAL$NAVIGATE, {
     iteration <<- iteration + 1
-    # UI -----------------------------------------------------
+    
+    if(globals$EMLAL$CURRENT == "Data Files")
+      unlink(globals$EMLAL$TEMP)
+    globals$EMLAL$CURRENT <- steps[globals$EMLAL$NAVIGATE]
+    if(globals$EMLAL$CURRENT == "Data Files" && 
+        !dir.exists(globals$TEMP.PATH))
+      dir.create(globals$TEMP.PATH)
+    
+    if(isFALSE(globals$EMLAL$COMPLETE_CURRENT))
+      globals$EMLAL$COMPLETE_CURRENT <- TRUE # trigger
+    globals$EMLAL$COMPLETE_CURRENT <- FALSE
+    NSB$tagList <- tagList()
+    
+    # Edition changed path -> remove excedent history
+    if (!globals$EMLAL$CURRENT %in% globals$EMLAL$HISTORY) { # new
+      globals$EMLAL$HISTORY <- c(globals$EMLAL$HISTORY, globals$EMLAL$CURRENT)
+    }
+    
+    # Savevar modification
+    savevar$emlal$step <- globals$EMLAL$NAVIGATE
+    savevar$emlal$history <- globals$EMLAL$HISTORY
+    
+    # * Chain -----------------------------------------------------
+    output$chain <- renderUI({
+      validate(
+        need(globals$EMLAL$NAVIGATE > 1, "")
+      )
+      
+      return(
+        tags$span(
+          tagList(
+            lapply(seq(globals$EMLAL$HISTORY)[-1], function(ind) {
+              step_name <- globals$EMLAL$HISTORY[ind]
+              
+              if (step_name %in% c("Data Files", "Attributes", "Categorical Variables", "Personnel", "Miscellaneous", "Make EML")) {
+                style <- "color: dodgerblue;"
+                description <- paste(step_name, "(mandatory)")
+              } else {
+                style <- "color: lightseagreen;"
+                description <- paste(step_name, "(facultative)")
+              }
+              
+              return(
+                do.call(
+                  tipify,
+                  args = list(
+                    el = actionLink(
+                      ns(paste0("chain_", step_name)),
+                      "",
+                      if(step_name == globals$EMLAL$CURRENT) 
+                        icon("map-marker") 
+                      else 
+                        icon("circle"),
+                      style = style
+                    ),
+                    title = description,
+                    placement = "bottom",
+                    trigger = "hover"
+                  )
+                )
+              ) # end of return
+            })
+          ),
+          style = "position: right"
+        )
+      )
+    })
+    
+    observe({
+      validate(
+        need(
+          exists("globals") && isTruthy(names(input)), 
+          "Not initialized"
+        ), 
+        need(
+          isTruthy(globals$EMLAL$HISTORY),
+          "No history available"
+        ),
+        need(
+          any(sapply(
+            globals$EMLAL$HISTORY, 
+            grepl,
+            x = names(input)
+          ) %>% unlist) && 
+            length(globals$EMLAL$HISTORY) > 1,
+          "No history available"
+        )
+      )
+      
+      sapply(seq(globals$EMLAL$HISTORY)[-1], function(ind) {
+        step_name <- globals$EMLAL$HISTORY[ind]
+        
+        id <- paste0("chain_", step_name)
+        
+        observeEvent(input[[id]], {
+          req(input[[id]] &&
+              ind != globals$EMLAL$NAVIGATE)
+          globals$EMLAL$NAVIGATE <- ind
+          # IDEA trigger next
+          NSB$NEXT <- NSB$NEXT+1
+        })
+      })
+    })
+    
+    # * UI -----------------------------------------------------
     output$currentUI <- renderUI({
-      switch(globals$EMLAL$NAVIGATE,
+      .ui <- switch(globals$EMLAL$NAVIGATE,
         SelectDPUI(
           id = ns(iteration),
           title = steps[globals$EMLAL$NAVIGATE],
@@ -109,11 +223,6 @@ EMLAL <- function(input, output, session,
           server = server
         ),
         AttributesUI(
-          id = ns(iteration),
-          title = steps[globals$EMLAL$NAVIGATE],
-          dev = globals$dev
-        ),
-        CustomUnitsUI(
           id = ns(iteration),
           title = steps[globals$EMLAL$NAVIGATE],
           dev = globals$dev
@@ -154,15 +263,32 @@ EMLAL <- function(input, output, session,
           title = steps[globals$EMLAL$NAVIGATE],
           dev = globals$dev
         ),
-        {
+        tags$h2("WIP")
+      )
+      
+      return(
+        if (globals$EMLAL$NAVIGATE > 1) {
+          # NSB modifications
+          .nsb <- if (globals$EMLAL$CURRENT == "Data Files")
+            navSidebarUI(ns("nav"), .prev=FALSE)
+          else if(globals$EMLAL$CURRENT == "Make EML")
+            navSidebarUI(ns("nav"), .next=FALSE)
+          else
+            navSidebarUI(ns("nav"))
+          
           tagList(
-            imageOutput(ns("WIP"))
+            column(10, .ui),
+            column(2, .nsb)
+          )
+        } else {
+          tagList(
+            column(12, .ui)
           )
         }
       )
     })
-
-    # Server -----------------------------------------------------
+    
+    # * Server -----------------------------------------------------
     savevar <- switch(globals$EMLAL$NAVIGATE,
       callModule(
         SelectDP, iteration,
@@ -172,51 +298,47 @@ EMLAL <- function(input, output, session,
       callModule(
         DataFiles, iteration,
         savevar, globals,
-        server = server
+        server = server,
+        NSB = NSB
       ),
       callModule(
         Attributes, iteration,
-        savevar, globals
-      ),
-      callModule(
-        CustomUnits, iteration,
-        savevar, globals
+        savevar, globals,
+        NSB = NSB
       ),
       callModule(
         CatVars, iteration,
-        savevar, globals
+        savevar, globals,
+        NSB = NSB
       ),
       callModule(
         GeoCov, iteration,
-        savevar, globals
+        savevar, globals,
+        NSB = NSB
       ),
       callModule(
         TaxCov, iteration,
-        savevar, globals
+        savevar, globals,
+        NSB = NSB
       ),
       callModule(
         Personnel, iteration,
-        savevar, globals
+        savevar, globals,
+        NSB = NSB
       ),
       callModule(
         Misc, iteration,
         savevar, globals,
+        NSB = NSB,
         server = server
       ),
       callModule(
         MakeEML, iteration,
         savevar, globals
-      ),
-      callModule(
-        function(input, output, server, savevar) {
-          output$WIP <- renderImage("media/working.png")
-          return(savevar)
-        },
-        iteration
       )
     )
   })
-
+  
   # Save variable
   return(savevar)
 }
