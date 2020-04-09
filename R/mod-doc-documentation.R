@@ -84,8 +84,6 @@ docUI <- function(id) {
 documentation <- function(input, output, session, globals) {
   ns <- session$ns
 
-  require(shinyTree)
-
   # external links
   observeEvent(input$`visit-module`, {
     url <- paste0(

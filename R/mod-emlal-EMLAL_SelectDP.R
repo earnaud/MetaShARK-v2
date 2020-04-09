@@ -5,7 +5,7 @@
 #'
 #' @importFrom shiny NS fluidPage fluidRow column tags tagList icon textOutput uiOutput selectInput textInput HTML
 #' @importFrom shinyFiles shinyDirButton
-SelectDPUI <- function(id, title, width = 12, dev = FALSE, server) {
+SelectDPUI <- function(id, width = 12, dev = FALSE, server) {
   ns <- NS(id)
   
   # UI output

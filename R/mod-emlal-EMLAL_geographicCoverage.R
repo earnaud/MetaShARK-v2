@@ -9,9 +9,7 @@ GeoCovUI <- function(id, title, dev, data.files, coordPattern) {
   
   return(
     fluidPage(
-      # Features UI -----------------------------------------------------
       fluidRow(
-        tags$h4(title),
         tags$p("This step is optional."),
         tags$p("Make sure all of your locations are stored in a
             single file, under 3 columns: one for the site description
@@ -140,11 +138,8 @@ GeoCov <- function(input, output, session,
   
   # Pre-fill -----------------------------------------------------
   saved_table <- fread(
-    paste(
-      savevar$emlal$SelectDP$dp_metadata_path,
-      "geographic_coverage.txt",
-      sep = "/"
-    )
+    paste(savevar$emlal$SelectDP$dp_metadata_path, "/geographic_coverage.txt"),
+      data.table = FALSE, stringsAsFactors = FALSE, quote = ""
   )
   
   # Retrieve geographic coverage
@@ -159,7 +154,7 @@ GeoCov <- function(input, output, session,
   
   # Prepare content
   data.files <- savevar$emlal$DataFiles$datapath
-  data.content <- lapply(data.files, fread)
+  data.content <- lapply(data.files, fread, data.table = FALSE, stringsAsFactors = FALSE, quote = "")
   names(data.content) <- basename(data.files)
   
   # format extracted content - keep latlon-valid columns
@@ -317,7 +312,6 @@ GeoCov <- function(input, output, session,
   })
   
   # Saves -----------------------------------------------------
-  globals$EMLAL$COMPLETE_CURRENT <- TRUE
   observe({
     rv$columns$complete <-isTruthy(rv$columns$geographicDescription) &&
       isTruthy(rv$columns$northBoundingCoordinate) &&
@@ -332,6 +326,10 @@ GeoCov <- function(input, output, session,
       isTruthy(rv$custom$southBoundingCoordinate) &&
       isTruthy(rv$custom$eastBoundingCoordinate) &&
       isTruthy(rv$custom$westBoundingCoordinate)
+  })
+  
+  observe({
+    globals$EMLAL$COMPLETE_CURRENT <- any(rv$custom$complete, rv$columns$complete)
   })
   
   observeEvent(NSB$SAVE, {

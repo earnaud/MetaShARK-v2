@@ -4,18 +4,17 @@
 #'
 #' @importFrom shiny h5
 #' @importFrom tagsinput tagsTextInput
+#' @importFrom data.table fread
 MiscUI <- function(id, title, dev, savevar, server) {
   ns <- NS(id)
   
   keywords <- fread(
     paste0(savevar$emlal$SelectDP$dp_metadata_path, "/keywords.txt"),
-    data.table = FALSE,
-    stringsAsFactors = FALSE
+    data.table = FALSE, stringsAsFactors = FALSE
   )
   
   return(
     fluidPage(
-      # Features UI -----------------------------------------------------
       fluidRow(
         HTML("
             <h5>DISCLAIMER</h5>
@@ -29,7 +28,7 @@ MiscUI <- function(id, title, dev, savevar, server) {
           
           # * Abstract -----------------------------------------------------
           bsCollapsePanel(
-            title = "Abstract",
+            title = with_red_star("Abstract"),
             value = 1,
             MiscellaneousUI(
               ns("abstract"),
@@ -122,6 +121,7 @@ MiscUI <- function(id, title, dev, savevar, server) {
 #'
 #' @importFrom shiny dateRangeInput
 #' @importFrom shinyjs enable disable
+#' @importFrom data.table fread
 Misc <- function(input, output, session,
   savevar, globals, server, NSB) {
   ns <- session$ns
@@ -153,9 +153,9 @@ Misc <- function(input, output, session,
       )
     ),
     # Keywords
-    keywords = reactiveValues(
-      keywords = character(),
-      keywordsThesaurus = character()
+    keywords = fread(
+      paste0(savevar$emlal$SelectDP$dp_metadata_path, "/keywords.txt"),
+      data.table = FALSE, stringsAsFactors = FALSE
     ),
     # Temporal coverage
     temporal_coverage = c(Sys.Date() - 1, Sys.Date()),
@@ -190,29 +190,23 @@ Misc <- function(input, output, session,
   )
   
   # * Keywords ====
-  # if (isTruthy(savevar$emlal$Misc$keywords$keywords)) {
-  #   rv$keywords <- savevar$emlal$Misc$keywords
-  #   updateTextInput(
-  #     session,
-  #     "keywords",
-  #     value = rv$keywords$keywords
-  #   )
-  # }
   observeEvent(input$keywords, {
     req(input$keywords)
-    rv$keywords$keywords <- unique(input$keywords)
+    rv$keywords$keyword <- unique(input$keywords)
     
     output$thesaurus <- renderUI({
       validate(
-        need(rv$keywords$keywords, "No keyword input")
+        need(checkTruth(rv$keywords$keyword), "No keyword input")
       )
       tagList(
-        lapply(seq_along(rv$keywords$keywords), function(k_id) {
-          keyword <- rv$keywords$keywords[k_id]
+        lapply(seq_along(rv$keywords$keyword), function(k_id) {
+          keyword <- rv$keywords$keyword[k_id]
+          valKT <- rv$keywords$keywordThesaurus[k_id]
+          
           textInput(
             ns(paste0("thesaurus-for-", keyword)),
             keyword,
-            value = rv$keywords$keywordsThesaurus[k_id]
+            value = if(isTruthy(valKT)) valKT else ""
           )
         })
       )
@@ -222,19 +216,18 @@ Misc <- function(input, output, session,
   # NOTE observers are still active after being deleted
   observe({
     validate(
-      need(rv$keywords$keywords, "No keyword input")
+      need(rv$keywords$keyword, "No keyword input")
     )
-    sapply(seq_along(rv$keywords$keywords), function(k_id) {
-      keyword <- rv$keywords$keywords[k_id]
+    sapply(seq_along(rv$keywords$keyword), function(k_id) {
+      keyword <- rv$keywords$keyword[k_id]
       input_id <- paste0("thesaurus-for-", keyword)
       validate(
         need(
-          isTruthy(input[[input_id]]) ||
-            input[[input_id]] == "",
+          isTruthy(input[[input_id]]),
           "No thesaurus input"
         )
       )
-      rv$keywords$keywordsThesaurus[k_id] <- input[[input_id]]
+      rv$keywords$keywordThesaurus[k_id] <- input[[input_id]]
     })
   })
   
@@ -264,8 +257,9 @@ Misc <- function(input, output, session,
   # Saves -----------------------------------------------------
   observe({
     globals$EMLAL$COMPLETE_CURRENT <- all(
-      isTruthy(rv$keywords$keywords) &&
+      isTruthy(rv$abstract$content()) &&
         isTruthy(rv$methods$content()) &&
+        isTruthy(rv$keywords$keyword) &&
         isTruthy(rv$temporal_coverage)
     )
   })
@@ -324,8 +318,8 @@ Misc <- function(input, output, session,
     )
     fwrite(
       data.frame(
-        keyword = rv$keywords$keywords,
-        keywordThesaurus = rv$keywords$keywordsThesaurus
+        keyword = rv$keywords$keyword,
+        keywordThesaurus = rv$keywords$keywordThesaurus
       ),
       paste0(
         savevar$emlal$SelectDP$dp_metadata_path,

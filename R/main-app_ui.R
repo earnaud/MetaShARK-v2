@@ -6,6 +6,7 @@
 #' @importFrom shiny tagList tags actionLink icon span imageOutput actionButton HTML includeCSS
 #' @importFrom shinydashboard dashboardPage dashboardHeader dashboardSidebar sidebarMenu menuItem dashboardBody tabItems tabItem
 #' @importFrom shinyjs useShinyjs hidden
+#' @importFrom shinycssloaders withSpinner
 .app_ui <- function() {
   # get app arguments
   appArgs <- get_golem_options()
@@ -105,5 +106,5 @@
         )
       ) # end body
     ) # end dashboard
-  ) # end taglist
+  ) %>% withSpinner # end taglist
 }

@@ -5,12 +5,10 @@ PersonnelUI <- function(id, title, dev) {
   return(
     fluidPage(
       fluidRow(
-        column(
-          2,
+        column(2,
           actionButton(ns("addui"), "", icon("plus"))
         ),
-        column(
-          10,
+        column(10,
           HTML("
               <p>Two roles are required to be filled: <b>creator and 
               contact.</b></p>
@@ -61,7 +59,7 @@ Personnel <- function(input, output, session,
       # Project information
       projectTitle = character(),
       fundingAgency = character(),
-      fundingNumber = c(),
+      fundingNumber = character(),
       stringsAsFactors = FALSE
     )
   )
@@ -72,11 +70,7 @@ Personnel <- function(input, output, session,
     full.names = TRUE
   )
   saved_table <- if(isTruthy(personnelFile))
-    fread(
-      personnelFile,
-      stringsAsFactors = FALSE,
-      data.table = FALSE
-    )
+    fread(personnelFile, data.table = FALSE, stringsAsFactors = FALSE, quote = "")
   else if(isTruthy(unlist(savevar$emlal$Personnel)))
     isolate(savevar$emlal$Personnel)
   else
@@ -88,7 +82,7 @@ Personnel <- function(input, output, session,
       seq_along(saved_table$givenName)[-(1:2)]
     )
     isolate(rv$Personnel <- saved_table)
-    # TODO loop on other saved values
+    
     sapply(rv$Personnel$id, function(rvid){
       rv <- insertPersonnelInput(
         rvid,
@@ -200,6 +194,41 @@ Personnel <- function(input, output, session,
   
   # Output -----------------------------------------------------
   return(savevar)
+}
+
+#' @title insertPersonnelInput
+#'
+#' @description helper function to insert PersonnelMod* functions. Calling this from
+#' a shiny server will insert PersonnelModUI and create its server part. Provided with
+#' features to delete them.
+insertPersonnelInput <- function(id, rv, ns, globals, role = NULL, saved = NULL) {
+  
+  # initialize IDs -----------------------------------------------------
+  div_id <- id
+  site_id <- paste0("site_", id)
+  rmv_id <- paste0("rmv_", id)
+  
+  # Proper module server -----------------------------------------------------
+  # insert new UI
+  newUI <- PersonnelModUI(
+    ns(id), div_id, site_id, rmv_id, 
+    role = role, saved = saved
+  )
+  insertUI(
+    selector = paste0("#", ns("inserthere")),
+    ui = newUI
+  )
+  
+  # create associated server
+  rv <- callModule(
+    PersonnelMod, id, # module args
+    globals, rv, # reactiveValues
+    rmv_id, site_id, div_id, # renderUI ids
+    role = role, saved = saved # set saved
+  )
+  
+  # Output -----------------------------------------------------
+  return(rv)
 }
 
 #' @title PersonnelModUI
@@ -404,7 +433,7 @@ PersonnelMod <- function(input, output, session,globals,
   observeEvent(input$givenName, {
     localRV$givenName <- if (grepl(name.pattern, input$givenName))
       input$givenName
-  })
+  }, )
   
   observeEvent(input$middleInitial, {
     localRV$middleInitial <- input$middleInitial
@@ -483,19 +512,21 @@ PersonnelMod <- function(input, output, session,globals,
       }
       
       # fundings
-      orcid_info$fundings <- orcid_fundings(orcid)[[orcid]]$group$`funding-summary`[[1]]
-      if (isTruthy(unlist(orcid_info$fundings$`title.title.value`))) {
-        localRV$projectTitle <- orcid_info$fundings$`title.title.value`
-        updateTextInput(session, "projectTitle", value = localRV$projectTitle)
-      }
-      if (isTruthy(unlist(orcid_info$fundings$`organization.name`))) {
-        localRV$fundingAgency <- orcid_info$fundings$`organization.name`
-        updateTextInput(session, "fundingAgency", value = localRV$fundingAgency)
-      }
-      if (isTruthy(unlist(orcid_info$fundings$`put-code`))) {
-        localRV$fundingNumber <- orcid_info$fundings$`put-code`
-        updateTextInput(session, "fundingAgency", value = localRV$fundingAgency)
-        # NOTE post Git issue concerning: 'EAL fundingNumber == ORCID::put-code'?
+      if(localRV$role == "PI (principal investigator)") {
+        orcid_info$fundings <- orcid_fundings(orcid)[[orcid]]$group$`funding-summary`[[1]]
+        if (isTruthy(unlist(orcid_info$fundings$`title.title.value`))) {
+          localRV$projectTitle <- orcid_info$fundings$`title.title.value`
+          updateTextInput(session, "projectTitle", value = localRV$projectTitle)
+        }
+        if (isTruthy(unlist(orcid_info$fundings$`organization.name`))) {
+          localRV$fundingAgency <- orcid_info$fundings$`organization.name`
+          updateTextInput(session, "fundingAgency", value = localRV$fundingAgency)
+        }
+        if (isTruthy(unlist(orcid_info$fundings$`put-code`))) {
+          localRV$fundingNumber <- orcid_info$fundings$`put-code`
+          updateTextInput(session, "fundingNumber", value = localRV$fundingNumber)
+          # NOTE post Git issue concerning: 'EAL fundingNumber == ORCID::put-code'?
+        }
       }
     } else {
       showNotification(
@@ -535,17 +566,17 @@ PersonnelMod <- function(input, output, session,globals,
     }, ignoreInit = FALSE)
     
     observeEvent(input$projectTitle, {
-      if (input$role == "PI (principal investigator")
+      if (input$role == "PI (principal investigator)")
         localRV$projectTitle <- input$projectTitle
     })
     
     observeEvent(input$fundingAgency, {
-      if (input$role == "PI (principal investigator")
+      if (input$role == "PI (principal investigator)")
         localRV$fundingAgency <- input$fundingAgency
     })
     
     observeEvent(input$fundingNumber, {
-      if (input$role == "PI (principal investigator")
+      if (input$role == "PI (principal investigator)")
         localRV$fundingNumber <- input$fundingNumber
     })
   } else {
@@ -575,7 +606,7 @@ PersonnelMod <- function(input, output, session,globals,
     localValues <- printReactiveValues(localRV)
     localValues <- localValues[colnames(personnel)]
     localValues[which(!sapply(localValues, isTruthy))] <- ""
-    rv$Personnel[ind,] <- localValues
+    isolate(rv$Personnel[ind,] <- localValues)
   })
   
   # Remove UI -----------------------------------------------------
@@ -588,41 +619,6 @@ PersonnelMod <- function(input, output, session,globals,
       # remove the UI
       removeUI(selector = paste0("#", site_id), immediate = TRUE)
     })
-  
-  # Output -----------------------------------------------------
-  return(rv)
-}
-
-#' @title insertPersonnelInput
-#'
-#' @description helper function to insert PersonnelMod* functions. Calling this from
-#' a shiny server will insert PersonnelModUI and create its server part. Provided with
-#' features to delete them.
-insertPersonnelInput <- function(id, rv, ns, globals, role = NULL, saved = NULL) {
-  
-  # initialize IDs -----------------------------------------------------
-  div_id <- id
-  site_id <- paste0("site_", id)
-  rmv_id <- paste0("rmv_", id)
-  
-  # Proper module server -----------------------------------------------------
-  # insert new UI
-  newUI <- PersonnelModUI(
-    ns(id), div_id, site_id, rmv_id, 
-    role = role, saved = saved
-  )
-  insertUI(
-    selector = paste0("#", ns("inserthere")),
-    ui = newUI
-  )
-  
-  # create associated server
-  rv <- callModule(
-    PersonnelMod, id, # module args
-    globals, rv, # reactiveValues
-    rmv_id, site_id, div_id, # renderUI ids
-    role = role, saved = saved # set saved
-  )
   
   # Output -----------------------------------------------------
   return(rv)

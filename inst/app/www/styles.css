@@ -8,6 +8,10 @@
 	max-height: 800px;
 }
 
+p {
+  text-align: justify;
+}
+
 .redButton {
 	color: red;
 }
@@ -53,7 +57,13 @@
 }
 
 .text-title {
-  text-align: center;
+  display: inline-block;
+  font-size:14pt;
+  text-align:center;
+}
+
+.disclaimer {
+  font-weight: bold;
 }
 
 textarea {

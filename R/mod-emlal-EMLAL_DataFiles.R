@@ -4,16 +4,19 @@
 #'
 #' @importFrom shiny NS fluidPage column tags HTML icon actionButton uiOutput tagList textOutput
 #' @importFrom shinyFiles shinyFilesButton
-DataFilesUI <- function(id, title, dev = FALSE, server = FALSE) {
+DataFilesUI <- function(id, dev = FALSE, server = FALSE) {
   ns <- NS(id)
   
   return(
     fluidPage(
-      tags$h4("Data files"),
       tags$p("When selecting your files, you can't select
           folders. You can delete file(s) from your selection
           by ticking their box and clicking the 'Remove' button."),
-      tags$p("DISCLAIMER: MetaShARK only supports tabulated files."),
+      HTML("<h5>DISCLAIMER</h5>
+              <ul>
+                <li>MetaShARK only supports table files.</li>
+                <li>Validating a file(s) selection will immediately upload it.</li>
+              </ul class = disclaimer>"),
       tags$div(
         if (isTRUE(server)) {
           tagList(
@@ -80,21 +83,17 @@ DataFiles <- function(input, output, session,
     rv$files_list <- rv$data_files$name
   }
   
-  # ex NSB -----------------------------------------------------
-  # callModule(
-  #   onQuit, "nav",
-  #   # additional arguments
-  #   globals, savevar
-  # )
-  # callModule(
-  #   onSave, "nav",
-  #   # additional arguments
-  #   savevar
-  # )
-  # callModule(
-  #   nextTab, "nav",
-  #   globals, "Data Files Upload"
-  # )
+  # Clean existing data files in data_object
+  if(isTruthy(rv$data_files$datapath)){
+    file.copy(
+      rv$data_files$datapath,
+      to = globals$TEMP.PATH
+    )
+    rv$data_files$datapath <- paste0(globals$TEMP.PATH, basename(rv$data_files$datapath))
+  }
+  file.remove(
+    dir(savevar$emlal$SelectDP$dp_data_path, full.names = TRUE)
+  )
   
   # Data file upload -----------------------------------------------------
   # * Add data files -----------------------------------------------------
@@ -148,7 +147,10 @@ DataFiles <- function(input, output, session,
     # copies on the server
     # if (isTRUE(server)) {
     withProgress({
-      file.copy(rv$data_files$datapath, paste0(globals$TEMP.PATH, rv$data_files$name))
+      file.copy(
+        rv$data_files$datapath, 
+        globals$TEMP.PATH
+      )
       incProgress(1)
     }, message = "Downloading data files")
     
@@ -273,16 +275,32 @@ DataFiles <- function(input, output, session,
   
   # Warnings: data size
   observeEvent(rv$data_files, {
-    if (sum(rv$data_files$size) > globals$THRESHOLDS$data_files_size_max) {
-      NSB$tagList <- tags$p(
-        paste(
-          "WARNING:", sum(rv$data_files$size),
-          "bytes are about to be duplicated for data package assembly"
-        )
-      )
+    req(checkTruth(rv$data_files))
+    files_size <- if(checkTruth(rv$data_files$size))
+      sum(rv$data_files$size)
+    else
+      0
+    files_size_max <- globals$THRESHOLDS$data_files_size_max
+    
+    style <- if(files_size < 0.9*files_size_max){
+      "color: green;"
+    } else if(files_size >= 0.9*files_size_max && files_size < files_size_max){
+      "color: gold;"
     } else {
-      NSB$tagList <- tagList()
+      "color: red"
     }
+    
+    NSB$tagList <- tagList(
+      "Files size:",
+      tags$p(
+        utils:::format.object_size(files_size, "auto"),
+        if(files_size >= files_size_max) 
+          paste("Max. recommended:", utils:::format.object_size(files_size_max, "auto") )
+        else 
+          NULL,
+        style = style
+      )
+    )
   })
   
   # Saves -----------------------------------------------------
@@ -301,11 +319,9 @@ DataFiles <- function(input, output, session,
     req(globals$EMLAL$CURRENT == "Data Files")
     
     # -- copy files to <dp>_emldp/<dp>/data_objects
-    sapply(
-      rv$data_files$datapath,
-      file.copy,
-      to = savevar$emlal$SelectDP$dp_data_path,
-      recursive = TRUE
+    file.copy(
+      from = rv$data_files$datapath,
+      to = savevar$emlal$SelectDP$dp_data_path
     )
     
     # -- modify paths in save variable
@@ -329,49 +345,29 @@ DataFiles <- function(input, output, session,
 .saveDataFiles <- function(savevar, rv){
   tmp <- savevar$emlal$DataFiles
   
-  withProgress({
-    setProgress(0.1, "Get files data")
-    
-    # -- Get files data
-    tmp$datapath <- sapply(
-      rv$data_files$name,
-      function(fname) {
-        incProgress(0.3/length(rv$data_files$name))
-        force(fname)
-        paste0(savevar$emlal$SelectDP$dp_data_path, "/", fname)
-      }
-    )
-    
-    setProgress(message = "Add path for metadata")
-    
-    # -- set metadatapath
-    tmp$metadatapath <- sapply(
-      rv$data_files$name,
-      function(fname) {
-        incProgress(0.3/length(rv$data_files$name))
-        force(fname)
-        paste(
-          savevar$emlal$SelectDP$dp_metadata_path,
-          sub(
-            "(.*)\\.[a-zA-Z0-9]*$",
-            "attributes_\\1.txt",
-            fname
-          ),
-          sep = "/"
-        )
-      }
-    )
-    
-    # Set table name
-    incProgress(0.1)
-    tmp$table_name <- rv$data_files$table_name
-    # Set description
-    incProgress(0.1)
-    tmp$description <- rv$data_files$description
-    # Set URL
-    incProgress(0.1)
-    tmp$url <- rv$data_files$url
-  })
+  # -- Get files data
+  tmp$datapath <- paste0(
+    savevar$emlal$SelectDP$dp_data_path, 
+    "/", rv$data_files$name
+  )
+  
+  # -- set metadatapath
+  tmp$metadatapath <- paste(
+    savevar$emlal$SelectDP$dp_metadata_path,
+    sub(
+      "(.*)\\.[a-zA-Z0-9]*$",
+      "attributes_\\1.txt",
+      rv$data_files$name
+    ),
+    sep = "/"
+  )
+  
+  # Set table name
+  tmp$table_name <- rv$data_files$table_name
+  # Set description
+  tmp$description <- rv$data_files$description
+  # Set URL
+  tmp$url <- rv$data_files$url
   
   savevar$emlal$DataFiles <- tmp
   
