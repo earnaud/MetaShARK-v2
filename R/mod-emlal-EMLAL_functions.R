@@ -21,12 +21,11 @@ navSidebarUI <- function(id, class = "navSidebar",
   div(
     id = "navsidebar",
     verticalLayout(
-      tags$h4("Navigation"),
+      tags$h4("Navigation", class = "text-title"),
       quitButton(id),
       saveButton(id),
-      if(.prev) prevTabButton(id) else NULL,
-      if(.next) nextTabButton(id) else FALSE,
-      # arguments,
+      if(isTRUE(.prev)) prevTabButton(id) else NULL,
+      if(isTRUE(.next)) nextTabButton(id) else FALSE,
       uiOutput(ns("NSB_customUI"))
     ),
     class = class
@@ -116,7 +115,7 @@ navSidebar <- function(id, globals, savevar) {
 #'
 #' @importFrom shiny modalDialog tagList modalButton actionButton
 #' icon observeEvent req showModal removeModal
-#' @importFrom shinyjs onclick
+#' @importFrom shinyjs onclick disable enable
 onQuit <- function(input, output, session,
   globals, savevar, NSB) {
   ns <- session$ns
@@ -125,12 +124,10 @@ onQuit <- function(input, output, session,
   quitModal <- modalDialog(
     title = "You are leaving data description",
     "Are you sure to leave? Some of your metadata have maybe not been saved.",
+    easyClose = FALSE,
     footer = tagList(
-      modalButton("Cancel"),
-      actionButton(
-        ns("save_quit_button"),
-        "Save & Quit"
-      ),
+      actionButton(ns("cancel"), "Cancel"),
+      actionButton(ns("save_quit_button"), "Save & Quit"),
       actionButton(
         ns("quit_button"),
         "Quit",
@@ -142,14 +139,24 @@ onQuit <- function(input, output, session,
   
   # show modal on 'quit' button clicked
   onclick("quit", {
+    endisableNSB(input, disable)
     req(input$quit)
     showModal(quitModal)
+  })
+  
+  # quits simply
+  onclick("cancel", {
+    req(input$quit)
+    req(input$cancel)
+    endisableNSB(input, enable)
+    removeModal()
   })
   
   # calls saveRDS method and quits
   onclick("save_quit_button", {
     req(input$quit)
     req(input$save_quit_button)
+    endisableNSB(input, enable)
     removeModal()
     
     NSB$tagList <- tagList()
@@ -169,6 +176,8 @@ onQuit <- function(input, output, session,
   # quits simply
   onclick("quit_button", {
     req(input$quit)
+    req(input$quit_button)
+    endisableNSB(input, enable)
     removeModal()
     
     NSB$tagList <- tagList()
@@ -189,7 +198,7 @@ onQuit <- function(input, output, session,
 #' @describeIn navSidebar
 #'
 #' @importFrom shiny observeEvent
-#' @importFrom shinyjs onclick
+#' @importFrom shinyjs onclick disable enable
 onSave <- function(input, output, session, savevar, NSB) {
   
   onclick("save", {
@@ -198,7 +207,15 @@ onSave <- function(input, output, session, savevar, NSB) {
   })
   
   observeEvent(NSB$SAVE, {
-    saveReactive(savevar)
+    withProgress({
+      incProgress(0.1)
+      endisableNSB(input, disable)
+      incProgress(0.1)
+      saveReactive(savevar)
+      incProgress(0.7)
+      endisableNSB(input, enable)
+      incProgress(0.1)
+    }, message = "Saving metadata ...")
   }, priority = -1, ignoreInit = TRUE)
   
   return(NSB)
@@ -210,9 +227,8 @@ onSave <- function(input, output, session, savevar, NSB) {
 #' @importFrom shinyjs onclick enable disable
 nextTab <- function(input, output, session,
   globals, NSB) {
-  observe({
-    req(isTRUE(globals$EMLAL$COMPLETE_CURRENT) ||
-        isFALSE(globals$EMLAL$COMPLETE_CURRENT))
+  observeEvent(globals$EMLAL$COMPLETE_CURRENT,{
+    req(isTruthy(globals$EMLAL$COMPLETE_CURRENT))
     
     if (isFALSE(globals$EMLAL$COMPLETE_CURRENT)) {
       disable("nextTab")
@@ -223,11 +239,14 @@ nextTab <- function(input, output, session,
   
   onclick("nextTab", {
     req(isTRUE(globals$EMLAL$COMPLETE_CURRENT))
+    endisableNSB(input, disable)
     if(!globals$EMLAL$CURRENT %in% c("Geographic Coverage", "Taxonomic Coverage")){
       globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1
       NSB$tagList <- tagList()
     }
     NSB$NEXT <- NSB$NEXT+1
+    endisableNSB(input, enable)
+    disable("nextTab")
   })
   
   return(NSB)
@@ -235,17 +254,28 @@ nextTab <- function(input, output, session,
 #' @describeIn navSidebar
 #'
 #' @importFrom shiny observeEvent
-#' @importFrom shinyjs onclick
+#' @importFrom shinyjs onclick enable disable 
 prevTab <- function(input, output, session,
   globals, NSB) {
   
   onclick("prevTab", {
+    endisableNSB(input, disable)
     globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE - 1
     NSB$tagList <- tagList()
     NSB$PREV <- NSB$PREV+1
+    endisableNSB(input, enable)
   })
   
   return(NSB)
+}
+
+#' @importFrom shinyjs enable disable
+endisableNSB <- function(input, todo){
+  n <- names(input)
+  n <- n[which(n %in% c("save", "quit", "nextTab", "prevTab"))]
+  sapply(n, function(ui, action = todo){
+    action(ui)
+  })
 }
 
 # Misc -----------------------------------------------------

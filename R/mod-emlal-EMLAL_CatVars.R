@@ -8,8 +8,6 @@ CatVarsUI <- function(id, title, dev) {
   
   return(
     fluidPage(
-      # Features UI -----------------------------------------------------
-      h4(title),
       fluidRow(
         # Navigation
         fluidRow(
@@ -79,8 +77,7 @@ CatVars <- function(input, output, session,
     # * Init data frame ====
     rv[[file_name]]$CatVars <- fread(
       file_path,
-      data.table = FALSE,
-      stringsAsFactors = FALSE,
+      data.table = FALSE, stringsAsFactors = FALSE, quote = "",
       na.strings = "NA"
       ) %>% 
       mutate(
@@ -200,7 +197,6 @@ CatVars <- function(input, output, session,
   # Run observers
   observeEvent(rv$currentFile, {
     sapply(rv[[rv$currentFile]]$obs, function(obs){
-      showNotification(id="test", "Obs ok")
       obs$resume()
     })
   }, priority = 0)

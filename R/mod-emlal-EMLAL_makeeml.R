@@ -131,16 +131,12 @@ MakeEML <- function(input, output, session, savevar,
         incProgress(0.2)
         
         test <- 0
-        out <- ""
-        while (grepl("^Error in ns_lookup", out[1]) && test < 5) {
-          test <- test + 1
-          out <- try(
-            do.call(
-              make_eml,
-              x[names(x) %in% names(formals(make_eml))]
-            )
+        out <-try(
+          do.call(
+            make_eml,
+            x[names(x) %in% names(formals(make_eml))]
           )
-        }
+        )
         
         incProgress(0.4)
       }
@@ -148,6 +144,8 @@ MakeEML <- function(input, output, session, savevar,
       message = "Writing EML ...",
       value = 0.1
     )
+    
+    browser()
     
     output$warnings <- renderText({
       validate(

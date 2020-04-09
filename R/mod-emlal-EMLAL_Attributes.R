@@ -8,13 +8,11 @@ AttributesUI <- function(id, title, dev) {
   
   return(
     fluidPage(
-      tags$h4("Data table attributes"),
       tagList(
         "Even if EML Assembly Line automatically infers most
-              of your data's metadata, some steps need you to check
-              out. Please check the following attribute, and fill
-              in at least the",
-        with_red_star("mandatory elements.")
+        of your data's metadata, some steps need you to check
+        out. Please check the following attribute, and fill
+        in at least the", with_red_star("mandatory elements.")
       ),
       # Attributes
       fluidRow(
@@ -140,19 +138,16 @@ Attributes <- function(input, output, session,
     CU_Table = data.frame(),
     cu_values = rep(NA,5),
     modalOn = FALSE,
-    modalId = ""
+    unitId = ""
   )
   rv$tables <- lapply(
-    rv$filepath,
-    fread,
-    data.table = FALSE,
-    stringsAsFactors = FALSE
+    rv$filepath, fread,
+    data.table = FALSE, stringsAsFactors = FALSE,
   )
   rv$current_table <- rv$tables[[rv$current_file]]
   rv$CU_Table <- fread(
     dir(savevar$emlal$SelectDP$dp_metadata_path, pattern = "ustom", full.names = TRUE),
-    stringsAsFactors = FALSE,
-    data.table = FALSE
+    data.table = FALSE, stringsAsFactors = FALSE,
   )
   
   if (isTRUE(savevar$emlal$quick)) {
@@ -160,6 +155,7 @@ Attributes <- function(input, output, session,
   }
   
   curt <- makeReactiveTrigger()
+  unitcheck <- makeReactiveTrigger()
   
   # Test
   obs <- reactiveValues()
@@ -192,8 +188,7 @@ Attributes <- function(input, output, session,
     rv$current_table[is.na(rv$current_table)] <- ""
     rv$current_preview <- fread(
       rv$data.filepath[rv$current_file],
-      stringsAsFactors = FALSE,
-      data.table = FALSE,
+      data.table = FALSE, stringsAsFactors = FALSE,
       nrows = 5
     )
   }, priority = 1)
@@ -202,24 +197,20 @@ Attributes <- function(input, output, session,
   output$current_file <- renderUI(
     tags$div(
       h4(rv$filenames[rv$current_file]),
-      tags$style(HTML(paste0(
-        "display: inline-block;
-        font-size:14pt;
-        text-align:center;
-        background: linear-gradient(90deg, #3c8dbc ",
+      style = paste0(
+        "background: linear-gradient(90deg, #3c8dbc ",
         round(100 * rv$currentIndex / length(rv$filenames)),
         "%, white ",
         round(100 * rv$currentIndex / length(rv$filenames)),
         "%);"
-      ))),
+      ),
       class = "ellipsis text-title"
     )
   )
   
   # * UI -----------------------------------------------------
   observeEvent(rv$current_file, {
-    req(rv$current_file)
-    req(!identical(rv$current_table, data.frame()))
+    req(checkTruth(rv$current_table))
     current_table <- isolate(rv$current_table)
     
     output$edit_attributes <- renderUI({
@@ -276,7 +267,11 @@ Attributes <- function(input, output, session,
                             tmp <- selectInput(
                               ns(inputId),
                               with_red_star("Select an unit"),
-                              unique(c(saved_value, as.character(rv$CU_Table$id), globals$FORMAT$UNIT)),
+                              unique(c(
+                                saved_value,
+                                as.character(rv$CU_Table$id),
+                                globals$FORMAT$UNIT
+                              )),
                               selected = saved_value
                             )
                             if (isTruthy(saved_value))
@@ -329,11 +324,8 @@ Attributes <- function(input, output, session,
   }) # end of observeEvent
   
   # * Server -----------------------------------------------------
-  observeEvent(names(input), {
-    req(
-      !identical(rv$current_table, data.frame()),
-      any(unlist(sapply(colnames(rv$current_table), grepl, names(input))))
-    )
+  observeEvent(rv$current_file, {
+    req(checkTruth(rv$current_table))
     
     sapply(
       seq(dim(rv$current_table)[1]),
@@ -358,78 +350,83 @@ Attributes <- function(input, output, session,
             sep = "-"
           )
           
-          if (inputId %in% names(input)) {
-            obs[[inputId]] <- observeEvent(input[[inputId]], {
-              req(input[[inputId]])
-              if(grepl("class", inputId)){
-                # Date
-                date_id <- paste(
-                  isolate(rv$current_file),
-                  row_index, 
-                  "dateTimeFormatString",
-                  sep="-"
-                )
-                if(input[[inputId]] == "Date")
-                  show(date_id)
-                else {
-                  isolate(rv$current_table[row_index, "dateTimeFormatString"] <- "")
-                  hide(date_id)
-                }
-                
-                # Unit
-                unit_id <- paste(
-                  isolate(rv$current_file),
-                  row_index, 
-                  "unit",
-                  sep="-"
-                )
-                if(input[[inputId]] == "numeric")
-                  show(unit_id)
-                else{
-                  isolate(rv$current_table[row_index, "unit"] <- "")
-                  hide(unit_id)
-                }
-                
-                return(input[[inputId]])
-              } else if (grepl("missingValueCode", inputId)) {
-                if (grepl(".+ +.*", input[[inputId]])) {
-                  val <- gsub("^ +", "", input[[inputId]])
-                  updateTextInput(
-                    session,
-                    inputId,
-                    value = strsplit(val, " ")[[1]][1]
-                  )
-                  showNotification(
-                    id = session$ns("mvc_update"),
-                    ui = HTML("<code>missingValueCode</code> fields are limited to a <b>single word.</b>"),
-                    duration = 3,
-                    type = "warning"
-                  )
-                }
-                return(strsplit(input[[inputId]], " ")[[1]][1])
-              } else {
-                if(grepl("unit", inputId) &&
-                    input[[inputId]] == "custom" &&
-                    isFALSE(rv$modalOn)){
-                  curt$trigger()
-                  message("CU trigger")
-                }
-                # attributeName attributeDescription
-                isolate(rv$current_table[row_index, colname] <- input[[inputId]])
+          obs[[inputId]] <- observeEvent(input[[inputId]], {
+            req(input[[inputId]])
+            if(grepl("class", inputId)){
+              # Date
+              date_id <- paste(
+                isolate(rv$current_file),
+                row_index, 
+                "dateTimeFormatString",
+                sep="-"
+              )
+              if(input[[inputId]] == "Date")
+                show(date_id)
+              else {
+                isolate(rv$current_table[row_index, "dateTimeFormatString"] <- "")
+                hide(date_id)
               }
               
-              rv$tables[[rv$current_file]] <- rv$current_table
-            })
-          }
+              # Unit
+              unit_id <- paste(
+                isolate(rv$current_file),
+                row_index, 
+                "unit",
+                sep="-"
+              )
+              if(input[[inputId]] == "numeric")
+                show(unit_id)
+              else{
+                isolate(rv$current_table[row_index, "unit"] <- "")
+                hide(unit_id)
+              }
+              
+              return(input[[inputId]])
+            } else if (grepl("missingValueCode", inputId)) {
+              if (grepl(".+ +.*", input[[inputId]])) {
+                val <- gsub("^ +", "", input[[inputId]])
+                updateTextInput(
+                  session,
+                  inputId,
+                  value = strsplit(val, " ")[[1]][1]
+                )
+                showNotification(
+                  id = session$ns("mvc_update"),
+                  ui = HTML("<code>missingValueCode</code> fields are limited to a <b>single word.</b>"),
+                  duration = 3,
+                  type = "warning"
+                )
+              }
+              return(strsplit(input[[inputId]], " ")[[1]][1])
+            } else {
+              if(grepl("unit", inputId)){
+                # Trigger CU
+                if(input[[inputId]] == "custom" &&
+                  isFALSE(rv$modalOn)){
+                  isolate(rv$unitId <- c(
+                    isolate(rv$current_file),
+                    row_index,
+                    colname
+                  ))
+                  curt$trigger()
+                } else
+                # Remove CU
+                if(!input[[inputId]] %in% rv$CU_Table$id &&
+                    checkTruth(rv$CU_Table$id)){
+                  rv$CU_Table <- rv$CU_Table %>% 
+                    slice(which(rv$CU_Table$id %in% rv$current_table$unit[-row_index]))
+                }
+              }
+              # isolate(
+                rv$current_table[row_index, colname] <- input[[inputId]]
+              # )
+            }
+            rv$tables[[rv$current_file]] <- rv$current_table
+          }) # end of inner observeEvent
         }) # end of lapply colname
       } # end of *in situ* function
     ) # end of sapply : row_index
   }) # end of observeEvent
-  
-  observeEvent(obs, {
-    req(isTruthy(names(obs)))
-    browser()
-  })
   
   # Custom units ----
   observe({
@@ -450,11 +447,6 @@ Attributes <- function(input, output, session,
       
       showModal(CU_Modal(rv$cu_values, CU_Table = rv$CU_Table))
       
-      rv$modalId <- c(
-        rv$current_file,
-        row,
-        "unit"
-      )
       rv$modalOn <- TRUE
       
       isolate({
@@ -469,7 +461,7 @@ Attributes <- function(input, output, session,
       tagList(
         # id
         fluidRow(
-          column(6, offset = if(is.null(CU_Table)) 3 else 0,
+          column(6, offset = 3,
             textInput(
               ns("modal_id"),
               label = with_red_star("Unit identifier"),
@@ -503,14 +495,6 @@ Attributes <- function(input, output, session,
               placeholder = "e.g. milligrams per gram",
               value = if(!is.na(values[5])) values[5] else NULL
             )
-          ),
-          column(6,
-            if(!any(dim(CU_Table) == 0))
-              selectInput(
-                ns("modal_existing"),
-                label = "Alternatively, select an existing unit",
-                choices = c(NA, as.character(CU_Table$id))
-              )
           )
         ) # end of fluidRow
       ),
@@ -522,115 +506,84 @@ Attributes <- function(input, output, session,
     )
   }
   
-  # Modal server ----
-  observeEvent(rv$modalOn,{
+  # * CU server ----
+  # Cancel
+  onclick("modal_cancel", {
+    req(isTRUE(rv$modalOn))
     
-    # Cancel
-    onclick("modal_cancel", {
-      req(isTRUE(isolate(rv$modalOn)))
+    # Close modal
+    rv$modalOn <- FALSE
+    removeModal()
+    
+    isolate(
+      updateSelectInput(
+        session,
+        paste(rv$unitId, collapse = "-"),
+        selected = globals$FORMAT$UNIT[2]
+      )
+    )
+  })
+  
+  # Submit button en/disable
+  observe({
+    req(isTRUE(rv$modalOn))
+    
+    # type a new one
+    if(!input$modal_id %in% rv$CU_Table$id &&
+        input$modal_id != "custom" &&
+        isTruthy(input$modal_id)  &&
+        isTruthy(input$modal_unitType) &&
+        isTruthy(input$modal_parentSI) &&
+        isTruthy(input$modal_multiplier) &&
+        isTruthy(input$modal_description)) {
+      enable("modal_submit")
+    } else
+      disable("modal_submit")
+  })
+  
+  # Submit
+  onclick("modal_submit", {
+    req(isTRUE(rv$modalOn))
+    
+    # Close modal
+    removeModal()
+    rv$modalOn <- FALSE
+    
+    isolate({
+      rv$cu_values <- c(
+        input$modal_id,
+        input$modal_unitType,
+        input$modal_parentSI,
+        input$modal_multiplier,
+        input$modal_description
+      )
+    })
       
-      # Close modal
-      rv$modalOn <- FALSE
-      removeModal()
-      
-      isolate(
-        updateSelectInput(
-          session,
-          paste(rv$modalId, collapse = "-"),
-          selected = globals$FORMAT$UNIT[2]
-        )
+    # Update CU values
+    if(rv$cu_values[1] %in% rv$CU_Table$id)
+      rv$CU_Table <- rv$CU_Table %>%
+      filter(id = rv$cu_values[1]) %>% 
+      replace(values = rv$cu_values)
+    # Add CU values
+    else{
+      names(rv$cu_values) <- colnames(rv$CU_Table) 
+      rv$CU_Table[dim(rv$CU_Table)[1]+1,] <- rv$cu_values
+    }
+    
+    # update input UI
+    isolate({
+      updateSelectInput(
+        session,
+        paste(rv$unitId, collapse = "-"),
+        selected = input$modal_id
       )
     })
     
-    # Submit button en/disable
-    observe({
-      req(isTRUE(rv$modalOn))
-      
-      # type a new one
-      if(isTruthy(input$modal_id) &&
-          input$modal_id != "custom" &&
-          !input$modal_id %in% rv$CU_Table$id &&
-          isTruthy(input$modal_unitType) &&
-          isTruthy(input$modal_parentSI) &&
-          isTruthy(input$modal_multiplier) &&
-          isTruthy(input$modal_description)) {
-        enable("modal_submit")
-        updateSelectInput(
-          session,
-          "modal_existing", 
-          selected = NA
-        )
-      } else
-        disable("modal_submit")
-      
-      # select existing
-      if(isTruthy(input$modal_existing) ||
-          !isTruthy(unlist(rv$CU_Table)))
-        enable("modal_submit")
-      else
-        disable("modal_submit")
-    })
-    
-    # Submit
-    onclick("modal_submit", {
-      req(isTRUE(rv$modalOn))
-      
-      # Close modal
-      removeModal()
-      rv$modalOn <- FALSE
-      
-      browser() # check state
-      
-      # reuse existing unit
-      if(isTruthy(input$modal_existing)){
-        row <- rv$modalId[2]
-        col <- rv$modalId[3]
-        isolate({
-          rv$current_table[row, col] <- input$modal_existing
-        })
-      }
-      else{ # define new values
-        isolate({
-          rv$cu_values <- c(
-            input$modal_id,
-            input$modal_unitType,
-            input$modal_parentSI,
-            input$modal_multiplier,
-            input$modal_description
-          )
-        })
-        
-        browser() # check values
-        
-        # Update CU values
-        if(rv$cu_values[1] %in% rv$CU_Table$id)
-          rv$CU_Table <- rv$CU_Table %>%
-            filter(id = rv$cu_values[1]) %>% 
-            replace(values = rv$cu_values)
-        # Add CU values
-        else{
-          .names <- colnames(rv$CU_Table) 
-          rv$CU_Table <- rbind(rv$CU_Table, rv$cu_values)
-          colnames(rv$CU_Table) <- .names
-        }
-        
-        # update input UI
-        isolate({
-          updateSelectInput(
-            session,
-            paste(rv$modalId, collapse = "-"),
-            selected = input$modal_id
-          )
-        })
-        
-        row <- rv$modalId[2]
-        col <- rv$modalId[3]
-        isolate(rv$current_table[row, col] <- input$modal_id)
-      }
-    })
-    
+    row <- rv$unitId[2]
+    col <- rv$unitId[3]
+    isolate(rv$current_table[row, col] <- input$modal_id)
   })
-  
+
   output$CUUI <- renderTable({
     validate(
       need(isTruthy(unlist(rv$CU_Table)), "No custom units registered")
@@ -672,10 +625,10 @@ Attributes <- function(input, output, session,
   }, ignoreInit = TRUE)
   
   # en/disable buttons
-  observeEvent(rv, {
+  observeEvent(rv$current_file, {
     req(
       isTruthy(names(input)) &&
-        isTruthy(names(rv))
+        isTruthy(names(rv$current_file))
     )
     
     if (rv$current_file == 1) {

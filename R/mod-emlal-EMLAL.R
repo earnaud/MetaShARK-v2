@@ -137,7 +137,7 @@ EMLAL <- function(input, output, session,
             lapply(seq(globals$EMLAL$HISTORY)[-1], function(ind) {
               step_name <- globals$EMLAL$HISTORY[ind]
               
-              if (step_name %in% c("Data Files", "Attributes", "Categorical Variables", "Personnel", "Miscellaneous", "Make EML")) {
+              if (step_name != "Taxonomic Coverage") {
                 style <- "color: dodgerblue;"
                 description <- paste(step_name, "(mandatory)")
               } else {
@@ -146,25 +146,26 @@ EMLAL <- function(input, output, session,
               }
               
               return(
-                do.call(
-                  tipify,
-                  args = list(
-                    el = actionLink(
-                      ns(paste0("chain_", step_name)),
-                      "",
-                      if(step_name == globals$EMLAL$CURRENT) 
-                        icon("map-marker") 
-                      else 
-                        icon("circle"),
-                      style = style
-                    ),
-                    title = description,
-                    placement = "bottom",
-                    trigger = "hover"
-                  )
+                actionLink(
+                  ns(paste0("chain_", step_name)),
+                  "",
+                  if(step_name == globals$EMLAL$CURRENT) 
+                    icon("map-marker") 
+                  else 
+                    icon("circle"),
+                  style = style
+                ) %>% tipify(
+                  title = description,
+                  placement = "bottom",
+                  trigger = "hover"
                 )
               ) # end of return
-            })
+            }),
+            paste0(
+              "Step ", globals$EMLAL$NAVIGATE,
+              "/", length(steps),
+              ": ", globals$EMLAL$CURRENT
+            )
           ),
           style = "position: right"
         )
@@ -201,7 +202,6 @@ EMLAL <- function(input, output, session,
           req(input[[id]] &&
               ind != globals$EMLAL$NAVIGATE)
           globals$EMLAL$NAVIGATE <- ind
-          # IDEA trigger next
           NSB$NEXT <- NSB$NEXT+1
         })
       })
@@ -212,55 +212,54 @@ EMLAL <- function(input, output, session,
       .ui <- switch(globals$EMLAL$NAVIGATE,
         SelectDPUI(
           id = ns(iteration),
-          title = steps[globals$EMLAL$NAVIGATE],
           dev = globals$dev,
           server = server
         ),
         DataFilesUI(
           id = ns(iteration),
-          title = steps[globals$EMLAL$NAVIGATE],
+          title = globals$EMLAL$CURRENT,
           dev = globals$dev,
           server = server
         ),
         AttributesUI(
           id = ns(iteration),
-          title = steps[globals$EMLAL$NAVIGATE],
+          title = globals$EMLAL$CURRENT,
           dev = globals$dev
         ),
         CatVarsUI(
           id = ns(iteration),
-          title = steps[globals$EMLAL$NAVIGATE],
+          title = globals$EMLAL$CURRENT,
           dev = globals$dev
         ),
         GeoCovUI(
           id = ns(iteration),
-          title = steps[globals$EMLAL$NAVIGATE],
+          title = globals$EMLAL$CURRENT,
           dev = globals$dev,
           data.files = savevar$emlal$DataFiles$datapath,
           coordPattern = globals$PATTERNS$LATLON
         ),
         TaxCovUI(
           id = ns(iteration),
-          title = steps[globals$EMLAL$NAVIGATE],
+          title = globals$EMLAL$CURRENT,
           dev = globals$dev,
           data.files = savevar$emlal$DataFiles$datapath,
           taxa.authorities = globals$FORMAT$AUTHORITIES
         ),
         PersonnelUI(
           id = ns(iteration),
-          title = steps[globals$EMLAL$NAVIGATE],
+          title = globals$EMLAL$CURRENT,
           dev = globals$dev
         ),
         MiscUI(
           id = ns(iteration),
-          title = steps[globals$EMLAL$NAVIGATE],
+          title = globals$EMLAL$CURRENT,
           dev = globals$dev,
           savevar = savevar,
           server = server
         ),
         MakeEMLUI(
           id = ns(iteration),
-          title = steps[globals$EMLAL$NAVIGATE],
+          title = globals$EMLAL$CURRENT,
           dev = globals$dev
         ),
         tags$h2("WIP")

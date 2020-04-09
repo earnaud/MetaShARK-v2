@@ -10,18 +10,15 @@ TaxCovUI <- function(id, title, dev, data.files, taxa.authorities) {
   return(
     fluidPage(
       fluidRow(
-        tags$h4(title),
-        tags$p("This step is facultative."),
-        # taxa.table(s)
-        column(
-          6,
+        column(6,
+          # taxa table(s)
           selectizeInput(
             ns("taxa.table"),
             "Files containing taxonomic references",
             choices = basename(data.files),
             multiple = TRUE
           ),
-          # taxa columns -- to select from 1st selectizeInput
+          # taxa columns
           disabled(
             selectizeInput(
               ns("taxa.col"),
@@ -30,13 +27,14 @@ TaxCovUI <- function(id, title, dev, data.files, taxa.authorities) {
             )
           )
         ),
-        column(
-          6,
+        column(6,
+          # taxa name types -- scientific or common
           checkboxGroupInput(
             ns("taxa.name.type"),
             "Select one or both taxonomic name notation",
             c("scientific", "common")
           ),
+          # taxa authority
           selectizeInput(
             ns("taxa.authority"),
             "Select taxonomic authority.ies",
@@ -138,7 +136,7 @@ TaxCov <- function(input, output, session,
       taxa.col.list <- lapply(input$taxa.table, function(file) {
         all.files <- savevar$emlal$DataFiles
         file <- all.files[all.files$name == file, "datapath"]
-        df <- fread(file)
+        df <- fread(file, data.table = FALSE, stringsAsFactors = FALSE, quote = "")
         return(colnames(df))
       })
       names(taxa.col.list) <- input$taxa.table
