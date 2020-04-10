@@ -99,6 +99,7 @@ CatVars <- function(input, output, session,
           # value = attribute,
           ... = tagList(
             lapply(unlist(codes), function(cod){
+              cod <- gsub(" ","", cod)
               inputId <- paste(attribute, cod, sep="-")
               
               textAreaInput(
