@@ -6,9 +6,9 @@
 #' @param id shiny module id
 #'
 #' @importFrom shiny NS tagList actionButton tags selectInput
-#' uiOutput textOutput icon tabsetPanel tabPanel
+#' uiOutput textOutput icon tabsetPanel tabPanel HTML
 #' @importFrom data.table fread
-uploadUI <- function(id, dev, globals) {
+uploadUI <- function(id, dev, globals, server) {
   ns <- NS(id)
   registeredEndpoints <- fread(globals$PATHS$registeredEndpoints.txt)
   # registeredEndpoints <- fread(system.file("resources", "registeredEndpoints.txt", package = "MetaShARK"))
@@ -51,22 +51,35 @@ uploadUI <- function(id, dev, globals) {
 
         # files input -----------------------------------------------------
         tags$h3("Select your data, script and metadata files"),
-        tags$html("Either pick <b>individual files</b> (left) or a complete
+        HTML("Either pick <b>individual files</b> (left) or a complete
           <b>EAL data package</b> (right)."),
         # individual files inputs
-        # column(6,
         tags$div(
-          tags$h4("Metadata (one file expected)"),
-          multiFIlesInputUI(ns("metadata"), "Please select an .xml file validating EML schema."),
+          # Metadata
+          tags$h4("Metadata (one file required)"),
+          multiFilesInputUI(
+            ns("metadata"), 
+            "Please select an .xml file validating EML schema.",
+            server = server
+          ),
           textOutput(ns("warnings-metadata")),
-          tags$h4("Data (at least one file expected)"),
-          multiFIlesInputUI(ns("data"), "Please select the data described in the provided metadata."),
+          # Data
+          tags$h4("Data (at least one file required)"),
+          multiFilesInputUI(
+            ns("data"), 
+            "Please select the data described in the provided metadata.",
+            server = server
+          ),
           textOutput(ns("warnings-data")),
+          # Scripts
           tags$h4("Scripts"),
-          multiFIlesInputUI(ns("scripts"), "Please select the scripts described in the provided metadata."),
+          multiFilesInputUI(
+            ns("scripts"), 
+            "Please select the scripts described in the provided metadata.",
+            server = server
+          ),
           textOutput(ns("warnings-scripts")),
           class = "leftMargin"
-          # )
         ),
         # DP input
         # column(6,
@@ -114,7 +127,7 @@ uploadUI <- function(id, dev, globals) {
 #' @importFrom shinyjs enable disable
 #' @importFrom data.table fread fwrite
 #' @importFrom mime guess_type
-upload <- function(input, output, session, globals) {
+upload <- function(input, output, session, globals, server) {
   ns <- session$ns
 
   registeredEndpoints <- fread(globals$PATHS$registeredEndpoints.txt)
@@ -166,9 +179,9 @@ upload <- function(input, output, session, globals) {
 
   # * Files input -----------------------------------------------------
   rvFiles <- reactiveValues(
-    md = callModule(multiFIlesInput, "metadata"),
-    data = callModule(multiFIlesInput, "data"),
-    scr = callModule(multiFIlesInput, "scripts")
+    md = callModule(multiFilesInput, "metadata", server = server),
+    data = callModule(multiFilesInput, "data", server = server),
+    scr = callModule(multiFilesInput, "scripts", server = server)
   )
 
   observe({
