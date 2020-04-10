@@ -37,7 +37,8 @@ Imports:
     RCurl,
     config,
     markdown,
-    stringr
+    stringr,
+    rorcid
 Remotes:
     ThinkR-open/tagsinput,
     ropenscilabs/emldown
