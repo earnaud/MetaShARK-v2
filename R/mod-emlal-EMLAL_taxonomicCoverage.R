@@ -263,7 +263,8 @@ TaxCov <- function(input, output, session,
         )
         incProgress(2 / 3)
       },
-        message = "Writing Taxonomic coverage"
+        message = "Writing Taxonomic coverage",
+        detil = "This step might be long ..."
       )
     }
   })

@@ -157,7 +157,7 @@ Attributes <- function(input, output, session,
   curt <- makeReactiveTrigger()
   unitcheck <- makeReactiveTrigger()
   
-  # Test
+  # List of observers
   obs <- reactiveValues()
   
   # Navigation buttons -----------------------------------------------------

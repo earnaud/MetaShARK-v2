@@ -3,15 +3,16 @@
 #' @description UI part of the appOptions module. Allow the user to change several settings in the app.
 #'
 #' @importFrom shiny NS tags tagList fluidRow column textAreaInput checkboxInput actionButton
-appOptionsUI <- function(id, dev) {
+appOptionsUI <- function(id, settingsVar, dev) {
   ns <- NS(id)
 
   tagList(
-    tags$h1("Options"),
+    tags$h1("Settings"),
+    tags$p("This page is dedicated to define different settings in your session."),
+    # Metacat token input ====
     fluidRow(
-      column(
-        8,
-        tags$h2("Metacat setup"),
+      column(8,
+        tags$h2("Metacat settings"),
         textAreaInput(ns("auth_token"),
           "Authentication token",
           width = "120%",
@@ -23,8 +24,7 @@ appOptionsUI <- function(id, dev) {
           textOutput(ns("verbose_token"))
         }
       ),
-      column(
-        4,
+      column(4,
         tags$b("To fetch your authentication token:"),
         tags$ul(
           tags$li("Login into your metacat through user interface."),
@@ -34,6 +34,10 @@ appOptionsUI <- function(id, dev) {
         )
       ),
       class = "inputBox"
+    ),
+    # Additional settings ====
+    fluidRow(
+      
     )
   )
 }
@@ -47,7 +51,8 @@ appOptionsUI <- function(id, dev) {
 appOptions <- function(input, output, session, globals, server) {
   observeEvent(input$test_metacat, {
     if (input$test_metacat) {
-      updateTextAreaInput(session,
+      updateTextAreaInput(
+        session,
         "auth_token",
         value = globals$TOKEN$DATAONE.TEST.TOKEN
       )

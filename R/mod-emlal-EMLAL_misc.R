@@ -133,6 +133,11 @@ Misc <- function(input, output, session,
     }, asis=TRUE)
   
   # Variable initialization -----------------------------------------------------
+  kw <- fread(
+    paste0(savevar$emlal$SelectDP$dp_metadata_path, "/keywords.txt"),
+    data.table = FALSE, stringsAsFactors = FALSE
+  )
+  
   rv <- reactiveValues(
     # Abstract
     abstract = reactiveValues(
@@ -153,9 +158,9 @@ Misc <- function(input, output, session,
       )
     ),
     # Keywords
-    keywords = fread(
-      paste0(savevar$emlal$SelectDP$dp_metadata_path, "/keywords.txt"),
-      data.table = FALSE, stringsAsFactors = FALSE
+    keywords = reactiveValues(
+      keyword = kw$keyword,
+      keywordThesaurus = kw$keywordThesaurus
     ),
     # Temporal coverage
     temporal_coverage = c(Sys.Date() - 1, Sys.Date()),
@@ -192,6 +197,7 @@ Misc <- function(input, output, session,
   # * Keywords ====
   observeEvent(input$keywords, {
     req(input$keywords)
+    
     rv$keywords$keyword <- unique(input$keywords)
     
     output$thesaurus <- renderUI({
@@ -221,13 +227,9 @@ Misc <- function(input, output, session,
     sapply(seq_along(rv$keywords$keyword), function(k_id) {
       keyword <- rv$keywords$keyword[k_id]
       input_id <- paste0("thesaurus-for-", keyword)
-      validate(
-        need(
-          isTruthy(input[[input_id]]),
-          "No thesaurus input"
-        )
-      )
-      rv$keywords$keywordThesaurus[k_id] <- input[[input_id]]
+      .val <- if(isTruthy(input[[input_id]])) input[[input_id]] else ""
+        
+      rv$keywords$keywordThesaurus[k_id] <- .val
     })
   })
   

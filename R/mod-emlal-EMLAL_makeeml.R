@@ -145,8 +145,6 @@ MakeEML <- function(input, output, session, savevar,
       value = 0.1
     )
     
-    browser()
-    
     output$warnings <- renderText({
       validate(
         need(

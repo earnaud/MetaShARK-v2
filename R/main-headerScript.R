@@ -86,7 +86,9 @@
         CURRENT = "SelectDP",
         COMPLETE_CURRENT = FALSE
       ),
-      TOKEN = reactiveValues()
+      SETTINGS = reactiveValues(
+        TOKEN = reactiveValues()
+      )
     )
   } else {
     globals <- list(

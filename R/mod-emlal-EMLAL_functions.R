@@ -13,20 +13,22 @@
 #' @param .next logical. Do you want a "Next" actionButton? (nextTabButton)
 #' @param ... UI tags set at the bottom of the navigation side bar
 #'
-#' @importFrom shiny NS HTML tags
+#' @importFrom shiny NS HTML tags uiOutput verticalLayout
 navSidebarUI <- function(id, class = "navSidebar", 
-  .prev = TRUE, .next=TRUE) {
+  .prev = TRUE, .next = TRUE) {
   ns <- NS(id)
   
-  div(
+  tags$div(
     id = "navsidebar",
     verticalLayout(
       tags$h4("Navigation", class = "text-title"),
       quitButton(id),
       saveButton(id),
       if(isTRUE(.prev)) prevTabButton(id) else NULL,
-      if(isTRUE(.next)) nextTabButton(id) else FALSE,
-      uiOutput(ns("NSB_customUI"))
+      if(isTRUE(.next)) nextTabButton(id) else NULL,
+      uiOutput(ns("NSB_customUI")),
+      tags$hr(),
+      actionButton(ns("EAL_help"), "Help")
     ),
     class = class
   )
@@ -93,7 +95,8 @@ navSidebar <- function(id, globals, savevar) {
     SAVE = 0,
     NEXT = 0,
     PREV = 0,
-    taglist = tagList()
+    taglist = tagList(),
+    help = modalDialog()
   )
   
   NSB <- callModule(onQuit, id, globals, savevar, NSB)
@@ -102,8 +105,14 @@ navSidebar <- function(id, globals, savevar) {
   NSB <- callModule(nextTab, id, globals, NSB)
   
   callModule(
-    function(input, output, session, x = NSB$tagList) {
-      output$NSB_customUI <- renderUI({x})
+    function(input, output, session, x = NSB) {
+      output$NSB_customUI <- renderUI({
+        x$tagList
+      })
+      
+      observeEvent(input$EAL_help, {
+        showModal(x$help)
+      })
     },
     id
   )
