@@ -1,4 +1,4 @@
-#' @title multiFIlesInputUI
+#' @title multipleFilesInput
 #'
 #' @description UI part of the multiFilesInput. Allow the user to chose multiple files, and remove all or part of his selection.
 #'
@@ -7,18 +7,27 @@
 #'
 #' @importFrom shiny NS tagList tags icon actionButton uiOutput
 #' @importFrom shinyFiles shinyFilesButton
-multiFIlesInputUI <- function(id, helpText = NULL) {
+multiFilesInputUI <- function(id, helpText = NULL, server = TRUE) {
   ns <- NS(id)
 
   tagList(
     tags$p(helpText),
     tags$div(
-      shinyFilesButton(ns("add_files"),
-        "Load files",
-        "Select data file(s) from your dataset",
-        multiple = TRUE,
-        icon = icon("plus-circle")
-      ),
+      if(server)
+        fileInput(
+          ns("add_files"),
+          label = NULL,
+          multiple = TRUE,
+          buttonLabel = span(icon("plus-circle"), "Load")
+        )
+      else
+        shinyFilesButton(
+          ns("add_files"),
+          "Load files",
+          "Select file(s)",
+          multiple = TRUE,
+          icon = icon("plus-circle")
+        ),
       style = "display: inline-block; vertical-align: top;"
     ),
     actionButton(ns("remove_files"), "Remove",
@@ -29,9 +38,7 @@ multiFIlesInputUI <- function(id, helpText = NULL) {
   )
 }
 
-#' @title multiFilesInput
-#'
-#' @description server part for the multiFilesInput module
+#' @describeIn multipleFilesInput
 #'
 #' @param input shiny module input
 #' @param output shiny module output
@@ -40,33 +47,37 @@ multiFIlesInputUI <- function(id, helpText = NULL) {
 #' @importFrom shiny reactiveValues observeEvent req renderUI checkboxGroupInput
 #' @importFrom shinyFiles getVolumes shinyFileChoose parseFilePaths
 #' @importFrom fs path_home
-multiFIlesInput <- function(input, output, session) {
+#' 
+#' @export
+multiFilesInput <- function(input, output, session, server = TRUE) {
   ns <- session$ns
 
   # Variable initialization -----------------------------------------------------
   rv <- reactiveValues(
-    # to save
     files = data.frame()
-    # local only
   )
-  volumes <- c(Home = path_home(), getVolumes()())
-
+  
   # Add data files -----------------------------------------------------
-  shinyFileChoose(input, "add_files",
-    roots = volumes,
-    # defaultRoot = HOME,
-    session = session
-  )
-
+  if(!server){
+    volumes <- c(Home = path_home(), getVolumes()())
+    shinyFileChoose(input, "add_files",
+      roots = volumes,
+      session = session
+    )
+  }
+  
   observeEvent(input$add_files, {
 
     # validity checks
     req(input$add_files)
 
     # actions
-    loadedFiles <- as.data.frame(
-      parseFilePaths(volumes, input$add_files)
-    )
+    if(server)
+      loadedFiles <- input$add_files
+    else
+      loadedFiles <- as.data.frame(
+        parseFilePaths(volumes, input$add_files)
+      )
 
     if (identical(rv$files, data.frame())) {
       rv$files <- loadedFiles
