@@ -99,7 +99,7 @@ CatVars <- function(input, output, session,
           # value = attribute,
           ... = tagList(
             lapply(unlist(codes), function(cod){
-              cod <- gsub(" ","", cod)
+              cod <- gsub(" +","", cod)
               inputId <- paste(attribute, cod, sep="-")
               
               textAreaInput(
@@ -126,7 +126,7 @@ CatVars <- function(input, output, session,
     rv[[file_name]]$obs <- sapply(seq(dim(rv[[file_name]]$CatVars)[1]), function(row){
       inputId <- paste(
         rv[[file_name]]$CatVars$attributeName[row],
-        rv[[file_name]]$CatVars$code[row], 
+        gsub(" +","",rv[[file_name]]$CatVars$code[row]), 
         sep="-"
       )
       
