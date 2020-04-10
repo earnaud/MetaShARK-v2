@@ -44,7 +44,7 @@
     updateTabItems(session, "side_menu", "appOptions")
   })
 
-  callModule(appOptions, "appOptions", globals, server)
+  callModule(appOptions, "appOptions", globals$SETTINGS, server)
 
   # Exit App
   observeEvent(input$close, {
@@ -58,7 +58,7 @@
       # fill
       fill = callModule(fill, "fill", globals, server),
       # upload
-      upload = callModule(upload, "upload", globals),
+      upload = callModule(upload, "upload", globals, server),
       # doc
       documentation = callModule(documentation, "documentation", globals),
       # about

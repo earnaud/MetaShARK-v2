@@ -89,7 +89,7 @@
           ),
           tabItem(
             tabName = "upload",
-            uploadUI("upload", dev, globals)
+            uploadUI("upload", dev, globals, server)
           ),
           tabItem(
             tabName = "documentation",
@@ -101,7 +101,7 @@
           ),
           tabItem(
             tabName = "appOptions",
-            appOptionsUI("appOptions", dev)
+            appOptionsUI("appOptions", globals$SETTINGS, dev)
           )
         )
       ) # end body

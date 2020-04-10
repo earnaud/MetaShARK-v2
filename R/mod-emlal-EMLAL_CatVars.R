@@ -137,7 +137,7 @@ CatVars <- function(input, output, session,
       )
     })
   })
-  
+
   # Navigation buttons -----------------------------------------------------
   # Previous file
   onclick("file_prev", {

@@ -132,14 +132,10 @@ GeoCov <- function(input, output, session,
     )
   )
   
-  # # Get all data in an object to avoid possible multiple loadings
-  # filesData <- lapply(savevar$emlal$DataFiles$datapath, fread)
-  # names(filesData) <- basename(savevar$emlal$DataFiles$datapath)
-  
   # Pre-fill -----------------------------------------------------
   saved_table <- fread(
-    paste(savevar$emlal$SelectDP$dp_metadata_path, "/geographic_coverage.txt"),
-      data.table = FALSE, stringsAsFactors = FALSE, quote = ""
+    paste0(savevar$emlal$SelectDP$dp_metadata_path, "/geographic_coverage.txt"),
+    data.table = FALSE, stringsAsFactors = FALSE, quote = ""
   )
   
   # Retrieve geographic coverage
@@ -167,7 +163,7 @@ GeoCov <- function(input, output, session,
           all(grepl(globals$PATTERNS$LATLON, df.col))
         })
       )
-      df[, ..df.num]
+      df[, df.num]
     }
   )
   names(data.content.coordinates) <- basename(data.files)
@@ -359,9 +355,11 @@ GeoCov <- function(input, output, session,
     # Create modal
     choices <- c(
       "Columns selection" = if (rv$columns$complete) 1 else NULL,
-      "Custom edition" = if (rv$custom$complete) 2 else NULL,
-      "No geographic coverage" = 0
+      "Custom edition" = if (rv$custom$complete) 2 else NULL #,
+      # "No geographic coverage" = 0
     )
+    
+    req(isTruthy(choices))
     
     nextTabModal <- modalDialog(
       title = "Proceed Geographic Coverage",

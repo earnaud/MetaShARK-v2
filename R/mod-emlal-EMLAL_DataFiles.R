@@ -9,14 +9,12 @@ DataFilesUI <- function(id, dev = FALSE, server = FALSE) {
   
   return(
     fluidPage(
-      tags$p("When selecting your files, you can't select
-          folders. You can delete file(s) from your selection
-          by ticking their box and clicking the 'Remove' button."),
-      HTML("<h5>DISCLAIMER</h5>
-              <ul>
-                <li>MetaShARK only supports table files.</li>
-                <li>Validating a file(s) selection will immediately upload it.</li>
-              </ul class = disclaimer>"),
+      tags$b("Disclaimers:"),
+      tags$ul(
+        tags$li("Until now, only table files are supported."),
+        tags$li("Selecting a file will immediately upload it: beware of heavy files (> 5 Mb)."),
+        class = "disclaimer"
+      ),
       tags$div(
         if (isTRUE(server)) {
           tagList(

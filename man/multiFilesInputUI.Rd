@@ -12,5 +12,6 @@ multiFilesInputUI(id, helpText = NULL, server = TRUE)
 \item{helpText}{a character vector to give the user an explanation. Will be inserted into a tags$p() call.}
 }
 \description{
-UI part of the multiFilesInput. Allow the user to chose multiple files, and remove all or part of his selection.
+Shiny module to allow the user to chose multiple files,
+and remove all or part of his selection.
 }
