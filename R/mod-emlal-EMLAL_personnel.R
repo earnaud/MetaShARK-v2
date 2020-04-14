@@ -70,7 +70,7 @@ Personnel <- function(input, output, session,
     full.names = TRUE
   )
   saved_table <- if(isTruthy(personnelFile))
-    fread(personnelFile, data.table = FALSE, stringsAsFactors = FALSE, quote = "")
+    fread(personnelFile, data.table = FALSE, stringsAsFactors = FALSE)
   else if(isTruthy(unlist(savevar$emlal$Personnel)))
     isolate(savevar$emlal$Personnel)
   else
@@ -168,8 +168,12 @@ Personnel <- function(input, output, session,
   
   # Process data -----------------------------------------------------
   observeEvent(NSB$NEXT, {
+    req(checkTruth(rv$Personnel))
     req(globals$EMLAL$CURRENT == "Personnel")
-    showNotification("Writing 'Personnel.txt'.")
+    showNotification(
+      id = ns("writing"),
+      "Writing 'Personnel.txt'."
+    )
     
     # save
     savevar$emlal$Personnel <- rv$Personnel
@@ -182,7 +186,6 @@ Personnel <- function(input, output, session,
       "projectTitle", "fundingAgency", "fundingNumber"
     )
     personnel <- rv$Personnel[names(rv$Personnel) %in% cols]
-    
     # write file
     fwrite(
       personnel,
@@ -190,7 +193,9 @@ Personnel <- function(input, output, session,
         savevar$emlal$SelectDP$dp_metadata_path,
         "/personnel.txt"
       ), sep = "\t")
-  }, ignoreInit = TRUE)
+  }, 
+    priority = 1,
+    ignoreInit = TRUE)
   
   # Output -----------------------------------------------------
   return(savevar)
