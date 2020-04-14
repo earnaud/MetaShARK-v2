@@ -477,9 +477,15 @@ PersonnelMod <- function(input, output, session,globals,
       )
     }
     
+    orcid.connect <- try(
+      as.orcid(
+        localRV$userId
+      )
+    )
+    
     if (
       grepl(orcid.pattern, input$userId) &&
-        isTruthy(try(as.orcid(localRV$userId)))
+        isTruthy(orcid.connect)
     ) {
       orcid <- localRV$userId
       orcid_info <- list()

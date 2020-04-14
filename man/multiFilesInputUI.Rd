@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils-multiFilesInput.R
 \name{multiFilesInputUI}
 \alias{multiFilesInputUI}
-\title{multipleFilesInput}
+\title{multiFilesInput}
 \usage{
 multiFilesInputUI(id, helpText = NULL, server = TRUE)
 }
@@ -15,3 +15,8 @@ multiFilesInputUI(id, helpText = NULL, server = TRUE)
 Shiny module to allow the user to chose multiple files,
 and remove all or part of his selection.
 }
+\section{Functions}{
+\itemize{
+\item \code{multiFilesInputUI}: 
+}}
+
