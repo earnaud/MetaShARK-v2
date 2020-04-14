@@ -135,7 +135,7 @@ GeoCov <- function(input, output, session,
   # Pre-fill -----------------------------------------------------
   saved_table <- fread(
     paste0(savevar$emlal$SelectDP$dp_metadata_path, "/geographic_coverage.txt"),
-    data.table = FALSE, stringsAsFactors = FALSE, quote = ""
+    data.table = FALSE, stringsAsFactors = FALSE
   )
   
   # Retrieve geographic coverage
@@ -150,7 +150,7 @@ GeoCov <- function(input, output, session,
   
   # Prepare content
   data.files <- savevar$emlal$DataFiles$datapath
-  data.content <- lapply(data.files, fread, data.table = FALSE, stringsAsFactors = FALSE, quote = "")
+  data.content <- lapply(data.files, fread, data.table = FALSE, stringsAsFactors = FALSE)
   names(data.content) <- basename(data.files)
   
   # format extracted content - keep latlon-valid columns

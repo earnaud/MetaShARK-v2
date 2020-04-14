@@ -147,12 +147,13 @@ DataFiles <- function(input, output, session,
     withProgress({
       file.copy(
         rv$data_files$datapath, 
-        globals$TEMP.PATH
+        paste0(globals$TEMP.PATH, rv$data_files$name)
       )
-      incProgress(1)
+      incProgress(0.8)
+      
+      rv$data_files$datapath <- paste0(globals$TEMP.PATH, rv$data_files$name)
+      incProgress(0.2)
     }, message = "Downloading data files")
-    
-    rv$data_files$datapath <- paste0(globals$TEMP.PATH, rv$data_files$name)
     # }
     
     # variable modifications

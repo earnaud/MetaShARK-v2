@@ -136,7 +136,7 @@ TaxCov <- function(input, output, session,
       taxa.col.list <- lapply(input$taxa.table, function(file) {
         all.files <- savevar$emlal$DataFiles
         file <- all.files[all.files$name == file, "datapath"]
-        df <- fread(file, data.table = FALSE, stringsAsFactors = FALSE, quote = "")
+        df <- fread(file, data.table = FALSE, stringsAsFactors = FALSE)
         return(colnames(df))
       })
       names(taxa.col.list) <- input$taxa.table
@@ -264,7 +264,7 @@ TaxCov <- function(input, output, session,
         incProgress(2 / 3)
       },
         message = "Writing Taxonomic coverage",
-        detil = "This step might be long ..."
+        detail = "This step might be long ..."
       )
     }
   })

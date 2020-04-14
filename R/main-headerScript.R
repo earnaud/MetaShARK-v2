@@ -48,7 +48,7 @@
     paste(., dir(.), sep = "/") %>%
     as.list()
   names(wwwPaths) <- basename(unlist(wwwPaths))
-
+  
   # DataONE nodes
   DATAONE.LIST <- listFormats(CNode())$MediaType
 

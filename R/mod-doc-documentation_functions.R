@@ -263,8 +263,8 @@ commonPath <- function(li, name) {
 #'
 #' @param tree: explored hierarchy list thanks to @path
 #' @param path: vector of characters matching some of @tree names and
-#'              separated with @sep
-#' @param sep: separators between @path elements (aka @tree names)
+#'              separated with sep
+#' @param sep: separators between path elements (aka @tree names)
 followPath <- function(tree, path, sep = "/") {
   # Validity checks
   if (is.null(tree) || is.null(path)) {

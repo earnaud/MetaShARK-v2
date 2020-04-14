@@ -77,7 +77,7 @@ CatVars <- function(input, output, session,
     # * Init data frame ====
     rv[[file_name]]$CatVars <- fread(
       file_path,
-      data.table = FALSE, stringsAsFactors = FALSE, quote = "",
+      data.table = FALSE, stringsAsFactors = FALSE,
       na.strings = "NA"
       ) %>% 
       mutate(
@@ -99,8 +99,12 @@ CatVars <- function(input, output, session,
           # value = attribute,
           ... = tagList(
             lapply(unlist(codes), function(cod){
-              cod <- gsub(" +","", cod)
-              inputId <- paste(attribute, cod, sep="-")
+              inputId <- paste(
+                attribute, 
+                cod%>%
+                  gsub("[ [:punct:]]","", .),
+                sep="-"
+              )
               
               textAreaInput(
                 ns(inputId), 
@@ -126,7 +130,8 @@ CatVars <- function(input, output, session,
     rv[[file_name]]$obs <- sapply(seq(dim(rv[[file_name]]$CatVars)[1]), function(row){
       inputId <- paste(
         rv[[file_name]]$CatVars$attributeName[row],
-        gsub(" +","",rv[[file_name]]$CatVars$code[row]), 
+        rv[[file_name]]$CatVars$code[row] %>%
+          gsub("[ [:punct:]]","", .),
         sep="-"
       )
       
