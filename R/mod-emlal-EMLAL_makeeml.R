@@ -18,8 +18,7 @@ MakeEMLUI <- function(id, title, dev) {
         textOutput(ns("warnings")),
         tags$br(),
         fluidRow(
-          column(
-            6,
+          column(6,
             tags$div(
               id = "publish",
               tags$b("Publish data package"),
@@ -27,8 +26,7 @@ MakeEMLUI <- function(id, title, dev) {
                 your data package to a metacat repository."
             )
           ),
-          column(
-            6,
+          column(6,
             tags$b("Generate a summary of your data package."),
             tags$i("(clicking on the below button will open a preview)"),
             # radioButtons(
@@ -102,6 +100,7 @@ MakeEML <- function(input, output, session, savevar,
       
       if(class(x) == "try-error") {
         out <- x
+        out[1] <- paste("Upon templating arguments:", x)
         incProgress(0.9)
       } else {
         incProgress(0.3)
@@ -137,7 +136,8 @@ MakeEML <- function(input, output, session, savevar,
             x[names(x) %in% names(formals(make_eml))]
           )
         )
-        
+        if(class(out) == "try-error")
+          out[1] <- paste("Upon writing EML:", out)
         incProgress(0.4)
       }
     },
