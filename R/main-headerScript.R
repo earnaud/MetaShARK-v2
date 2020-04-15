@@ -50,11 +50,19 @@
   names(wwwPaths) <- basename(unlist(wwwPaths))
   
   # DataONE nodes
-  DATAONE.LIST <- listFormats(CNode())$MediaType
-
+  DATAONE.LIST <- try(listFormats(CNode()))
+  if(class(DATAONE.LIST) == "try-error")
+    DATAONE.LIST <- fread(wwwPaths$dataoneCNodesList.txt)
+  else
+    fwrite(DATAONE.LIST, wwwPaths$dataoneCNodesList.txt)
+  
   # Taxa authorities
-  TAXA.AUTHORITIES <- view_taxa_authorities()
-
+  TAXA.AUTHORITIES <- try(view_taxa_authorities())
+  if(class(TAXA.AUTHORITIES) == "try-error")
+    TAXA.AUTHORITIES <- fread(wwwPaths$taxaAuthorities.txt)
+  else
+    fwrite(TAXA.AUTHORITIES, wwwPaths$taxaAuthorities.txt)
+  
   # Build global variable
   if (reactive) {
     globals <- reactiveValues(

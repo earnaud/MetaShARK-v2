@@ -4,7 +4,7 @@
 \alias{listReactiveValues}
 \title{listReactiveValues}
 \usage{
-listReactiveValues(rv, lv = 0)
+listReactiveValues(rv, lv = 0, name = "root")
 }
 \arguments{
 \item{rv}{reactiveValues to turn into list}

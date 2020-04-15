@@ -105,6 +105,7 @@ SelectDPUI <- function(id, width = 12, dev = FALSE, server) {
 #' @importFrom shinyFiles getVolumes shinyDirChoose parseDirPath
 #' @importFrom shinyjs enable disable onclick
 #' @importFrom EMLassemblyline template_directories template_core_metadata
+#' @importFrom jsonlite read_json unserializeJSON
 SelectDP <- function(input, output, session,
   savevar, globals, server) {
   ns <- session$ns
@@ -359,7 +360,12 @@ SelectDP <- function(input, output, session,
     
     # actions
     savevar$emlal <- initReactive("emlal", savevar, globals$EMLAL)
-    savevar$emlal <- readRDS(paste0(path, "/", dp, ".rds"))$emlal
+    
+    .savevar <- read_json(paste0(path, "/", dp,".json"))[[1]] %>%
+      unserializeJSON
+    savevar$emlal <- setSavevar(.savevar$emlal, savevar$emlal)
+    # savevar$emlal <- readRDS(paste0(path, "/", dp, ".rds"))$emlal
+    
     # TODO remove this later : update history
     savevar$emlal$history <- sapply(savevar$emlal$history, function(h) {
       switch(h,

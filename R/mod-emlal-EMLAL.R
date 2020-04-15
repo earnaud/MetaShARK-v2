@@ -320,8 +320,8 @@ EMLAL <- function(input, output, session,
       callModule(
         Misc, iteration,
         savevar, globals,
-        NSB = NSB,
-        server = server
+        server = server,
+        NSB = NSB
       ),
       callModule(
         MakeEML, iteration,

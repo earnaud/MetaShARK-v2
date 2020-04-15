@@ -283,7 +283,7 @@ upload <- function(input, output, session, globals, server) {
       } else {
         c()
       },
-      formats = globals$FORMAT$DATAONE,
+      formats = globals$FORMAT$DATAONE$MediaType,
       use.doi = FALSE
     )
 
