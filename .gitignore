@@ -11,3 +11,4 @@ changelog.txt
 guidelinesBuilder2.R
 test_make_eml.R
 test.R
+.RDataTmp

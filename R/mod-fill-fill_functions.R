@@ -87,13 +87,18 @@ initReactive <- function(sublist = NULL, savevar = NULL, glob) {
 #' @description save the `savevar` variable at wanted location
 #'
 #' @importFrom shiny withProgress incProgress
+#' @importFrom jsonlite write_json serializeJSON
 saveReactive <- function(savevar) {
-  path <- savevar$emlal$SelectDP$dp_path
-  filename <- savevar$emlal$SelectDP$dp_name
-  location <- paste0(path, "/", filename, ".rds")
+  # path <- savevar$emlal$SelectDP$dp_path
+  path =  .save$emlal$SelectDP["dp_path"]
+  # filename <- savevar$emlal$SelectDP$dp_name
+  filename =  .save$emlal$SelectDP["dp_name"]
+  # location <- paste0(path, "/", filename, ".rds")
+  location <- paste0(path, "/", filename, ".json")
   if (file.exists(location))
     file.remove(location)
-  saveRDS(savevar, location)
+  # saveRDS(savevar, location)
+  write_json(serializeJSON(.save))
 }
 
 #' @title readFilesText

@@ -1,5 +1,4 @@
 id,authority,resolve_sci_taxa,resolve_comm_taxa
-1,Catalogue of Life (COL),supported,not supported
 3,Integrated Taxonomic Information System (ITIS),supported,supported
 9,World Register of Marine Species (WORMS),supported,not supported
 11,Global Biodiversity Information Facility (GBIF),supported,not supported
