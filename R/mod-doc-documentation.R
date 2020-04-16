@@ -8,6 +8,8 @@
 docUI <- function(id) {
   ns <- NS(id)
 
+  require(shinyTree)
+  
   # var initialization
   docGuideline <- tree
 
