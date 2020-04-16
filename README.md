@@ -4,7 +4,8 @@
 
 **Stable Server address:** http://openstack-192-168-100-121.genouest.org/  ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance`
 
-**Dev Server address:** http://openstack-192-168-100-116.genouest.org/ ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance`
+**Dev Server address:** http://openstack-192-168-100-116.genouest.org/ ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`
+
 <!-- ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`  -->
 <!-- ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance` -->
 
