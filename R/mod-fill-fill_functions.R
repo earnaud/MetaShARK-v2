@@ -94,7 +94,7 @@ saveReactive <- function(savevar) {
   location <- paste0(path, "/", filename, ".json")
   if (file.exists(location))
     file.remove(location)
-  write_json(serializeJSON(savevar))
+  write_json(serializeJSON(listReactiveValues(savevar)))
 }
 
 #' @title readFilesText
