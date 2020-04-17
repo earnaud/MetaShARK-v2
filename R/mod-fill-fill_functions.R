@@ -8,7 +8,7 @@
 #' @param sublist either NULL, "emlal", "metafin" to precise which sublist to initialize (NULL initializes the whole variable)
 #'
 #' @importFrom shiny reactiveValues
-initReactive <- function(sublist = NULL, savevar = NULL) {
+initReactive <- function(sublist = NULL, savevar = NULL, glob) {
   if (!is.null(sublist) && is.null(savevar)) {
     stop("Attempt to initialize savevar's sublist without savevar.")
   }
@@ -24,8 +24,9 @@ initReactive <- function(sublist = NULL, savevar = NULL) {
   # emlal reactivelist management
   if (is.null(sublist) || sublist == "emlal") {
     savevar$emlal <- reactiveValues(
-      step = 0,
-      history = character(),
+      step = glob$NAVIGATE,
+      quick = FALSE,
+      history = glob$HISTORY,
       SelectDP = reactiveValues(
         dp_name = NULL,
         dp_path = NULL,
@@ -86,19 +87,16 @@ initReactive <- function(sublist = NULL, savevar = NULL) {
 #' @description save the `savevar` variable at wanted location
 #'
 #' @importFrom shiny withProgress incProgress
+#' @importFrom jsonlite write_json serializeJSON
 saveReactive <- function(savevar) {
-  path = savevar$emlal$SelectDP$dp_path
-  filename = savevar$emlal$SelectDP$dp_name
-  location <- paste0(path, "/", filename, ".rds")
-  
-  withProgress({
-      if (file.exists(location)) 
-        file.remove(location)
-      incProgress(1 / 3)
-      saveRDS(savevar, location)
-      incProgress(2 / 3)
-    },
-    message = "Saving current metadata"
+  path <- savevar$emlal$SelectDP$dp_path
+  filename <- savevar$emlal$SelectDP$dp_name
+  location <- paste0(path, "/", filename, ".json")
+  if (file.exists(location))
+    file.remove(location)
+  write_json(
+    serializeJSON(listReactiveValues(savevar)),
+    location
   )
 }
 
@@ -131,13 +129,9 @@ readPlainText <- function(files, prefix = NULL, sep = "/", ...) {
 #' @param output what to return if `x` is not truthy
 #'
 #' @importFrom shiny isTruthy
-checkTruth <- function(x, output = NULL) {
+checkTruth <- function(x) {
   if (missing(x)) {
     stop("'x' is missing with no default.")
   }
-  if (isTruthy(x) && isTruthy(unlist(x))) {
-    return(x)
-  } else {
-    return(output)
-  }
+  return (isTruthy(x) && isTruthy(unlist(x)))
 }

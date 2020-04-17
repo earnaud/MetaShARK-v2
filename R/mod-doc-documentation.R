@@ -8,6 +8,8 @@
 docUI <- function(id) {
   ns <- NS(id)
 
+  require(shinyTree)
+  
   # var initialization
   docGuideline <- tree
 
@@ -28,19 +30,18 @@ docUI <- function(id) {
       box(
         width = 12,
         title = "Check original documentation",
-        "This documentation is brought to you from XSD files downloaded from
-          <a href=''>this git</a>. You can visit the original documentation by 
-          chosing a module name and clicking the 'GO' button below:",
-        column(
-          6,
+        HTML("<p>This documentation is brought to you from XSD files downloaded 
+        from <a href='https://eml.ecoinformatics.org/schema/'>this site</a>.
+        You can visit the original documentation by chosing a module
+        name and clicking the 'GO' button below.</p>"),
+        column(6,
           selectInput(ns("select-module"), NULL,
             moduleNames,
             selected = moduleNames[25],
             multiple = FALSE
           )
         ),
-        column(
-          6,
+        column(6,
           actionButton(ns("visit-module"), "Go !",
             icon = icon("external-link-alt")
           )
@@ -50,25 +51,23 @@ docUI <- function(id) {
     fluidRow(
       # search sidebar
       column(5,
-        box(shinyTree(
-          outputId = ns("tree"), # render tree
-          search = TRUE,
-          theme = "proton"
-        ),
-        width = 12
-        ),
-        id = "docSidePanel"
+        box(width = 12,
+          shinyTree(
+            outputId = ns("tree"),
+            search = TRUE,
+            theme = "proton"
+          )
+        )
       ),
       # display main panel
-      column(
-        7,
-        div(box(uiOutput(ns("docPath")), # XPath
-          uiOutput(ns("docSelect")), # Documentation
-          width = 12
-        ),
-        id = "docMainPanel"
+      column(7,
+        div(
+          box(width = 12,
+            uiOutput(ns("docPath")), # XPath
+            uiOutput(ns("docSelect")) # Documentation
+          )
         )
-      )
+      ) # end col
     )
   )
 }
@@ -82,8 +81,6 @@ docUI <- function(id) {
 #' @importFrom utils browseURL
 documentation <- function(input, output, session, globals) {
   ns <- session$ns
-
-  require(shinyTree)
 
   # external links
   observeEvent(input$`visit-module`, {

@@ -1,11 +1,11 @@
 #' @title MiscellaneousUI
 #'
-#' @description 
-#' 
-#' @importFrom shiny NS fluidRow column tags fileInput span icon 
-#' textOutput div tagList 
-#' @importFrom shinyFiles shinyFilesButton 
-MiscellaneousUI <- function(id, help_label = NULL, server = FALSE) {
+#' @description
+#'
+#' @importFrom shiny NS fluidRow column tags fileInput span icon
+#' textOutput div tagList
+#' @importFrom shinyFiles shinyFilesButton
+MiscellaneousUI <- function(id, help_label = NULL, server = FALSE, value = "") {
   ns <- NS(id)
 
   fluidRow(
@@ -35,14 +35,15 @@ MiscellaneousUI <- function(id, help_label = NULL, server = FALSE) {
       div(textOutput(ns("selected")), class = "ellipsis")
     ),
     # Content edition
-    column(8,
+    column(
+      8,
       tagList(
         tags$b("Content"),
         help_label,
         markdownInputUI(
           ns("content"),
           label = "",
-          value = "",
+          value = value,
           preview = FALSE
         )
       )
@@ -51,15 +52,16 @@ MiscellaneousUI <- function(id, help_label = NULL, server = FALSE) {
 }
 
 #' @title Miscellaneous
-#'  
-#' @importFrom shiny req observeEvent isTruthy 
+#'
+#' @importFrom shiny req observeEvent isTruthy
 #' @importFrom shinyFiles getVolumes shinyFileChoose parseFilePaths
 #' @importFrom shinyAce updateAceEditor
 #' @importFrom fs path_home
-Miscellaneous <- function(input, output, session, savevar, rv, server) {
+Miscellaneous <- function(input, output, session,
+  savevar, rv, server) {
   # Variable initialization -----------------------------------------------------
   ns <- session$ns
-  volumes <- c(Home = fs::path_home(), getVolumes()())
+  volumes <- c(Home = path_home(), getVolumes()())
 
   # Get content -----------------------------------------------------
   rv$content <- callModule(markdownInput, "content", preview = FALSE)
@@ -69,30 +71,38 @@ Miscellaneous <- function(input, output, session, savevar, rv, server) {
     observeEvent(input$file, {
       req(input$file)
       rv$file <- input$file$datapath
-    }, priority = 1)
+    },
+      priority = 1
+    )
   }
   else {
     shinyFileChoose(input, "file",
       roots = volumes,
       session = session
     )
-    observeEvent(input$file, {
-      req(input$file)
-      rv$file <- parseFilePaths(volumes, input$file)$datapath
-    }, priority = 1)
+    observeEvent(input$file,
+      {
+        req(input$file)
+        rv$file <- parseFilePaths(volumes, input$file)$datapath
+      },
+      priority = 1
+    )
   }
 
-  observeEvent(input$file, {
-    req(
-      isTruthy(input$file) ||
-        isTruthy(names(input))
-    )
-    updateAceEditor(
-      session,
-      "content-md",
-      value = readPlainText(rv$file)
-    )
-  }, priority = 0)
+  observeEvent(input$file,
+    {
+      req(
+        isTruthy(input$file) ||
+          isTruthy(names(input))
+      )
+      updateAceEditor(
+        session,
+        "content-md",
+        value = readPlainText(rv$file)
+      )
+    },
+    priority = 0
+  )
 
   # UI Verbose
   output$selected <- renderText({

@@ -5,9 +5,9 @@
 #'
 #' @importFrom shiny NS fluidPage fluidRow column tags tagList icon textOutput uiOutput selectInput textInput HTML
 #' @importFrom shinyFiles shinyDirButton
-SelectDPUI <- function(id, title, width = 12, dev = FALSE, server) {
+SelectDPUI <- function(id, width = 12, dev = FALSE, server) {
   ns <- NS(id)
-
+  
   # UI output
   return(
     fluidPage(
@@ -55,26 +55,38 @@ SelectDPUI <- function(id, title, width = 12, dev = FALSE, server) {
           tags$h4("Create new data package",
             style = "text-align:center"
           ),
-
+          checkboxInput(
+            ns("quick"),
+            tagList(
+              tags$b("Quick mode"),
+              "Most fields will be automatically filled"
+            ),
+            value = TRUE
+          ),
           # Data package title
-          textInput(ns("dp_name"), "Data package name",
+          textInput(
+            ns("dp_name"),
+            "Data package name",
             placeholder = paste0(Sys.Date(), "_project")
           ),
-          textInput(ns("dp_title"), "Dataset title",
+          textInput(
+            ns("dp_title"),
+            "Dataset title",
             placeholder = "Any title is a title"
           ),
           tags$div(
             id = "license-help",
-            selectInput(ns("license"),
+            selectInput(
+              ns("license"),
               "Select an Intellectual Rights License:",
               c("CCBY", "CC0"),
               multiple = FALSE
             )
           ),
           HTML("License: <br>
-                      <b>CC0:</b> public domain. <br>
-                      <b>CC-BY-4.0:</b> open source with authorship. <br>
-                      For more details, visit Creative Commons."),
+               <b>CC0:</b> public domain. <br>
+               <b>CC-BY-4.0:</b> open source with authorship. <br>
+               For more details, visit Creative Commons."),
           # DP creation
           uiOutput(ns("dp_create"))
         ) # end column2
@@ -91,34 +103,32 @@ SelectDPUI <- function(id, title, width = 12, dev = FALSE, server) {
 #' @importFrom shiny reactiveValues observeEvent req renderText renderUI validate radioButtons actionButton reactive
 #' showModal modalDialog modalButton removeModal
 #' @importFrom shinyFiles getVolumes shinyDirChoose parseDirPath
-#' @importFrom shinyjs enable disable
+#' @importFrom shinyjs enable disable onclick
 #' @importFrom EMLassemblyline template_directories template_core_metadata
+#' @importFrom jsonlite read_json unserializeJSON
 SelectDP <- function(input, output, session,
-                     savevar, globals, server) {
-  # variable initialization -----------------------------------------------------
+  savevar, globals, server) {
   ns <- session$ns
-  DP.path <- globals$DEFAULT.PATH
-
-  # local values - to save will communicate with other modules
+  if(globals$dev)
+    onclick("dev", {
+      req(globals$EMLAL$NAVIGATE == 1)
+      browser()
+    }, asis=TRUE)
+  
+  # variable initialization -----------------------------------------------------
   rv <- reactiveValues(
-    # to save
-    # Default DP location
-    dp_location = DP.path,
+    dp_location = globals$DEFAULT.PATH,
     dp_name = character(),
     dp_title = character(),
-    # local only
     dp_list = NULL,
     dp_license = NULL,
     warning_dp_name = NULL
   )
-  observeEvent(input$dev, {
-    browser()
-  })
-
+  
   # DP location -----------------------------------------------------
   if (!isTRUE(server)) {
     volumes <- c(Home = globals$HOME, base = getVolumes()())
-
+    
     # chose DP location
     shinyDirChoose(input, ns("dp_location"),
       roots = volumes,
@@ -129,10 +139,10 @@ SelectDP <- function(input, output, session,
     observeEvent(input$dp_location, {
       # validity checks
       req(input$dp_location)
-
+      
       # variable initialization
       save <- rv$dp_location
-
+      
       # actions
       rv$dp_location <- parseDirPath(volumes, input$dp_location)
       if (is.na(rv$dp_location)) {
@@ -146,12 +156,12 @@ SelectDP <- function(input, output, session,
       rv$dp_location <- input$dp_location
     })
   }
-
+  
   # Render selected DP location
   output$dp_location <- renderText({
     rv$dp_location
   })
-
+  
   # DP load -----------------------------------------------------
   # reset input if user comes back on this screen
   # fetch list of DP at selected location
@@ -163,7 +173,7 @@ SelectDP <- function(input, output, session,
       rv$dp_list <- NULL
     }
   })
-
+  
   # Render list of DP at selected location
   output$dp_list <- renderUI({
     # req(rv$dp_list)
@@ -189,13 +199,12 @@ SelectDP <- function(input, output, session,
       }
     )
   })
-
+  
   output$dp_download <- downloadHandler(
     filename = function() {
       paste(input$dp_list, "zip", sep = ".")
     },
     content = function(file) {
-      browser()
       zip(
         zipfile = file,
         files = dir(
@@ -207,7 +216,7 @@ SelectDP <- function(input, output, session,
     },
     contentType = "application/zip"
   )
-
+  
   # toggle Load and Delete buttons
   observeEvent(input$dp_list, {
     if (input$dp_list != "") {
@@ -221,7 +230,7 @@ SelectDP <- function(input, output, session,
       disable("dp_download")
     }
   })
-
+  
   # DP create -----------------------------------------------------
   # check name input
   rv$valid_name <- FALSE
@@ -250,78 +259,127 @@ SelectDP <- function(input, output, session,
       )
     )
     rv$valid_name <- TRUE
-    rv$dp_name <- input$dp_name
-    rv$dp_title <- input$dp_title
     return(actionButton(ns("dp_create"), "Create"))
   })
-
+  
+  observeEvent(input$quick, {
+    req(input$dp_name %in% c("", paste0(Sys.Date(), "_project"))) # Do not change a yet changed name
+    if (input$quick) {
+      updateTextInput(session, "dp_name", value = paste0(Sys.Date(), "_project"))
+    } else {
+      updateTextInput(session, "dp_name", placeholder = paste0(Sys.Date(), "_project"))
+    }
+  })
+  
+  observeEvent(input$dp_name, {
+    rv$dp_name <- input$dp_name
+  })
+  
+  observeEvent(input$dp_title, {
+    rv$dp_title <- input$dp_title
+  })
+  
   # license choice
   observeEvent(input$license, {
     rv$dp_license <- input$license
   })
-  # rv$dp_license <- reactive({
-  #   input$license
-  # })
-
+  
   # DP management - on clicks -----------------------------------------------------
   # * Create DP -----------------------------------------------------
-  observeEvent(input$dp_create, {
+  onclick("dp_create", {
+    req(input$dp_create)
     req(input$dp_name)
     req(rv$valid_name)
-
+    
     # variable operation - legibility purpose
     dp <- input$dp_name
     path <- paste0(rv$dp_location, dp, "_emldp")
     title <- input$dp_title
     license <- rv$dp_license
-
-    # save in empty dedicated variable
-    savevar$emlal <- initReactive("emlal", savevar)
-    savevar$emlal$SelectDP$dp_name <- dp
-    savevar$emlal$SelectDP$dp_path <- path
-    savevar$emlal$SelectDP$dp_metadata_path <- paste(path, dp, "metadata_templates", sep = "/")
-    savevar$emlal$SelectDP$dp_data_path <- paste(path, dp, "data_objects", sep = "/")
-    savevar$emlal$SelectDP$dp_eml_path <- paste(path, dp, "eml", sep = "/")
-    savevar$emlal$SelectDP$dp_title <- title
-
+    
     # verbose
-    message("Creating:", path, "\n", sep = "")
-
-    # actions
-    rv$dp_list <- c(rv$dp_list, dp)
-
-    globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1
-    globals$EMLAL$HISTORY <- "create"
-
-    dir.create(path, recursive = TRUE)
-
-    # initial "commit"
-    saveReactive(savevar)
-
-    # EAL template import
-    template_directories(
-      savevar$emlal$SelectDP$dp_path ,
-      savevar$emlal$SelectDP$dp_name
-    )
-    template_core_metadata(
-      savevar$emlal$SelectDP$dp_metadata_path ,
-      license
+    withProgress({
+      # save in empty dedicated variable
+      savevar$emlal <- initReactive("emlal", savevar, globals$EMLAL)
+      savevar$emlal$SelectDP$dp_name <- dp
+      savevar$emlal$SelectDP$dp_path <- path
+      savevar$emlal$SelectDP$dp_metadata_path <- paste(path, dp, "metadata_templates", sep = "/")
+      savevar$emlal$SelectDP$dp_data_path <- paste(path, dp, "data_objects", sep = "/")
+      savevar$emlal$SelectDP$dp_eml_path <- paste(path, dp, "eml", sep = "/")
+      savevar$emlal$SelectDP$dp_title <- title
+      savevar$emlal$quick <- input$quick
+      incProgress(0.2)
+      
+      dir.create(path, recursive = TRUE)
+      incProgress(0.2)
+      
+      # EAL template import
+      try(
+        template_directories(
+          savevar$emlal$SelectDP$dp_path,
+          savevar$emlal$SelectDP$dp_name
+        )
+      )
+      incProgress(0.2)
+      x <- try(
+        template_core_metadata(
+          savevar$emlal$SelectDP$dp_metadata_path,
+          license
+        )
+      )
+      incProgress(0.2)
+      
+      if(class(x) != "try-error") {
+        rv$dp_list <- c(rv$dp_list, dp)
+        globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1
+        saveReactive(savevar)
+        incProgress(0.2)
+      } else {
+        unlink(path, recursive = TRUE)
+        savevar <- initReactive(glob = globals$EMLAL)
+        incProgress(0.2)
+        showNotification(x, type = "error")
+      }
+    }, message = paste("Creating:", path, "\n", sep = "")
     )
   })
-
+  
   # * Load DP -----------------------------------------------------
-  observeEvent(input$dp_load, {
+  onclick("dp_load", {
     req(input$dp_list)
     disable("dp_load")
     # variable operation - legibility purpose
     dp <- input$dp_list
     path <- paste0(rv$dp_location, dp, "_emldp")
-
+    
     # verbose
-    message("Loading:", path, "\n", sep = "") # to replace by loading DP
+    showNotification(
+      paste("Loading:", path, "\n", sep = ""),
+      type = "message"
+    )
+    
     # actions
-    savevar$emlal <- initReactive("emlal", savevar)
-    savevar$emlal <- readRDS(paste0(path, "/", dp, ".rds"))$emlal
+    savevar$emlal <- initReactive("emlal", savevar, globals$EMLAL)
+    
+    .savevar <- read_json(paste0(path, "/", dp,".json"))[[1]] %>%
+      unserializeJSON
+    savevar$emlal <- setSavevar(.savevar$emlal, savevar$emlal)
+    # savevar$emlal <- readRDS(paste0(path, "/", dp, ".rds"))$emlal
+    
+    # TODO remove this later : update history
+    savevar$emlal$history <- sapply(savevar$emlal$history, function(h) {
+      switch(h,
+        create = "Select Data Package",
+        DataFiles = "Data Files",
+        attributes = "Attributes",
+        CustomUnits = NULL,
+        CatVars = "Categorical Variables",
+        GeoCov = "Geographic Coverage",
+        TaxCov = "Taxonomic Coverage",
+        h
+      )
+    }) %>% unname()
+    savevar$emlal$quick <- isTRUE(savevar$emlal$quick)
     globals$EMLAL$NAVIGATE <- ifelse(savevar$emlal$step > 1, # resume where max reached
       savevar$emlal$step,
       globals$EMLAL$NAVIGATE + 1
@@ -329,14 +387,14 @@ SelectDP <- function(input, output, session,
     globals$EMLAL$HISTORY <- savevar$emlal$history
     enable("dp_load")
   })
-
+  
   # * Delete DP -----------------------------------------------------
-  observeEvent(input$dp_delete, {
+  onclick("dp_delete", {
     req(input$dp_list)
-
+    
     # variable operation - legibility purpose
     dp <- input$dp_list
-
+    
     # actions
     showModal(
       modalDialog(
@@ -352,22 +410,24 @@ SelectDP <- function(input, output, session,
       ) # end modalDialog
     ) # end showModal
   })
-
+  
   # If deletion is confirmed
-  observeEvent(input$delete_confirm, {
+  onclick("delete_confirm", {
     # variable operation - legibility purpose
     dp <- input$dp_list
     path <- paste0(rv$dp_location, dp, "_emldp")
-
+    
     # verbose
-    message("Deleting:", path, "\n", sep = "") # to replace by deleting DP
-
+    showNotification(
+      paste("Deleting:", path, "\n", sep = "")
+    ) # to replace by deleting DP
+    
     # actions
     unlink(path, recursive = TRUE)
     rv$dp_list <- rv$dp_list[rv$dp_list != dp]
     removeModal()
   })
-
+  
   # Output -----------------------------------------------------
   return(savevar)
 }

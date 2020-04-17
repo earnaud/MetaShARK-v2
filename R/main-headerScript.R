@@ -15,6 +15,7 @@
 #' @importFrom shiny reactiveValues
 #' @importFrom EML get_unitList
 #' @importFrom data.table fread
+#' @importFrom taxonomyCleanr view_taxa_authorities
 .globalScript <- function(dev = FALSE, reactive = TRUE) {
   if (!is.logical(dev) || is.null(dev)) dev <- FALSE
 
@@ -47,14 +48,21 @@
     paste(., dir(.), sep = "/") %>%
     as.list()
   names(wwwPaths) <- basename(unlist(wwwPaths))
-
+  
   # DataONE nodes
-  # DATAONE.LIST <- dataone::listFormats(dataone::CNode())$MediaType
-  DATAONE.LIST <- unlist(fread(wwwPaths$dataoneCNodesList.txt))
-
+  DATAONE.LIST <- try(listFormats(CNode()))
+  if(class(DATAONE.LIST) == "try-error")
+    DATAONE.LIST <- fread(wwwPaths$dataoneCNodesList.txt)
+  else
+    fwrite(DATAONE.LIST, wwwPaths$dataoneCNodesList.txt)
+  
   # Taxa authorities
-  TAXA.AUTHORITIES <-  taxonomyCleanr::view_taxa_authorities()
-
+  TAXA.AUTHORITIES <- try(view_taxa_authorities())
+  if(class(TAXA.AUTHORITIES) == "try-error")
+    TAXA.AUTHORITIES <- fread(wwwPaths$taxaAuthorities.txt)
+  else
+    fwrite(TAXA.AUTHORITIES, wwwPaths$taxaAuthorities.txt)
+  
   # Build global variable
   if (reactive) {
     globals <- reactiveValues(
@@ -77,12 +85,17 @@
         LATLON = "[+-]?[[:digit:]]+[.,]*[[:digit:]]*",
         NAME = "^[[:alpha:] \\'\\.\\-]+$",
         EMAIL = "^[^@]+@[^@]+\\.[[:alpha:]]",
-        ORCID = "^\\d{4}-\\d{4}-\\d{4}-(\\d{4}|\\d{3}X)$"
+        ORCID = "\\d{4}-\\d{4}-\\d{4}-(\\d{4}|\\d{3}X)"
       ),
       # navigation variable in EMLAL module
       EMLAL = reactiveValues(
-        HISTORY = character(),
-        NAVIGATE = 1
+        HISTORY = "SelectDP",
+        NAVIGATE = 1,
+        CURRENT = "SelectDP",
+        COMPLETE_CURRENT = FALSE
+      ),
+      SETTINGS = reactiveValues(
+        TOKEN = reactiveValues()
       )
     )
   } else {

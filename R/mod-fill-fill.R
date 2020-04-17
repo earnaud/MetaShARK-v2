@@ -20,18 +20,9 @@ fill <- function(input, output, session, globals, server) {
   # variable initialization -----------------------------------------------------
 
   # save variable
-  savevar <- initReactive()
+  savevar <- initReactive(glob = globals$EMLAL)
 
   # action -----------------------------------------------------
-  observeEvent(globals$EMLAL$NAVIGATE, {
-    # resume where it was saved
-    savevar$emlal$step <- globals$EMLAL$NAVIGATE
-  })
-  observeEvent(globals$EMLAL$HISTORY, {
-    # resume where it was saved
-    savevar$emlal$history <- globals$EMLAL$HISTORY
-  })
-
   savevar <- callModule(
     EMLAL, "EMLAL",
     savevar, globals, server
