@@ -5,9 +5,11 @@
 #' @importFrom shiny renderImage callModule observeEvent stopApp
 #' @importFrom shinydashboard updateTabItems
 #' @importFrom golem get_golem_options
+#' @importFrom shinyjs onclick
 .app_server <- function(input, output, session) {
+
   # get app arguments
-  appArgs <- golem::get_golem_options()
+  appArgs <- get_golem_options()
   dev <- appArgs$dev
   server <- appArgs$server
 
@@ -15,24 +17,24 @@
   # initialize global variables
   globals <- .globalScript(dev)
   savevar <- NULL
-
-  ## DEV: do things by clicking a button
+  
+  # DEV -----------------------------------------------------
   if (dev) {
-    observeEvent(input$check, {
+    onclick("dev", {
+      req(input$side_menu != "fill")
       browser()
-    })
+    }, asis=TRUE)
   }
-
+  
   ## esthetics -----------------------------------------------------
-  output$logo <- renderImage(
-    {
-      list(
-        src = system.file("media/logo.png", package = "MetaShARK"),
-        contentType = "image/png",
-        width = "200px",
-        height = "50px"
-      )
-    },
+  output$logo <- renderImage({
+    list(
+      src = system.file("media/logo.png", package = "MetaShARK"),
+      contentType = "image/png",
+      width = "200px",
+      height = "50px"
+    )
+  },
     deleteFile = FALSE
   )
 
@@ -42,7 +44,7 @@
     updateTabItems(session, "side_menu", "appOptions")
   })
 
-  callModule(appOptions, "appOptions")
+  callModule(appOptions, "appOptions", globals$SETTINGS, server)
 
   # Exit App
   observeEvent(input$close, {
@@ -56,7 +58,7 @@
       # fill
       fill = callModule(fill, "fill", globals, server),
       # upload
-      upload = callModule(upload, "upload", dev, globals),
+      upload = callModule(upload, "upload", globals, server),
       # doc
       documentation = callModule(documentation, "documentation", globals),
       # about

@@ -3,18 +3,20 @@
 #' @description UI part of the mainapp's  script
 #'
 #' @importFrom golem get_golem_options
-#' @importFrom shiny tagList tags actionLink icon span imageOutput actionButton HTML
+#' @importFrom shiny tagList tags actionLink icon span imageOutput actionButton HTML includeCSS
 #' @importFrom shinydashboard dashboardPage dashboardHeader dashboardSidebar sidebarMenu menuItem dashboardBody tabItems tabItem
 #' @importFrom shinyjs useShinyjs hidden
+#' @importFrom shinycssloaders withSpinner
 .app_ui <- function() {
+  # get app arguments
   appArgs <- get_golem_options()
   dev <- appArgs$dev
   server <- appArgs$server
 
   # prepare variable
   menuWidth <- "250px"
-  if (!is.logical(appArgs$dev) || is.null(appArgs$dev)) appArgs$dev <- FALSE
-  globals <- .globalScript(appArgs$dev, reactive = FALSE)
+  if (!is.logical(dev)) dev <- FALSE
+  globals <- .globalScript(dev, reactive = FALSE)
 
   # action
   tagList(
@@ -26,7 +28,7 @@
         tags$li(class = "dropdown", actionLink("appOptions", "", icon("gear"))),
         tags$li(
           class = "dropdown",
-          if (!isTRUE(appArgs$server)) {
+          if (!isTRUE(server)) {
             actionLink("close", "", icon("power-off"))
           } else {
             NULL
@@ -65,9 +67,12 @@
               tabName = "appOptions",
               icon = icon("gear")
             )
-          )
+          ),
+          if(globals$dev)
+            actionButton(
+              "dev", "DEV CHECK"
+            )
         ),
-        if (appArgs$dev) actionButton("check", "Dev Check"),
         width = menuWidth
       ), # end sidebar
       ## Content -----------------------------------------------------
@@ -80,11 +85,11 @@
           ),
           tabItem(
             tabName = "fill",
-            fillUI("fill", appArgs$dev)
+            fillUI("fill", dev)
           ),
           tabItem(
             tabName = "upload",
-            uploadUI("upload", appArgs$dev, globals)
+            uploadUI("upload", dev, globals, server)
           ),
           tabItem(
             tabName = "documentation",
@@ -96,10 +101,10 @@
           ),
           tabItem(
             tabName = "appOptions",
-            appOptionsUI("appOptions", appArgs$dev)
+            appOptionsUI("appOptions", globals$SETTINGS, dev)
           )
         )
       ) # end body
     ) # end dashboard
-  ) # end taglist
+  ) %>% withSpinner # end taglist
 }

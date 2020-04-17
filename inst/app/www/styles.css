@@ -8,6 +8,10 @@
 	max-height: 800px;
 }
 
+p {
+  text-align: justify;
+}
+
 .redButton {
 	color: red;
 }
@@ -28,8 +32,13 @@
 .navSidebar {
   max-width: 75px;
   max-width: 100px;
-	text-align: center;
-	padding: 0;
+  text-align: center;
+  padding: 0;
+}
+
+.leftMargin {
+  border-left: solid lightgrey; 
+  padding: 20px;
 }
 
 .danger {
@@ -45,6 +54,16 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.text-title {
+  display: inline-block;
+  font-size:14pt;
+  text-align:center;
+}
+
+.disclaimer {
+  font-weight: bold;
 }
 
 textarea {

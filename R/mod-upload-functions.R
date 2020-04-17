@@ -6,114 +6,118 @@
 #'
 #' @param mn Member Node URL.
 #' @param cn Contributing Node URL.
+#' @param token Dataone (test) token.
 #' @param eml Metadata file path (XML validating NCEAS' EML Schema)
 #' @param data Data files path
 #' @param scripts Scripts files path
 #' @param formats List of DataONE CN supported [formats](https://cn.dataone.org/cn/v2/formats)
 #'
-#' @importFrom dataone MNode CNode D1Client generateIdentifier uploadDataPackage
+#' @importFrom dataone generateIdentifier CNode MNode D1Client uploadDataPackage
 #' @importFrom datapack addMember
 #' @importFrom EML read_eml write_eml eml_validate
 #' @importFrom mime guess_type
-#'
-#' @export
-uploadDP <- function(mn, cn, eml, data, scripts = c(), formats) {
+uploadDP <- function(
+                     # essential
+                     mn,
+                     cn,
+                     token,
+                     eml,
+                     data,
+                     # facultative
+                     scripts = c(),
+                     formats,
+                     use.doi = FALSE) {
   # Set variables -----------------------------------------------------
-  message("Set variables")
-  # set arguments
-  mn <- MNode(mn)
-  cn <- CNode(cn)
-  doc <- read_eml(eml)
 
-  # set objects
-  d1c <- new("D1Client", cn, mn)
+  message("Init")
+
+  cn <- CNode(cn)
+  mn <- MNode(mn)
+  if (use.doi) {
+    doi <- generateIdentifier(mn, "DOI")
+  } # TODO check this feature
+
+  # # Write DP -----------------------------------------------------
+
+  # set data package
   dp <- new("DataPackage")
 
-  # set ids
-  id <- list(
-    metadata = generateIdentifier(mn, scheme = "uuid"),
-    data = c(),
-    scripts = c()
-  )
+  message("Metadata")
 
-  # Edit metadata -----------------------------------------------------
-  message("Editing metadata ...")
-  doc$packageId <- id$metadata
-  doc$dataset$maintenance$description <- "completed"
-  doc$system <- mn@identifier
-
-  # Data edit loop
-  sapply(seq_along(data), function(ind) {
-    id$data <<- c(id$data, generateIdentifier(mn, scheme = "uuid"))
-    doc$dataset$dataTable[[ind]]$physical$distribution$online$url <- paste0(
-      mn@endpoint,
-      "object/",
-      id$data[ind]
-    )
-  })
-
-  # Scripts edit loop -- if at least one script
-  if (isTruthy(scripts)) {
-    sapply(seq_along(scripts), function(ind) {
-      id$scripts <<- c(id$scripts, generateIdentifier(mn, scheme = "uuid"))
-      doc$dataset$otherEntity[[ind]]$physical$distribution$online$url <- paste0(
-        mn@endpoint,
-        "object/",
-        id$scripts[ind]
-      )
-    })
-  }
-
-  # Commit metadata
-  write_eml(doc, eml)
-
-  # Write DP -----------------------------------------------------
-  message("Writing data package ...")
-  # Metadata object
-  metadataObj <- new("DataObject",
-    id = id$metadata,
-    format = "eml://ecoinformatics.org/eml-2.1.1",
-    filename = eml
+  # Add metadata to the data package
+  metadataObj <- new(
+    "DataObject",
+    # id = if(use.doi) doi else NULL,
+    format = eml$format,
+    filename = eml$file
   )
   dp <- addMember(dp, metadataObj)
 
-  # Data objects
-  sapply(seq_along(data), function(ind) {
-    this.format <- guess_type(data[ind])
-    if (!this.format %in% formats) {
-      message(this.format, " is not recognized")
-    }
-    dataObj <- new("DataObject",
-      id = id$data[ind],
-      format = this.format,
-      filename = data[ind]
-    )
-    dp <- addMember(dp, dataObj, mo = metadataObj)
-  })
+  message("Data")
 
-  # Scripts objects
-  if (isTruthy(scripts)) {
-    sapply(seq_along(scripts), function(ind) {
-      this.format <- guess_type(data[ind])
-      if (!this.format %in% formats) {
-        message(this.format, "is not recognized")
-      }
-      scriptObj <- new("DataObject",
-        id = id$scripts[ind],
-        format = "application/R"
+  # Add data to the data package
+  dataObjs <- sapply(
+    seq(data$file),
+    function(d, metadataObj = metadataObj) {
+      # add data object
+      dataObj <- new(
+        "DataObject",
+        format = data$format[d],
+        filename = data$file[d]
       )
-      dp <- addMember(dp, scriptObj, mo = metadataObj)
-    })
+      dp <- addMember(dp, dataObj, metadataObj)
+      return(dataObj)
+    }
+  )
+
+  message("Scripts")
+
+  # Add scripts to the data package
+  if (length(scripts) != 0) {
+    progObjs <- sapply(
+      seq(scripts$file),
+      function(s, metadataObj = metadataObj) {
+        progObj <- new(
+          "DataObject",
+          format = scripts$format[s],
+          filename = scripts$file[s]
+        )
+        dp <- addMember(dp, progObj, metadataObj)
+
+        return(progObj)
+      }
+    )
   }
 
-  # Constraints -----------------------------------------------------
+  # # Access rules -----------------------------------------------------
 
+  message("Access")
 
-  # Access rules -----------------------------------------------------
+  accessRules <- NA # TODO allow customized access rules
 
-  # Upload -----------------------------------------------------
-  eml_validate(doc)
-  packageId <- uploadDataPackage(d1c, dp, public = TRUE)
+  # # Upload -----------------------------------------------------
+
+  d1c <- D1Client(cn, mn)
+
+  message("Upload")
+
+  options(dataone_test_token = token$test)
+  options(dataone_token = token$prod)
+
+  packageId <- try(
+    uploadDataPackage(
+      d1c,
+      dp,
+      public = TRUE,
+      accessRules = accessRules,
+      quiet = FALSE
+    )
+  )
+
+  options(dataone_test_token = NULL)
+  options(dataone_token = NULL)
+
+  return(packageId)
 }
 
 #' @title describeWorkflowUI

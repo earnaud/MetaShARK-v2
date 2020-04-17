@@ -2,14 +2,24 @@
 % Please edit documentation in R/mod-upload-upload.R
 \name{uploadUI}
 \alias{uploadUI}
+\alias{upload}
 \title{uploadUI}
 \usage{
-uploadUI(id, dev, globals)
+uploadUI(id, dev, globals, server)
+
+upload(input, output, session, globals, server)
 }
 \arguments{
 \item{id}{shiny module id}
+
+\item{globals}{inner variable}
 }
 \description{
 UI part for the upload module. Used to build and drop
 data packages to a chosen metacat.
 }
+\section{Functions}{
+\itemize{
+\item \code{upload}: 
+}}
+

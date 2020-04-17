@@ -2,10 +2,29 @@
 % Please edit documentation in R/mod-emlal-EMLAL_personnel.R
 \name{PersonnelModUI}
 \alias{PersonnelModUI}
+\alias{PersonnelMod}
 \title{PersonnelModUI}
 \usage{
-PersonnelModUI(id, site_id, rmv_id, role = NULL, dev = FALSE)
+PersonnelModUI(id, div_id, site_id, rmv_id, role = NULL, saved = NULL)
+
+PersonnelMod(
+  input,
+  output,
+  session,
+  globals,
+  rv,
+  rmv_id,
+  site_id,
+  ref,
+  role = NULL,
+  saved = NULL
+)
 }
 \description{
-module to document EML::Personnel
+module to document EML Personnel
 }
+\section{Functions}{
+\itemize{
+\item \code{PersonnelMod}: 
+}}
+

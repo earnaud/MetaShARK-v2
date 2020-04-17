@@ -8,6 +8,8 @@
 #'
 #' @importFrom shiny NS tagList actionLink icon div
 #' @importFrom shinyjs useShinyjs hidden
+#' 
+#' @export
 collapsibleUI <- function(id, label, hidden = TRUE, ..., class = NULL) {
   ns <- NS(id)
 
