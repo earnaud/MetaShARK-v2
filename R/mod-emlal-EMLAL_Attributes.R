@@ -238,8 +238,7 @@ Attributes <- function(input, output, session,
                 bsCollapsePanel(
                   title = attribute_row[fields[1]],
                   tagList(
-                    column(
-                      9,
+                    column(9,
                       lapply(fields[-1], function(colname) {
                         # prepare var
                         saved_value <- isolate(rv$current_table[row_index, colname])
@@ -382,7 +381,7 @@ Attributes <- function(input, output, session,
               }
               
               return(input[[inputId]])
-            } else if (grepl("missingValueCode", inputId)) {
+            } else if (grepl("missingValueCode$", inputId)) {
               if (grepl(".+ +.*", input[[inputId]])) {
                 val <- gsub("^ +", "", input[[inputId]])
                 updateTextInput(

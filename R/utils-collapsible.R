@@ -6,23 +6,23 @@
 #' @param ... shiny UI elements. Any UI element displayed as core content.
 #' @param class character. CSS class to apply to ... .
 #'
-#' @importFrom shiny NS tagList actionLink icon div
+#' @importFrom shiny NS tagList actionLink icon div tags
 #' @importFrom shinyjs useShinyjs hidden
 #' 
 #' @export
 collapsibleUI <- function(id, label, hidden = TRUE, ..., class = NULL) {
   ns <- NS(id)
-
-  content <- div(id = ns("area"), ..., class = class)
+  
+  content <- tags$div(id = ns("area"), tagList(...), class = class)
 
   tagList(
     useShinyjs(),
     actionLink(
       ns("link"),
       label,
-      icon = if (hidden) icon("chevron-right") else NULL
+      icon = if (isTRUE(hidden)) icon("chevron-right") else icon("chevron-down")
     ),
-    if (hidden) {
+    if (isTRUE(hidden)) {
       hidden(
         content
       )
@@ -38,6 +38,7 @@ collapsibleUI <- function(id, label, hidden = TRUE, ..., class = NULL) {
 #' @importFrom shinyjs toggle
 collapsible <- function(input, output, session) {
   observeEvent(input$link, {
+    
     toggle(
       id = "area",
       anim = TRUE,

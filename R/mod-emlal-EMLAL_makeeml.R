@@ -1,3 +1,10 @@
+#' @title MakeEMLUI
+#' 
+#' @description UI part for the Make EML module
+#' 
+#' @importFrom shiny NS fluidPage fluidRow tags actionButton icon textOutput
+#' actionLink column 
+#' @importFrom shinyjs hidden disabled
 MakeEMLUI <- function(id, title, dev) {
   ns <- NS(id)
   
@@ -5,8 +12,8 @@ MakeEMLUI <- function(id, title, dev) {
     fluidPage(
       fluidRow(
         style = "text-align: center;",
-        h2("We're almost there !"),
-        p("By clicking this button, you will process your metadata into
+        tags$h2("We're almost there !"),
+        tags$p("By clicking this button, you will process your metadata into
             a EML-valid xml file."),
         tags$p("(NOTE: you will be able to edit this data package furtherly)"),
         actionButton(
@@ -16,6 +23,12 @@ MakeEMLUI <- function(id, title, dev) {
           width = "50%"
         ),
         textOutput(ns("warnings")),
+        hidden(
+          actionLink(
+            ns("bug_report"), 
+            span("Please report this to the dev", icon("external-link-alt"))
+          )
+        ),
         tags$br(),
         fluidRow(
           column(6,
@@ -59,7 +72,7 @@ MakeEMLUI <- function(id, title, dev) {
   ) # end of return
 }
 
-#' @title MakeEML
+#' @describeIn MakeEMLUI
 #'
 #' @description server part of the make EML module
 #'
@@ -85,6 +98,7 @@ MakeEML <- function(input, output, session, savevar,
   
   # Make eml -----------------------------------------------------
   onclick("make_eml", {
+    hide("bug_report")
     req(input$make_eml)
     withProgress({
       . <- savevar$emlal
@@ -145,24 +159,43 @@ MakeEML <- function(input, output, session, savevar,
       value = 0.1
     )
     
+    valid_eml <- eml_validate(
+      dir(
+        savevar$emlal$SelectDP$dp_eml_path,
+        full.names = TRUE
+      )
+    )
+    
     output$warnings <- renderText({
+      disable("publish")
+      disable("emldown")
       validate(
         need(
           class(out) != "try-error",
           out[1]
+        ),
+        need(
+          !isFALSE(valid_eml),
+          unique(attr(valid_eml, "errors"))
         )
       )
-      showNotification("EML written !", type = "message")
+      enable("publish")
+      enable("emldown")
       return(NULL)
     })
     
-    if (class(out) != "try-error") {
-      enable("publish")
-      enable("emldown")
+    if (class(out) == "try-error" ||
+        isFALSE(valid_eml)) {
+      show("bug_report")
+      showNotification("EML invalid", type = "error", duration = NULL)
     } else {
-      disable("publish")
-      disable("emldown")
+      hide("bug_report")
+      showNotification("EML written.", type = "message")
     }
+  })
+  
+  observeEvent(input$bug_report, {
+    browseURL("https://github.com/earnaud/MetaShARK-v2/issues/26")
   })
   
   # emldown -----------------------------------------------------

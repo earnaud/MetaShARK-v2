@@ -54,7 +54,8 @@
   ## modules called -----------------------------------------------------
   observeEvent(input$side_menu, {
     savevar <- switch(input$side_menu,
-      # welcome - no server
+      # welcome
+      welcome = callModule(welcome, "welcome"),
       # fill
       fill = callModule(fill, "fill", globals, server),
       # upload
