@@ -27,10 +27,10 @@ MetaShARK has a dedicated [dockerhub](https://hub.docker.com/r/eliearnaud/metash
 
 There are two versions of MetaShARK currently available:
 
-* Stable : this version is the last version described in the *RELEASES.md* file.
+* Stable : this version is either the last version described in the [releases](https://github.com/earnaud/MetaShARK-v2/releases) or one of its subversion which got minor fixes.
 * Dev : this version is the last version released, described later in this file. However, it might suffer some bugs.
 
-**If you are using Dev version, reinstall it regularly !** The dev team will try to push needed fixes at least once per week during dev maintenance.
+**If you are using local version, reinstall it regularly !** The dev team will try to push needed fixes once per week during development phase.
 
 All dependencies are described in the DESCRIPTION file. You will also need to install the following system libraries, according to you OS:
 
@@ -67,7 +67,7 @@ R -e 'devtools::install_github("earnaud/MetaShARK-v2", ref="dev", dependencies=T
 
 You can access docker files and setup at [this repository](https://github.com/earnaud/MetaShARK_docker).
 
-## MetaShARK features 
+## MetaShARK features
 
 ### Documentation
 
@@ -102,7 +102,7 @@ Here it comes ! The first pre-release allowing the user to describe his dataset 
 
 MetaShARK/EAL supports:
 * data package management (CC BY or CC 0 Licences)
-* tabulated files's description (and *only* those ones yet, badly)
+* table files's description (and *only* those ones yet, badly. WIP on other file types)
 * automated\* tables' attributes filling
 * custom units' descriptions
 * automated\* categorical variables description
@@ -115,14 +115,10 @@ MetaShARK/EAL supports:
 
 #### Known Bugs
 
-* **Make EML** currently does not work (badly). 
-* An EAL issue occurs: on the first time you try to write an EML file, you might have an error concerning "ns_lookup()". Re-trying to write EML then makes it.
+* An {EML} issue occurs upon writing EML in final step. A file is however produced but is not validated according to EML schema. 
 
 ## Authors
 * Elie Arnaud (developper) - elie.arnaud@mnhn.fr
 
 ## Contribute
-Any contribution can be done and submitted. To contribute, please refer the 'contributing.md' file.
-
-## Submit issues
-For anny issue submittance, please add a single-word tag in bracket before the title of your issue. Do not hesitate also to describe it exhaustively and add a label.
+Any contribution can be done and submitted. Care about documenting code chunks you want to edit, and also add motivations about these changes.
