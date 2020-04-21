@@ -16,6 +16,7 @@
 #' @importFrom EML get_unitList
 #' @importFrom data.table fread
 #' @importFrom taxonomyCleanr view_taxa_authorities
+#' @importFrom dplyr %>%
 .globalScript <- function(dev = FALSE, reactive = TRUE) {
   if (!is.logical(dev) || is.null(dev)) dev <- FALSE
 
@@ -34,14 +35,20 @@
   # Date time format strings
   # TODO better !
   DATE.FORMAT <- c(
-    "YYYY", "YYYY-MM", "YYYY-MM-DD",
-    "hh", "hh:mm", "hh:mm:ss",
-    "YYYY-MM-DD hh", "YYYY-MM-DD hh:mm", "YYYY-MM-DD hh:mm:ss",
-    "YYYY hh", "YYYY hh:mm", "YYYY hh:mm:ss"
+    "YYYY", 
+    "YYYY-MM", "YYYY-MM-DD", "YYYY-DD-MM",
+    "MM-YYYY", "DD-MM-YYYY", "MM-DD-YYYY"
   )
 
   # Unit types
-  UNIT.LIST <- c("custom", get_unitList()$units$name)
+  ALL.UNITS <- get_unitList()
+  UNIT.LIST <- c(
+    "custom", 
+    apply(ALL.UNITS$units[c("unitType","name")], 1, paste, collapse = "/") %>%
+      gsub("^NA/", "Misc/", .) %>%
+      sort %>%
+      unname
+  )
 
   # Paths
   wwwPaths <- system.file("resources", package = "MetaShARK") %>%

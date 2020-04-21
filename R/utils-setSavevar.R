@@ -1,5 +1,5 @@
 setSavevar <- function(content, savevar, lv=1, root= "root"){
-  message(rep(" ", lv-1), "# ", root)
+  # message(rep(" ", lv-1), "# ", root)
   
   # out <- 
   lapply(
@@ -18,14 +18,14 @@ setSavevar <- function(content, savevar, lv=1, root= "root"){
         }
         else {
           x <- sub.content
-          message(rep(" ", lv-1), "|> ", label)
+          # message(rep(" ", lv-1), "|> ", label)
         }
       }
       else {
         # if(is.data.frame(sub.content))
         #   browser()
         x <- sub.content
-        message(rep(" ", lv), "> ", label)
+        # message(rep(" ", lv), "> ", label)
       }
       
       isolate(savevar[[label]] <- x)

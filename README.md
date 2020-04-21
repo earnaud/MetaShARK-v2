@@ -1,4 +1,5 @@
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3712913.svg)](https://doi.org/10.5281/zenodo.3712913)
+[![DOI](https://zenodo.org/badge/216049930.svg)](https://zenodo.org/badge/latestdoi/216049930)
+[![lifecycle](https://img.shields.io/badge/lifecycle-maturing-orange.svg)](https://www.tidyverse.org/lifecycle/#maturing)
 
 <img src="./inst/media/logo.png" alt="" width="50%">
 
@@ -26,10 +27,10 @@ MetaShARK has a dedicated [dockerhub](https://hub.docker.com/r/eliearnaud/metash
 
 There are two versions of MetaShARK currently available:
 
-* Stable : this version is the last version described in the *RELEASES.md* file.
+* Stable : this version is either the last version described in the [releases](https://github.com/earnaud/MetaShARK-v2/releases) or one of its subversion which got minor fixes.
 * Dev : this version is the last version released, described later in this file. However, it might suffer some bugs.
 
-**If you are using Dev version, reinstall it regularly !** The dev team will try to push needed fixes at least once per week during dev maintenance.
+**If you are using local version, reinstall it regularly !** The dev team will try to push needed fixes once per week during development phase.
 
 All dependencies are described in the DESCRIPTION file. You will also need to install the following system libraries, according to you OS:
 
@@ -48,7 +49,7 @@ You can install the app as follow (through command line, for Ubuntu):
 ```
 apt -y update
 apt -y upgrade 
-apt install -y r-basehttps://placehold.it/15/FF0000/000000?text=+
+apt install -y r-base
 apt install -y libcurl4-openssl-dev libssh2-1-dev libssl-dev libxml2-dev # libgit2-dev 
 R -e 'install.packages("devtools")'
 apt install -y libv8-dev
@@ -101,7 +102,7 @@ Here it comes ! The first pre-release allowing the user to describe his dataset 
 
 MetaShARK/EAL supports:
 * data package management (CC BY or CC 0 Licences)
-* tabulated files's description (and *only* those ones yet, badly)
+* table files's description (and *only* those ones yet, badly. WIP on other file types)
 * automated\* tables' attributes filling
 * custom units' descriptions
 * automated\* categorical variables description
@@ -114,13 +115,10 @@ MetaShARK/EAL supports:
 
 #### Known Bugs
 
-* An EAL issue occurs: on the first time you try to write an EML file, you might have an error concerning "ns_lookup()". Re-trying to write EML then makes it.
+* An {EML} issue occurs upon writing EML in final step. A file is however produced but is not validated according to EML schema. 
 
 ## Authors
 * Elie Arnaud (developper) - elie.arnaud@mnhn.fr
 
 ## Contribute
-Any contribution can be done and submitted. To contribute, please refer the 'contributing.md' file.
-
-## Submit issues
-For anny issue submittance, please add a single-word tag in bracket before the title of your issue. Do not hesitate also to describe it exhaustively and add a label.
+Any contribution can be done and submitted. Care about documenting code chunks you want to edit, and also add motivations about these changes.

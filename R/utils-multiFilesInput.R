@@ -1,4 +1,4 @@
-#' @title multiFilesInput
+#' @title multiFilesInputUI
 #'
 #' @description Shiny module to allow the user to chose multiple files,
 #' and remove all or part of his selection.
@@ -41,7 +41,7 @@ multiFilesInputUI <- function(id, helpText = NULL, server = TRUE) {
   )
 }
 
-#' @describeIn multiFilesInput
+#' @describeIn multiFilesInputUI
 #'
 #' @param input shiny module input
 #' @param output shiny module output

@@ -12,34 +12,68 @@ SelectDPUI <- function(id, width = 12, dev = FALSE, server) {
   return(
     fluidPage(
       title = "Organize data packages",
+      fluidRow(
+        collapsibleUI(
+          ns("usage"),
+          "TUTORIAL: EML Assembly Line workflow",
+          ... = tagList(
+            tags$p(tags$b("Welcome in the EML Assembly line."), "This tool is
+              basically designed as a package, embedded in Shiny within MetaShARK.
+              This little helper aims to show you what awaits you in the further 
+              steps."),
+            hr(),
+            tags$p("After loading/creating a data package, a navigation bar will 
+              appear on your right. There features the following buttons:"),
+            tags$ul(
+              tags$li(tags$b("Quit: "), "click this to leave the edition of the
+                current data package. You will be asked if you wanted to save the
+                current changes. You can switch to other section of the app (e.g.
+                documentation) without losing the current metadata."),
+              tags$li(tags$b("Save: "), "click this to save the current changes 
+                in the filled metadata. This will write a save file in the data
+                package directory. Then, metadata will only be lost with data 
+                package removal."),
+              tags$li(tags$b("Next: "), "click this to continue your metadata
+                filling. It will bring you to the next step."),
+              tags$li(tags$b("Previous:"), "click this to come back to one of
+                the previous steps. You can also use the steps", tags$span(
+                icon("circle"), style = "color: dodgerblue;"), " markers to get
+                to the desired step.")
+            )
+          )
+        )
+      ),
       # Data package location -----------------------------------------------------
       if (!isTRUE(server)) {
-        fluidRow(
-          column(
-            4,
-            if (isTRUE(server)) {
-              tags$b("Data Package will be saved in:")
-            } else {
-              shinyDirButton(
-                ns("dp_location"),
-                "Choose directory",
-                "DP save location",
-                icon = icon("folder-open")
-              )
-            }
+        tagList(
+          fluidRow(
+            column(4,
+              if (isTRUE(server)) {
+                tags$b("Data Package will be saved in:")
+              } else {
+                shinyDirButton(
+                  ns("dp_location"),
+                  "Choose directory",
+                  "DP save location",
+                  icon = icon("folder-open")
+                )
+              }
+            ),
+            column(8,
+              textOutput(ns("dp_location")),
+              style = "text-align: left;"
+            ),
+            class = "inputBox"
           ),
-          column(8,
-            textOutput(ns("dp_location")),
-            style = "text-align: left;"
-          ),
-          class = "inputBox"
+          fluidRow(
+            tags$p("This is the location where your data packages will be
+          saved. A folder will be created, respectively named
+          after your input.")
+          )
         )
       } else {
-        NULL
+        hr()
       },
-      tags$p("This is the location where your data packages will be
-        saved. A folder will be created, respectively named
-        after your input."),
       fluidRow(
         # Load existing DP -----------------------------------------------------
         column(
@@ -109,11 +143,14 @@ SelectDPUI <- function(id, width = 12, dev = FALSE, server) {
 SelectDP <- function(input, output, session,
   savevar, globals, server) {
   ns <- session$ns
+  
   if(globals$dev)
     onclick("dev", {
       req(globals$EMLAL$NAVIGATE == 1)
       browser()
     }, asis=TRUE)
+  
+  callModule(collapsible, "usage")
   
   # variable initialization -----------------------------------------------------
   rv <- reactiveValues(

@@ -89,8 +89,12 @@ DataFiles <- function(input, output, session,
     )
     rv$data_files$datapath <- paste0(globals$TEMP.PATH, basename(rv$data_files$datapath))
   }
+  
   file.remove(
-    dir(savevar$emlal$SelectDP$dp_data_path, full.names = TRUE)
+    dir(
+      savevar$emlal$SelectDP$dp_data_path,
+      full.names = TRUE
+    )
   )
   
   # Data file upload -----------------------------------------------------
@@ -304,12 +308,13 @@ DataFiles <- function(input, output, session,
   
   # Saves -----------------------------------------------------
   observeEvent(rv$data_files, {
-    globals$EMLAL$COMPLETE_CURRENT <- isTruthy(rv$data_files) && all(dim(rv$data_files) != 0)
+    globals$EMLAL$COMPLETE_CURRENT <- checkTruth(rv$data_files) && all(dim(rv$data_files) != 0)
     req(globals$EMLAL$COMPLETE_CURRENT)
     savevar$emlal$DataFiles <- rv$data_files
   })
   
   observeEvent(NSB$SAVE, {
+    req(isTruthy(rv$data_files$name))
     savevar <- .saveDataFiles(savevar = savevar, rv = rv)
   }, ignoreInit = TRUE)
   
@@ -343,6 +348,14 @@ DataFiles <- function(input, output, session,
 
 .saveDataFiles <- function(savevar, rv){
   tmp <- savevar$emlal$DataFiles
+  
+  if(!checkTruth(tmp))
+    tmp <- data.frame(
+      name = character(),
+      size = character(),
+      type = character(),
+      datapath = character()
+    )
   
   # -- Get files data
   tmp$datapath <- paste0(

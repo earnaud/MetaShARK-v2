@@ -44,7 +44,10 @@ uploadUI <- function(id, dev, globals, server) {
         # check authentication token -----------------------------------------------------
         tags$h3("Get your authentication token"),
         tags$div(
-          tags$p("The authentication token must be set in the MetaShARK options."),
+          tags$p("The ", tags$b("authentication token"), " is a user-specific characters key.
+            It allows the user to authenticate a connection between its current location and
+            a distant server, actually the metadata catalog. To upload a data package, 
+            the authentication token is required."),
           class = "leftMargin"
         ),
         tags$hr(),
