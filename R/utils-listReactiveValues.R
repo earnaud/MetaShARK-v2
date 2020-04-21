@@ -13,7 +13,6 @@ listReactiveValues <- function(rv, lv = 0, name = "root"){
     stop("No reactiveValues provided")
   if(!is.reactivevalues(rv))
     stop("Provided `rv` is not a reactiveValues")
-  message("! ", paste(isolate(names(rv)), collapse = " "), " !")
   
   # Check for children
   children <- isolate(reactiveValuesToList(rv))
@@ -22,15 +21,12 @@ listReactiveValues <- function(rv, lv = 0, name = "root"){
     subrv <- children[[sub]]
     
     if(is.reactivevalues(subrv)){
-      message(rep("#", lv+1), " - ", n[sub])
       listReactiveValues(subrv, lv+1, name = n[sub])
     }
     else if(is.reactive(subrv)){
-      message(rep(" ", lv+1), " > ", n[sub])
       return(isolate(subrv()))
     } 
     else {
-      message(rep(" ", lv+1), " > ", n[sub])
       return(subrv)
     }
   })

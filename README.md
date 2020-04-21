@@ -1,4 +1,5 @@
 [![DOI](https://zenodo.org/badge/216049930.svg)](https://zenodo.org/badge/latestdoi/216049930)
+[![lifecycle](https://img.shields.io/badge/lifecycle-maturing-orange.svg)](https://www.tidyverse.org/lifecycle/#maturing)
 
 <img src="./inst/media/logo.png" alt="" width="50%">
 
