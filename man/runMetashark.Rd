@@ -12,9 +12,12 @@ If FALSE (default), the app is deployed for a local desktop usage.
 If TRUE, the app is deployed for a distant server usage. The main difference between
 both is the way filesystems will be used.}
 
+\item{test}{Logical. Is the application run with `{shinytest}`, or not. 
+Default to FALSE.}
+
 \item{...}{options to pass to the application, ignored if missing or mistyped.
 \describe{
-  \item{dev}{logical. Add development elements in the GUI.}
+  \item{dev}{Logical. Add development elements in the GUI.}
 }}
 }
 \description{
