@@ -1,4 +1,4 @@
 library(testthat)
 library(MetaShARK)
 
-test_check("MetaShARK")
+test_dir("tests/testthat/")
