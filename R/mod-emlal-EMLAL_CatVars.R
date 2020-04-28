@@ -12,13 +12,15 @@ CatVarsUI <- function(id, title, dev) {
         # Navigation
         fluidRow(
           column(1,
-            actionButton(ns("file_prev"),
+            actionButton(
+              ns("file_prev"),
               "",
               icon("chevron-left")
             )
           ),
           column(10,
-            uiOutput(ns("current_file"),
+            uiOutput(
+              ns("current_file"),
               inline = TRUE
             )
           ),
@@ -227,6 +229,9 @@ CatVars <- function(input, output, session,
     sapply(rv$catvarFiles, function(file_path){
       file_name <- basename(file_path)
       savevar$emlal$CatVars[[file_name]] <- rv[[file_name]]$CatVars
+      
+      .tmp <- savevar$emlal$CatVars[[file_name]]$code == ""
+      savevar$emlal$CatVars[[file_name]]$code[.tmp] <- "NA"
       
       fwrite(
         savevar$emlal$CatVars[[file_name]],
