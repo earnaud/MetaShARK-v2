@@ -1,34 +1,22 @@
-# This module shows the different possible inputs
+### moduleNavTree.R
 
-### UI ELEMENTS ###
+# Imports
+source("functionsInput.R")
+source("styleInput.R")
 
-# Choice input
-choiceInput <- function(id = "choice",
-                        choices){
-  # Function namespace
-  ns = NS(id)
+# Guidelines
+cat("* Loading System Guideline ...\r")
+SystemGuideline = as.list(readRDS("../../guideLines/SystemGuidelineList.RData"))
+cat("* System Guideline successfully loaded !\n")
+
+# UI functions
+inputUI <- function(id, IM){
+  ns <- NS(id)
   
-  # Final UI dusplay
-  return(do.call(tabsetPanel, c(id = id,
-                         lapply(1:length(choices),
-                                function(i){
-                                  tabPanel(
-                                    title=names(choices)[i],
-                                    paste(unlist(choices[[i]]),
-                                          collapse = " ")
-                                  )
-                                })
-                         )
-          )
-  )
+  
 }
 
-
-### SERVER ELEMENTS ###
-choiceServer <- function(input, 
-                         output, 
-                         session){
-  output <- reactive({
-    return(input)
-  })
+# Server functions
+input <- function(input, output, session, IM){
+  
 }
