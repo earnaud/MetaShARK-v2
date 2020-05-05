@@ -4,7 +4,7 @@
 \alias{about}
 \title{about}
 \usage{
-about(input, output, session, IM)
+about(input, output, session)
 }
 \description{
 server part of the about module.
