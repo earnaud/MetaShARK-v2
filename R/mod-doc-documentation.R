@@ -5,18 +5,19 @@
 #' @importFrom shiny NS tagList tags fluidRow column selectInput div
 #' @importFrom shinydashboard box
 #' @importFrom shinyTree shinyTree
+#' @importFrom shinycssloaders withSpinner
 docUI <- function(id) {
   ns <- NS(id)
-
+  
   require(shinyTree)
   
   # var initialization
-  docGuideline <- tree
-
-  moduleNames <- sub("^[0-9]+_(.*)$", "\\1", names(docGuideline))
-  # avoid 404
-  moduleNames <- moduleNames[moduleNames != "eml-unit Type Definitions"]
-
+  # docGuideline <- tree
+  # 
+  # moduleNames <- sub("^[0-9]+_(.*)$", "\\1", names(docGuideline))
+  # # avoid 404
+  # moduleNames <- moduleNames[moduleNames != "eml-unit Type Definitions"]
+  
   # UI output
   tagList(
     tags$head(
@@ -26,32 +27,32 @@ docUI <- function(id) {
         href = "www/styles.css"
       )
     ),
-    fluidRow(
-      box(
-        width = 12,
-        title = "Check original documentation",
-        HTML("<p>This documentation is brought to you from XSD files downloaded 
-        from <a href='https://eml.ecoinformatics.org/schema/'>this site</a>.
-        You can visit the original documentation by chosing a module
-        name and clicking the 'GO' button below.</p>"),
-        column(6,
-          selectInput(ns("select-module"), NULL,
-            moduleNames,
-            selected = moduleNames[25],
-            multiple = FALSE
-          )
-        ),
-        column(6,
-          actionButton(ns("visit-module"), "Go !",
-            icon = icon("external-link-alt")
-          )
-        )
-      )
-    ),
+    # fluidRow(
+    #   box(
+    #     width = 12,
+    #     title = "Check original documentation",
+    #     HTML("<p>This documentation is brought to you from XSD files downloaded 
+    #     from <a href='https://eml.ecoinformatics.org/schema/'>this site</a>.
+    #     You can visit the original documentation by chosing a module
+    #     name and clicking the 'GO' button below.</p>"),
+    #     column(6,
+    #       selectInput(ns("select-module"), NULL,
+    #         moduleNames,
+    #         selected = moduleNames[25],
+    #         multiple = FALSE
+    #       )
+    #     ),
+    #     column(6,
+    #       actionButton(ns("visit-module"), "Go !",
+    #         icon = icon("external-link-alt")
+    #       )
+    #     )
+    #   )
+    # ),
     fluidRow(
       # search sidebar
       column(5,
-        box(width = 12,
+        wellPanel(
           shinyTree(
             outputId = ns("tree"),
             search = TRUE,
@@ -61,14 +62,14 @@ docUI <- function(id) {
       ),
       # display main panel
       column(7,
+        # box(width = 12,
         div(
-          box(width = 12,
-            uiOutput(ns("docPath")), # XPath
-            uiOutput(ns("docSelect")) # Documentation
-          )
+          uiOutput(ns("doc")),
+          style = "position: fixed"
         )
-      ) # end col
-    )
+        # )
+      )
+    ) 
   )
 }
 
@@ -76,57 +77,50 @@ docUI <- function(id) {
 #'
 #' @description server part of the documentation module.
 #'
-#' @importFrom shiny observeEvent renderText
+#' @importFrom shiny observeEvent renderText validate helpText
 #' @importFrom shinyTree renderTree get_selected
 #' @importFrom utils browseURL
+#' @importFrom jsonlite read_json unserializeJSON
 documentation <- function(input, output, session, globals) {
   ns <- session$ns
-
-  # external links
-  observeEvent(input$`visit-module`, {
-    url <- paste0(
-      "https://nceas.github.io/eml/schema/",
-      input$`select-module`,
-      "_xsd.html"
-    )
-    url <- sub(" +", "", url)
-    browseURL(url)
+  
+  # Load data ====
+  withProgress(message = "Loading documentation.", {
+    doc.file <- system.file("inst/data-raw/infoBuilder-v2/doc_guideline.json", package = "MetaShARK")
+    doc <- read_json(doc.file)[[1]] %>% unserializeJSON
+    incProgress(0.9)
+    tree.file <- system.file("inst/data-raw/infoBuilder-v2/tree_guideline.json", package = "MetaShARK")
+    tree <- read_json(tree.file)[[1]] %>% unserializeJSON
   })
-
+  
+  
+  # External links ====
+  # observeEvent(input$`visit-module`, {
+  #   url <- paste0(
+  #     "https://nceas.github.io/eml/schema/",
+  #     input$`select-module`,
+  #     "_xsd.html"
+  #   )
+  #   url <- sub(" +", "", url)
+  #   browseURL(url)
+  # })
+  
+  # UI render ====
+  
   # render tree
   output$tree <- renderTree(tree)
-
+  
   # output selected node
-  output$docSelect <- renderText({
-    jstree <- input$tree
-    if (is.null(jstree)) {
-      "None"
-    } else {
-      node <- get_selected(tree = jstree)
-      if (length(node) == 0) {
-        return("(Select a node first)")
-      }
-      docPath <- gsub(
-        "^/", "",
-        paste(
-          paste(attr(node[[1]], "ancestry"), collapse = "/"),
-          unlist(node),
-          sep = "/"
-        )
-      )
-      output$docPath <- renderText(as.character(tags$h4(docPath)))
-
-      # fetch the systemGuideLine path in the userGuideLine list
-      systemPath <- followPath(tree, docPath)
-
-      if (!is.character(systemPath)) {
-        systemPath <- commonPath(systemPath, unlist(node))
-      }
-
-      # fetch the eml-xsd content in the systemGuideLine list
-      systemContent <- followPath(systemGuideline, systemPath)
-      out <- extractContent(systemContent, nsIndex = readRDS(globals$PATHS$nsIndex.RData))
-      return(out)
-    }
+  output$doc <- renderUI({
+    tree.node <- get_selected(input$tree)
+    validate(
+      need(unlist(tree.node), "(Select an item first)")
+    )
+    path <- paste(c(attr(tree.node[[1]], "ancestry"), unlist(tree.node)), collapse = "/")
+    doc.node <- followPath(doc, path)
+    if("annotation" %in% names(doc.node))
+      doc.node$annotation
+    else
+      helpText("No content found at:", path)
   })
 }
