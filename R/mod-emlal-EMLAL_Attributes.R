@@ -271,7 +271,7 @@ Attributes <- function(input, output, session,
                                 as.character(rv$CU_Table$id),
                                 globals$FORMAT$UNIT
                               )),
-                              selected = saved_value
+                              selected = if (isTruthy(saved_value)) saved_value
                             )
                             if (isTruthy(saved_value))
                               tmp

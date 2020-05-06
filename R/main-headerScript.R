@@ -42,13 +42,14 @@
 
   # Unit types
   ALL.UNITS <- get_unitList()
-  UNIT.LIST <- c(
-    "custom", 
-    apply(ALL.UNITS$units[c("unitType","name")], 1, paste, collapse = "/") %>%
-      gsub("^NA/", "Misc/", .) %>%
-      sort %>%
-      unname
-  )
+  .units <- "custom"
+  .names <- "custom"
+  invisible(apply(ALL.UNITS$units[c("unitType","name")], 1, function(row){
+    .units <<- c(.units, row["name"])
+    .names <<- c(.names, paste(row, collapse = "/"))
+  }))
+  UNIT.LIST <- .units
+  names(UNIT.LIST) = .names
 
   # Paths
   wwwPaths <- system.file("resources", package = "MetaShARK") %>%
