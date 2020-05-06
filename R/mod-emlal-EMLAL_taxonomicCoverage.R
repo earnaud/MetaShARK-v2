@@ -136,7 +136,7 @@ TaxCov <- function(input, output, session,
       taxa.col.list <- lapply(input$taxa.table, function(file) {
         all.files <- savevar$emlal$DataFiles
         file <- all.files[all.files$name == file, "datapath"]
-        df <- fread(file, data.table = FALSE, stringsAsFactors = FALSE)
+        df <- readDataTable(file, stringsAsFactors = FALSE)
         return(colnames(df))
       })
       names(taxa.col.list) <- input$taxa.table

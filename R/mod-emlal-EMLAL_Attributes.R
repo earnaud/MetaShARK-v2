@@ -57,7 +57,7 @@ AttributesUI <- function(id, title, dev) {
 #'
 #' @description server part of the Attributes module.
 #'
-#' @importFrom data.table fread fwrite
+#' @importFrom data.table fwrite
 #' @importFrom shiny observeEvent req reactiveValues observe renderUI tags callModule textAreaInput HTML selectInput tagList
 #' observe eventReactive validate
 #' @importFrom shinyjs hide show enable disable onclick
@@ -145,9 +145,9 @@ Attributes <- function(input, output, session,
     data.table = FALSE, stringsAsFactors = FALSE
   )
   rv$current_table <- rv$tables[[rv$current_file]]
-  rv$CU_Table <- fread(
+  rv$CU_Table <- readDataTable(
     dir(savevar$emlal$SelectDP$dp_metadata_path, pattern = "ustom", full.names = TRUE),
-    data.table = FALSE, stringsAsFactors = FALSE,
+    stringsAsFactors = FALSE,
   )
   
   if (isTRUE(savevar$emlal$quick)) {
@@ -186,9 +186,9 @@ Attributes <- function(input, output, session,
     req(rv$current_file > 0)
     rv$current_table <- rv$tables[[rv$current_file]]
     rv$current_table[is.na(rv$current_table)] <- ""
-    rv$current_preview <- fread(
+    rv$current_preview <- readDataTable(
       rv$data.filepath[rv$current_file],
-      data.table = FALSE, stringsAsFactors = FALSE,
+      stringsAsFactors = FALSE,
       nrows = 5
     )
   }, priority = 1)

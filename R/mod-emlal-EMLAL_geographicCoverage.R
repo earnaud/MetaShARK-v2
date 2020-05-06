@@ -150,7 +150,7 @@ GeoCov <- function(input, output, session,
   
   # Prepare content
   data.files <- savevar$emlal$DataFiles$datapath
-  data.content <- lapply(data.files, fread, data.table = FALSE, stringsAsFactors = FALSE)
+  data.content <- lapply(data.files, readDataTable, stringsAsFactors = FALSE)
   names(data.content) <- basename(data.files)
   
   # format extracted content - keep latlon-valid columns
