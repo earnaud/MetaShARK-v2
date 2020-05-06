@@ -141,8 +141,8 @@ Attributes <- function(input, output, session,
     unitId = ""
   )
   rv$tables <- lapply(
-    rv$filepath, fread,
-    data.table = FALSE, stringsAsFactors = FALSE,
+    rv$filepath, readDataTable,
+    data.table = FALSE, stringsAsFactors = FALSE
   )
   rv$current_table <- rv$tables[[rv$current_file]]
   rv$CU_Table <- fread(
