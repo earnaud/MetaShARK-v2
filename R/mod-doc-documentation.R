@@ -86,10 +86,10 @@ documentation <- function(input, output, session, globals) {
   
   # Load data ====
   withProgress(message = "Loading documentation.", {
-    doc.file <- system.file("inst/data-raw/infoBuilder-v2/doc_guideline.json", package = "MetaShARK")
+    doc.file <- system.file("data-raw/infoBuilder-v2/doc_guideline.json", package = "MetaShARK")
     doc <- read_json(doc.file)[[1]] %>% unserializeJSON
     incProgress(0.9)
-    tree.file <- system.file("inst/data-raw/infoBuilder-v2/tree_guideline.json", package = "MetaShARK")
+      tree.file <- system.file("data-raw/infoBuilder-v2/tree_guideline.json", package = "MetaShARK")
     tree <- read_json(tree.file)[[1]] %>% unserializeJSON
   })
   
