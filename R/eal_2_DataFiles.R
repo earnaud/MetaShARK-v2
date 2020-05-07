@@ -330,6 +330,7 @@ DataFiles <- function(input, output, session,
   })
   
   observeEvent(NSB$SAVE, {
+    req(tail(globals$EMLAL$HISTORY,1) == "Data Files")
     req(isTruthy(rv$data_files$name))
     savevar <- .saveDataFiles(savevar = savevar, rv = rv)
   }, ignoreInit = TRUE)
@@ -348,8 +349,12 @@ DataFiles <- function(input, output, session,
     savevar <- .saveDataFiles(savevar = savevar, rv = rv)
     
     # EMLAL templating function
-    if(length(dir(savevar$emlal$SelectDP$dp_metadata_path, pattern = "^attributes_")) > 0){
-      browser()
+    .attr.files <- dir(
+      savevar$emlal$SelectDP$dp_metadata_path, pattern = "^attributes_", 
+      full.names = TRUE
+    )
+    if(length() > 0){
+      file.remove(.attr.files)
     }
     
     template_table_attributes(
@@ -357,7 +362,6 @@ DataFiles <- function(input, output, session,
       data.path = savevar$emlal$SelectDP$dp_data_path,
       data.table = savevar$emlal$DataFiles$name
     )
-    browser()
   },
     priority = 1,
     ignoreInit = TRUE
@@ -385,6 +389,7 @@ DataFiles <- function(input, output, session,
   )
   
   # -- set metadatapath
+  browser()
   tmp$metadatapath <- paste(
     savevar$emlal$SelectDP$dp_metadata_path,
     sub(

@@ -141,7 +141,7 @@ Attributes <- function(input, output, session,
     unitId = ""
   )
   rv$tables <- lapply(
-    rv$filepath, readDataTable, dev = globals$dev,
+    rv$filepath, readDataTable,
     data.table = FALSE, stringsAsFactors = FALSE
   )
   rv$current_table <- rv$tables[[rv$current_file]]
@@ -351,7 +351,7 @@ Attributes <- function(input, output, session,
           
           obs[[inputId]] <- observeEvent(input[[inputId]], {
             req(input[[inputId]])
-            if(grepl("class", inputId)){
+            if(grepl("class", inputId)){ # input: class
               # Date
               date_id <- paste(
                 isolate(rv$current_file),
@@ -380,8 +380,8 @@ Attributes <- function(input, output, session,
                 hide(unit_id)
               }
               
-              return(input[[inputId]])
-            } else if (grepl("missingValueCode$", inputId)) {
+              rv$current_table[row_index, colname] <- input[[inputId]]
+            } else if (grepl("missingValueCode$", inputId)) { # input: missing Value code
               if (grepl(".+ +.*", input[[inputId]])) {
                 val <- gsub("^ +", "", input[[inputId]])
                 updateTextInput(
@@ -396,8 +396,9 @@ Attributes <- function(input, output, session,
                   type = "warning"
                 )
               }
-              return(strsplit(input[[inputId]], " ")[[1]][1])
-            } else {
+              
+              rv$current_table[row_index, colname] <- strsplit(input[[inputId]], " ")[[1]][1]
+            } else { # input: others
               if(grepl("unit", inputId)){
                 # Trigger CU
                 if(input[[inputId]] == "custom" &&
@@ -711,8 +712,6 @@ Attributes <- function(input, output, session,
 #' @importFrom shiny withProgress incProgress reactiveValues
 #' @importFrom data.table fwrite
 .saveAttributes <- function(savevar, rv){
-  # write filled tables
-    
   # Write attribute tables
   sapply(
     seq_along(rv$filenames),
