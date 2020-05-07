@@ -11,13 +11,6 @@ docUI <- function(id) {
   
   require(shinyTree)
   
-  # var initialization
-  # docGuideline <- tree
-  # 
-  # moduleNames <- sub("^[0-9]+_(.*)$", "\\1", names(docGuideline))
-  # # avoid 404
-  # moduleNames <- moduleNames[moduleNames != "eml-unit Type Definitions"]
-  
   # UI output
   tagList(
     tags$head(
@@ -27,28 +20,6 @@ docUI <- function(id) {
         href = "www/styles.css"
       )
     ),
-    # fluidRow(
-    #   box(
-    #     width = 12,
-    #     title = "Check original documentation",
-    #     HTML("<p>This documentation is brought to you from XSD files downloaded 
-    #     from <a href='https://eml.ecoinformatics.org/schema/'>this site</a>.
-    #     You can visit the original documentation by chosing a module
-    #     name and clicking the 'GO' button below.</p>"),
-    #     column(6,
-    #       selectInput(ns("select-module"), NULL,
-    #         moduleNames,
-    #         selected = moduleNames[25],
-    #         multiple = FALSE
-    #       )
-    #     ),
-    #     column(6,
-    #       actionButton(ns("visit-module"), "Go !",
-    #         icon = icon("external-link-alt")
-    #       )
-    #     )
-    #   )
-    # ),
     fluidRow(
       # search sidebar
       column(5,
@@ -62,12 +33,10 @@ docUI <- function(id) {
       ),
       # display main panel
       column(7,
-        # box(width = 12,
         div(
-          uiOutput(ns("doc")),
-          style = "position: fixed"
+          id = "docPanel",
+          uiOutput(ns("doc"))
         )
-        # )
       )
     ) 
   )
@@ -94,18 +63,6 @@ documentation <- function(input, output, session, globals) {
       read_json(simplifyVector = TRUE) %>% 
       unserializeJSON
   })
-  
-  
-  # External links ====
-  # observeEvent(input$`visit-module`, {
-  #   url <- paste0(
-  #     "https://nceas.github.io/eml/schema/",
-  #     input$`select-module`,
-  #     "_xsd.html"
-  #   )
-  #   url <- sub(" +", "", url)
-  #   browseURL(url)
-  # })
   
   # UI render ====
   

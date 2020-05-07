@@ -3,10 +3,15 @@
 	max-height: 800px;
 }
 
-#docMainPanel {
-	overflow-y: scroll;
-	max-height: 800px;
+#docPanel {
+  position: fixed;
+  display: block;
+  padding: 10px;
+  height: calc(100% - 70px);
+  max-height: calc(100% - 70px);
+  overflow-y: scroll;
 }
+/* body > div > div.wrapper > div > section */
 
 p {
   text-align: justify;
