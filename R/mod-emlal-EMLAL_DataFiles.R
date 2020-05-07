@@ -123,21 +123,26 @@ DataFiles <- function(input, output, session,
     
     req(checkTruth(loadedFiles))
     
+    # remove spaces
+    loadedFiles$name <- gsub(" ","_", loadedFiles$name)
+    
     # add URL, description and table name columns
     loadedFiles$url <- rep("", dim(loadedFiles)[1])
     loadedFiles$description <- rep("", dim(loadedFiles)[1])
     loadedFiles$table_name <- rep("", dim(loadedFiles)[1])
     
+    # set metadata
     if (any(dim(rv$data_files) == 0)) {
       rv$data_files <- loadedFiles
     } else {
       for (filename in loadedFiles$name) {
-        if (!grepl("\\.", filename)) {
+        if (!grepl(".\\.", filename)) {
           showNotification(
             paste(filename, "is a folder."),
             type = "warning"
           )
         } else {
+          browser()
           rv$data_files <- unique(rbind(
             rv$data_files,
             loadedFiles[loadedFiles$name == filename, ]
@@ -343,11 +348,16 @@ DataFiles <- function(input, output, session,
     savevar <- .saveDataFiles(savevar = savevar, rv = rv)
     
     # EMLAL templating function
+    if(length(dir(savevar$emlal$SelectDP$dp_metadata_path, pattern = "^attributes_")) > 0){
+      browser()
+    }
+    
     template_table_attributes(
       path = savevar$emlal$SelectDP$dp_metadata_path,
       data.path = savevar$emlal$SelectDP$dp_data_path,
       data.table = savevar$emlal$DataFiles$name
     )
+    browser()
   },
     priority = 1,
     ignoreInit = TRUE
