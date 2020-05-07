@@ -141,7 +141,7 @@ Attributes <- function(input, output, session,
     unitId = ""
   )
   rv$tables <- lapply(
-    rv$filepath, readDataTable,
+    rv$filepath, readDataTable, dev = globals$dev,
     data.table = FALSE, stringsAsFactors = FALSE
   )
   rv$current_table <- rv$tables[[rv$current_file]]
