@@ -201,7 +201,17 @@ DataFiles <- function(input, output, session,
         choiceNames = lapply(
           df$name,
           function(label) {
+            # Variable initialization
             id <- match(label, df$name)
+            xls.warning <- if(grepl("xlsx?$", label)) 
+              tags$div(
+                "Only the first sheet of Excel files will be read.",
+                style = "color: red"
+              )
+            else
+              NULL
+            
+            # Output
             collapsibleUI(
               id = ns(id),
               label = label,
@@ -225,6 +235,7 @@ DataFiles <- function(input, output, session,
                     )
                   ),
                 ),
+                xls.warning,
                 fluidRow(
                   column(
                     12,

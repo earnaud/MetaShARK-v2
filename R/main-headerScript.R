@@ -109,7 +109,7 @@
   } else {
     globals <- list(
       dev = dev,
-      THRESHOLDS = reactiveValues(data_files_size_max = 500000),
+      THRESHOLDS = reactiveValues(data_files_size_max = 5000000),
       DEFAULT.PATH = DP.PATH,
       HOME = HOME,
       PATHS = wwwPaths,
