@@ -648,45 +648,35 @@ Attributes <- function(input, output, session,
     req(globals$EMLAL$CURRENT == "Attributes")
 
     withProgress({
+      setProgress(0.5, "Saving metadata")
       
-      setProgress(0.1, "Saving metadata")
-      savevar <- .saveAttributes(savevar, rv)   
+      savevar <- saveReactive(
+        savevar = savevar, 
+        rv = c(Attributes = rv)
+      )
       
       # for each attribute data frame
-      setProgress(0.1, "Writing tables")
+      setProgress(0.8, "Resolving catvar templates")
       templateCatvars <- sapply(
         seq_along(rv$filenames),
         function(cur_ind) {
-          incProgress(0.4/length(rv$filenames))
-          
-          # write filled tables
-          path <- savevar$emlal$DataFiles$metadatapath[cur_ind]
-          table <- rv$tables[[cur_ind]]
-          fwrite(table, path, sep = "\t")
           
           # check for direction: CustomUnits or CatVars
-          . <- FALSE
-          if ("categorical" %in% rv$tables[[cur_ind]][, "class"]) {
-            . <- TRUE # categorical variables
-          }
-          return(.)
+          return(isTRUE("categorical" %in% rv$tables[[cur_ind]][, "class"]))
         }
       ) %>% unlist %>% any
       
       # EMLAL: template new fields if needed
-      setProgress(0.2, "Resolving catvar templates")
       if (isTRUE(templateCatvars)) {
-        dir(
-          savevar$emlal$SelectDP$dp_metadata_path, 
-          pattern = "catvar", full.names = TRUE
-        ) %>% file.remove
-        template_categorical_variables(
-          path = savevar$emlal$SelectDP$dp_metadata_path,
-          data.path = savevar$emlal$SelectDP$dp_data_path
+        try(
+          template_categorical_variables(
+            path = savevar$emlal$SelectDP$dp_metadata_path,
+            data.path = savevar$emlal$SelectDP$dp_data_path
+          )
         )
       }
       
-      setProgress(0.1, "Templating geographic coverage")
+      setProgress(0.9, "Templating geographic coverage")
       try(
         template_geographic_coverage(
           path = savevar$emlal$SelectDP$dp_metadata_path,
@@ -700,35 +690,9 @@ Attributes <- function(input, output, session,
         isolate(globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1)
       incProgress(0.1)
     })
-  },
-    priority = 1,
-    ignoreInit = TRUE
-  )
+  }, priority = 1, ignoreInit = TRUE)
   
   # Output -----------------------------------------------------
   return(savevar)
 }
 
-#' @importFrom shiny withProgress incProgress reactiveValues
-#' @importFrom data.table fwrite
-.saveAttributes <- function(savevar, rv){
-  # Write attribute tables
-  sapply(
-    seq_along(rv$filenames),
-    function(cur_ind) {
-      # write filled tables
-      path <- savevar$emlal$DataFiles$metadatapath[cur_ind]
-      table <- rv$tables[[cur_ind]]
-      fwrite(table, path, sep = "\t")
-    }
-  )
-  
-  # Write Custom units
-  if(checkTruth(rv$CU_Table))
-    fwrite(
-      rv$CU_Table,
-      paste0(savevar$emlal$SelectDP$dp_metadata_path, "/custom_units.txt")
-    )
-  
-  return(savevar)
-}

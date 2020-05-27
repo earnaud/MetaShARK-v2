@@ -144,25 +144,9 @@ Personnel <- function(input, output, session,
     req(globals$EMLAL$CURRENT == "Personnel")
     
     # save
-    savevar$emlal$Personnel <- rv$Personnel
-    
-    # prettify
-    cols <- c(
-      "givenName", "middleInitial", "surName", 
-      "organizationName", "electronicMailAddress", 
-      "userId", "role", 
-      "projectTitle", "fundingAgency", "fundingNumber"
-    )
-    personnel <- rv$Personnel[names(rv$Personnel) %in% cols]
-    
-    # write file
-    fwrite(
-      personnel,
-      paste0(
-        savevar$emlal$SelectDP$dp_metadata_path,
-        "/personnel.txt"
-      ),
-      sep = "\t"
+    savevar <- saveReactive(
+      savevar, 
+      rv = c(Personnel = rv)
     )
   }, ignoreInit = TRUE)
   
@@ -170,32 +154,16 @@ Personnel <- function(input, output, session,
   observeEvent(NSB$NEXT, {
     req(checkTruth(rv$Personnel))
     req(globals$EMLAL$CURRENT == "Personnel")
+    
+    savevar <- saveReactive(
+      savevar, 
+      rv = c(Personnel = rv)
+    )
     showNotification(
-      id = ns("writing"),
-      "Writing 'Personnel.txt'."
+      "Personnel has been written.",
+      type = "message"
     )
-    
-    # save
-    savevar$emlal$Personnel <- rv$Personnel
-    
-    # prettify
-    cols <- c(
-      "givenName", "middleInitial", "surName", 
-      "organizationName", "electronicMailAddress", 
-      "userId", "role", 
-      "projectTitle", "fundingAgency", "fundingNumber"
-    )
-    personnel <- rv$Personnel[names(rv$Personnel) %in% cols]
-    # write file
-    fwrite(
-      personnel,
-      paste0(
-        savevar$emlal$SelectDP$dp_metadata_path,
-        "/personnel.txt"
-      ), sep = "\t")
-  }, 
-    priority = 1,
-    ignoreInit = TRUE)
+  }, priority = 1, ignoreInit = TRUE)
   
   # Output -----------------------------------------------------
   return(savevar)

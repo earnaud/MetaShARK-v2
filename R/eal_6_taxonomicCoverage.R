@@ -198,11 +198,9 @@ TaxCov <- function(input, output, session,
         length(rv$taxa.name.type) > 0 &&
         length(rv$taxa.authority) > 0
     )
-    savevar$emlal$Taxcov <- reactiveValues(
-      taxa.table = rv$taxa.table,
-      taxa.col = rv$taxa.col,
-      taxa.name.type = rv$taxa.name.type,
-      taxa.authority = rv$taxa.authority
+    savevar <- saveReactive(
+      savevar, 
+      rv = c(TaxCov = rv)
     )
   })
   
@@ -241,18 +239,13 @@ TaxCov <- function(input, output, session,
     
     # Write files
     if (input$filled == "1") {
-      # edit template
-      withProgress({
-        # Remove existing template coverage file
-        file_location <- paste(
-          savevar$emlal$SelectDP$dp_metadata_path,
-          "/taxonomic_coverage.txt"
-        )
-        if (file.exists(file_location)) {
-          file.remove(file_location)
-        }
-        incProgress(1 / 3)
-        # Template coverage
+      savevar <- saveReactive(
+        savevar, 
+        rv = c(TaxCov = rv)
+      )
+      
+      # Template coverage
+      try(
         template_taxonomic_coverage(
           savevar$emlal$SelectDP$dp_metadata_path,
           savevar$emlal$SelectDP$dp_data_path,
@@ -261,12 +254,17 @@ TaxCov <- function(input, output, session,
           taxa.name.type = rv$taxa.name.type,
           taxa.authority = rv$taxa.authority
         )
-        incProgress(2 / 3)
-      },
-        message = "Writing Taxonomic coverage",
-        detail = "This step might be long ..."
+      )
+      showNotification(
+        "Taxonomic Coverage has been written.",
+        type = "message"
       )
     }
+    else
+      showNotification(
+        "Taxonomic Coverage has been skipped.",
+        type = "message"
+      )
   })
   
   # Output -----------------------------------------------------
