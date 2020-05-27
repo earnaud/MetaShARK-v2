@@ -226,19 +226,8 @@ CatVars <- function(input, output, session,
   observeEvent(NSB$NEXT, {
     req(globals$EMLAL$CURRENT == "Categorical Variables")
     
-    sapply(rv$catvarFiles, function(file_path){
-      file_name <- basename(file_path)
-      savevar$emlal$CatVars[[file_name]] <- rv[[file_name]]$CatVars
-      
-      .tmp <- savevar$emlal$CatVars[[file_name]]$code == ""
-      savevar$emlal$CatVars[[file_name]]$code[.tmp] <- "NA"
-      
-      fwrite(
-        savevar$emlal$CatVars[[file_name]],
-        file_path,
-        sep = "\t"
-      )
-    })
+    savevar <- saveReactive(savevar, rv = c(CatVars = rv))
+    
   }, priority = 1, ignoreInit = TRUE)
   
   # Output -----------------------------------------------------

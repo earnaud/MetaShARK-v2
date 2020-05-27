@@ -14,7 +14,6 @@
 #' @param test
 #' Logical. Is the application run with `{shinytest}`, or not. 
 #' Default to FALSE.
-#' 
 #'
 #' @param ... 
 #' options to pass to the application, ignored if missing or mistyped.
@@ -22,7 +21,8 @@
 #'   \item{dev}{Logical. Add development elements in the GUI.}
 #' }
 #'
-#' @details MetaShARK (METAdata SHiny Automated Resource & Knowledge) is a web app
+#' @details 
+#' MetaShARK (METAdata SHiny Automated Resource & Knowledge) is a web app
 #' which is designed to help its user as much as possible for filling ecological
 #' metadata. It uses the EML standard (cf. NCEAS work) to allow a full and
 #' precise description of input datasets.

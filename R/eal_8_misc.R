@@ -279,67 +279,12 @@ Misc <- function(input, output, session,
   observeEvent(NSB$NEXT, {
     req(globals$EMLAL$CURRENT == "Miscellaneous")
     
-    savevar <- .saveMisc(
-      savevar = savevar,
-      rv = rv
-    )
+    savevar <- saveReactive(savevar, rv = c(Misc = rv))
   },
     ignoreInit = TRUE,
     priority = 1
   )
   
   # Output -----------------------------------------------------
-  return(savevar)
-}
-
-.saveMisc <- function(savevar, rv){
-  withProgress({
-    savevar$emlal$Misc <- rv
-    
-    setProgress(
-      value = 0.25,
-      message = "Writing 'abstract.txt'."
-    )
-    write.text(
-      rv$abstract$content(),
-      rv$abstract$file
-    )
-    
-    setProgress(
-      value = 0.25,
-      "Writing 'methods.txt'."
-    )
-    write.text(
-      rv$methods$content(),
-      rv$methods$file
-    )
-    
-    setProgress(
-      value = 0.25,
-      "Writing 'keywords.txt'."
-    )
-    fwrite(
-      data.frame(
-        keyword = rv$keywords$keyword,
-        keywordThesaurus = rv$keywords$keywordThesaurus
-      ),
-      paste0(
-        savevar$emlal$SelectDP$dp_metadata_path,
-        "/keywords.txt"
-      ),
-      sep = "\t"
-    )
-    
-    setProgress(
-      value = 0.25,
-      "Writing 'additional_info.txt'."
-    )
-    write.text(
-      rv$additional_info$content(),
-      rv$additional_info$file
-    )
-  },
-    message = "Processing Miscellaneous.")
-  
   return(savevar)
 }

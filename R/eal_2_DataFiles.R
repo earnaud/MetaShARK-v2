@@ -326,88 +326,38 @@ DataFiles <- function(input, output, session,
   observeEvent(rv$data_files, {
     globals$EMLAL$COMPLETE_CURRENT <- checkTruth(rv$data_files) && all(dim(rv$data_files) != 0)
     req(globals$EMLAL$COMPLETE_CURRENT)
+    
     savevar$emlal$DataFiles <- rv$data_files
   })
   
   observeEvent(NSB$SAVE, {
     req(tail(globals$EMLAL$HISTORY,1) == "Data Files")
     req(isTruthy(rv$data_files$name))
-    savevar <- .saveDataFiles(savevar = savevar, rv = rv)
+    
+    savevar <- saveReactive(
+      savevar = savevar,
+      rv = c(DataFiles = rv)
+    )
   }, ignoreInit = TRUE)
   
   # Process files -----------------------------------------------------
   observeEvent(NSB$NEXT, {
     req(globals$EMLAL$CURRENT == "Data Files")
     
-    # -- copy files to <dp>_emldp/<dp>/data_objects
-    file.copy(
-      from = rv$data_files$datapath,
-      to = savevar$emlal$SelectDP$dp_data_path
-    )
-    
-    # -- modify paths in save variable
-    savevar <- .saveDataFiles(savevar = savevar, rv = rv)
+    # Save
+    savevar <- saveReactive(savevar, rv = c(DataFiles = rv))
     
     # EMLAL templating function
-    .attr.files <- dir(
-      savevar$emlal$SelectDP$dp_metadata_path, pattern = "^attributes_", 
-      full.names = TRUE
+    try(
+      template_table_attributes(
+        path = savevar$emlal$SelectDP$dp_metadata_path,
+        data.path = savevar$emlal$SelectDP$dp_data_path,
+        data.table = savevar$emlal$DataFiles$name
+      )
     )
-    if(length() > 0){
-      file.remove(.attr.files)
-    }
-    
-    template_table_attributes(
-      path = savevar$emlal$SelectDP$dp_metadata_path,
-      data.path = savevar$emlal$SelectDP$dp_data_path,
-      data.table = savevar$emlal$DataFiles$name
-    )
-  },
-    priority = 1,
-    ignoreInit = TRUE
-  )
+  }, priority = 1, ignoreInit = TRUE)
   
   # Output -----------------------------------------------------
   return(savevar)
 }
 
-.saveDataFiles <- function(savevar, rv){
-  tmp <- savevar$emlal$DataFiles
-  
-  if(!checkTruth(tmp))
-    tmp <- data.frame(
-      name = character(),
-      size = character(),
-      type = character(),
-      datapath = character()
-    )
-  
-  # -- Get files data
-  tmp$datapath <- paste0(
-    savevar$emlal$SelectDP$dp_data_path, 
-    "/", rv$data_files$name
-  )
-  
-  # -- set metadatapath
-  browser()
-  tmp$metadatapath <- paste(
-    savevar$emlal$SelectDP$dp_metadata_path,
-    sub(
-      "(.*)\\.[a-zA-Z0-9]*$",
-      "attributes_\\1.txt",
-      rv$data_files$name
-    ),
-    sep = "/"
-  )
-  
-  # Set table name
-  tmp$table_name <- rv$data_files$table_name
-  # Set description
-  tmp$description <- rv$data_files$description
-  # Set URL
-  tmp$url <- rv$data_files$url
-  
-  savevar$emlal$DataFiles <- tmp
-  
-  return(savevar)
-}

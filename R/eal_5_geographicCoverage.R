@@ -331,14 +331,15 @@ GeoCov <- function(input, output, session,
   observeEvent(NSB$SAVE, {
     req(tail(globals$EMLAL$HISTORY,1) == "Geographic Coverage")
     
-    df <- .saveGeoCov(rv)
-    savevar$emlal$GeoCov <- if(!is.null(df$columns)){
-      showNotification("Geographic coverage saved (columns)", type = "message")
-      return(df$columns)
-    } else if(!is.null(df$custom)){
-      showNotification("Geographic coverage saved (custom)", type = "message")
-      return(df$custom)
-    } else NULL
+    savevar <- saveReactive(
+      savevar, 
+      rv = c(GeoCov = rv),
+      .write = FALSE
+    )
+    showNotification(
+      "Geographic Coverage has been saved",
+      type = "message"
+    )
   }, ignoreInit = TRUE)
   
   # Process data -----------------------------------------------------
@@ -356,7 +357,6 @@ GeoCov <- function(input, output, session,
     choices <- c(
       "Columns selection" = if (rv$columns$complete) 1 else NULL,
       "Custom edition" = if (rv$custom$complete) 2 else NULL #,
-      # "No geographic coverage" = 0
     )
     
     req(isTruthy(choices))
@@ -390,56 +390,17 @@ GeoCov <- function(input, output, session,
     globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1
     NSB$tagList <- tagList()
     
-    df <- .saveGeoCov(rv)
-    savevar$emlal$GeoCov <- switch(input$method, 
-      `0` = df$default,
-      `1` = df$columns,
-      `2` = df$custom)
+    savevar <- saveReactive(
+      savevar, 
+      rv = c(GeoCov = rv)
+    )
     
-    # Write data
-    if (!is.null(savevar$emlal$GeoCov)) {
-      df <- savevar$emlal$GeoCov
-      fwrite(
-        df,
-        paste(
-          savevar$emlal$SelectDP$dp_metadata_path,
-          "geographic_coverage.txt",
-          sep = "/"
-        ),
-        sep = "\t"
-      )
-      showNotification(
-        "Geographic Coverage has been written.",
-        type = "message"
-      )
-    }
+    showNotification(
+      "Geographic Coverage has been written.",
+      type = "message"
+    )
   })
   
   # Output -----------------------------------------------------
   return(savevar)
-}
-
-#' @importFrom shiny reactiveValues
-.saveGeoCov <- function(rv){
-  df <- list(
-    default = NULL,
-    columns = if(rv$columns$complete)
-      data.frame(
-        geographicDescription = rv$columns$geographicDescription,
-        northBoundingCoordinate = rv$columns$northBoundingCoordinate,
-        southBoundingCoordinate = rv$columns$southBoundingCoordinate,
-        eastBoundingCoordinate = rv$columns$eastBoundingCoordinate,
-        westBoundingCoordinate = rv$columns$westBoundingCoordinate
-      ),
-    custom = if(rv$custom$complete)
-      data.frame(
-        geographicDescription = rv$custom$geographicDescription,
-        northBoundingCoordinate = rv$custom$northBoundingCoordinate,
-        southBoundingCoordinate = rv$custom$southBoundingCoordinate,
-        eastBoundingCoordinate = rv$custom$eastBoundingCoordinate,
-        westBoundingCoordinate = rv$custom$westBoundingCoordinate
-      )
-  )
-  
-  return(df)
 }
