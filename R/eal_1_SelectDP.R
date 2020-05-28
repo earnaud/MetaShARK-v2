@@ -401,7 +401,6 @@ SelectDP <- function(input, output, session,
     .savevar <- read_json(paste0(path, "/", dp,".json"))[[1]] %>%
       unserializeJSON
     savevar$emlal <- setSavevar(.savevar$emlal, savevar$emlal)
-    # savevar$emlal <- readRDS(paste0(path, "/", dp, ".rds"))$emlal
     
     # TODO remove this later : update history
     savevar$emlal$history <- sapply(savevar$emlal$history, function(h) {
@@ -467,4 +466,14 @@ SelectDP <- function(input, output, session,
   
   # Output -----------------------------------------------------
   return(savevar)
+}
+
+#' @describeIn SelectDPUI
+#' 
+#' Sets up a DP from a pre-written EML file.
+#' 
+#' @importFrom EML read_eml
+loadFromEALDP <- function(savevar, file){
+  loaded.eml <- read_eml(file)
+  
 }

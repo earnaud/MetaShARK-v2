@@ -7,10 +7,13 @@
 \usage{
 initReactive(sublist = NULL, savevar = NULL, glob)
 
-saveReactive(savevar)
+saveReactive(savevar, rv = NULL, .write = FALSE)
 }
 \arguments{
 \item{sublist}{either NULL, "emlal", "metafin" to precise which sublist to initialize (NULL initializes the whole variable)}
+}
+\value{
+`savevar` modified.
 }
 \description{
 EMLAL module specific function. Initialize `savevar` variable.
