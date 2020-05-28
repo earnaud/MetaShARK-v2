@@ -2,11 +2,19 @@
 % Please edit documentation in R/eal_1_SelectDP.R
 \name{SelectDPUI}
 \alias{SelectDPUI}
+\alias{loadFromEALDP}
 \title{Data Package selection}
 \usage{
 SelectDPUI(id, width = 12, dev = FALSE, server)
+
+loadFromEALDP(savevar, file)
 }
 \description{
 UI part for the Data Package selection. Allow the user to choose between
 creating a new data package or loading an existing one.
 }
+\section{Functions}{
+\itemize{
+\item \code{loadFromEALDP}: Sets up a DP from a pre-written EML file.
+}}
+
