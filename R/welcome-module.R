@@ -62,7 +62,7 @@ welcomeUI <- function(id) {
             Initiative (EDI). You can find further details on their 
             <a href=https://github.com/EDIorg/EMLassemblyline>git repository</a>.")
           ),
-          tags$img(src = "media/EDI-logo.png", width = "100px", height="100px")
+          tags$img(src = "media/edi_logo_small.png", width = "100px", height="100px")
         ),
         column(8,
           tags$h3("Usage"),

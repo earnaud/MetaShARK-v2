@@ -10,11 +10,15 @@ GeoCovUI <- function(id, title, dev, data.files, coordPattern) {
   return(
     fluidPage(
       fluidRow(
-        tags$p("This step is optional."),
+        tags$p("You can fill in geographic coverage through two
+          methods: either  by chosing columns from your file, or 
+          using the custom input UI. If both are filled, the software 
+          will prefer to save the columns, but on proceeding to next
+          step, the choice will be yours."),
         tags$p("Make sure all of your locations are stored in a
-            single file, under 3 columns: one for the site description
-            and two others for latitude and longitude. Southern latitude
-            and western longitude can be noted with negative values."),
+            single file, under 3 to 5 columns: one for the site description
+            and one or two others for latitude and longitude. Southern latitude
+            and western longitude shall be noted with negative values."),
         bsCollapse(
           id = ns("method"),
           bsCollapsePanel(
@@ -115,39 +119,25 @@ GeoCov <- function(input, output, session,
     fileChoices = character(),
     columns = reactiveValues(
       complete = FALSE,
-      geographicDescription = character(),
-      northBoundingCoordinate = numeric(),
-      southBoundingCoordinate = numeric(),
-      eastBoundingCoordinate = numeric(),
-      westBoundingCoordinate = numeric()
+      site.name = character(),
+      lat.col = character(),
+      lon.col = character()
     ),
     custom = reactiveValues(
       complete = FALSE,
       id = numeric(),
-      geographicDescription = character(),
-      northBoundingCoordinate = numeric(),
-      southBoundingCoordinate = numeric(),
-      eastBoundingCoordinate = numeric(),
-      westBoundingCoordinate = numeric()
+      coordinates = data.frame(
+        geographicDescription = character(),
+        northBoundingCoordinate = numeric(),
+        southBoundingCoordinate = numeric(),
+        eastBoundingCoordinate = numeric(),
+        westBoundingCoordinate = numeric(),
+        stringsAsFactors = FALSE
+      )
     )
   )
   
   # Pre-fill -----------------------------------------------------
-  saved_table <- fread(
-    paste0(savevar$emlal$SelectDP$dp_metadata_path, "/geographic_coverage.txt"),
-    data.table = FALSE, stringsAsFactors = FALSE
-  )
-  
-  # Retrieve geographic coverage
-  if (all(dim(saved_table) != 0)) {
-    savevar$emlal$GeoCov <- saved_table
-    NSB$tagList <- tags$p("Geographic coverage already set.")
-  }
-  else
-    NSB$tagList <- tagList()
-  
-  # Fill columns -----------------------------------------------------
-  
   # Prepare content
   data.files <- savevar$emlal$DataFiles$datapath
   data.content <- lapply(data.files, readDataTable, stringsAsFactors = FALSE)
@@ -172,159 +162,217 @@ GeoCov <- function(input, output, session,
   columns <- GeoCovColumn(data.content, data.files)
   columns.coordinates <- GeoCovColumn(data.content.coordinates, data.files)
   
-  # set selectInput choices
-  updateSelectInput(
-    session,
-    "site",
-    choices = c(None = "", columns)
-  )
-  
-  updateSelectizeInput(
-    session,
-    "latitude",
-    choices = columns.coordinates
-  )
-  updateSelectizeInput(
-    session,
-    "longitude",
-    choices = columns.coordinates
-  )
-  
-  # ** Site description -----------------------------------------------------
-  observeEvent(input$site, {
-    toRead <- input$site %>%
-      gsub(")$", "", .) %>%
-      strsplit(., " (", TRUE) %>%
-      unlist()
-    rv$columns$geographicDescription <- data.content[[toRead[2]]][[toRead[1]]]
-  })
-  
-  # ** Latitude -----------------------------------------------------
-  observeEvent(input$latitude,
-    {
-      # validity check
-      latCols <- input$latitude
-      validate(
-        need(latCols != "NA", "No valid column selected.")
-      )
-      
-      # initialize variables
-      latCols <- organizeCoordinates(latCols, data.content)
-      latPattern <- globals$PATTERNS$LATLON
-      latWarnings <- NULL
-      
-      # extract queried
-      tmp <- extractCoordinates(latCols, latPattern, latWarnings, c("N", "S"), rv)
-      rv <- tmp$rv
-      rv$warnings$latWarnings <- tmp$warnings
-    },
-    ignoreInit = TRUE,
-    priority = 1
-  )
-  
-  # displays warnings
-  output$`latitude-warning` <- renderText({
-    validate(
-      need(is.null(rv$warnings$latWarnings), rv$warnings$latWarnings)
-    )
-    return(NULL)
-  })
-  
-  # ** Longitude -----------------------------------------------------
-  observeEvent(input$longitude,
-    {
-      # validity check
-      lonCols <- input$longitude
-      validate(
-        need(lonCols != "NA", "No valid column selected.")
-      )
-      
-      # initialize variables
-      lonCols <- organizeCoordinates(lonCols, data.content)
-      lonPattern <- globals$PATTERNS$LATLON
-      lonWarnings <- NULL
-      
-      # extract queried
-      tmp <- extractCoordinates(lonCols, lonPattern, lonWarnings, c("E", "W"), rv)
-      rv <- tmp$rv
-      rv$warnings$lonWarnings <- tmp$warnings
-    },
-    ignoreInit = TRUE,
-    priority = 1
-  )
-  
-  # displays warnings
-  output$`longitude-warning` <- renderText({
-    validate(
-      need(is.null(rv$warnings$lonWarnings), rv$warnings$lonWarnings)
-    )
-    return(NULL)
-  })
-  
-  # * Update inputs -----------------------------------------------------
-  # define column choices according to selectInput
-  observe({
-    # Default: all choices availabe
-    fileChoices <- columns.coordinates
+  # * Read saved values ----
+  if(isTRUE(grepl("columns", names(savevar$emlal$GeoCov)))){
+    site.name <- savevar$emlal$GeoCov$columns$site.name
+    lat.col <- savevar$emlal$GeoCov$columns$lat.col
+    lon.col <- savevar$emlal$GeoCov$columns$lon.col
     
-    # If already a choice is done, reduce the choices available
-    if (length(input$latitude) >= 1 ||
-        length(input$longitude) >= 1) {
-      chosenFile <- gsub(".*\\((.*)\\)", "\\1", isolate(input$latitude))
-      fileChoices <- columns.coordinates[chosenFile]
+    if(any(grepl(site.name[1], columns)))
+      rv$columns$site.name <- site.name
+    if(any(grepl(lat.col[1], columns.coordinates)))
+      rv$columns$lat.col <- lat.col
+    if(any(grepl(lon.col[1], columns.coordinates)))
+      rv$columns$lon.col <- lon.col
+  }
+  if(isTRUE(grepl("custom", names(savevar$emlal$GeoCov)))){
+    saved_table <- savevar$emlal$GeoCov$custom$coordinates
+    if (all(dim(saved_table) != 0)) {
+      rv$custom$coordinates <- saved_table
+    }
+  }
+  
+  # * Initialize UI ----
+  observeEvent(names(input), {
+    if(length(rv$columns$site.name) > 0){
+      init.site.name <- paste(
+        rv$columns$site.name, 
+        collapse = "///"
+      )
+      names(init.site.name) <- rv$columns$site.name[1]
+    }
+    else
+      init.site.name <- c(None = "")
+    if(length(rv$columns$lat.col) > 0){
+      init.lat.col <- paste(
+        rv$columns$lat.col, 
+        collapse = "///"
+      )
+      names(init.lat.col) <- rv$columns$lat.col[1]
+    }
+    else
+      init.lat.col <- c(None = "")
+    if(length(rv$columns$lon.col) > 0){
+      init.lon.col <- paste(
+        rv$columns$lon.col, 
+        collapse = "///"
+      )
+      names(init.lon.col) <- rv$columns$lon.col[1]
+    }
+    else
+      init.lon.col <- c(None = "")
+    
+    updateSelectInput(
+      session,
+      "site",
+      choices = c(None = "", columns),
+      selected = init.site.name
+    )
+    updateSelectizeInput(
+      session,
+      "latitude",
+      choices = columns.coordinates,
+      selected = init.lat.col
+    )
+    updateSelectizeInput(
+      session,
+      "longitude",
+      choices = columns.coordinates,
+      selected = init.lon.col
+    )
+  }, ignoreInit = FALSE, once = TRUE)
+  
+  # Input management -----------------------------------------------------
+  {
+  # * Site description -----------------------------------------------------
+  observeEvent(input$site, {
+    if(length(input$site) == 0)
+      rv$columns$site.name <- NULL
+    
+    req(isTruthy(input$site))
+    
+    rv$columns$site.name <- input$site %>%
+      strsplit(., "///", TRUE) %>%
+      unlist
+    names(rv$columns$site.name) <- c("col","file")
+  }, ignoreInit = TRUE)
+  
+  # * Latitude -----------------------------------------------------
+  observeEvent(input$latitude, {
+    latCols <- input$latitude
+    
+    # validity check
+    if(length(latCols) == 0 ||
+        (is.character(latCols) && latCols == "NA")){
+      rv$columns$lat.col <- NULL
+      rv$fileChoices <- columns.coordinates
     }
     
-    rv$fileChoices <- fileChoices
-  })
+    # Update inputs. If already a choice is done, reduce the choices available
+    if (length(latCols) >= 1) {
+      rv$columns$lat.col <- strsplit(latCols, "///") %>% unlist
+      names(rv$columns$lat.col) <- c("col","file")
+      chosenFile <- rv$columns$lat.col[2]
+      rv$fileChoices <- columns.coordinates[chosenFile]
+    }
+  }, ignoreInit = TRUE, priority = 1, ignoreNULL = FALSE)
   
-  observe(
-    {
-      req(rv$fileChoices)
-      
-      isolate({
-        # Update inputs
-        updateSelectizeInput(
-          session,
-          "latitude",
-          choices = rv$fileChoices,
-          selected = input$latitude
-        )
-        updateSelectizeInput(
-          session,
-          "longitude",
-          choices = rv$fileChoices,
-          selected = input$longitude
-        )
-      })
-    },
-    # ignoreInit = TRUE, ignoreNULL = FALSE,
-    priority = 0
-  )
+  # * Longitude -----------------------------------------------------
+  observeEvent(input$longitude, {
+    lonCols <- input$longitude
+    
+    # validity check
+    if(length(lonCols) == 0 ||
+        (is.character(lonCols) && lonCols == "NA")){
+      rv$columns$lon.col <- NULL
+      rv$fileChoices <- columns.coordinates
+    }
+    
+    # Update inputs. If already a choice is done, reduce the choices available
+    if (length(lonCols) >= 1) {
+      rv$columns$lon.col <- strsplit(lonCols, "///") %>% unlist
+      names(rv$columns$lon.col) <- c("col","file")
+      chosenFile <- rv$columns$lon.col[2]
+      rv$fileChoices <- columns.coordinates[chosenFile]
+    }
+  }, ignoreInit = TRUE, priority = 1, ignoreNULL = FALSE)
   
+  # * Update inputs -----------------------------------------------------
+  observeEvent(rv$fileChoices, {
+    req(rv$fileChoices)
+    
+    up.lat.col <- rv$columns$lat.col
+    if(length(up.lat.col) > 0){
+      up.lat.col <- paste(
+        up.lat.col, 
+        collapse = "///"
+      )
+      names(up.lat.col) <- rv$columns$lat.col[1]
+    }
+    up.lon.col <- rv$columns$lon.col
+    if(length(up.lon.col) > 0){
+      up.lon.col <- paste(
+        up.lon.col, 
+        collapse = "///"
+      )
+      names(up.lon.col) <- rv$columns$lon.col[1]
+    }
+    
+    isolate({
+      updateSelectizeInput(
+        session,
+        "latitude",
+        choices = rv$fileChoices,
+        selected = up.lat.col
+      )
+      updateSelectizeInput(
+        session,
+        "longitude",
+        choices = rv$fileChoices,
+        selected = up.lon.col
+      )
+    })
+  }, priority = 0)
+  
+  # * Warnings ----
+  observeEvent(rv$warnings, {
+    browser()
+  }, ignoreInit = TRUE)
+  
+  }
   # Fill custom -----------------------------------------------------
+  # * Setup ----
+  if(dim(rv$custom$coordinates)[1] > 0){
+    sapply(1:nrow(rv$custom$coordinates), function(ind){
+      id <- -ind
+      rv$custom <- insertGeoCovInput(
+        as.numeric(id), # from -n to -1
+        rv$custom,
+        ns,
+        default = rv$custom$coordinates[ind]
+      )
+    })
+  }
+  
+  # * Manage input ----
   onclick("addui", {
     show("slider_tips")
-    rv$custom <- insertGeoCovInput(as.numeric(input$addui), rv$custom, ns)
+    rv$custom <- insertGeoCovInput(
+      as.numeric(input$addui), # from 1 to n
+      rv$custom,
+      ns
+    )
   })
   
   # Saves -----------------------------------------------------
-  observe({
-    rv$columns$complete <-isTruthy(rv$columns$geographicDescription) &&
-      isTruthy(rv$columns$northBoundingCoordinate) &&
-      isTruthy(rv$columns$southBoundingCoordinate) &&
-      isTruthy(rv$columns$eastBoundingCoordinate) &&
-      isTruthy(rv$columns$westBoundingCoordinate)
-  })
+  observeEvent({
+    rv$columns$site.name
+    rv$columns$lat.col
+    rv$columns$lon.col
+  },{
+    rv$columns$complete <-isTruthy(rv$columns$site.name) &&
+      isTruthy(rv$columns$lat.col) &&
+      isTruthy(rv$columns$lon.col)
+  }, ignoreNULL = FALSE)
   
-  observe({
-    rv$custom$complete <-isTruthy(rv$custom$geographicDescription) &&
-      isTruthy(rv$custom$northBoundingCoordinate) &&
-      isTruthy(rv$custom$southBoundingCoordinate) &&
-      isTruthy(rv$custom$eastBoundingCoordinate) &&
-      isTruthy(rv$custom$westBoundingCoordinate)
-  })
+  observeEvent(rv$custom$coordinates,{
+    rv$custom$complete <- checkTruth(rv$custom$coordinates)
+  }, ignoreNULL = FALSE)
   
-  observe({
+  observeEvent({
+    rv$columns$complete
+    rv$custom$complete
+  },{
     globals$EMLAL$COMPLETE_CURRENT <- any(rv$custom$complete, rv$columns$complete)
   })
   
@@ -332,9 +380,19 @@ GeoCov <- function(input, output, session,
     req(tail(globals$EMLAL$HISTORY,1) == "Geographic Coverage")
     
     savevar <- saveReactive(
-      savevar, 
-      rv = c(GeoCov = rv),
-      .write = FALSE
+      savevar,
+      rv = list(GeoCov = rv),
+      .method = if(isTRUE(rv$columns$complete))
+        "columns"
+      else if(isTRUE(rv$custom$complete))
+        "custom"
+      else
+        "",
+      .values = list(
+        data.content = data.content,
+        data.content.coordinates = data.content.coordinates
+      ),
+      globals = globals
     )
     showNotification(
       "Geographic Coverage has been saved",
@@ -343,6 +401,7 @@ GeoCov <- function(input, output, session,
   }, ignoreInit = TRUE)
   
   # Process data -----------------------------------------------------
+  # * Previous ----
   observeEvent(NSB$PREV, {
     req(globals$EMLAL$CURRENT == "Geographic Coverage")
     
@@ -350,13 +409,14 @@ GeoCov <- function(input, output, session,
       globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE - 1
   }, ignoreInit = TRUE)
   
+  # * Next ----
   observeEvent(NSB$NEXT, {
     req(globals$EMLAL$CURRENT == "Geographic Coverage")
     
     # Create modal
     choices <- c(
-      "Columns selection" = if (rv$columns$complete) 1 else NULL,
-      "Custom edition" = if (rv$custom$complete) 2 else NULL #,
+      "Columns selection" = if (rv$columns$complete) "columns" else NULL,
+      "Custom edition" = if (rv$custom$complete) "custom" else NULL #,
     )
     
     req(isTruthy(choices))
@@ -380,10 +440,7 @@ GeoCov <- function(input, output, session,
     )
     
     showModal(nextTabModal)
-  },
-    priority = 1,
-    ignoreInit = TRUE
-  )
+  }, priority = 1, ignoreInit = TRUE)
   
   onclick("confirm", {
     removeModal()
@@ -392,9 +449,14 @@ GeoCov <- function(input, output, session,
     
     savevar <- saveReactive(
       savevar, 
-      rv = c(GeoCov = rv)
+      rv = list(GeoCov = rv),
+      .method = input$method,
+      .values = list(
+        data.content = data.content,
+        data.content.coordinates = data.content.coordinates
+      ),
+      globals = globals
     )
-    
     showNotification(
       "Geographic Coverage has been written.",
       type = "message"

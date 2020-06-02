@@ -4,7 +4,9 @@
 #'
 #' @importFrom shiny NS fluidPage fluidRow column tagList tags actionButton
 #' @importFrom shinyjs hidden disabled
-TaxCovUI <- function(id, title, dev, data.files, taxa.authorities) {
+TaxCovUI <- function(
+  id, title, dev, data.files, taxa.authorities, default
+) {
   ns <- NS(id)
   
   return(
@@ -16,6 +18,8 @@ TaxCovUI <- function(id, title, dev, data.files, taxa.authorities) {
             ns("taxa.table"),
             "Files containing taxonomic references",
             choices = basename(data.files),
+            selected = if(default$taxa.table %in% basename(data.files))
+              unlist(default$taxa.table),
             multiple = TRUE
           ),
           # taxa columns
@@ -32,13 +36,20 @@ TaxCovUI <- function(id, title, dev, data.files, taxa.authorities) {
           checkboxGroupInput(
             ns("taxa.name.type"),
             "Select one or both taxonomic name notation",
-            c("scientific", "common")
+            c("scientific", "common"),
+            selected = if(default$taxa.name.type == "both")
+              c("scientific", "common")
+            else
+              default$taxa.name.type
           ),
           # taxa authority
           selectizeInput(
             ns("taxa.authority"),
             "Select taxonomic authority.ies",
             choices = taxa.authorities$authority,
+            selected = taxa.authorities %>% 
+              filter(id == default$taxa.authority) %>%
+              select(authority),
             multiple = TRUE
           )
         )
@@ -68,19 +79,22 @@ TaxCov <- function(input, output, session,
   
   # Variable Initialization -----------------------------------------------------
   rv <- reactiveValues(
+    taxa.table = character(), 
+    taxa.col = character(),
+    taxa.name.type = character(),
+    taxa.authority = character(),
     complete = FALSE
   )
   
+  if(sapply(printReactiveValues(savevar$emlal$TaxCov), checkTruth) %>% all){
+    rv$taxa.table <- savevar$emlal$TaxCov$taxa.table
+    rv$taxa.col <- savevar$emlal$TaxCov$taxa.col
+    rv$taxa.name.type <- savevar$emlal$TaxCov$taxa.authority
+    rv$taxa.authority <- savevar$emlal$TaxCov$taxa.authority
+  }
+  
   # observeEvent requires UI to be set
-  observeEvent(TRUE, {
-    req(isTruthy(names(input)) && 
-        isTruthy(savevar$emlal$Taxcov))
-    
-    rv$taxa.table <- savevar$emlal$Taxcov$taxa.table
-    rv$taxa.col <- savevar$emlal$Taxcov$taxa.col
-    rv$taxa.name.type <- savevar$emlal$Taxcov$taxa.name.type
-    rv$taxa.authority <- savevar$emlal$Taxcov$taxa.authority
-    
+  observeEvent(names(input), {
     updateVar <- rv$taxa.table
     updateSelectizeInput(
       session,
@@ -88,6 +102,7 @@ TaxCov <- function(input, output, session,
       selected = updateVar
     )
     
+    enable("taxa.col")
     updateVar <- rv$taxa.col
     updateSelectizeInput(
       session,
@@ -99,21 +114,21 @@ TaxCov <- function(input, output, session,
     if (isTRUE(updateVar == "both")) {
       updateVar <- c("scientific", "common")
     }
-    updateSelectizeInput(
+    updateCheckboxGroupInput(
       session,
       "taxa.name.type",
       selected = updateVar
     )
     
-    updateVar <- rv$taxa.authority
+    updateVar <- globals$FORMAT$AUTHORITIES %>%
+      filter(id == rv$taxa.authority) %>%
+      select(authority)
     updateSelectizeInput(
       session,
       "taxa.authority",
       selected = updateVar
     )
-  },
-    once = TRUE
-  )
+  },once = TRUE)
   
   # Taxonomic coverage input -----------------------------------------------------
   
@@ -141,17 +156,23 @@ TaxCov <- function(input, output, session,
       })
       names(taxa.col.list) <- input$taxa.table
       
+      updateVar <- if(savevar$emlal$TaxCov$taxa.col %in% taxa.col.list)
+        savevar$emlal$TaxCov$taxa.col
+      else
+        NULL
+      
       updateSelectizeInput(
         session,
         "taxa.col",
-        choices = taxa.col.list
+        choices = taxa.col.list,
+        selected = updateVar
       )
     }
     
     # save
     rv$taxa.table <- list(input$taxa.table)
     savevar$emlal$TaxCov$taxa.table <- rv$taxa.table
-  })
+  }, priority = -1)
   
   # Taxa columns to read
   observeEvent(input$taxa.col, {
@@ -178,10 +199,8 @@ TaxCov <- function(input, output, session,
   observeEvent(input$taxa.authority, {
     req(input$taxa.authority)
     
-    rv$taxa.authority <- input$taxa.authority
-    
     rv$taxa.authority <- globals$FORMAT$AUTHORITIES %>%
-      filter(authority == rv$taxa.authority) %>%
+      filter(authority %in% input$taxa.authority) %>%
       select(id) %>%
       unlist()
     savevar$emlal$TaxCov$taxa.authority <- rv$taxa.authority
@@ -198,11 +217,16 @@ TaxCov <- function(input, output, session,
         length(rv$taxa.name.type) > 0 &&
         length(rv$taxa.authority) > 0
     )
-    savevar <- saveReactive(
-      savevar, 
-      rv = c(TaxCov = rv)
-    )
   })
+  
+  observeEvent(NSB$SAVE, {
+    req(tail(globals$EMLAL$HISTORY,1) == "Taxonomic Coverage")
+    
+    savevar <- saveReactive(
+      savevar = savevar, 
+      rv = list(TaxCov = rv)
+    )
+  }, ignoreInit = TRUE)
   
   # Process data -----------------------------------------------------
   observeEvent(NSB$NEXT, {
@@ -241,7 +265,7 @@ TaxCov <- function(input, output, session,
     if (input$filled == "1") {
       savevar <- saveReactive(
         savevar, 
-        rv = c(TaxCov = rv)
+        rv = list(TaxCov = rv)
       )
       
       # Template coverage

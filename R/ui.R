@@ -34,7 +34,7 @@
             NULL
           }
         ),
-        title = tags$img(src="media/logo.png", width="200px", height="50px"),
+        title = tags$img(src="media/ms_logo_small.png", width="200px", height="50px"),
         titleWidth = menuWidth
       ),
       ## Menus -----------------------------------------------------

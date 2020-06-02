@@ -182,7 +182,8 @@ EMLAL <- function(input, output, session,
           id = ns(iteration),
           dev = globals$dev,
           data.files = savevar$emlal$DataFiles$datapath,
-          taxa.authorities = globals$FORMAT$AUTHORITIES
+          taxa.authorities = globals$FORMAT$AUTHORITIES,
+          default = savevar$emlal$TaxCov
         ),
         PersonnelUI(
           id = ns(iteration),

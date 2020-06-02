@@ -204,6 +204,7 @@ CatVars <- function(input, output, session,
   
   # Run observers
   observeEvent(rv$currentFile, {
+    req(rv$currentFile)
     sapply(rv[[rv$currentFile]]$obs, function(obs){
       obs$resume()
     })
@@ -211,23 +212,30 @@ CatVars <- function(input, output, session,
   
   # Saves -----------------------------------------------------
   observe({
-    complete <- sapply(basename(rv$catvarFiles), function(file_name){
-      all(sapply(rv[[file_name]]$CatVars$definition, isTruthy))
-    })
+    globals$EMLAL$COMPLETE_CURRENT <- all(
+      sapply(basename(rv$catvarFiles), function(file_name){
+        all(sapply(rv[[file_name]]$CatVars$definition, isTruthy))
+      })
+    )
+  })
+  
+  observeEvent(NSB$SAVE, {
+    req(tail(globals$EMLAL$HISTORY,1) == "Categorical Variables")
     
-    globals$EMLAL$COMPLETE_CURRENT <- all(complete)
-    
-    req(isTRUE(complete[rv$currentIndex]))
-    
-    savevar$emlal$CatVars[[rv$currentFile]] <- rv[[rv$currentFile]]$CatVars
+    savevar <- saveReactive(
+      savevar, 
+      rv = list(CatVars = rv)
+    )
   })
   
   # Process data -----------------------------------------------------
   observeEvent(NSB$NEXT, {
     req(globals$EMLAL$CURRENT == "Categorical Variables")
     
-    savevar <- saveReactive(savevar, rv = c(CatVars = rv))
-    
+    savevar <- saveReactive(
+      savevar, 
+      rv = list(CatVars = rv)
+    )
   }, priority = 1, ignoreInit = TRUE)
   
   # Output -----------------------------------------------------

@@ -77,25 +77,27 @@ DataFiles <- function(input, output, session,
   if (!isTruthy(unlist(savevar$emlal$DataFiles))) { # from create button in SelectDP
     rv$data_files <- data.frame()
   } else {
+    .ind <- which(file.exists(savevar$emlal$DataFiles$datapath))
+    savevar$emlal$DataFiles <- savevar$emlal$DataFiles[.ind,]
     rv$data_files <- savevar$emlal$DataFiles
     rv$files_list <- rv$data_files$name
   }
   
-  # Clean existing data files in data_object
-  if(isTruthy(rv$data_files$datapath)){
-    file.copy(
-      rv$data_files$datapath,
-      to = globals$TEMP.PATH
-    )
-    rv$data_files$datapath <- paste0(globals$TEMP.PATH, basename(rv$data_files$datapath))
-  }
-  
-  file.remove(
-    dir(
-      savevar$emlal$SelectDP$dp_data_path,
-      full.names = TRUE
-    )
-  )
+  # # Clean existing data files in data_object
+  # if(isTruthy(rv$data_files$datapath)){
+  #   file.copy(
+  #     rv$data_files$datapath,
+  #     to = globals$TEMP.PATH
+  #   )
+  #   rv$data_files$datapath <- paste0(globals$TEMP.PATH, basename(rv$data_files$datapath))
+  # }
+  # 
+  # file.remove(
+  #   dir(
+  #     savevar$emlal$SelectDP$dp_data_path,
+  #     full.names = TRUE
+  #   )
+  # )
   
   # Data file upload -----------------------------------------------------
   # * Add data files -----------------------------------------------------
@@ -152,7 +154,6 @@ DataFiles <- function(input, output, session,
     }
     
     # copies on the server
-    # if (isTRUE(server)) {
     withProgress({
       file.copy(
         rv$data_files$datapath, 
@@ -163,7 +164,6 @@ DataFiles <- function(input, output, session,
       rv$data_files$datapath <- paste0(globals$TEMP.PATH, rv$data_files$name)
       incProgress(0.2)
     }, message = "Downloading data files")
-    # }
     
     # variable modifications
     rv$files_list <- rv$data_files$name
@@ -271,6 +271,7 @@ DataFiles <- function(input, output, session,
     sapply(rv$data_files$name, function(id) {
       callModule(collapsible, id)
       ind <- match(id, rv$data_files$name)
+      
       # Data name
       observeEvent(input[[paste0(ind, "-dataName")]], {
         isolate(
@@ -336,7 +337,7 @@ DataFiles <- function(input, output, session,
     
     savevar <- saveReactive(
       savevar = savevar,
-      rv = c(DataFiles = rv)
+      rv = list(DataFiles = rv)
     )
   }, ignoreInit = TRUE)
   
@@ -345,7 +346,10 @@ DataFiles <- function(input, output, session,
     req(globals$EMLAL$CURRENT == "Data Files")
     
     # Save
-    savevar <- saveReactive(savevar, rv = c(DataFiles = rv))
+    savevar <- saveReactive(
+      savevar, 
+      rv = list(DataFiles = rv)
+    )
     
     # EMLAL templating function
     try(

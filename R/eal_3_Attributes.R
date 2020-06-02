@@ -621,7 +621,10 @@ Attributes <- function(input, output, session,
   observeEvent(NSB$SAVE, {
     req(tail(globals$EMLAL$HISTORY,1) == "Attributes")
     
-    savevar <- .saveAttributes(savevar, rv)
+    savevar <- saveReactive(
+      savevar = savevar,
+      rv = list(Attributes = rv)
+    )
   }, ignoreInit = TRUE)
   
   # en/disable buttons
@@ -652,7 +655,7 @@ Attributes <- function(input, output, session,
       
       savevar <- saveReactive(
         savevar = savevar, 
-        rv = c(Attributes = rv)
+        rv = list(Attributes = rv)
       )
       
       # for each attribute data frame

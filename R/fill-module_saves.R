@@ -1,3 +1,4 @@
+#'
 .saveDataFiles <- function(savevar, rv){
   tmp <- savevar$emlal$DataFiles
   
@@ -41,6 +42,10 @@
     to = savevar$emlal$SelectDP$dp_data_path
   )
   
+  rv$data_files$datapath <-paste0(
+    savevar$emlal$SelectDP$dp_data_path,
+    "/", rv$data_files$name
+  )
   return(savevar)
 }
 
@@ -77,6 +82,8 @@
     .tmp <- savevar$emlal$CatVars[[file_name]]$code == ""
     savevar$emlal$CatVars[[file_name]]$code[.tmp] <- "NA"
     
+    file.remove(file_path)
+    
     fwrite(
       savevar$emlal$CatVars[[file_name]],
       file_path,
@@ -87,30 +94,74 @@
   return(savevar)
 }
 
-#' @importFrom shiny reactiveValues
-.saveGeoCov <- function(savevar, rv, .write = TRUE){
-  savevar$emlal$GeoCov <- if(rv$columns$complete)
-      data.frame(
-        geographicDescription = rv$columns$geographicDescription,
-        northBoundingCoordinate = rv$columns$northBoundingCoordinate,
-        southBoundingCoordinate = rv$columns$southBoundingCoordinate,
-        eastBoundingCoordinate = rv$columns$eastBoundingCoordinate,
-        westBoundingCoordinate = rv$columns$westBoundingCoordinate
-      )
-  else if(rv$custom$complete)
-      data.frame(
-        geographicDescription = rv$custom$geographicDescription,
-        northBoundingCoordinate = rv$custom$northBoundingCoordinate,
-        southBoundingCoordinate = rv$custom$southBoundingCoordinate,
-        eastBoundingCoordinate = rv$custom$eastBoundingCoordinate,
-        westBoundingCoordinate = rv$custom$westBoundingCoordinate
-      )
-  else NULL
+#' @importFrom data.table fwrite
+.saveGeoCov <- function(
+  savevar, rv, .method = "columns", .values, globals){
   
+  geocov <- data.frame(
+    geographicDescription = character(),
+    northBoundingCoordinate = numeric(),
+    southBoundingCoordinate = numeric(),
+    eastBoundingCoordinate = numeric(),
+    westBoundingCoordinate = numeric()
+  )
+  
+  # GeoCov written if .method filled
+  if(.method == "columns"){
+    # reset
+    savevar$emlal$GeoCov <- reactiveValues()
+    savevar$emlal$GeoCov$columns <- rv$columns
+    
+    # Site
+    site <- rv$columns$site.name
+    .geographicDescription <- .values$data.content[[site["file"]]][[site["col"]]]
+    
+    # extract queried
+    tmp <- extractCoordinates(
+      rv,
+      "lat",
+      globals$PATTERNS$LATLON, 
+      .values$data.content
+    )
+    .northBoundingCoordinate <- tmp$coordinates$N
+    .southBoundingCoordinate <- tmp$coordinates$S
+    rv$warnings$latWarnings <- tmp$warnings
+    
+    tmp <- extractCoordinates(
+      rv,
+      "lon",
+      globals$PATTERNS$LATLON, 
+      .values$data.content
+    )
+    .eastBoundingCoordinate <- tmp$coordinates$E
+    .westBoundingCoordinate <- tmp$coordinates$W
+    rv$warnings$lonWarnings <- tmp$warnings
+    
+    # Final
+    geocov <- data.frame(
+      geographicDescription = .geographicDescription,
+      northBoundingCoordinate = .northBoundingCoordinate,
+      southBoundingCoordinate = .southBoundingCoordinate,
+      eastBoundingCoordinate = .eastBoundingCoordinate,
+      westBoundingCoordinate = .westBoundingCoordinate,
+      stringsAsFactors = FALSE
+    )
+  }
+  else if(.method == "custom"){
+    # save
+    savevar$emlal$GeoCov <- reactiveValues()
+    savevar$emlal$GeoCov$custom <- rv$custom
+    
+    # fill
+    geocov <- rv$custom$coordinates
+  }
   # Write data
-  if (!is.null(savevar$emlal$GeoCov) && isTRUE(.write)) {
+  if (!is.null(geocov) && 
+      .method != "" &&
+      all(dim(geocov) > 0)
+  ) {
     fwrite(
-      savevar$emlal$GeoCov,
+      geocov,
       paste(
         savevar$emlal$SelectDP$dp_metadata_path,
         "geographic_coverage.txt",
@@ -123,6 +174,47 @@
   return(savevar)
 }
 
+#' @importFrom shiny reactiveValues
+.saveTaxCov <- function(savevar, rv){
+  savevar$emlal$TaxCov <- reactiveValues(
+    taxa.table = rv$taxa.table,
+    taxa.col = rv$taxa.col,
+    taxa.name.type = rv$taxa.name.type,
+    taxa.authority = rv$taxa.authority
+  )
+  
+  return(savevar)
+}
+
+#' @importFrom data.table fwrite
+.savePersonnel <- function(savevar, rv){
+  # save
+  savevar$emlal$Personnel <- rv$Personnel
+  
+  # prettify
+  cols <- c(
+    "givenName", "middleInitial", "surName", 
+    "organizationName", "electronicMailAddress", 
+    "userId", "role", 
+    "projectTitle", "fundingAgency", "fundingNumber"
+  )
+  personnel <- rv$Personnel[names(rv$Personnel) %in% cols]
+  
+  # write file
+  fwrite(
+    personnel,
+    paste0(
+      savevar$emlal$SelectDP$dp_metadata_path,
+      "/personnel.txt"
+    ), 
+    sep = "\t"
+  )
+  
+  return(savevar)
+}
+
+#' @importFrom data.table fwrite
+#' @importFrom shiny withProgress setProgress incProgress
 .saveMisc <- function(savevar, rv){
   withProgress({
     savevar$emlal$Misc <- rv

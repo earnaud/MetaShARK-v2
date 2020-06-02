@@ -5,7 +5,7 @@
 \alias{GeoCovInput}
 \title{Geographic coverage modular Input}
 \usage{
-GeoCovInputUI(id, site_id, rmv_id)
+GeoCovInputUI(id, site_id, rmv_id, default = NULL)
 
 GeoCovInput(input, output, session, rv, rmv_id, site_id, ref)
 }
