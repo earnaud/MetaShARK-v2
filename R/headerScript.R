@@ -4,6 +4,7 @@
 .headerScript <- function() {
   rm(list = ls())
   options(shiny.reactlog = TRUE)
+  addResourcePath("media", system.file("media/", package = "MetaShARK"))
 }
 
 #' @title .globalScript

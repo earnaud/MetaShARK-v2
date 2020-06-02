@@ -26,18 +26,6 @@
     }, asis=TRUE)
   }
   
-  ## esthetics -----------------------------------------------------
-  output$logo <- renderImage({
-    list(
-      src = system.file("media/logo.png", package = "MetaShARK"),
-      contentType = "image/png",
-      width = "200px",
-      height = "50px"
-    )
-  },
-    deleteFile = FALSE
-  )
-
   # Head bar server -----------------------------------------------------
   # Options
   observeEvent(input$appOptions, {
@@ -55,7 +43,7 @@
   observeEvent(input$side_menu, {
     savevar <- switch(input$side_menu,
       # welcome
-      welcome = callModule(welcome, "welcome"),
+      # welcome = callModule(welcome, "welcome"),
       # fill
       fill = callModule(fill, "fill", globals, server),
       # upload

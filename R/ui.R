@@ -34,7 +34,7 @@
             NULL
           }
         ),
-        title = span(imageOutput("logo", inline = TRUE)),
+        title = tags$img(src="media/logo.png", width="200px", height="50px"),
         titleWidth = menuWidth
       ),
       ## Menus -----------------------------------------------------
