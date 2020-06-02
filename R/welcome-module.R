@@ -62,10 +62,7 @@ welcomeUI <- function(id) {
             Initiative (EDI). You can find further details on their 
             <a href=https://github.com/EDIorg/EMLassemblyline>git repository</a>.")
           ),
-          tags$div(
-            imageOutput(ns("edi-logo"), width = "100px", height = "100px"),
-            class = "logo"
-          )
+          tags$img(src = "media/EDI-logo.png", width = "100px", height="100px")
         ),
         column(8,
           tags$h3("Usage"),
@@ -87,17 +84,5 @@ welcomeUI <- function(id) {
         ) # end about 
       )
     )
-  )
-}
-
-welcome <- function(input, output, session){
-  output$`edi_logo` <- renderImage({
-    list(
-      src = system.file("media/EDI-logo.png", package = "MetaShARK"),
-      contentType = "image/png",
-      width = "100%",
-      height = "100%"
-    )},
-    deleteFile = FALSE
   )
 }

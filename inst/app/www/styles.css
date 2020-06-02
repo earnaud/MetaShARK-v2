@@ -1,3 +1,24 @@
+/* -- Overwrite -- */
+
+img {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+p {
+  text-align: justify;
+}
+
+textarea {
+  min-width: 30%;
+  max-width: 100%;
+  min-height: 35px;
+  max-height: 350px;
+}
+
+/* -- ID -- */
+
 #docSidePanel {
 	overflow-y: scroll;
 	max-height: 800px;
@@ -11,14 +32,22 @@
   max-height: calc(100% - 70px);
   overflow-y: scroll;
 }
-/* body > div > div.wrapper > div > section */
 
-p {
-  text-align: justify;
+/* -- Classes -- */
+
+.danger {
+  color: white;
+  background-color: red;
 }
 
-.redButton {
-	color: red;
+.disclaimer {
+  font-weight: bold;
+}
+
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .inputBox {
@@ -27,11 +56,9 @@ p {
 	padding: 5px;
 }
 
-.logo {
-	display: block;
-	margin-left: auto;
-	margin-right: auto;
-	width: 100px;
+.leftMargin {
+  border-left: solid lightgrey; 
+  padding: 20px;
 }
 
 .navSidebar {
@@ -41,24 +68,8 @@ p {
   padding: 0;
 }
 
-.leftMargin {
-  border-left: solid lightgrey; 
-  padding: 20px;
-}
-
-.danger {
-  color: white;
-  background-color: red;
-}
-
-.valid {
-  color: green;
-}
-
-.ellipsis {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.redButton {
+	color: red;
 }
 
 .text-title {
@@ -67,13 +78,6 @@ p {
   text-align:center;
 }
 
-.disclaimer {
-  font-weight: bold;
-}
-
-textarea {
-  min-width: 30%;
-  max-width: 100%;
-  min-height: 35px;
-  max-height: 350px;
+.valid {
+  color: green;
 }
