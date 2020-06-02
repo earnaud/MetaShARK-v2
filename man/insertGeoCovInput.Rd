@@ -4,7 +4,7 @@
 \alias{insertGeoCovInput}
 \title{insertGeoCovInput}
 \usage{
-insertGeoCovInput(id, rv, ns)
+insertGeoCovInput(id, rv, ns, default = NULL)
 }
 \description{
 Leads all the process of rendering a GeoCovInput

@@ -34,7 +34,7 @@ initReactive <- function(sublist = NULL, savevar = NULL, glob) {
       ),
       DataFiles = data.frame(),
       CatVars = reactiveValues(),
-      GeoCov = data.frame(),
+      GeoCov = reactiveValues(),
       TaxCov = reactiveValues(
         taxa.table = NULL,
         taxa.col = NULL,
@@ -91,87 +91,88 @@ initReactive <- function(sublist = NULL, savevar = NULL, glob) {
 #' 
 #' @importFrom shiny withProgress incProgress
 #' @importFrom jsonlite write_json serializeJSON
-saveReactive <- function(savevar, rv = NULL, .write = FALSE) {
-  # Write provided rv
-  if(!is.null(rv)){
-    if(is.null(names(rv)))
-      message("No module name! Give it as a name for `rv`.")
-    else {
-      rv <- rv[1]
-      
-      if(names(rv == "DataFiles")) {
-        savevar <- .saveDataFiles(
-          savevar = savevar, 
-          rv = rv[[1]]
-        )
-      } 
-      if(names(rv == "Attributes")) {
-        savevar <- .saveAttributes(
-          savevar = savevar, 
-          rv = rv[[1]]
-        )
-      } 
-      if(names(rv == "CatVars")) {
-        savevar <- .saveCatVars(
-          savevar = savevar, 
-          rv = rv[[1]]
-        )
-      } 
-      if(names(rv == "GeoCov")) {
-        savevar <- .saveGeoCov(
-          savevar = savevar,
-          rv = rv[[1]],
-          .write = .write
-        )
-      } 
-      if(names(rv == "TaxCov")) {
-        savevar$emlal$TaxCov <- reactiveValues(
-          taxa.table = rv$taxa.table,
-          taxa.col = rv$taxa.col,
-          taxa.name.type = rv$taxa.name.type,
-          taxa.authority = rv$taxa.authority
-        )
-      } 
-      if(names(rv == "Personnel")) {
-        # save
-        savevar$emlal$Personnel <- rv$Personnel
+saveReactive <- function(
+  savevar, 
+  rv = NULL, 
+  .method = "",
+  .values = c(),
+  globals = NULL
+){
+  withProgress({
+    setProgress(1/3, "Module save")
+    
+    # Write provided rv
+    if(!is.null(rv)){
+      if(is.null(names(rv)))
+        message("No module name! Give it as a name for `rv`.")
+      else {
+        rv <- rv[1]
         
-        # prettify
-        cols <- c(
-          "givenName", "middleInitial", "surName", 
-          "organizationName", "electronicMailAddress", 
-          "userId", "role", 
-          "projectTitle", "fundingAgency", "fundingNumber"
-        )
-        personnel <- rv$Personnel[names(rv$Personnel) %in% cols]
-       
-        # write file
-        fwrite(
-          personnel,
-          paste0(
-            savevar$emlal$SelectDP$dp_metadata_path,
-            "/personnel.txt"
-          ), sep = "\t")
-      } 
-      if(names(rv == "Misc")) {
-        savevar <- .saveMisc(
-          savevar = savevar,
-          rv = rv
-        )
-      } 
+        if(names(rv) == "DataFiles") {
+          savevar <- .saveDataFiles(
+            savevar = savevar, 
+            rv = rv[[1]]
+          )
+        } 
+        if(names(rv) == "Attributes") {
+          savevar <- .saveAttributes(
+            savevar = savevar, 
+            rv = rv[[1]]
+          )
+        } 
+        if(names(rv) == "CatVars") {
+          savevar <- .saveCatVars(
+            savevar = savevar, 
+            rv = rv[[1]]
+          )
+        } 
+        if(names(rv) == "GeoCov") {
+          savevar <- .saveGeoCov(
+            savevar = savevar,
+            rv = rv[[1]],
+            .method = .method,
+            .values = .values,
+            globals = globals
+          )
+        } 
+        if(names(rv) == "TaxCov") {
+          savevar <- .saveTaxCov(
+            savevar = savevar,
+            rv = rv[[1]]
+          )
+        } 
+        if(names(rv) == "Personnel") {
+          savevar <- .savePersonnel(
+            savevar = savevar,
+            rv = rv[[1]]
+          )
+        } 
+        if(names(rv) == "Misc") {
+          savevar <- .saveMisc(
+            savevar = savevar,
+            rv = rv[[1]]
+          )
+        } 
+      }
     }
-  }
+    
+    setProgress(2/3, "Global save")
+    
+    # Save JSON
+    path <- savevar$emlal$SelectDP$dp_path
+    filename <- savevar$emlal$SelectDP$dp_name
+    location <- paste0(path, "/", filename, ".json")
+    if (file.exists(location))
+      file.remove(location)
+    write_json(
+      serializeJSON(listReactiveValues(savevar)),
+      location
+    )
+    
+    incProgress(1/3)
+  })
   
-  # Save JSON
-  path <- savevar$emlal$SelectDP$dp_path
-  filename <- savevar$emlal$SelectDP$dp_name
-  location <- paste0(path, "/", filename, ".json")
-  if (file.exists(location))
-    file.remove(location)
-  write_json(
-    serializeJSON(listReactiveValues(savevar)),
-    location
-  )
+  showNotification("Saved !", duration = 1.5, type = "message")
   
   return(savevar)
 }

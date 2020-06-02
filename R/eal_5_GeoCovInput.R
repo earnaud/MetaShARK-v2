@@ -6,16 +6,34 @@
 #' @importFrom shiny NS fluidPage fluidRow column tagList tags actionButton
 #' @importFrom shinyjs hidden
 # @importFrom shinyBS bsTooltip
-GeoCovInputUI <- function(id, site_id, rmv_id) {
+GeoCovInputUI <- function(id, site_id, rmv_id, default = NULL) {
   ns <- NS(id)
   
   div_id <- id
+  
+  if(!is.null(default)){
+    default = as.vector(default)
+    def.site <- default["geographicDescription"]
+    def.lat <- c(
+      default["northBoundingCoordinate"],
+      default["southBoundingCoordinate"]
+    )
+    def.lon <- c(
+      default["eastBoundingCoordinate"],
+      default["westBoundingCoordinate"]
+    )
+  }
+  else {
+    def.site <- ""
+    def.lat <- c(-45,45)
+    def.lon <- c(-90,90)
+  }
   
   tags$div(
     id = site_id,
     fluidRow(
       column(2, "Description", style = "text-align: right"),
-      column(9, textInput(ns("site_description"), "", site_id)),
+      column(9, textInput(ns("site_description"), def.site, site_id)),
       column(1,
         actionButton(
           ns(rmv_id),
@@ -32,7 +50,7 @@ GeoCovInputUI <- function(id, site_id, rmv_id) {
           ns(paste0("lat_", site_id)),
           tags$h4("Latitude"),
           min = -90, max = 90,
-          value = c(-45, 45),
+          value = def.lat,
           step = 0.01
         ),
         fluidRow(
@@ -46,7 +64,7 @@ GeoCovInputUI <- function(id, site_id, rmv_id) {
           ns(paste0("lon_", site_id)),
           tags$h4("Longitude"),
           min = -180, max = 180,
-          value = c(-90, 90),
+          value = def.lon,
           step = 0.01
         ),
         fluidRow(
@@ -122,9 +140,9 @@ GeoCovInput <- function(input, output, session,
       
       # print values into rv at selected index
       actualValues <- printReactiveValues(localRV)
-      sapply(names(rv), function(rvid) {
-        rv[[rvid]][ind] <- actualValues[rvid]
-      })
+      rv$id <- c(rv$id, actualValues["id"])
+      actualValues <- actualValues[names(actualValues) != "id"]
+      rv$coordinates[ind,] <- actualValues[colnames(rv$coordinates)]
     },
     ignoreInit = TRUE,
     priority = 0
@@ -137,9 +155,8 @@ GeoCovInput <- function(input, output, session,
     
     # unload the UI
     ind <- match(ref, rv$id)
-    sapply(names(rv), function(rvid) {
-      rv[[rvid]] <- rv[[rvid]][-ind]
-    })
+    rv$coordinates <- rv$coordinates[-ind,]
+    rv$id <- rv$id[-ind]
   })
   
   # Output -----------------------------------------------------
@@ -153,7 +170,9 @@ GeoCovInput <- function(input, output, session,
 #'
 #' @importFrom dplyr bind_rows
 #' @importFrom shiny callModule
-insertGeoCovInput <- function(id, rv, ns) {
+insertGeoCovInput <- function(
+  id, rv, ns, default = NULL
+) {
   # !!! warning: rv = rv$custom here !!!
   
   # initialize IDs -----------------------------------------------------
@@ -163,7 +182,7 @@ insertGeoCovInput <- function(id, rv, ns) {
   
   # Proper module server -----------------------------------------------------
   # create the UI
-  newUI <- GeoCovInputUI(ns(div_id), site_id, rmv_id)
+  newUI <- GeoCovInputUI(ns(div_id), site_id, rmv_id, default = default)
   
   # insert the UI
   insertUI(selector = "#inserthere", ui = newUI)
@@ -185,7 +204,7 @@ GeoCovColumn <- function(data.content, data.files) {
   columns <- lapply(
     names(data.content),
     function(data.filename) {
-      tmp <- paste0(colnames(data.content[[data.filename]]), " (", data.filename, ")")
+      tmp <- paste0(colnames(data.content[[data.filename]]), "///", data.filename)
       names(tmp) <- colnames(data.content[[data.filename]])
       return(tmp)
     }
@@ -194,28 +213,38 @@ GeoCovColumn <- function(data.content, data.files) {
   return(columns)
 }
 
-#' @title organizeCoordinates
-organizeCoordinates <- function(coordCols, filesData) {
-  # initialize variables
-  coordCols <- lapply(coordCols, function(col) {
-    tmp <- gsub(")", "", col) %>%
-      strsplit(., " (", TRUE) %>%
-      unlist(., recursive = FALSE)
-    return(
-      filesData[[tmp[2]]][[tmp[1]]]
-    )
-  })
-}
-
 #' @title extractCoordinates
 #'
 #' @importFrom stringr str_extract_all
-extractCoordinates <- function(coordCols, Pattern, localWarnings, coordTags, rv) {
+extractCoordinates <- function(
+  rv,
+  coordCols, 
+  .pattern, 
+  filesData
+) {
+  # initialize variables
+  localWarnings <- c()
+
+  if(coordCols == "lat"){
+    coordCols <- rv$columns$lat.col
+    coordTags <- c("N","S")
+  }
+  if(coordCols == "lon"){
+    coordCols <- rv$columns$lon.col
+    coordTags <- c("E","W")
+  }
+  
+  coordCols <- lapply(coordCols, function(col) {
+    return(
+      filesData[[coordCols[2]]][[coordCols[1]]]
+    )
+  })
+  
   # Extract proper coordinates
   coordinates <- lapply(
     coordCols,
     str_extract_all,
-    Pattern,
+    .pattern,
     simplify = TRUE
   ) %>% # uniformize decimal separators
     lapply(.,
@@ -223,7 +252,9 @@ extractCoordinates <- function(coordCols, Pattern, localWarnings, coordTags, rv)
       pattern = ",",
       replacement = "."
     ) %>%
-    as.data.frame(., stringsAsFactors = FALSE)
+    as.data.frame(.,
+      stringsAsFactors = FALSE
+    )
   coordinates[] <- lapply(coordinates, as.numeric)
   
   # Check for having only two columns
@@ -231,7 +262,8 @@ extractCoordinates <- function(coordCols, Pattern, localWarnings, coordTags, rv)
     coordinates <- coordinates[, 1:2]
     localWarnings <- c(
       localWarnings,
-      "One of your column provides more than one coordinate per row. This might be a range. Only the two first values have been kept."
+      "One of your column provides more than one coordinate per row. This might 
+      be a range. Only the two first values have been kept."
     )
   }
   
@@ -239,7 +271,8 @@ extractCoordinates <- function(coordCols, Pattern, localWarnings, coordTags, rv)
     coordinates <- cbind(coordinates, coordinates)
     localWarnings <- c(
       localWarnings,
-      "Only one column has been provided: coordinates are considered as representing single sites."
+      "Only one column has been provided: coordinates are considered as 
+      representing single sites."
     )
   }
   
@@ -252,25 +285,15 @@ extractCoordinates <- function(coordCols, Pattern, localWarnings, coordTags, rv)
         coordinates[, 1] <= coordinates[, 2],
         ])
     
-    # Rename columns
     colnames(coordinates) <- coordTags
     if (all(coordinates[, 1] <= coordinates[, 2])) {
       colnames(coordinates) <- rev(coordTags)
-    }
-    
-    if (identical(coordTags, c("N", "S"))) {
-      rv$columns$northBoundingCoordinate <- coordinates$N
-      rv$columns$southBoundingCoordinate <- coordinates$S
-    }
-    if (identical(coordTags, c("E", "W"))) {
-      rv$columns$eastBoundingCoordinate <- coordinates$E
-      rv$columns$westBoundingCoordinate <- coordinates$W
     }
   }
   
   return(
     list(
-      rv = rv,
+      coordinates = coordinates,
       warnings = paste(localWarnings, collapse = " ")
     )
   )

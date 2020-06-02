@@ -215,18 +215,6 @@ onSave <- function(input, output, session, savevar, NSB) {
     NSB$SAVE <- NSB$SAVE+1
   })
   
-  observeEvent(NSB$SAVE, {
-    withProgress({
-      incProgress(0.1)
-      endisableNSB(input, disable)
-      incProgress(0.1)
-      saveReactive(savevar)
-      incProgress(0.7)
-      endisableNSB(input, enable)
-      incProgress(0.1)
-    }, message = "Saving metadata ...")
-  }, priority = -1, ignoreInit = TRUE)
-  
   return(NSB)
 }
 
@@ -255,7 +243,7 @@ nextTab <- function(input, output, session,
     }
     NSB$NEXT <- NSB$NEXT+1
     endisableNSB(input, enable)
-    disable("nextTab")
+    # disable("nextTab")
   })
   
   return(NSB)

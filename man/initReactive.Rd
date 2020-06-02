@@ -7,7 +7,7 @@
 \usage{
 initReactive(sublist = NULL, savevar = NULL, glob)
 
-saveReactive(savevar, rv = NULL, .write = FALSE)
+saveReactive(savevar, rv = NULL, .method = "", .values = c(), globals = NULL)
 }
 \arguments{
 \item{sublist}{either NULL, "emlal", "metafin" to precise which sublist to initialize (NULL initializes the whole variable)}

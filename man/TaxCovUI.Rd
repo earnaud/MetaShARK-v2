@@ -4,7 +4,7 @@
 \alias{TaxCovUI}
 \title{Taxonomic coverage}
 \usage{
-TaxCovUI(id, title, dev, data.files, taxa.authorities)
+TaxCovUI(id, title, dev, data.files, taxa.authorities, default)
 }
 \description{
 UI part for the Taxonomic Coverage module

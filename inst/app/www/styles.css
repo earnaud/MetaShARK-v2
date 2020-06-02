@@ -52,8 +52,20 @@ textarea {
 
 .inputBox {
 	border: 1px solid lightgrey;
+	border-radius: 10px;
 	margin: 5px;
-	padding: 5px;
+	padding: 0;
+}
+
+.topInputRow {
+  background-color: #eee;
+  border-radius: 10px 10px 0 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .leftMargin {

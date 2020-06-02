@@ -12,7 +12,14 @@ MiscUI <- function(id, title, dev, savevar, server) {
     paste0(savevar$emlal$SelectDP$dp_metadata_path, "/keywords.txt"),
     data.table = FALSE, stringsAsFactors = FALSE
   )
-  
+  if(checkTruth(keywords)){
+    kw <- keywords$keyword %>%
+      strsplit(split = ",") %>%
+      unlist %>%
+      paste(collapse = ",")
+  }
+
+    
   return(
     fluidPage(
       fluidRow(
@@ -234,8 +241,8 @@ Misc <- function(input, output, session,
   })
   
   # * Temporal coverage ====
-  if (!is.null(savevar$emlal$temporal_coverage)) {
-    rv$temporal_coverage <- savevar$emlal$temporal_coverage
+  if (!is.null(savevar$emlal$Misc$temporal_coverage)) {
+    rv$temporal_coverage <- savevar$emlal$Misc$temporal_coverage
     updateDateRangeInput(
       session,
       "temporal_coverage",
@@ -269,9 +276,9 @@ Misc <- function(input, output, session,
   observeEvent(NSB$SAVE, {
     req(globals$EMLAL$CURRENT == "Miscellaneous")
     
-    savevar <- .saveMisc(
+    savevar <- saveReactive(
       savevar = savevar,
-      rv = rv
+      rv = list(Misc = rv)
     )
   }, ignoreInit = TRUE)
   
@@ -279,11 +286,10 @@ Misc <- function(input, output, session,
   observeEvent(NSB$NEXT, {
     req(globals$EMLAL$CURRENT == "Miscellaneous")
     
-    savevar <- saveReactive(savevar, rv = c(Misc = rv))
-  },
-    ignoreInit = TRUE,
-    priority = 1
-  )
+    savevar <- saveReactive(
+      savevar = savevar, 
+      rv = list(Misc = rv))
+  }, priority = 1, ignoreInit = TRUE)
   
   # Output -----------------------------------------------------
   return(savevar)

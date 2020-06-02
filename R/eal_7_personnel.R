@@ -145,8 +145,8 @@ Personnel <- function(input, output, session,
     
     # save
     savevar <- saveReactive(
-      savevar, 
-      rv = c(Personnel = rv)
+      savevar = savevar, 
+      rv = list(Personnel = rv)
     )
   }, ignoreInit = TRUE)
   
@@ -157,7 +157,7 @@ Personnel <- function(input, output, session,
     
     savevar <- saveReactive(
       savevar, 
-      rv = c(Personnel = rv)
+      rv = list(Personnel = rv)
     )
     showNotification(
       "Personnel has been written.",
@@ -228,137 +228,151 @@ PersonnelModUI <- function(id, div_id, site_id, rmv_id,
   tags$div(
     id = site_id,
     fluidRow(
-      style = "inputBox",
       class = "inputBox",
       # Form -----------------------------------------------------
-      column(11,
-        tagList(
-          # * Basic identity -----------------------------------------------------
-          fluidRow(
-            column(4,
-              textInput(
-                ns("givenName"),
-                label = with_red_star("First name"),
-                value = if(!is.null(value)) value$givenName else ""
-              )
-            ),
-            column(4,
-              textInput(
-                ns("middleInitial"),
-                label = "Middle initial",
-                value = if(!is.null(value)) value$middleInitial else ""
-              )
-            ),
-            column(4,
-              textInput(
-                ns("surName"),
-                label = with_red_star("Last name"),
-                value = if(!is.null(value)) value$surName else ""
-              )
-            )
-          ), # end of fluidRow 1
-          # * Contact -----------------------------------------------------
-          fluidRow(
-            column(8,
-              textInput(
-                ns("organizationName"),
-                label = with_red_star("Name of organization the person is associated with."),
-                value = if(!is.null(value)) value$organizationName else ""
-              )
-            ),
-            column(4,
-              textInput(
-                ns("electronicMailAddress"),
-                label = with_red_star("Email address"),
-                value = if(!is.null(value)) value$electronicMailAddress else ""
-              )
-            )
-          ), # end of fluidRow 2
-          # * (ORCID) Personnel identification -----------------------------------------------------
-          fluidRow(
-            column(4,
-              textInput(
-                ns("userId"),
-                label = "ORCID",
-                value = if(!is.null(value)) value$userId else ""
-              )
-            ),
-            column(4,
-              if (is.null(role)) {
-                selectInput(
-                  ns("role"),
-                  c("creator", "PI (principal investigator)", "contact", "(other)"),
-                  label = with_red_star("Role"),
+      # column(11,
+      tagList(
+        # * (ORCID) Personnel identification -----------------------------------------------------
+        fluidRow(
+          class = "topInputRow",
+          column(3,
+            if (is.null(role)) {
+              selectInput(
+                ns("role"),
+                c("creator", "PI (principal investigator)", "contact", "(other)"),
+                label = with_red_star("Role"),
                 selected = if(!is.null(value)) {
                   if(value$role %in% c("creator", "PI (principal investigator)", "contact"))
                     value$role
                   else
                     "(other)"
                 } else ""
-                )
-              } else {
-                tags$b(role)
-              }
-            ),
-            column(4,
-              hidden(
-                div(
-                  id = ns("role-other"),
-                  textInput(
-                    ns("role-other"),
-                    label = "Title of the custom role",
-                    value = if(!is.null(value) &&
-                        !value$role %in% c("creator", "PI (principal investigator)", "contact")) {
-                      value$role 
-                    } else ""
-                  )
+              )
+            } else {
+              tags$b(paste("Role: ", role))
+            }
+          ),
+          column(4,
+            hidden(
+              div(
+                id = ns("role-other"),
+                textInput(
+                  ns("role-other"),
+                  label = "Title of the custom role",
+                  value = if(!is.null(value) &&
+                      !value$role %in% c("creator", "PI (principal investigator)", "contact")) {
+                    value$role 
+                  } else ""
                 )
               )
             )
-          ), # end of fluidRow 3
-          # * Project information -----------------------------------------------------
-          piTag(
-            div(
-              id = "project_information",
-              fluidRow(
-                column(4,
-                  textInput(
-                    ns("projectTitle"),
-                    label = "Project title for this dataset",
-                    value = if(!is.null(value)) value$projectTitle else ""
-                  )
-                ),
-                column(4,
-                  textInput(
-                    ns("fundingAgency"),
-                    label = "Entity funding the creation of this dataset",
-                    value = if(!is.null(value)) value$fundingAgency else ""
-                  )
-                ),
-                column(4,
-                  textInput(
-                    ns("fundingNumber"),
-                    label = "Number of the grant or award that supported creation of this dataset",
-                    value = if(!is.null(value)) value$fundingNumber else ""
-                  )
+          ),
+          column(4,
+            textInput(
+              ns("userId"),
+              label = "ORCID",
+              value = if(!is.null(value)) value$userId else ""
+            )
+          ),
+          column(1,
+            if (is.null(role)) {
+              actionButton(
+                ns(rmv_id),
+                "",
+                icon("trash"),
+                class = "danger"
+              )
+            },
+            style = "padding-left: 0"
+          )
+        ), # end of fluidRow 1
+        # * Basic identity -----------------------------------------------------
+        fluidRow(
+          style = "padding:5px",
+          column(4,
+            textInput(
+              ns("givenName"),
+              label = with_red_star("First name"),
+              value = if(!is.null(value)) value$givenName else ""
+            )
+          ),
+          column(4,
+            textInput(
+              ns("middleInitial"),
+              label = "Middle initial",
+              value = if(!is.null(value)) value$middleInitial else ""
+            )
+          ),
+          column(4,
+            textInput(
+              ns("surName"),
+              label = with_red_star("Last name"),
+              value = if(!is.null(value)) value$surName else ""
+            )
+          )
+        ), # end of fluidRow 1
+        # * Contact -----------------------------------------------------
+        fluidRow(
+          style = "padding:5px",
+          column(8,
+            textInput(
+              ns("organizationName"),
+              label = with_red_star("Name of organization the person is associated with."),
+              value = if(!is.null(value)) value$organizationName else ""
+            )
+          ),
+          column(4,
+            textInput(
+              ns("electronicMailAddress"),
+              label = with_red_star("Email address"),
+              value = if(!is.null(value)) value$electronicMailAddress else ""
+            )
+          )
+        ), # end of fluidRow 2
+        # * Project information -----------------------------------------------------
+        piTag(
+          div(
+            style = "padding:5px",
+            id = "project_information",
+            fluidRow(
+              column(4,
+                textInput(
+                  ns("projectTitle"),
+                  label = "Project title for this dataset",
+                  value = if(!is.null(value)) value$projectTitle else ""
+                )
+              ),
+              column(4,
+                textInput(
+                  ns("fundingAgency"),
+                  label = "Entity funding the creation of this dataset",
+                  value = if(!is.null(value)) value$fundingAgency else ""
+                )
+              ),
+              column(4,
+                textInput(
+                  ns("fundingNumber"),
+                  label = "Number of the grant or award that supported creation of this dataset",
+                  value = if(!is.null(value)) value$fundingNumber else ""
                 )
               )
             )
           )
-          # end of fluidRow 4
         )
-      ),
+        # end of fluidRow 4
+        # )
+      )#,
       # Destroy -----------------------------------------------------
-      column(1,
-        if (is.null(role)) {
-          actionButton(
-            ns(rmv_id),
-            "",
-            icon("trash"),
-            class = "danger"
-          )
-        }
-      )
+      # column(1,
+      #   if (is.null(role)) {
+      #     actionButton(
+      #       ns(rmv_id),
+      #       "",
+      #       icon("trash"),
+      #       class = "danger"
+      #     )
+      #   }
+      # )
     )
   )
 }
