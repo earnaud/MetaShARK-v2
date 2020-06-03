@@ -9,6 +9,17 @@ appOptionsUI <- function(id, settingsVar, dev) {
   tagList(
     tags$h1("Settings"),
     tags$p("This page is dedicated to define different settings in your session."),
+    
+    # Sessionning
+    fluidRow(
+      tags$h2("Login"),
+      tags$p("Without login, you can write and read all public data packages 
+        created on this instance of MetaShARK. By logging in, you will be able
+        to write private data packages that will not appear on other users list.
+        "),
+      orcidUI(ns("orcid"))
+    ),
+    
     # Metacat token input ====
     fluidRow(
       column(8,

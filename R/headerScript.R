@@ -18,32 +18,39 @@
 #' @importFrom data.table fread
 #' @importFrom taxonomyCleanr view_taxa_authorities
 #' @importFrom dplyr %>%
+#' @importFrom jsonlite serializeJSON unserializeJSON read_json write_json
 .globalScript <- function(dev = FALSE, server = FALSE, reactive = TRUE) {
   if (!is.logical(dev) || is.null(dev)) dev <- FALSE
 
   # Paths====
   HOME <- path_home()
-  
   DP.PATH <- paste0(HOME, "/dataPackagesOutput/emlAssemblyLine/")
   dir.create(DP.PATH, recursive = TRUE, showWarnings = FALSE)
-  if(isTRUE(server)){
-    DP.LIST.PATH <- paste0(DP.PATH, "index.csv")
-    if(isFALSE(file.exists(DP.LIST.PATH))){
-      DP.LIST <- data.frame(
-        user.orcid = character(),
-        user.name = character(),
-        dp.name = character(),
-        dp.path = character()
-      )
-      write.csv2(
-        DP.LIST,
-        DP.LIST.PATH
-      )
-    }
-  }
   TMP.PATH <- paste0(HOME, "/EMLAL_tmp/")
   unlink(TMP.PATH, recursive = TRUE) # clear the temp
   dir.create(TMP.PATH, recursive = TRUE, showWarnings = FALSE)
+  
+  # Sessionning
+  DP.LIST.PATH <- paste0(DP.PATH, "index.json")
+  if(isTRUE(file.exists(DP.LIST.PATH))){
+    DP.list <- read_json(DP.LIST) %>% unserializeJSON
+  }
+  else {
+    DP.LIST <- list(
+      public = list( # user.name = "public"
+        creator.orcid = NA_character_,
+        data.packages = data.frame(
+          path = character(),
+          name = character()
+        )
+      )
+    )
+    jsonlite::serializeJSON(
+      DP.LIST
+    ) %>% jsonlite::write_json(
+      path = DP.LIST.PATH
+    )
+  }
   
   wwwPaths <- system.file("resources", package = "MetaShARK") %>%
     paste(., dir(.), sep = "/") %>%
@@ -88,12 +95,17 @@
   else
     fwrite(TAXA.AUTHORITIES, wwwPaths$taxaAuthorities.txt)
   
-  # Build global variable
+  # Build global variable ====
   if (reactive) {
     globals <- reactiveValues(
       dev = dev,
       THRESHOLDS = reactiveValues(data_files_size_max = 500000),
       DEFAULT.PATH = DP.PATH,
+      DP.LIST = DP.LIST,
+      SESSION = reactiveValues(
+        LOGGED = FALSE,
+        ORCID.TOKEN = character()
+      ),
       TEMP.PATH = TMP.PATH,
       HOME = HOME,
       PATHS = wwwPaths,
