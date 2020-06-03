@@ -13,3 +13,6 @@ test_make_eml.R
 test.R
 .RDataTmp
 test2.R
+debug.txt
+.~lock.todo.ods#
+todo.ods

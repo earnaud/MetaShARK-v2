@@ -1,32 +1,76 @@
-#docSidePanel {
-	overflow-y: scroll;
-	max-height: 800px;
-}
+/* -- Overwrite -- */
 
-#docMainPanel {
-	overflow-y: scroll;
-	max-height: 800px;
+img {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 p {
   text-align: justify;
 }
 
-.redButton {
-	color: red;
+textarea {
+  min-width: 30%;
+  max-width: 100%;
+  min-height: 35px;
+  max-height: 350px;
+}
+
+/* -- ID -- */
+
+#docSidePanel {
+	overflow-y: scroll;
+	max-height: 800px;
+}
+
+#docPanel {
+  position: fixed;
+  display: block;
+  padding: 10px;
+  height: calc(100% - 70px);
+  max-height: calc(100% - 70px);
+  overflow-y: scroll;
+}
+
+/* -- Classes -- */
+
+.danger {
+  color: white;
+  background-color: red;
+}
+
+.disclaimer {
+  font-weight: bold;
+}
+
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .inputBox {
 	border: 1px solid lightgrey;
+	border-radius: 10px;
 	margin: 5px;
-	padding: 5px;
+	padding: 0;
 }
 
-.logo {
-	display: block;
-	margin-left: auto;
-	margin-right: auto;
-	width: 100px;
+.topInputRow {
+  background-color: #eee;
+  border-radius: 10px 10px 0 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.leftMargin {
+  border-left: solid lightgrey; 
+  padding: 20px;
 }
 
 .navSidebar {
@@ -36,24 +80,8 @@ p {
   padding: 0;
 }
 
-.leftMargin {
-  border-left: solid lightgrey; 
-  padding: 20px;
-}
-
-.danger {
-  color: white;
-  background-color: red;
-}
-
-.valid {
-  color: green;
-}
-
-.ellipsis {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.redButton {
+	color: red;
 }
 
 .text-title {
@@ -62,13 +90,6 @@ p {
   text-align:center;
 }
 
-.disclaimer {
-  font-weight: bold;
-}
-
-textarea {
-  min-width: 30%;
-  max-width: 100%;
-  min-height: 35px;
-  max-height: 350px;
+.valid {
+  color: green;
 }
