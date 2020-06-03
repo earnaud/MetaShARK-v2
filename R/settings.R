@@ -49,6 +49,10 @@ appOptionsUI <- function(id, settingsVar, dev) {
 #' @importFrom shiny observeEvent updateTextAreaInput showNotification
 #' @importFrom shinyjs onclick
 appOptions <- function(input, output, session, globals, server) {
+  # Sessionning ====
+  
+  
+  # Dataone token ====
   observeEvent(input$test_metacat, {
     if (input$test_metacat) {
       updateTextAreaInput(

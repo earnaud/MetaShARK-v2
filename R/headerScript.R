@@ -18,22 +18,44 @@
 #' @importFrom data.table fread
 #' @importFrom taxonomyCleanr view_taxa_authorities
 #' @importFrom dplyr %>%
-.globalScript <- function(dev = FALSE, reactive = TRUE) {
+.globalScript <- function(dev = FALSE, server = FALSE, reactive = TRUE) {
   if (!is.logical(dev) || is.null(dev)) dev <- FALSE
 
+  # Paths====
   HOME <- path_home()
+  
   DP.PATH <- paste0(HOME, "/dataPackagesOutput/emlAssemblyLine/")
   dir.create(DP.PATH, recursive = TRUE, showWarnings = FALSE)
+  if(isTRUE(server)){
+    DP.LIST.PATH <- paste0(DP.PATH, "index.csv")
+    if(isFALSE(file.exists(DP.LIST.PATH))){
+      DP.LIST <- data.frame(
+        user.orcid = character(),
+        user.name = character(),
+        dp.name = character(),
+        dp.path = character()
+      )
+      write.csv2(
+        DP.LIST,
+        DP.LIST.PATH
+      )
+    }
+  }
   TMP.PATH <- paste0(HOME, "/EMLAL_tmp/")
-  # clear the temp
-  unlink(TMP.PATH, recursive = TRUE)
+  unlink(TMP.PATH, recursive = TRUE) # clear the temp
   dir.create(TMP.PATH, recursive = TRUE, showWarnings = FALSE)
+  
+  wwwPaths <- system.file("resources", package = "MetaShARK") %>%
+    paste(., dir(.), sep = "/") %>%
+    as.list()
+  names(wwwPaths) <- basename(unlist(wwwPaths))
 
+  # Values
   THRESHOLD <- list(
     dp_data_files = 500000
   )
 
-  # Date time format strings
+  # Date time format strings ====
   # TODO better !
   DATE.FORMAT <- c(
     "YYYY", 
@@ -41,7 +63,7 @@
     "MM-YYYY", "DD-MM-YYYY", "MM-DD-YYYY"
   )
 
-  # Unit types
+  # Unit types ====
   ALL.UNITS <- get_unitList()
   .units <- "custom"
   .names <- "custom"
@@ -52,12 +74,6 @@
   UNIT.LIST <- .units
   names(UNIT.LIST) = .names
 
-  # Paths
-  wwwPaths <- system.file("resources", package = "MetaShARK") %>%
-    paste(., dir(.), sep = "/") %>%
-    as.list()
-  names(wwwPaths) <- basename(unlist(wwwPaths))
-  
   # DataONE nodes
   DATAONE.LIST <- try(listFormats(CNode()))
   if(class(DATAONE.LIST) == "try-error")
