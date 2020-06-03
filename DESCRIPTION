@@ -6,7 +6,7 @@ Description: MetaShARK is a Shiny application allowing its
                     user to fill metadata for a given ecological
                     dataset of his owns. The data description relies
                     on Ecological Metadata Language (EML).
-License: What license is it under?
+License: MIT
 Encoding: UTF-8
 LazyData: true
 Imports: 
