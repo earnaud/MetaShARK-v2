@@ -4,7 +4,7 @@
 \alias{SelectDP}
 \title{Data Package selection}
 \usage{
-SelectDP(input, output, session, savevar, globals, server)
+SelectDP(input, output, session, savevar, globals)
 }
 \description{
 UI part for the Data Package selection. Allow the user to choose between

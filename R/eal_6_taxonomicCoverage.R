@@ -18,7 +18,7 @@ TaxCovUI <- function(
             ns("taxa.table"),
             "Files containing taxonomic references",
             choices = basename(data.files),
-            selected = if(default$taxa.table %in% basename(data.files))
+            selected = if(isTRUE(default$taxa.table %in% basename(data.files)))
               unlist(default$taxa.table),
             multiple = TRUE
           ),

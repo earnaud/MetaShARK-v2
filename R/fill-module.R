@@ -15,9 +15,9 @@ fillUI <- function(id, dev = FALSE) {
 #' @describeIn fillUI
 #'
 #' @importFrom shiny observeEvent callModule
-fill <- function(input, output, session, globals, server) {
+fill <- function(input, output, session, globals) {
   ns <- session$ns
-  # variable initialization -----------------------------------------------------
+  # variable initialization ----------------------------------------------------
 
   # save variable
   savevar <- initReactive(glob = globals$EMLAL)
@@ -25,7 +25,7 @@ fill <- function(input, output, session, globals, server) {
   # action -----------------------------------------------------
   savevar <- callModule(
     EMLAL, "EMLAL",
-    savevar, globals, server
+    savevar, globals
   )
 
   # Output -----------------------------------------------------

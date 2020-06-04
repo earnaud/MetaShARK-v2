@@ -33,25 +33,24 @@
   # Sessionning
   DP.LIST.PATH <- paste0(DP.PATH, "index.json")
   if(isTRUE(file.exists(DP.LIST.PATH))){
-    DP.list <- read_json(DP.LIST) %>% unserializeJSON
+    DP.LIST <- read_json(DP.LIST.PATH, simplifyVector = TRUE) %>% unserializeJSON
   }
   else {
     DP.LIST <- list(
       public = list( # user.name = "public"
-        creator.orcid = NA_character_,
+        creator.orcid = "",
         data.packages = data.frame(
-          path = character(),
-          name = character()
+          path = "",
+          name = ""
         )
       )
     )
-    jsonlite::serializeJSON(
+    serializeJSON(
       DP.LIST
-    ) %>% jsonlite::write_json(
+    ) %>% write_json(
       path = DP.LIST.PATH
     )
   }
-  
   wwwPaths <- system.file("resources", package = "MetaShARK") %>%
     paste(., dir(.), sep = "/") %>%
     as.list()

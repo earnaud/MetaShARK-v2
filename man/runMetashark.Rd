@@ -7,11 +7,6 @@
 runMetaShark(...)
 }
 \arguments{
-\item{server}{Logical. Is the app deployed in server or not?
-If FALSE (default), the app is deployed for a local desktop usage.
-If TRUE, the app is deployed for a distant server usage. The main difference between
-both is the way filesystems will be used.}
-
 \item{test}{Logical. Is the application run with `{shinytest}`, or not. 
 Default to FALSE.}
 

@@ -10,6 +10,7 @@ orcidUI <- function(id, globals) {
 orcid <- function(input, output, session) {
   ns <- session$ns
   
+  # Initialize variables ====
   globals = reactiveValues(
     SESSION = reactiveValues(
       LOGGED = FALSE,
@@ -17,6 +18,7 @@ orcid <- function(input, output, session) {
     )
   )
   
+  # Set UI ====
   observeEvent(globals$SESSION$LOGGED, {
     output$infos <- renderUI({
       if(isFALSE(globals$SESSION$LOGGED))
@@ -36,13 +38,36 @@ orcid <- function(input, output, session) {
     })
   })
   
-  # observeEvent(input$connect, {
+  # Log in/out ====
   onclick("connect", {
+    ###
+    reso <- httr::GET(
+      'https://orcid.org/'
+    )
+    cookie = cookies(reso)[cookies(reso)$name == 'XSRF-TOKEN',]
+    credentials = list(userId = "000-0003-3416-7653", password = "Z@bud!78")
+    resa = httr::POST(
+      'https://orcid.org/oauth/token',
+      authenticate(
+        credentials$userId,
+        credentials$password
+      ),
+      add_headers(c(
+        accept = "application/json",
+        `x-xsrf-token` = cookie$value
+      ))
+    )
+    ###
+    
     globals$SESSION$ORCID.TOKEN <- rorcid::orcid_auth(
       reauth = TRUE
     )
     res <- httr::GET(
-      "https://cn.dataone.org/portal/"
+      "https://cn.dataone.org/portal/oauth?action=start",
+      add_headers(paste("Authorization: ", globals$SESSION$ORCID.TOKEN))
+    )
+    token <- httr::GET(
+      "https://cn.dataone.org/portal/token"
     )
     
     browser()
@@ -52,6 +77,9 @@ orcid <- function(input, output, session) {
   })
   
   onclick("disconnect", {
-    globals$SESSION$LOGGED <- FALSE
+    globals$SESSION <- reactiveValues(
+      LOGGED = FALSE,
+      ORCID.TOKEN = character()
+    )
   })
 }

@@ -4,7 +4,7 @@
 \alias{appOptions}
 \title{appOptions}
 \usage{
-appOptions(input, output, session, globals, server)
+appOptions(input, output, session, globals)
 }
 \description{
 server part of the appOptions module. Allow the user to change several settings in the app.

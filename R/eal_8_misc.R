@@ -5,7 +5,7 @@
 #' @importFrom shiny h5
 #' @importFrom tagsinput tagsTextInput
 #' @importFrom data.table fread
-MiscUI <- function(id, title, dev, savevar, server) {
+MiscUI <- function(id, title, dev, savevar) {
   ns <- NS(id)
   
   keywords <- fread(
@@ -39,7 +39,6 @@ MiscUI <- function(id, title, dev, savevar, server) {
             value = 1,
             MiscellaneousUI(
               ns("abstract"),
-              server = server,
               value = readPlainText(
                 paste0(savevar$emlal$SelectDP$dp_metadata_path, "/abstract.txt")
               )
@@ -52,7 +51,6 @@ MiscUI <- function(id, title, dev, savevar, server) {
             value = 2,
             MiscellaneousUI(
               ns("methods"),
-              server = server,
               value = readPlainText(
                 paste0(savevar$emlal$SelectDP$dp_metadata_path, "/methods.txt")
               )
@@ -109,7 +107,6 @@ MiscUI <- function(id, title, dev, savevar, server) {
               help_label = tags$p(
                 "If you have additional information that doesn't fall under the scope of the abstract or methods (e.g. a list of research articles or theses derived from this dataset) about your dataset, you may share it here."
               ),
-              server = server,
               value = readPlainText(
                 paste0(savevar$emlal$SelectDP$dp_metadata_path, "/additional_info.txt")
               )
@@ -130,7 +127,7 @@ MiscUI <- function(id, title, dev, savevar, server) {
 #' @importFrom shinyjs enable disable
 #' @importFrom data.table fread
 Misc <- function(input, output, session,
-  savevar, globals, server, NSB) {
+  savevar, globals, NSB) {
   ns <- session$ns
   
   if(globals$dev)
@@ -188,8 +185,7 @@ Misc <- function(input, output, session,
     Miscellaneous,
     "abstract",
     savevar,
-    rv = rv$abstract,
-    server = server
+    rv = rv$abstract
   )
   
   # * Methods ====
@@ -197,8 +193,7 @@ Misc <- function(input, output, session,
     Miscellaneous,
     "methods",
     savevar,
-    rv = rv$methods,
-    server = server
+    rv = rv$methods
   )
   
   # * Keywords ====
@@ -259,8 +254,7 @@ Misc <- function(input, output, session,
     Miscellaneous,
     "additional_info",
     savevar,
-    rv = rv$additional_information,
-    server = server
+    rv = rv$additional_information
   )
   
   # Saves -----------------------------------------------------

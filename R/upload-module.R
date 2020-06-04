@@ -8,7 +8,7 @@
 #' @importFrom shiny NS tagList actionButton tags selectInput
 #' uiOutput textOutput icon tabsetPanel tabPanel HTML
 #' @importFrom data.table fread
-uploadUI <- function(id, dev, globals, server) {
+uploadUI <- function(id, dev, globals) {
   ns <- NS(id)
   registeredEndpoints <- fread(globals$PATHS$registeredEndpoints.txt)
   # registeredEndpoints <- fread(system.file("resources", "registeredEndpoints.txt", package = "MetaShARK"))
@@ -62,24 +62,21 @@ uploadUI <- function(id, dev, globals, server) {
           tags$h4("Metadata (one file required)"),
           multiFilesInputUI(
             ns("metadata"), 
-            "Please select an .xml file validating EML schema.",
-            server = server
+            "Please select an .xml file validating EML schema."
           ),
           textOutput(ns("warnings-metadata")),
           # Data
           tags$h4("Data (at least one file required)"),
           multiFilesInputUI(
             ns("data"), 
-            "Please select the data described in the provided metadata.",
-            server = server
+            "Please select the data described in the provided metadata."
           ),
           textOutput(ns("warnings-data")),
           # Scripts
           tags$h4("Scripts"),
           multiFilesInputUI(
             ns("scripts"), 
-            "Please select the scripts described in the provided metadata.",
-            server = server
+            "Please select the scripts described in the provided metadata."
           ),
           textOutput(ns("warnings-scripts")),
           class = "leftMargin"
@@ -130,7 +127,7 @@ uploadUI <- function(id, dev, globals, server) {
 #' @importFrom shinyjs enable disable
 #' @importFrom data.table fread fwrite
 #' @importFrom mime guess_type
-upload <- function(input, output, session, globals, server) {
+upload <- function(input, output, session, globals) {
   ns <- session$ns
 
   registeredEndpoints <- fread(globals$PATHS$registeredEndpoints.txt)
@@ -182,9 +179,9 @@ upload <- function(input, output, session, globals, server) {
 
   # * Files input -----------------------------------------------------
   rvFiles <- reactiveValues(
-    md = callModule(multiFilesInput, "metadata", server = server),
-    data = callModule(multiFilesInput, "data", server = server),
-    scr = callModule(multiFilesInput, "scripts", server = server)
+    md = callModule(multiFilesInput, "metadata"),
+    data = callModule(multiFilesInput, "data"),
+    scr = callModule(multiFilesInput, "scripts")
   )
 
   observe({
