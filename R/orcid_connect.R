@@ -59,16 +59,41 @@ orcid <- function(input, output, session) {
     )
     ###
     
-    globals$SESSION$ORCID.TOKEN <- rorcid::orcid_auth(
-      reauth = TRUE
-    )
-    res <- httr::GET(
-      "https://cn.dataone.org/portal/oauth?action=start",
-      add_headers(paste("Authorization: ", globals$SESSION$ORCID.TOKEN))
-    )
-    token <- httr::GET(
-      "https://cn.dataone.org/portal/token"
-    )
+    # globals$SESSION$ORCID.TOKEN <- rorcid::orcid_auth(
+    # ORCID.TOKEN <- rorcid::orcid_auth(
+    #   reauth = TRUE
+    # )
+    # res <- httr::GET(
+    #   "https://cn.dataone.org/portal/oauth?action=start",
+    #   add_headers(paste("Authorization: ", ORCID.TOKEN))
+    #   # add_headers(paste("Authorization: ", globals$SESSION$ORCID.TOKEN))
+    # )
+    # token <- httr::GET(
+    #   "https://cn.dataone.org/portal/token"
+    # )
+    # 
+    # orcid <- crul::HttpClient$new(
+    #   url = "https://orcid.org/"
+    # )
+    # reso <- orcid$get(
+    #   "signin/auth.json"
+    # )
+    # cookie <- curl::handle_cookies(reso$handle) %>% 
+    #   filter(name == "XSRF-TOKEN")
+    # 
+    # 
+    # session <- crul::HttpClient$new(
+    #   url = "https://cn.dataone.org/",
+    #   headers = list(
+    #     Authorization = ORCID.TOKEN
+    #   )
+    # )
+    # res <- session$get(
+    #   "/portal/oauth?action=start"
+    # )
+    # res2 <- session$get(
+    #   "/portal/token"
+    # )
     
     browser()
     stop("still working")
