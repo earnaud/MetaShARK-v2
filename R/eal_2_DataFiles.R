@@ -4,7 +4,7 @@
 #'
 #' @importFrom shiny NS fluidPage column tags HTML icon actionButton uiOutput tagList textOutput
 #' @importFrom shinyFiles shinyFilesButton
-DataFilesUI <- function(id, dev = FALSE, server = FALSE) {
+DataFilesUI <- function(id, dev = FALSE) {
   ns <- NS(id)
   
   return(
@@ -16,7 +16,7 @@ DataFilesUI <- function(id, dev = FALSE, server = FALSE) {
         class = "disclaimer"
       ),
       tags$div(
-        if (isTRUE(server)) {
+        # if (isTRUE(server)) {
           tagList(
             fileInput(
               ns("add_data_files"),
@@ -24,16 +24,16 @@ DataFilesUI <- function(id, dev = FALSE, server = FALSE) {
               buttonLabel = span("Load files", icon("plus-circle")),
               multiple = TRUE
             )
-          )
-        } else {
-          shinyFilesButton(
-            ns("add_data_files"),
-            "Load files",
-            "Select data file(s) from your dataset",
-            multiple = TRUE,
-            icon = icon("plus-circle")
-          )
-        },
+          ),
+        # } else {
+        #   shinyFilesButton(
+        #     ns("add_data_files"),
+        #     "Load files",
+        #     "Select data file(s) from your dataset",
+        #     multiple = TRUE,
+        #     icon = icon("plus-circle")
+        #   )
+        # },
         style = "display: inline-block; vertical-align: top;"
       ),
       uiOutput(ns("data_files")),
@@ -54,7 +54,7 @@ DataFilesUI <- function(id, dev = FALSE, server = FALSE) {
 #' @importFrom shinyjs onclick enable disable
 #' @importFrom EMLassemblyline template_table_attributes
 DataFiles <- function(input, output, session,
-  savevar, globals, server, NSB) {
+  savevar, globals, NSB) {
   ns <- session$ns
   if(globals$dev)
     onclick("dev", {
@@ -67,12 +67,12 @@ DataFiles <- function(input, output, session,
     data_files = data.frame(),
     files_list = character()
   )
-  if (isTRUE(server)) {
+  # if (isTRUE(server)) {
     rv$tmpPaths <- character()
-  }
-  if (!isTRUE(server)) {
-    volumes <- c(Home = globals$HOME, getVolumes()())
-  }
+  # }
+  # if (!isTRUE(server)) {
+  #   volumes <- c(Home = globals$HOME, getVolumes()())
+  # }
   
   if (!isTruthy(unlist(savevar$emlal$DataFiles))) { # from create button in SelectDP
     rv$data_files <- data.frame()
@@ -101,27 +101,27 @@ DataFiles <- function(input, output, session,
   
   # Data file upload -----------------------------------------------------
   # * Add data files -----------------------------------------------------
-  if (!isTRUE(server)) {
-    shinyFileChoose(
-      input,
-      "add_data_files",
-      roots = volumes,
-      session = session
-    )
-  }
+  # if (!isTRUE(server)) {
+  #   shinyFileChoose(
+  #     input,
+  #     "add_data_files",
+  #     roots = volumes,
+  #     session = session
+  #   )
+  # }
   
   observeEvent(input$add_data_files, {
     # validity checks
     req(input$add_data_files)
     
     # retrieve data files info
-    if (isTRUE(server)) {
+    # if (isTRUE(server)) {
       loadedFiles <- input$add_data_files
-    } else {
-      loadedFiles <- as.data.frame(
-        parseFilePaths(volumes, input$add_data_files)
-      )
-    }
+    # } else {
+    #   loadedFiles <- as.data.frame(
+    #     parseFilePaths(volumes, input$add_data_files)
+    #   )
+    # }
     
     req(checkTruth(loadedFiles))
     

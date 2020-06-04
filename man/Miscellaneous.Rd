@@ -4,7 +4,7 @@
 \alias{Miscellaneous}
 \title{Miscellaneous}
 \usage{
-Miscellaneous(input, output, session, savevar, rv, server)
+Miscellaneous(input, output, session, savevar, rv)
 }
 \description{
 Miscellaneous

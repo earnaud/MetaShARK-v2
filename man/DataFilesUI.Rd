@@ -4,7 +4,7 @@
 \alias{DataFilesUI}
 \title{Data Package files}
 \usage{
-DataFilesUI(id, dev = FALSE, server = FALSE)
+DataFilesUI(id, dev = FALSE)
 }
 \description{
 UI part of the DataFiles module.

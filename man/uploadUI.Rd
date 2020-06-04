@@ -5,9 +5,9 @@
 \alias{upload}
 \title{uploadUI}
 \usage{
-uploadUI(id, dev, globals, server)
+uploadUI(id, dev, globals)
 
-upload(input, output, session, globals, server)
+upload(input, output, session, globals)
 }
 \arguments{
 \item{id}{shiny module id}

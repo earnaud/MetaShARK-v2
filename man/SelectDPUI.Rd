@@ -5,7 +5,7 @@
 \alias{loadFromEALDP}
 \title{Data Package selection}
 \usage{
-SelectDPUI(id, width = 12, dev = FALSE, server)
+SelectDPUI(id, width = 12, dev = FALSE)
 
 loadFromEALDP(savevar, file)
 }

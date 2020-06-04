@@ -11,9 +11,9 @@
   # get app arguments
   appArgs <- get_golem_options()
   dev <- appArgs$dev
-  server <- appArgs$server
 
-  if (!is.logical(dev) || is.null(dev)) dev <- FALSE
+  if (!is.logical(dev) || is.null(dev))
+    dev <- FALSE
   # initialize global variables
   globals <- .globalScript(dev)
   savevar <- NULL
@@ -32,7 +32,7 @@
     updateTabItems(session, "side_menu", "appOptions")
   })
 
-  callModule(appOptions, "appOptions", globals$SETTINGS, server)
+  callModule(appOptions, "appOptions", globals$SETTINGS)
 
   # Exit App
   observeEvent(input$close, {
@@ -45,9 +45,9 @@
       # welcome
       # welcome = callModule(welcome, "welcome"),
       # fill
-      fill = callModule(fill, "fill", globals, server),
+      fill = callModule(fill, "fill", globals),
       # upload
-      upload = callModule(upload, "upload", globals, server),
+      upload = callModule(upload, "upload", globals),
       # doc
       documentation = callModule(documentation, "documentation", globals),
       # about

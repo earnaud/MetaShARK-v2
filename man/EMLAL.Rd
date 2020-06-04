@@ -4,7 +4,7 @@
 \alias{EMLAL}
 \title{EMLAL}
 \usage{
-EMLAL(input, output, session, savevar, globals, server)
+EMLAL(input, output, session, savevar, globals)
 }
 \description{
 server part of the EMLAL module. Allow the user to use a front-end shiny interface to the EML Assembly Line package, from

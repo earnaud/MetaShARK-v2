@@ -11,11 +11,11 @@
   # get app arguments
   appArgs <- get_golem_options()
   dev <- appArgs$dev
-  server <- appArgs$server
 
   # prepare variable
   menuWidth <- "250px"
-  if (!is.logical(dev)) dev <- FALSE
+  if (!is.logical(dev)) 
+    dev <- FALSE
   globals <- .globalScript(dev, reactive = FALSE)
 
   # action
@@ -26,14 +26,6 @@
       title = "MetaShARK",
       dashboardHeader(
         tags$li(class = "dropdown", actionLink("appOptions", "", icon("gear"))),
-        tags$li(
-          class = "dropdown",
-          if (!isTRUE(server)) {
-            actionLink("close", "", icon("power-off"))
-          } else {
-            NULL
-          }
-        ),
         title = tags$img(src="media/ms_logo_small.png", width="200px", height="50px"),
         titleWidth = menuWidth
       ),
@@ -89,7 +81,7 @@
           ),
           tabItem(
             tabName = "upload",
-            uploadUI("upload", dev, globals, server)
+            uploadUI("upload", dev, globals)
           ),
           tabItem(
             tabName = "documentation",

@@ -34,7 +34,7 @@ EMLALUI <- function(id, dev = FALSE) {
 #' @importFrom shiny observeEvent renderUI renderImage HTML callModule imageOutput actionLink icon
 #' @importFrom shinyBS tipify
 EMLAL <- function(input, output, session,
-  savevar, globals, server) {
+  savevar, globals) {
   ns <- session$ns
   
   # NSB -----------------------------------------------------
@@ -156,13 +156,11 @@ EMLAL <- function(input, output, session,
       .ui <- switch(globals$EMLAL$NAVIGATE,
         SelectDPUI(
           id = ns(iteration),
-          dev = globals$dev,
-          server = server
+          dev = globals$dev
         ),
         DataFilesUI(
           id = ns(iteration),
-          dev = globals$dev,
-          server = server
+          dev = globals$dev
         ),
         AttributesUI(
           id = ns(iteration),
@@ -192,8 +190,7 @@ EMLAL <- function(input, output, session,
         MiscUI(
           id = ns(iteration),
           dev = globals$dev,
-          savevar = savevar,
-          server = server
+          savevar = savevar
         ),
         MakeEMLUI(
           id = ns(iteration),
@@ -228,13 +225,11 @@ EMLAL <- function(input, output, session,
     savevar <- switch(globals$EMLAL$NAVIGATE,
       callModule(
         SelectDP, iteration,
-        savevar, globals,
-        server = server
+        savevar, globals
       ),
       callModule(
         DataFiles, iteration,
         savevar, globals,
-        server = server,
         NSB = NSB
       ),
       callModule(
@@ -265,7 +260,6 @@ EMLAL <- function(input, output, session,
       callModule(
         Misc, iteration,
         savevar, globals,
-        server = server,
         NSB = NSB
       ),
       callModule(

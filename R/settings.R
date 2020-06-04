@@ -17,7 +17,8 @@ appOptionsUI <- function(id, settingsVar, dev) {
         created on this instance of MetaShARK. By logging in, you will be able
         to write private data packages that will not appear on other users list.
         "),
-      orcidUI(ns("orcid"))
+      orcidUI(ns("orcid")),
+      class = "inputBox"
     ),
     
     # Metacat token input ====
@@ -59,9 +60,9 @@ appOptionsUI <- function(id, settingsVar, dev) {
 #'
 #' @importFrom shiny observeEvent updateTextAreaInput showNotification
 #' @importFrom shinyjs onclick
-appOptions <- function(input, output, session, globals, server) {
+appOptions <- function(input, output, session, globals) {
   # Sessionning ====
-  
+  callModule(orcid, "orcid")
   
   # Dataone token ====
   observeEvent(input$test_metacat, {

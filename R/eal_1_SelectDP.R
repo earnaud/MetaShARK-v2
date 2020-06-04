@@ -5,7 +5,7 @@
 #'
 #' @importFrom shiny NS fluidPage fluidRow column tags tagList icon textOutput uiOutput selectInput textInput HTML
 #' @importFrom shinyFiles shinyDirButton
-SelectDPUI <- function(id, width = 12, dev = FALSE, server) {
+SelectDPUI <- function(id, width = 12, dev = FALSE) {
   ns <- NS(id)
   
   # UI output
@@ -44,36 +44,36 @@ SelectDPUI <- function(id, width = 12, dev = FALSE, server) {
         )
       ),
       # Data package location -----------------------------------------------------
-      if (!isTRUE(server)) {
-        tagList(
-          fluidRow(
-            column(4,
-              if (isTRUE(server)) {
-                tags$b("Data Package will be saved in:")
-              } else {
-                shinyDirButton(
-                  ns("dp_location"),
-                  "Choose directory",
-                  "DP save location",
-                  icon = icon("folder-open")
-                )
-              }
-            ),
-            column(8,
-              textOutput(ns("dp_location")),
-              style = "text-align: left;"
-            ),
-            class = "inputBox"
-          ),
-          fluidRow(
-            tags$p("This is the location where your data packages will be
-          saved. A folder will be created, respectively named
-          after your input.")
-          )
-        )
-      } else {
-        hr()
-      },
+      # if (!isTRUE(server)) {
+      #   tagList(
+      #     fluidRow(
+      #       column(4,
+      #         if (isTRUE(server)) {
+      #           tags$b("Data Package will be saved in:")
+      #         } else {
+      #           shinyDirButton(
+      #             ns("dp_location"),
+      #             "Choose directory",
+      #             "DP save location",
+      #             icon = icon("folder-open")
+      #           )
+      #         }
+      #       ),
+      #       column(8,
+      #         textOutput(ns("dp_location")),
+      #         style = "text-align: left;"
+      #       ),
+      #       class = "inputBox"
+      #     ),
+      #     fluidRow(
+      #       tags$p("This is the location where your data packages will be
+      #     saved. A folder will be created, respectively named
+      #     after your input.")
+      #     )
+      #   )
+      # } else {
+      hr(),
+      # },
       fluidRow(
         # Load existing DP -----------------------------------------------------
         column(
@@ -141,7 +141,7 @@ SelectDPUI <- function(id, width = 12, dev = FALSE, server) {
 #' @importFrom EMLassemblyline template_directories template_core_metadata
 #' @importFrom jsonlite read_json unserializeJSON
 SelectDP <- function(input, output, session,
-  savevar, globals, server) {
+  savevar, globals) {
   ns <- session$ns
   
   if(globals$dev)
@@ -163,36 +163,36 @@ SelectDP <- function(input, output, session,
   )
   
   # DP location -----------------------------------------------------
-  if (!isTRUE(server)) {
-    volumes <- c(Home = globals$HOME, base = getVolumes()())
-    
-    # chose DP location
-    shinyDirChoose(input, ns("dp_location"),
-      roots = volumes,
-      # defaultRoot = HOME,
-      session = session
-    )
-    # update reactive value
-    observeEvent(input$dp_location, {
-      # validity checks
-      req(input$dp_location)
-      
-      # variable initialization
-      save <- rv$dp_location
-      
-      # actions
-      rv$dp_location <- parseDirPath(volumes, input$dp_location)
-      if (is.na(rv$dp_location)) {
-        rv$dp_location <- save
-      }
-    })
-  }
-  else {
+  # if (!isTRUE(server)) {
+  #   volumes <- c(Home = globals$HOME, base = getVolumes()())
+  #   
+  #   # chose DP location
+  #   shinyDirChoose(input, ns("dp_location"),
+  #     roots = volumes,
+  #     # defaultRoot = HOME,
+  #     session = session
+  #   )
+  #   # update reactive value
+  #   observeEvent(input$dp_location, {
+  #     # validity checks
+  #     req(input$dp_location)
+  #     
+  #     # variable initialization
+  #     save <- rv$dp_location
+  #     
+  #     # actions
+  #     rv$dp_location <- parseDirPath(volumes, input$dp_location)
+  #     if (is.na(rv$dp_location)) {
+  #       rv$dp_location <- save
+  #     }
+  #   })
+  # }
+  # else {
     observeEvent(input$dp_location, {
       req(input$dp_location)
       rv$dp_location <- input$dp_location
     })
-  }
+  # }
   
   # Render selected DP location
   output$dp_location <- renderText({
@@ -229,11 +229,11 @@ SelectDP <- function(input, output, session,
       ),
       actionButton(ns("dp_load"), "Load", icon = icon("folder-open")),
       actionButton(ns("dp_delete"), "Delete", icon = icon("minus-circle"), class = "redButton"),
-      if (server) {
+      # if (server) {
         downloadButton(ns("dp_download"), label = "Download .zip", icon = icon("file-download"))
-      } else {
-        NULL
-      }
+      # } else {
+      #   NULL
+      # }
     )
   })
   
