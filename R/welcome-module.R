@@ -11,6 +11,12 @@ welcomeUI <- function(id) {
       # MetaShARK
       tags$h1("Welcome in MetaShARK"),
       fluidRow(
+        tags$div(
+          tags$p("DISCLAIMER: this is a dev version. Some parts with this color 
+          code are not meant to be fully functional. So do not bother with 
+          testing them."),
+          class = "inputBox wip"
+        ),
         column(4,
           tags$h3("MetaShARK"),
           tags$p(
