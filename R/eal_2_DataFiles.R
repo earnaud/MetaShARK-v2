@@ -7,6 +7,8 @@
 DataFilesUI <- function(id, dev = FALSE) {
   ns <- NS(id)
   
+  message("### Server/Module Data Files")
+  
   return(
     fluidPage(
       tags$b("Disclaimers:"),
