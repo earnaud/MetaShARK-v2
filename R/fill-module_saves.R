@@ -70,6 +70,12 @@
       paste0(savevar$emlal$SelectDP$dp_metadata_path, "/custom_units.txt")
     )
   
+  # Save annotations
+  if(rv$annotations$count > 0)
+  savevar$emlal$Attributes <- reactiveValues(
+    annotations = rv$annotations$values
+  )
+  
   return(savevar)
 }
 

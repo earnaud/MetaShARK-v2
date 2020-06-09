@@ -3,7 +3,7 @@
 #' @description UI part of the appOptions module. Allow the user to change several settings in the app.
 #'
 #' @importFrom shiny NS tags tagList fluidRow column textAreaInput checkboxInput actionButton
-appOptionsUI <- function(id, settingsVar, dev) {
+appOptionsUI <- function(id, dev) {
   ns <- NS(id)
 
   tagList(
@@ -12,7 +12,7 @@ appOptionsUI <- function(id, settingsVar, dev) {
     
     # Sessionning ====
     fluidRow(
-      tags$h2("Login"),
+      tags$h2("Login with ORCID"),
       tags$p("Without login, you can write and read all public data packages 
         created on this instance of MetaShARK. By logging in, you will be able
         to write private data packages that will not appear on other users list.
@@ -21,11 +21,31 @@ appOptionsUI <- function(id, settingsVar, dev) {
       class = "inputBox wip"
     ),
     
+    # CEDAR token input ====
+    fluidRow(
+      column(8,
+        textAreaInput(ns("cedar_token"),
+          "Authentication token",
+          width = "120%",
+          value = options("dataone_token")
+        )
+      ),
+      column(4,
+        tags$b("To fetch your authentication token:"),
+        tags$ul(
+          tags$li("Login into your CEDAR profile at: https://cedar.metadatacenter.org/"),
+          tags$li("Navigate in the upper-right menu corner and click 'Profile'."),
+          tags$li("Paste the content for `key` field before `Usage from REST client`.")
+        )
+      ),
+      class = "inputBox"
+    ),
+    
     # Metacat token input ====
     fluidRow(
       column(8,
         tags$h2("Metacat settings"),
-        textAreaInput(ns("auth_token"),
+        textAreaInput(ns("metacat_token"),
           "Authentication token",
           width = "120%",
           value = options("dataone_token")
@@ -46,10 +66,6 @@ appOptionsUI <- function(id, settingsVar, dev) {
         )
       ),
       class = "inputBox"
-    ),
-    # Additional settings ====
-    fluidRow(
-      
     )
   )
 }
@@ -60,34 +76,42 @@ appOptionsUI <- function(id, settingsVar, dev) {
 #'
 #' @importFrom shiny observeEvent updateTextAreaInput showNotification
 #' @importFrom shinyjs onclick
+#' @importFrom cedarr accessOntology
 appOptions <- function(input, output, session, globals) {
   # Sessionning ====
   # callModule(orcid, "orcid")
   
-  # Dataone token ====
+  # CEDAR token ====
+  observeEvent(input$cedar_token, {
+    globals$SETTINGS$TOKEN$CEDAR <- input$cedar_token
+    req(input$cedar_token)
+    globals$SEMANTICS$ONTOLOGIES <- accessOntology(input$cedar_token)
+  })
+  
+  # Metacat token ====
   observeEvent(input$test_metacat, {
     if (input$test_metacat) {
       updateTextAreaInput(
         session,
-        "auth_token",
-        value = globals$TOKEN$DATAONE.TEST.TOKEN
+        "metacat_token",
+        value = globals$SETTINGS$TOKEN$DATAONE.TEST.TOKEN
       )
     }
     else {
       updateTextAreaInput(session,
-        "auth_token",
-        value = globals$TOKEN$DATAONE.TOKEN
+        "metacat_token",
+        value = globals$SETTINGS$TOKEN$DATAONE.TOKEN
       )
     }
   })
 
-  # observeEvent(input$metacat_save, {
-  onclick("metacat_save", {
+  observeEvent(input$metacat_save, {
+  # onclick("metacat_save", {
     if (input$test_metacat) {
-      globals$TOKEN$DATAONE.TEST.TOKEN <- input$auth_token
+      globals$SETTINGS$TOKEN$DATAONE.TEST.TOKEN <- input$metacat_token
     } else {
-      globals$TOKEN$DATAONE.TOKEN <- input$auth_token
+      globals$SETTINGS$TOKEN$DATAONE.TOKEN <- input$metacat_token
     }
-    showNotification("Dataone token set.", type = "message")
+    showNotification(id = "metacat_set", "Dataone token set.", type = "message")
   })
 }

@@ -63,16 +63,10 @@ AttributesUI <- function(id, title, dev) {
 #' @importFrom shinyjs hide show enable disable onclick
 #' @importFrom EMLassemblyline template_categorical_variables template_geographic_coverage
 #' @importFrom shinyBS bsCollapse bsCollapsePanel updateCollapse
-Attributes <- function(input, output, session,
-  savevar, globals, NSB) {
+Attributes <- function(input, output, session, savevar, globals, NSB) {
   ns <- session$ns
   
   if (globals$dev) {
-    onclick("fill", {
-      req(input$fill)
-      rv <- .fill(rv)
-    }) # end of observeEvent
-    
     onclick("dev", {
       req(globals$EMLAL$NAVIGATE == 3)
       browser()
@@ -139,6 +133,10 @@ Attributes <- function(input, output, session,
     cu_values = rep(NA,5),
     modalOn = FALSE,
     unitId = ""
+    # , annotations = reactiveValues(
+    #   values = data.frame(),
+    #   count = 0
+    # )
   )
   rv$tables <- lapply(
     rv$filepath, readDataTable,
@@ -149,6 +147,22 @@ Attributes <- function(input, output, session,
     dir(savevar$emlal$SelectDP$dp_metadata_path, pattern = "ustom", full.names = TRUE),
     stringsAsFactors = FALSE,
   )
+  # if(checkTruth(savevar$emlal$Attributes)){
+  #   rv$annotations$values <- savevar$emlal$Attributes$annotations
+  #   rv$annotations$count <- nrow(rv$annotations$values)
+  # }
+  # else
+  #   rv$annotations$values <- data.frame(
+  #     id = character(),
+  #     element = character(),
+  #     context = character(),
+  #     subject = character(),
+  #     predicate_label = character(),
+  #     predicate_uri = character(),
+  #     object_label = character(),
+  #     object_uri = character()
+  #   )
+  
   
   if (isTRUE(savevar$emlal$quick)) {
     rv <- .fill(rv)
@@ -223,7 +237,6 @@ Attributes <- function(input, output, session,
         )
       )
       
-      # GUI
       ui <- do.call(
         bsCollapse,
         args = c(
@@ -231,6 +244,7 @@ Attributes <- function(input, output, session,
             seq(dim(current_table)[1]), # rows
             fields = colnames(current_table),
             function(row_index, fields) {
+              # GUI ====
               # prepare variables
               attribute_row <- current_table[row_index, ]
               
@@ -239,6 +253,7 @@ Attributes <- function(input, output, session,
                   title = attribute_row[fields[1]],
                   tagList(
                     column(9,
+                      # Input ====
                       lapply(fields[-1], function(colname) {
                         # prepare var
                         saved_value <- isolate(rv$current_table[row_index, colname])
@@ -304,10 +319,19 @@ Attributes <- function(input, output, session,
                         ) # end of switch
                       }) # end of lapply colname
                     ),
-                    column(
-                      3,
+                    column(3,
+                      # Preview ====
                       h4("Preview:"),
-                      tableOutput(ns(paste0("preview-", colnames(rv$current_preview)[row_index])))
+                      tableOutput(ns(paste0("preview-", colnames(rv$current_preview)[row_index]))),
+                      tags$hr(),
+                      # Annotate ====
+                      # annotateUI(
+                      #   ns(paste0(
+                      #     "annotate-",
+                      #     isolate(rv$current_file),
+                      #     row_index
+                      #   ))
+                      # )
                     ) # end of column
                   )
                 ) # end of bsCollapsePanel
@@ -338,9 +362,21 @@ Attributes <- function(input, output, session,
         #     style = filled
         #   )
         
+        # Preview ====
         preview_column <- colnames(rv$current_preview)[row_index]
-        output[[paste0("preview-", preview_column)]] <- renderTable(rv$current_preview[preview_column])
+        output[[paste0("preview-", preview_column)]] <- renderTable(rv$current_preview[[preview_column]])
         
+        # Annotate ====
+        # annotateId <- paste0(
+        #   "annotate-",
+        #   isolate(rv$current_file),
+        #   row_index
+        # )
+        # 
+        # .tmp <- callModule(annotate, annotateId,
+        #   savevar, globals, rv, row_index)
+        
+        # Input ====
         lapply(fields, function(colname) {
           inputId <- paste(
             isolate(rv$current_file),
@@ -423,7 +459,9 @@ Attributes <- function(input, output, session,
             }
             rv$tables[[rv$current_file]] <- rv$current_table
           }) # end of inner observeEvent
+          
         }) # end of lapply colname
+        
       } # end of *in situ* function
     ) # end of sapply : row_index
   }) # end of observeEvent
@@ -621,11 +659,16 @@ Attributes <- function(input, output, session,
   observeEvent(NSB$SAVE, {
     req(tail(globals$EMLAL$HISTORY,1) == "Attributes")
     
+    message("NSB$SAVE")
+    
     savevar <- saveReactive(
       savevar = savevar,
       rv = list(Attributes = rv)
     )
-  }, ignoreInit = TRUE)
+  }, 
+    label = "Save_Attributes",
+    ignoreInit = TRUE
+  )
   
   # en/disable buttons
   observeEvent(rv$current_file, {

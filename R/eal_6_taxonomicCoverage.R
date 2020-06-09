@@ -9,6 +9,9 @@ TaxCovUI <- function(
 ) {
   ns <- NS(id)
   
+  if(isFALSE(checkTruth(default)))
+    default = ""
+  
   return(
     fluidPage(
       fluidRow(

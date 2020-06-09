@@ -94,8 +94,11 @@
   else
     fwrite(TAXA.AUTHORITIES, wwwPaths$taxaAuthorities.txt)
   
+  # Semantics ====
+  
+  
   # Build global variable ====
-  if (reactive) {
+  if(reactive)
     globals <- reactiveValues(
       dev = dev,
       THRESHOLDS = reactiveValues(data_files_size_max = 500000),
@@ -131,14 +134,23 @@
         COMPLETE_CURRENT = FALSE
       ),
       SETTINGS = reactiveValues(
-        TOKEN = reactiveValues()
+        TOKENS = reactiveValues()
+      ),
+      SEMANTICS = reactiveValues(
+        ONTOLOGIES = character()
       )
     )
-  } else {
+  else
     globals <- list(
       dev = dev,
-      THRESHOLDS = reactiveValues(data_files_size_max = 5000000),
+      THRESHOLDS = list(data_files_size_max = 500000),
       DEFAULT.PATH = DP.PATH,
+      DP.LIST = DP.LIST,
+      SESSION = list(
+        LOGGED = FALSE,
+        ORCID.TOKEN = character()
+      ),
+      TEMP.PATH = TMP.PATH,
       HOME = HOME,
       PATHS = wwwPaths,
       # Formats lists
@@ -148,12 +160,29 @@
         DATAONE = DATAONE.LIST,
         AUTHORITIES = TAXA.AUTHORITIES
       ),
-      TOKEN = list(
-        DATAONE.TOKEN = NA_character_,
-        DATAONE.TEST.TOKEN = NA_character_
+      # Regex patterns
+      PATTERNS = list(
+        # match one expression for latitude or longitude
+        LATLON = "[+-]?[[:digit:]]+[.,]*[[:digit:]]*",
+        NAME = "^[[:alpha:] \\'\\.\\-]+$",
+        EMAIL = "^[^@]+@[^@]+\\.[[:alpha:]]",
+        ORCID = "\\d{4}-\\d{4}-\\d{4}-(\\d{4}|\\d{3}X)"
+      ),
+      # navigation variable in EMLAL module
+      EMLAL = list(
+        HISTORY = "SelectDP",
+        NAVIGATE = 1,
+        CURRENT = "SelectDP",
+        COMPLETE_CURRENT = FALSE
+      ),
+      SETTINGS = list(
+        TOKENS = list()
+      ),
+      SEMANTICS = list(
+        ONTOLOGIES = character()
       )
     )
-  }
+  
   # output
   return(globals)
 }

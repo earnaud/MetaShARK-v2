@@ -4,7 +4,7 @@
 \alias{appOptionsUI}
 \title{appOptionsUI}
 \usage{
-appOptionsUI(id, settingsVar, dev)
+appOptionsUI(id, dev)
 }
 \description{
 UI part of the appOptions module. Allow the user to change several settings in the app.
