@@ -174,6 +174,8 @@ Personnel <- function(input, output, session,
 #' @description helper function to insert PersonnelMod* functions. Calling this from
 #' a shiny server will insert PersonnelModUI and create its server part. Provided with
 #' features to delete them.
+#' 
+#' @importFrom shiny insertUI callModule
 insertPersonnelInput <- function(id, rv, ns, globals, role = NULL, saved = NULL) {
   
   # initialize IDs -----------------------------------------------------
@@ -235,43 +237,45 @@ PersonnelModUI <- function(id, div_id, site_id, rmv_id,
         # * (ORCID) Personnel identification -----------------------------------------------------
         fluidRow(
           class = "topInputRow",
-          column(3,
-            if (is.null(role)) {
-              selectInput(
-                ns("role"),
-                c("creator", "PI (principal investigator)", "contact", "(other)"),
-                label = with_red_star("Role"),
-                selected = if(!is.null(value)) {
-                  if(value$role %in% c("creator", "PI (principal investigator)", "contact"))
-                    value$role
-                  else
-                    "(other)"
-                } else ""
-              )
-            } else {
-              tags$b(paste("Role: ", role))
-            }
-          ),
-          column(4,
-            hidden(
-              div(
-                id = ns("role-other"),
-                textInput(
-                  ns("role-other"),
-                  label = "Title of the custom role",
-                  value = if(!is.null(value) &&
-                      !value$role %in% c("creator", "PI (principal investigator)", "contact")) {
-                    value$role 
+          column(11,
+            column(4,
+              if (is.null(role)) {
+                selectInput(
+                  ns("role"),
+                  c("creator", "PI (principal investigator)", "contact", "(other)"),
+                  label = with_red_star("Role"),
+                  selected = if(!is.null(value)) {
+                    if(value$role %in% c("creator", "PI (principal investigator)", "contact"))
+                      value$role
+                    else
+                      "(other)"
                   } else ""
                 )
+              } else {
+                tags$b(paste("Role: ", role))
+              }
+            ),
+            column(4,
+              hidden(
+                div(
+                  id = ns("role-other"),
+                  textInput(
+                    ns("role-other"),
+                    label = "Title of the custom role",
+                    value = if(!is.null(value) &&
+                        !value$role %in% c("creator", "PI (principal investigator)", "contact")) {
+                      value$role 
+                    } else ""
+                  )
+                )
               )
-            )
-          ),
-          column(4,
-            textInput(
-              ns("userId"),
-              label = "ORCID",
-              value = if(!is.null(value)) value$userId else ""
+            ),
+            column(4,
+              textInput(
+                ns("userId"),
+                label = "ORCID",
+                value = if(!is.null(value)) value$userId else ""
+              )
             )
           ),
           column(1,

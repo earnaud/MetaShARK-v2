@@ -89,7 +89,7 @@ initReactive <- function(sublist = NULL, savevar = NULL, glob) {
 #' @return 
 #' `savevar` modified.
 #' 
-#' @importFrom shiny withProgress incProgress
+#' @importFrom shiny withProgress incProgress isolate
 #' @importFrom jsonlite write_json serializeJSON
 saveReactive <- function(
   savevar, 
@@ -170,7 +170,7 @@ saveReactive <- function(
     )
     
     incProgress(1/3)
-  })
+  }) %>% isolate
   
   showNotification("Saved !", duration = 1.5, type = "message")
   

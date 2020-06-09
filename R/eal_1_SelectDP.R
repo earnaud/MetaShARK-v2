@@ -163,36 +163,10 @@ SelectDP <- function(input, output, session,
   )
   
   # DP location -----------------------------------------------------
-  # if (!isTRUE(server)) {
-  #   volumes <- c(Home = globals$HOME, base = getVolumes()())
-  #   
-  #   # chose DP location
-  #   shinyDirChoose(input, ns("dp_location"),
-  #     roots = volumes,
-  #     # defaultRoot = HOME,
-  #     session = session
-  #   )
-  #   # update reactive value
-  #   observeEvent(input$dp_location, {
-  #     # validity checks
-  #     req(input$dp_location)
-  #     
-  #     # variable initialization
-  #     save <- rv$dp_location
-  #     
-  #     # actions
-  #     rv$dp_location <- parseDirPath(volumes, input$dp_location)
-  #     if (is.na(rv$dp_location)) {
-  #       rv$dp_location <- save
-  #     }
-  #   })
-  # }
-  # else {
-    observeEvent(input$dp_location, {
-      req(input$dp_location)
-      rv$dp_location <- input$dp_location
-    })
-  # }
+  observeEvent(input$dp_location, {
+    req(input$dp_location)
+    rv$dp_location <- input$dp_location
+  }, label = "EAL1: input dp location")
   
   # Render selected DP location
   output$dp_location <- renderText({
@@ -209,7 +183,7 @@ SelectDP <- function(input, output, session,
     } else {
       rv$dp_list <- NULL
     }
-  })
+  }, label = "EAL1: build dp list")
   
   # Render list of DP at selected location
   output$dp_list <- renderUI({
@@ -229,11 +203,7 @@ SelectDP <- function(input, output, session,
       ),
       actionButton(ns("dp_load"), "Load", icon = icon("folder-open")),
       actionButton(ns("dp_delete"), "Delete", icon = icon("minus-circle"), class = "redButton"),
-      # if (server) {
-        downloadButton(ns("dp_download"), label = "Download .zip", icon = icon("file-download"))
-      # } else {
-      #   NULL
-      # }
+      downloadButton(ns("dp_download"), label = "Download .zip", icon = icon("file-download"))
     )
   })
   
@@ -266,7 +236,7 @@ SelectDP <- function(input, output, session,
       disable("dp_delete")
       disable("dp_download")
     }
-  })
+  }, label = "EAL1: UX hs")
   
   # DP create -----------------------------------------------------
   # check name input
@@ -292,7 +262,7 @@ SelectDP <- function(input, output, session,
         input$dp_title != ""
         && grepl("^[[:alnum:]\\ \\.,:_-]+$", input$dp_title),
         "This title has invalid character: use alphanumerics, 
-        \" \" \".\" \",\" \":\" \"_\" or \"-\""
+        \" \", \".\", \",\", \":\", \"_\" or \"-\"."
       )
     )
     rv$valid_name <- TRUE
@@ -306,20 +276,20 @@ SelectDP <- function(input, output, session,
     } else {
       updateTextInput(session, "dp_name", placeholder = paste0(Sys.Date(), "_project"))
     }
-  })
+  }, label = "EAL1: quick?")
   
   observeEvent(input$dp_name, {
     rv$dp_name <- input$dp_name
-  })
+  }, label = "EAL1: save dp name")
   
   observeEvent(input$dp_title, {
     rv$dp_title <- input$dp_title
-  })
+  }, label = "EAL1: save dp title")
   
   # license choice
   observeEvent(input$license, {
     rv$dp_license <- input$license
-  })
+  }, label = "EAL1: save dp license")
   
   # DP management - on clicks -----------------------------------------------------
   # * Create DP -----------------------------------------------------

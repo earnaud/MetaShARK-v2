@@ -101,27 +101,12 @@ DataFiles <- function(input, output, session,
   
   # Data file upload -----------------------------------------------------
   # * Add data files -----------------------------------------------------
-  # if (!isTRUE(server)) {
-  #   shinyFileChoose(
-  #     input,
-  #     "add_data_files",
-  #     roots = volumes,
-  #     session = session
-  #   )
-  # }
-  
   observeEvent(input$add_data_files, {
     # validity checks
     req(input$add_data_files)
     
     # retrieve data files info
-    # if (isTRUE(server)) {
-      loadedFiles <- input$add_data_files
-    # } else {
-    #   loadedFiles <- as.data.frame(
-    #     parseFilePaths(volumes, input$add_data_files)
-    #   )
-    # }
+    loadedFiles <- input$add_data_files
     
     req(checkTruth(loadedFiles))
     
@@ -145,10 +130,11 @@ DataFiles <- function(input, output, session,
           )
         } else {
           browser()
-          rv$data_files <- unique(rbind(
-            rv$data_files,
-            loadedFiles[loadedFiles$name == filename, ]
-          ))
+          if(!filename %in% rv$data_files$name)
+            rv$data_files <- unique(rbind(
+              rv$data_files,
+              loadedFiles[loadedFiles$name == filename, ]
+            ))
         }
       }
     }
@@ -168,13 +154,14 @@ DataFiles <- function(input, output, session,
     # variable modifications
     rv$files_list <- rv$data_files$name
     savevar$emlal$DataFiles <- rv$data_files
-  }, ignoreInit = TRUE)
+  }, ignoreInit = TRUE, label = "EAL2: add files")
   
   # * Remove data files -----------------------------------------------------
-  onclick("remove_data_files", {
-    
+  observeEvent(input$remove_data_files, {
+    message("Try ...")
     # validity check
     req(input$select_data_files)
+    message("done !")
     
     rv$files_list <- rv$files_list[!(rv$files_list %in% input$select_data_files)]
     
@@ -185,7 +172,7 @@ DataFiles <- function(input, output, session,
     
     # variable modifications
     savevar$emlal$DataFiles <- rv$data_files
-  })
+  }, label = "EAL2: remove files")
   
   # Display data files -----------------------------------------------------
   # * UI ----
@@ -339,7 +326,10 @@ DataFiles <- function(input, output, session,
       savevar = savevar,
       rv = list(DataFiles = rv)
     )
-  }, ignoreInit = TRUE)
+  }, 
+    label = "Save_DataFiles",
+    ignoreInit = TRUE
+  )
   
   # Process files -----------------------------------------------------
   observeEvent(NSB$NEXT, {

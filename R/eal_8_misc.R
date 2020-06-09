@@ -282,7 +282,15 @@ Misc <- function(input, output, session,
     
     savevar <- saveReactive(
       savevar = savevar, 
-      rv = list(Misc = rv))
+      rv = list(Misc = rv)
+    )
+    
+    template_annotations(
+      savevar$emlal$SelectDP$dp_metadata_path,
+      savevar$emlal$SelectDP$dp_data_path,
+      dir(savevar$emlal$SelectDP$dp_data_path),
+      eml.path = savevar$emlal$SelectDP$dp_eml_path
+    )
   }, priority = 1, ignoreInit = TRUE)
   
   # Output -----------------------------------------------------

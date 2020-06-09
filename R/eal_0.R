@@ -44,9 +44,9 @@ EMLAL <- function(input, output, session,
   NSB <- navSidebar("nav", globals, savevar)
   
   # Output -----------------------------------------------------
-  iteration <- 0 # varying namespace
+  # namespace <- 0 # varying namespace
   observeEvent(globals$EMLAL$NAVIGATE, {
-    iteration <<- iteration + 1
+    # namespace <<- namespace + 1
     
     if(globals$EMLAL$CURRENT == "Data Files")
       unlink(globals$EMLAL$TEMP)
@@ -152,48 +152,50 @@ EMLAL <- function(input, output, session,
     })
     
     # * UI -----------------------------------------------------
+    namespace <- globals$EMLAL$CURRENT
+
     output$currentUI <- renderUI({
       .ui <- switch(globals$EMLAL$NAVIGATE,
         SelectDPUI(
-          id = ns(iteration),
+          id = ns(namespace),
           dev = globals$dev
         ),
         DataFilesUI(
-          id = ns(iteration),
+          id = ns(namespace),
           dev = globals$dev
         ),
         AttributesUI(
-          id = ns(iteration),
+          id = ns(namespace),
           dev = globals$dev
         ),
         CatVarsUI(
-          id = ns(iteration),
+          id = ns(namespace),
           dev = globals$dev
         ),
         GeoCovUI(
-          id = ns(iteration),
+          id = ns(namespace),
           dev = globals$dev,
           data.files = savevar$emlal$DataFiles$datapath,
           coordPattern = globals$PATTERNS$LATLON
         ),
         TaxCovUI(
-          id = ns(iteration),
+          id = ns(namespace),
           dev = globals$dev,
           data.files = savevar$emlal$DataFiles$datapath,
           taxa.authorities = globals$FORMAT$AUTHORITIES,
           default = savevar$emlal$TaxCov
         ),
         PersonnelUI(
-          id = ns(iteration),
+          id = ns(namespace),
           dev = globals$dev
         ),
         MiscUI(
-          id = ns(iteration),
+          id = ns(namespace),
           dev = globals$dev,
           savevar = savevar
         ),
         MakeEMLUI(
-          id = ns(iteration),
+          id = ns(namespace),
           dev = globals$dev
         ),
         tags$h2("WIP")
@@ -224,46 +226,46 @@ EMLAL <- function(input, output, session,
     # * Server -----------------------------------------------------
     savevar <- switch(globals$EMLAL$NAVIGATE,
       callModule(
-        SelectDP, iteration,
+        SelectDP, namespace,
         savevar, globals
       ),
       callModule(
-        DataFiles, iteration,
+        DataFiles, namespace,
         savevar, globals,
         NSB = NSB
       ),
       callModule(
-        Attributes, iteration,
+        Attributes, namespace,
         savevar, globals,
         NSB = NSB
       ),
       callModule(
-        CatVars, iteration,
+        CatVars, namespace,
         savevar, globals,
         NSB = NSB
       ),
       callModule(
-        GeoCov, iteration,
+        GeoCov, namespace,
         savevar, globals,
         NSB = NSB
       ),
       callModule(
-        TaxCov, iteration,
+        TaxCov, namespace,
         savevar, globals,
         NSB = NSB
       ),
       callModule(
-        Personnel, iteration,
+        Personnel, namespace,
         savevar, globals,
         NSB = NSB
       ),
       callModule(
-        Misc, iteration,
+        Misc, namespace,
         savevar, globals,
         NSB = NSB
       ),
       callModule(
-        MakeEML, iteration,
+        MakeEML, namespace,
         savevar, globals
       )
     )

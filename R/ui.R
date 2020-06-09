@@ -60,7 +60,7 @@
               icon = icon("gear")
             )
           ),
-          if(globals$dev)
+          if(isolate(globals$dev))
             actionButton(
               "dev", "DEV CHECK"
             )
@@ -93,7 +93,7 @@
           ),
           tabItem(
             tabName = "appOptions",
-            appOptionsUI("appOptions", globals$SETTINGS, dev)
+            appOptionsUI("appOptions", dev)
           )
         )
       ) # end body
