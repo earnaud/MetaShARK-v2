@@ -132,11 +132,12 @@ Attributes <- function(input, output, session, savevar, globals, NSB) {
     CU_Table = data.frame(),
     cu_values = rep(NA,5),
     modalOn = FALSE,
-    unitId = ""
-    # , annotations = reactiveValues(
-    #   values = data.frame(),
-    #   count = 0
-    # )
+    unitId = character(),
+    unitList = character()
+    , annotations = reactiveValues(
+      values = data.frame(),
+      count = 0
+    )
   )
   rv$tables <- lapply(
     rv$filepath, readDataTable,
@@ -147,29 +148,46 @@ Attributes <- function(input, output, session, savevar, globals, NSB) {
     dir(savevar$emlal$SelectDP$dp_metadata_path, pattern = "ustom", full.names = TRUE),
     stringsAsFactors = FALSE,
   )
-  # if(checkTruth(savevar$emlal$Attributes)){
-  #   rv$annotations$values <- savevar$emlal$Attributes$annotations
-  #   rv$annotations$count <- nrow(rv$annotations$values)
-  # }
-  # else
-  #   rv$annotations$values <- data.frame(
-  #     id = character(),
-  #     element = character(),
-  #     context = character(),
-  #     subject = character(),
-  #     predicate_label = character(),
-  #     predicate_uri = character(),
-  #     object_label = character(),
-  #     object_uri = character()
-  #   )
-  
+  rv$unitList <- globals$FORMAT$UNIT
+  if(checkTruth(savevar$emlal$Attributes)){
+    rv$annotations$values <- savevar$emlal$Attributes$annotations
+    rv$annotations$count <- nrow(rv$annotations$values)
+  }
+  else
+    rv$annotations$values <- data.frame(
+      id = character(),
+      element = character(),
+      context = character(),
+      subject = character(),
+      predicate_label = character(),
+      predicate_uri = character(),
+      object_label = character(),
+      object_uri = character()
+    )
   
   if (isTRUE(savevar$emlal$quick)) {
     rv <- .fill(rv)
   }
   
+  observe({
+    . <- rv$current_table # trigger
+    
+    .tmp <- unique(c(
+      unlist(lapply(seq_along(rv$tables), function(t) {
+        .tab <- if(t == rv$current_file)
+          rv$current_table
+        else
+          rv$tables[[t]]
+        .tab$unit
+      })),
+      # rv$CU_Table$id,
+      globals$FORMAT$UNIT
+    ))
+    rv$unitList <- .tmp[.tmp != ""]
+  }, label = "EAL3: unit list")
+  
+  # Reactive triggers
   curt <- makeReactiveTrigger()
-  unitcheck <- makeReactiveTrigger()
   
   # List of observers
   obs <- reactiveValues()
@@ -244,7 +262,6 @@ Attributes <- function(input, output, session, savevar, globals, NSB) {
             seq(dim(current_table)[1]), # rows
             fields = colnames(current_table),
             function(row_index, fields) {
-              # GUI ====
               # prepare variables
               attribute_row <- current_table[row_index, ]
               
@@ -260,63 +277,74 @@ Attributes <- function(input, output, session, savevar, globals, NSB) {
                         inputId <- paste(
                           isolate(rv$current_file),
                           row_index,
-                          colname,
                           sep = "-"
                         )
                         
                         # GUI
-                        switch(colname,
-                          attributeDefinition = textAreaInput(
-                            ns(inputId),
-                            value = saved_value,
-                            with_red_star("Describe the attribute")
-                          ),
-                          class = selectInput(
-                            ns(inputId),
-                            "Dectected class (change if misdetected)",
-                            choices = c("numeric", "character", "Date", "categorical"),
-                            selected = saved_value
-                          ),
-                          unit = {
-                            tmp <- selectInput(
-                              ns(inputId),
-                              with_red_star("Select an unit"),
-                              unique(c(
-                                saved_value,
-                                as.character(rv$CU_Table$id),
-                                globals$FORMAT$UNIT
-                              )),
-                              selected = if (isTruthy(saved_value)) saved_value
-                            )
-                            if (isTruthy(saved_value))
-                              tmp
-                            else
-                              hidden(tmp)
-                          },
-                          dateTimeFormatString = {
-                            tmp <- selectInput( # TODO add a module for hour format
-                              ns(inputId),
-                              with_red_star("Select a date format"),
-                              unique(c(saved_value, globals$FORMAT$DATE)),
-                              selected = saved_value
-                            )
-                            if (isTruthy(saved_value))
-                              tmp
-                            else
-                              hidden(tmp)
-                          },
-                          missingValueCode = textInput(
-                            ns(inputId),
-                            "Code for missing value (max 1 word)",
-                            value = saved_value
-                          ),
-                          missingValueCodeExplanation = textAreaInput(
-                            ns(inputId),
-                            "Explain Missing Values",
-                            value = saved_value
-                          ),
-                          NULL
-                        ) # end of switch
+                        attributeInputUI(
+                          ns(inputId), 
+                          colname, 
+                          saved_value,
+                          globals$FORMAT,
+                          # rv$unitList,
+                          # rv$CU_TABLE$id
+                          rv
+                        )
+                        # {
+                          # switch(colname,
+                          #   attributeDefinition = textAreaInput(
+                          #     ns(inputId),
+                          #     value = saved_value,
+                          #     with_red_star("Describe the attribute")
+                          #   ),
+                          #   class = selectInput(
+                          #     ns(inputId),
+                          #     "Dectected class (change if misdetected)",
+                          #     choices = c("numeric", "character", "Date", "categorical"),
+                          #     selected = saved_value
+                          #   ),
+                          #   unit = {
+                          #     tmp <- selectInput(
+                          #       ns(inputId),
+                          #       with_red_star("Select an unit"),
+                          #       unique(c(
+                          #         saved_value,
+                          #         as.character(rv$CU_Table$id),
+                          #         globals$FORMAT$UNIT
+                          #       )),
+                          #       selected = if (isTruthy(saved_value)) saved_value
+                          #     )
+                          #     if (isTruthy(saved_value))
+                          #       tmp
+                          #     else
+                          #       hidden(tmp)
+                          #   },
+                          #   dateTimeFormatString = {
+                          #     tmp <- selectInput( # TODO add a module for hour format
+                          #       ns(inputId),
+                          #       with_red_star("Select a date format"),
+                          #       unique(c(saved_value, globals$FORMAT$DATE)),
+                          #       selected = saved_value
+                          #     )
+                          #     if (isTruthy(saved_value))
+                          #       tmp
+                          #     else
+                          #       hidden(tmp)
+                          #   },
+                          #   missingValueCode = textInput(
+                          #     ns(inputId),
+                          #     "Code for missing value (max 1 word)",
+                          #     value = saved_value
+                          #   ),
+                          #   missingValueCodeExplanation = textAreaInput(
+                          #     ns(inputId),
+                          #     "Explain Missing Values",
+                          #     value = saved_value
+                          #   ),
+                          #   NULL
+                          # ) # end of switch
+                        # }
+                        
                       }) # end of lapply colname
                     ),
                     column(3,
@@ -325,13 +353,14 @@ Attributes <- function(input, output, session, savevar, globals, NSB) {
                       tableOutput(ns(paste0("preview-", colnames(rv$current_preview)[row_index]))),
                       tags$hr(),
                       # Annotate ====
-                      # annotateUI(
-                      #   ns(paste0(
-                      #     "annotate-",
-                      #     isolate(rv$current_file),
-                      #     row_index
-                      #   ))
-                      # )
+                      annotateUI(
+                        ns(paste(
+                          "annotate",
+                          isolate(rv$current_file),
+                          row_index,
+                          sep = "-"
+                        ))
+                      )
                     ) # end of column
                   )
                 ) # end of bsCollapsePanel
@@ -367,98 +396,107 @@ Attributes <- function(input, output, session, savevar, globals, NSB) {
         output[[paste0("preview-", preview_column)]] <- renderTable(rv$current_preview[[preview_column]])
         
         # Annotate ====
-        # annotateId <- paste0(
-        #   "annotate-",
-        #   isolate(rv$current_file),
-        #   row_index
-        # )
-        # 
-        # .tmp <- callModule(annotate, annotateId,
-        #   savevar, globals, rv, row_index)
+        annotateId <- paste(
+          "annotate",
+          isolate(rv$current_file),
+          row_index,
+          sep = "-"
+        )
+
+        .tmp <- callModule(annotate, annotateId,
+          savevar, globals, rv, row_index)
         
         # Input ====
         lapply(fields, function(colname) {
           inputId <- paste(
             isolate(rv$current_file),
             row_index,
-            colname,
             sep = "-"
           )
           
-          obs[[inputId]] <- observeEvent(input[[inputId]], {
-            req(input[[inputId]])
-            if(grepl("class", inputId)){ # input: class
-              # Date
-              date_id <- paste(
-                isolate(rv$current_file),
-                row_index, 
-                "dateTimeFormatString",
-                sep="-"
-              )
-              if(input[[inputId]] == "Date")
-                show(date_id)
-              else {
-                isolate(rv$current_table[row_index, "dateTimeFormatString"] <- "")
-                hide(date_id)
-              }
-              
-              # Unit
-              unit_id <- paste(
-                isolate(rv$current_file),
-                row_index, 
-                "unit",
-                sep="-"
-              )
-              if(input[[inputId]] == "numeric")
-                show(unit_id)
-              else{
-                isolate(rv$current_table[row_index, "unit"] <- "")
-                hide(unit_id)
-              }
-              
-              rv$current_table[row_index, colname] <- input[[inputId]]
-            } else if (grepl("missingValueCode$", inputId)) { # input: missing Value code
-              if (grepl(".+ +.*", input[[inputId]])) {
-                val <- gsub("^ +", "", input[[inputId]])
-                updateTextInput(
-                  session,
-                  inputId,
-                  value = strsplit(val, " ")[[1]][1]
-                )
-                showNotification(
-                  id = session$ns("mvc_update"),
-                  ui = HTML("<code>missingValueCode</code> fields are limited to a <b>single word.</b>"),
-                  duration = 3,
-                  type = "warning"
-                )
-              }
-              
-              rv$current_table[row_index, colname] <- strsplit(input[[inputId]], " ")[[1]][1]
-            } else { # input: others
-              if(grepl("unit", inputId)){
-                # Trigger CU
-                if(input[[inputId]] == "custom" &&
-                  isFALSE(rv$modalOn)){
-                  isolate(rv$unitId <- c(
-                    isolate(rv$current_file),
-                    row_index,
-                    colname
-                  ))
-                  curt$trigger()
-                } else
-                # Remove CU
-                if(!input[[inputId]] %in% rv$CU_Table$id &&
-                    checkTruth(rv$CU_Table$id)){
-                  rv$CU_Table <- rv$CU_Table %>% 
-                    slice(which(rv$CU_Table$id %in% rv$current_table$unit[-row_index]))
-                }
-              }
-              # isolate(
-                rv$current_table[row_index, colname] <- input[[inputId]]
-              # )
-            }
-            rv$tables[[rv$current_file]] <- rv$current_table
-          }) # end of inner observeEvent
+          obs <- callModule(
+            attributeInput,
+            inputId,
+            rv,
+            row_index,
+            colname,
+            obs,
+            curt
+          )
+          # # obs[[inputId]] <- observeEvent(input[[inputId]], {
+          #   req(input[[inputId]])
+          #   if(grepl("class", inputId)){ # input: class
+          #     # Date
+          #     date_id <- paste(
+          #       isolate(rv$current_file),
+          #       row_index, 
+          #       "dateTimeFormatString",
+          #       sep="-"
+          #     )
+          #     if(input[[inputId]] == "Date")
+          #       show(date_id)
+          #     else {
+          #       isolate(rv$current_table[row_index, "dateTimeFormatString"] <- "")
+          #       hide(date_id)
+          #     }
+          #     
+          #     # Unit
+          #     unit_id <- paste(
+          #       isolate(rv$current_file),
+          #       row_index, 
+          #       "unit",
+          #       sep="-"
+          #     )
+          #     if(input[[inputId]] == "numeric")
+          #       show(unit_id)
+          #     else{
+          #       isolate(rv$current_table[row_index, "unit"] <- "")
+          #       hide(unit_id)
+          #     }
+          #     
+          #     rv$current_table[row_index, colname] <- input[[inputId]]
+          #   } else if (grepl("missingValueCode$", inputId)) { # input: missing Value code
+          #     if (grepl(".+ +.*", input[[inputId]])) {
+          #       val <- gsub("^ +", "", input[[inputId]])
+          #       updateTextInput(
+          #         session,
+          #         inputId,
+          #         value = strsplit(val, " ")[[1]][1]
+          #       )
+          #       showNotification(
+          #         id = session$ns("mvc_update"),
+          #         ui = HTML("<code>missingValueCode</code> fields are limited to a <b>single word.</b>"),
+          #         duration = 3,
+          #         type = "warning"
+          #       )
+          #     }
+          #     
+          #     rv$current_table[row_index, colname] <- strsplit(input[[inputId]], " ")[[1]][1]
+          #   } else { # input: others
+          #     if(grepl("unit", inputId)){
+          #       # Trigger CU
+          #       if(input[[inputId]] == "custom" &&
+          #         isFALSE(rv$modalOn)){
+          #         isolate(rv$unitId <- c(
+          #           isolate(rv$current_file),
+          #           row_index,
+          #           colname
+          #         ))
+          #         curt$trigger()
+          #       } else
+          #       # Remove CU
+          #       if(!input[[inputId]] %in% rv$CU_Table$id &&
+          #           checkTruth(rv$CU_Table$id)){
+          #         rv$CU_Table <- rv$CU_Table %>% 
+          #           slice(which(rv$CU_Table$id %in% rv$current_table$unit[-row_index]))
+          #       }
+          #     }
+          #     # isolate(
+          #       rv$current_table[row_index, colname] <- input[[inputId]]
+          #     # )
+          #   }
+          #   rv$tables[[rv$current_file]] <- rv$current_table
+          # }) # end of inner observeEvent
           
         }) # end of lapply colname
         
@@ -473,7 +511,13 @@ Attributes <- function(input, output, session, savevar, globals, NSB) {
     modalOn <- isolate(rv$modalOn)
     req(any(df$unit == "custom"))
     
-    row <- which(df$unit == "custom")
+    rv$unitId <- c(
+      rv$current_file,
+      which(df$unit == "custom"),
+      "unit"
+    )
+    
+    row <- rv$unitId[2]
     class <- df[row,"class"]
     
     if(class == "numeric" && 
@@ -553,13 +597,14 @@ Attributes <- function(input, output, session, savevar, globals, NSB) {
     rv$modalOn <- FALSE
     removeModal()
     
-    isolate(
+    isolate({
       updateSelectInput(
         session,
         paste(rv$unitId, collapse = "-"),
         selected = globals$FORMAT$UNIT[2]
       )
-    )
+    })
+    rv$unitId <- character() # reset to default
   })
   
   # Submit button en/disable
@@ -580,7 +625,7 @@ Attributes <- function(input, output, session, savevar, globals, NSB) {
   })
   
   # Submit
-  onclick("modal_submit", {
+  observeEvent(input$modal_submit, {
     req(isTRUE(rv$modalOn))
     
     # Close modal
@@ -599,28 +644,31 @@ Attributes <- function(input, output, session, savevar, globals, NSB) {
       
     # Update CU values
     if(rv$cu_values[1] %in% rv$CU_Table$id)
-      rv$CU_Table <- rv$CU_Table %>%
-      filter(id = rv$cu_values[1]) %>% 
-      replace(values = rv$cu_values)
+      rv$CU_Table <- rv$CU_Table %>% 
+        filter(id = rv$cu_values[1]) %>% 
+        replace(values = rv$cu_values)
     # Add CU values
     else{
       names(rv$cu_values) <- colnames(rv$CU_Table) 
       rv$CU_Table[dim(rv$CU_Table)[1]+1,] <- rv$cu_values
     }
-    
     # update input UI
+    rv$unitList <- unique(c(
+      rv$cu_values["id"],
+      rv$unitList
+    ))
     isolate({
       updateSelectInput(
         session,
         paste(rv$unitId, collapse = "-"),
-        selected = input$modal_id
+        choices = rv$unitList,
+        selected = rv$cu_values["id"]
       )
     })
     
     row <- rv$unitId[2]
-    col <- rv$unitId[3]
-    isolate(rv$current_table[row, col] <- input$modal_id)
-  })
+    rv$current_table[row, "unit"] <- rv$cu_values["id"]
+  }, priority = 1)
 
   output$CUUI <- renderTable({
     validate(
@@ -630,7 +678,8 @@ Attributes <- function(input, output, session, savevar, globals, NSB) {
   })
   
   # Saves -----------------------------------------------------
-  observeEvent(rv$tables, {
+  # observeEvent(rv$tables, {
+  observe({
     globals$EMLAL$COMPLETE_CURRENT <- FALSE
     req(
       length(rv$tables) != 0 &&

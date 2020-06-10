@@ -14,7 +14,7 @@ onQuit(input, output, session, globals, savevar, NSB)
 
 onSave(input, output, session, savevar, NSB)
 
-nextTab(input, output, session, globals, NSB)
+nextTab(input, output, session, globals, savevar, NSB)
 
 prevTab(input, output, session, globals, NSB)
 }

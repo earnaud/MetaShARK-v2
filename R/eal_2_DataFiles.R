@@ -129,7 +129,6 @@ DataFiles <- function(input, output, session,
             type = "warning"
           )
         } else {
-          browser()
           if(!filename %in% rv$data_files$name)
             rv$data_files <- unique(rbind(
               rv$data_files,
@@ -311,8 +310,10 @@ DataFiles <- function(input, output, session,
   })
   
   # Saves -----------------------------------------------------
-  observeEvent(rv$data_files, {
-    globals$EMLAL$COMPLETE_CURRENT <- checkTruth(rv$data_files) && all(dim(rv$data_files) != 0)
+  # observeEvent(rv$data_files, {
+  observe({
+    globals$EMLAL$COMPLETE_CURRENT <- checkTruth(rv$data_files) &&
+      all(dim(rv$data_files) != 0)
     req(globals$EMLAL$COMPLETE_CURRENT)
     
     savevar$emlal$DataFiles <- rv$data_files

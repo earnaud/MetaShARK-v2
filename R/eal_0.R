@@ -43,11 +43,12 @@ EMLAL <- function(input, output, session,
   
   NSB <- navSidebar("nav", globals, savevar)
   
+  observe({
+    message(globals$EMLAL$COMPLETE_CURRENT)
+  })
+  
   # Output -----------------------------------------------------
-  # namespace <- 0 # varying namespace
   observeEvent(globals$EMLAL$NAVIGATE, {
-    # namespace <<- namespace + 1
-    
     if(globals$EMLAL$CURRENT == "Data Files")
       unlink(globals$EMLAL$TEMP)
     globals$EMLAL$CURRENT <- steps[globals$EMLAL$NAVIGATE]
