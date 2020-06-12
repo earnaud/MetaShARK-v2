@@ -61,21 +61,21 @@ uploadUI <- function(id, dev, globals) {
           # Metadata
           tags$h4("Metadata (one file required)"),
           multiFilesInputUI(
-            ns("metadata"), 
+            ns("metadata"),
             "Please select an .xml file validating EML schema."
           ),
           textOutput(ns("warnings-metadata")),
           # Data
           tags$h4("Data (at least one file required)"),
           multiFilesInputUI(
-            ns("data"), 
+            ns("data"),
             "Please select the data described in the provided metadata."
           ),
           textOutput(ns("warnings-data")),
           # Scripts
           tags$h4("Scripts"),
           multiFilesInputUI(
-            ns("scripts"), 
+            ns("scripts"),
             "Please select the scripts described in the provided metadata."
           ),
           textOutput(ns("warnings-scripts")),

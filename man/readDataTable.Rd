@@ -7,10 +7,10 @@
 readDataTable(file, data.table = FALSE, dev = FALSE, ...)
 }
 \arguments{
-\item{file}{path to the data table file. For Excel files, 
+\item{file}{path to the data table file. For Excel files,
 supports "http://", "https://", and "ftp://" URLS.}
 
-\item{data.table}{(from `fread()`) TRUE returns a data.table. 
+\item{data.table}{(from `fread()`) TRUE returns a data.table.
 FALSE returns a data.frame. The default for this argument can
 be changed with options(datatable.fread.datatable=FALSE).}
 

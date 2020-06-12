@@ -8,9 +8,9 @@
 #' @importFrom shinycssloaders withSpinner
 docUI <- function(id) {
   ns <- NS(id)
-  
+
   require(shinyTree)
-  
+
   # UI output
   tagList(
     tags$head(
@@ -22,7 +22,8 @@ docUI <- function(id) {
     ),
     fluidRow(
       # search sidebar
-      column(5,
+      column(
+        5,
         wellPanel(
           shinyTree(
             outputId = ns("tree"),
@@ -32,13 +33,14 @@ docUI <- function(id) {
         )
       ),
       # display main panel
-      column(7,
+      column(
+        7,
         div(
           id = "docPanel",
           uiOutput(ns("doc"))
         )
       )
-    ) 
+    )
   )
 }
 
@@ -52,23 +54,23 @@ docUI <- function(id) {
 #' @importFrom jsonlite read_json unserializeJSON
 documentation <- function(input, output, session, globals) {
   ns <- session$ns
-  
+
   # Load data ====
   withProgress(message = "Loading documentation.", {
-    doc <- system.file("resources/doc_guideline.json", package = "MetaShARK") %>% 
-      read_json(simplifyVector = TRUE) %>% 
-      unserializeJSON
+    doc <- system.file("resources/doc_guideline.json", package = "MetaShARK") %>%
+      read_json(simplifyVector = TRUE) %>%
+      unserializeJSON()
     incProgress(0.9)
-    tree <- system.file("resources/tree_guideline.json", package = "MetaShARK") %>% 
-      read_json(simplifyVector = TRUE) %>% 
-      unserializeJSON
+    tree <- system.file("resources/tree_guideline.json", package = "MetaShARK") %>%
+      read_json(simplifyVector = TRUE) %>%
+      unserializeJSON()
   })
-  
+
   # UI render ====
-  
+
   # render tree
   output$tree <- renderTree(tree)
-  
+
   # output selected node
   output$doc <- renderUI({
     tree.node <- get_selected(input$tree)
@@ -77,9 +79,10 @@ documentation <- function(input, output, session, globals) {
     )
     path <- paste(c(attr(tree.node[[1]], "ancestry"), unlist(tree.node)), collapse = "/")
     doc.node <- followPath(doc, path)
-    if("annotation" %in% names(doc.node))
+    if ("annotation" %in% names(doc.node)) {
       doc.node$annotation
-    else
+    } else {
       helpText("No content found at:", path)
+    }
   })
 }

@@ -7,19 +7,19 @@
 #' @importFrom data.table fread
 MiscUI <- function(id, title, dev, savevar) {
   ns <- NS(id)
-  
+
   keywords <- fread(
     paste0(savevar$emlal$SelectDP$dp_metadata_path, "/keywords.txt"),
     data.table = FALSE, stringsAsFactors = FALSE
   )
-  if(checkTruth(keywords)){
+  if (checkTruth(keywords)) {
     kw <- keywords$keyword %>%
       strsplit(split = ",") %>%
-      unlist %>%
+      unlist() %>%
       paste(collapse = ",")
   }
 
-    
+
   return(
     fluidPage(
       fluidRow(
@@ -32,7 +32,7 @@ MiscUI <- function(id, title, dev, savevar) {
           "),
         bsCollapse(
           id = ns("Miscs"),
-          
+
           # * Abstract -----------------------------------------------------
           bsCollapsePanel(
             title = with_red_star("Abstract"),
@@ -44,7 +44,7 @@ MiscUI <- function(id, title, dev, savevar) {
               )
             )
           ),
-          
+
           # * Methods -----------------------------------------------------
           bsCollapsePanel(
             title = with_red_star("Methods"),
@@ -56,21 +56,23 @@ MiscUI <- function(id, title, dev, savevar) {
               )
             )
           ),
-          
+
           # * Keywords -----------------------------------------------------
           bsCollapsePanel(
             title = with_red_star("Keywords"),
             value = 3,
             tagList(
-              column(6,
+              column(
+                6,
                 tagsTextInput(
                   ns("keywords"),
                   tags$p("List the keywords that best describe your dataset.
                     Type a 'tab' to separate each keyword."),
-                  value = if(checkTruth(keywords)) keywords[, 1] else c()
+                  value = if (checkTruth(keywords)) keywords[, 1] else c()
                 )
               ),
-              column(6,
+              column(
+                6,
                 tags$h4("Associated thesaurus"),
                 tags$p("NOTE: use of thesaurus will be improved. Currently,
                     no control is made about thesaurus input field and this
@@ -80,7 +82,7 @@ MiscUI <- function(id, title, dev, savevar) {
               )
             )
           ),
-          
+
           # * Temporal coverage -----------------------------------------------------
           bsCollapsePanel(
             title = "Temporal coverage",
@@ -97,7 +99,7 @@ MiscUI <- function(id, title, dev, savevar) {
               )
             )
           ),
-          
+
           # * Additional Info -----------------------------------------------------
           bsCollapsePanel(
             title = "Additional Info",
@@ -127,21 +129,25 @@ MiscUI <- function(id, title, dev, savevar) {
 #' @importFrom shinyjs enable disable
 #' @importFrom data.table fread
 Misc <- function(input, output, session,
-  savevar, globals, NSB) {
+                 savevar, globals, NSB) {
   ns <- session$ns
-  
-  if(globals$dev)
-    onclick("dev", {
-      req(globals$EMLAL$NAVIGATE == 8)
-      browser()
-    }, asis=TRUE)
-  
+
+  if (globals$dev) {
+    onclick("dev",
+      {
+        req(globals$EMLAL$NAVIGATE == 8)
+        browser()
+      },
+      asis = TRUE
+    )
+  }
+
   # Variable initialization -----------------------------------------------------
   kw <- fread(
     paste0(savevar$emlal$SelectDP$dp_metadata_path, "/keywords.txt"),
     data.table = FALSE, stringsAsFactors = FALSE
   )
-  
+
   rv <- reactiveValues(
     # Abstract
     abstract = reactiveValues(
@@ -178,7 +184,7 @@ Misc <- function(input, output, session,
       )
     )
   )
-  
+
   # Fill -----------------------------------------------------
   # * Abstract ====
   rv$abstract <- callModule(
@@ -187,7 +193,7 @@ Misc <- function(input, output, session,
     savevar,
     rv = rv$abstract
   )
-  
+
   # * Methods ====
   rv$methods <- callModule(
     Miscellaneous,
@@ -195,13 +201,13 @@ Misc <- function(input, output, session,
     savevar,
     rv = rv$methods
   )
-  
+
   # * Keywords ====
   observeEvent(input$keywords, {
     req(input$keywords)
-    
+
     rv$keywords$keyword <- unique(input$keywords)
-    
+
     output$thesaurus <- renderUI({
       validate(
         need(checkTruth(rv$keywords$keyword), "No keyword input")
@@ -210,17 +216,17 @@ Misc <- function(input, output, session,
         lapply(seq_along(rv$keywords$keyword), function(k_id) {
           keyword <- rv$keywords$keyword[k_id]
           valKT <- rv$keywords$keywordThesaurus[k_id]
-          
+
           textInput(
             ns(paste0("thesaurus-for-", keyword)),
             keyword,
-            value = if(isTruthy(valKT)) valKT else ""
+            value = if (isTruthy(valKT)) valKT else ""
           )
         })
       )
     })
   })
-  
+
   # NOTE observers are still active after being deleted
   observe({
     validate(
@@ -229,12 +235,12 @@ Misc <- function(input, output, session,
     sapply(seq_along(rv$keywords$keyword), function(k_id) {
       keyword <- rv$keywords$keyword[k_id]
       input_id <- paste0("thesaurus-for-", keyword)
-      .val <- if(isTruthy(input[[input_id]])) input[[input_id]] else ""
-        
+      .val <- if (isTruthy(input[[input_id]])) input[[input_id]] else ""
+
       rv$keywords$keywordThesaurus[k_id] <- .val
     })
   })
-  
+
   # * Temporal coverage ====
   if (!is.null(savevar$emlal$Misc$temporal_coverage)) {
     rv$temporal_coverage <- savevar$emlal$Misc$temporal_coverage
@@ -248,7 +254,7 @@ Misc <- function(input, output, session,
   observeEvent(input$temporal_coverage, {
     rv$temporal_coverage <- input$temporal_coverage
   })
-  
+
   # * Additional information ====
   rv$additional_info <- callModule(
     Miscellaneous,
@@ -256,7 +262,7 @@ Misc <- function(input, output, session,
     savevar,
     rv = rv$additional_information
   )
-  
+
   # Saves -----------------------------------------------------
   observe({
     globals$EMLAL$COMPLETE_CURRENT <- all(
@@ -266,33 +272,40 @@ Misc <- function(input, output, session,
         isTruthy(rv$temporal_coverage)
     )
   })
-  
-  observeEvent(NSB$SAVE, {
-    req(globals$EMLAL$CURRENT == "Miscellaneous")
-    
-    savevar <- saveReactive(
-      savevar = savevar,
-      rv = list(Misc = rv)
-    )
-  }, ignoreInit = TRUE)
-  
+
+  observeEvent(NSB$SAVE,
+    {
+      req(globals$EMLAL$CURRENT == "Miscellaneous")
+
+      savevar <- saveReactive(
+        savevar = savevar,
+        rv = list(Misc = rv)
+      )
+    },
+    ignoreInit = TRUE
+  )
+
   # Process data -----------------------------------------------------
-  observeEvent(NSB$NEXT, {
-    req(globals$EMLAL$CURRENT == "Miscellaneous")
-    
-    savevar <- saveReactive(
-      savevar = savevar, 
-      rv = list(Misc = rv)
-    )
-    
-    template_annotations(
-      savevar$emlal$SelectDP$dp_metadata_path,
-      savevar$emlal$SelectDP$dp_data_path,
-      dir(savevar$emlal$SelectDP$dp_data_path),
-      eml.path = savevar$emlal$SelectDP$dp_eml_path
-    )
-  }, priority = 1, ignoreInit = TRUE)
-  
+  observeEvent(NSB$NEXT,
+    {
+      req(globals$EMLAL$CURRENT == "Miscellaneous")
+
+      savevar <- saveReactive(
+        savevar = savevar,
+        rv = list(Misc = rv)
+      )
+
+      # template_annotations(
+      #   savevar$emlal$SelectDP$dp_metadata_path,
+      #   savevar$emlal$SelectDP$dp_data_path,
+      #   dir(savevar$emlal$SelectDP$dp_data_path),
+      #   eml.path = savevar$emlal$SelectDP$dp_eml_path
+      # )
+    },
+    priority = 1,
+    ignoreInit = TRUE
+  )
+
   # Output -----------------------------------------------------
   return(savevar)
 }

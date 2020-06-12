@@ -8,14 +8,14 @@
 #' @param path vector of characters matching some of tree names and
 #' separated with sep
 #' @param sep separators between path elements (aka tree names)
-#' @param root if your path has a root name for root node, enter its name here. 
+#' @param root if your path has a root name for root node, enter its name here.
 #' Else, enter NULL.
 followPath <- function(tree, path, sep = "/", root = "root") {
   # Validity checks
   if (is.list(path)) {
     path <- unlist(path)
   }
-  
+
   if (is.null(tree) || is.null(path)) {
     stop("'tree' and 'path' args must be specified")
   }
@@ -28,8 +28,9 @@ followPath <- function(tree, path, sep = "/", root = "root") {
 
   # Processing
   path <- unlist(strsplit(path, sep))
-  if(!is.null(root))
+  if (!is.null(root)) {
     path <- path[!path == root]
+  }
 
   while (length(path) != 0) {
     tree <- tree[[path[1]]]

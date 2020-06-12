@@ -17,7 +17,7 @@ separated with sep}
 
 \item{sep}{separators between path elements (aka tree names)}
 
-\item{root}{if your path has a root name for root node, enter its name here. 
+\item{root}{if your path has a root name for root node, enter its name here.
 Else, enter NULL.}
 
 \item{tree:}{explored hierarchy list thanks to @path}

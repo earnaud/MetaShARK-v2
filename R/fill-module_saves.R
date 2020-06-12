@@ -1,48 +1,49 @@
 #'
-.saveDataFiles <- function(savevar, rv){
+.saveDataFiles <- function(savevar, rv) {
   tmp <- savevar$emlal$DataFiles
-  
-  if(!checkTruth(tmp))
+
+  if (!checkTruth(tmp)) {
     tmp <- data.frame(
       name = character(),
       size = character(),
       type = character(),
       datapath = character()
     )
-  
+  }
+
   # -- Get files data
-  tmp$datapath <- paste0(
+  .from <- tmp$datapath
+  .to <- paste0(
     savevar$emlal$SelectDP$dp_data_path,
     "/", rv$data_files$name
   )
-  
+  file.copy(
+    from = .from,
+    to = .to
+  )
+  tmp$datapath <- .to
+
   # -- set metadatapath
   tmp$metadatapath <- paste(
     savevar$emlal$SelectDP$dp_metadata_path,
     sub(
       "(.*)\\.[a-zA-Z0-9]*$",
       "attributes_\\1.txt",
-      rv$data_files$name
+      tmp$name
     ),
     sep = "/"
   )
-  
+
   # Set table name
   tmp$table_name <- rv$data_files$table_name
   # Set description
   tmp$description <- rv$data_files$description
   # Set URL
   tmp$url <- rv$data_files$url
-  
-  savevar$emlal$DataFiles <- tmp
-  
-  # copy files
-  file.copy(
-    from = rv$data_files$datapath,
-    to = savevar$emlal$SelectDP$dp_data_path
-  )
-  
-  rv$data_files$datapath <-paste0(
+
+  savevar$emlal$DataFiles <- rv$data_files <- tmp
+
+  rv$data_files$datapath <- paste0(
     savevar$emlal$SelectDP$dp_data_path,
     "/", rv$data_files$name
   )
@@ -51,7 +52,7 @@
 
 #' @importFrom shiny withProgress incProgress reactiveValues
 #' @importFrom data.table fwrite
-.saveAttributes <- function(savevar, rv){
+.saveAttributes <- function(savevar, rv) {
   # Write attribute tables
   sapply(
     seq_along(rv$filenames),
@@ -62,87 +63,113 @@
       fwrite(table, path, sep = "\t")
     }
   )
-  
+
   # Write Custom units
-  if(checkTruth(rv$CU_Table))
+  if (checkTruth(rv$CU_Table)) {
     fwrite(
       rv$CU_Table,
       paste0(savevar$emlal$SelectDP$dp_metadata_path, "/custom_units.txt")
     )
-  
+  }
+
   # Save annotations
-  if(rv$annotations$count > 0)
-  savevar$emlal$Attributes <- reactiveValues(
-    annotations = rv$annotations$values
-  )
-  
+  savevar$emlal$Attributes <- rv$tables
+  names(savevar$emlal$Attributes) <- savevar$emlal$DataFiles$name
+  if (rv$annotations$count > 0)
+    savevar$emlal$Attributes$annotations <- rv$annotations$values
+
   return(savevar)
 }
 
 #' @importFrom data.table fwrite
-.saveCatVars <- function(savevar, rv){
-  sapply(rv$catvarFiles, function(file_path){
+.saveCatVars <- function(savevar, rv) {
+  sapply(rv$catvarFiles, function(file_path) {
     file_name <- basename(file_path)
     savevar$emlal$CatVars[[file_name]] <- rv[[file_name]]$CatVars
-    
+
     .tmp <- savevar$emlal$CatVars[[file_name]]$code == ""
     savevar$emlal$CatVars[[file_name]]$code[.tmp] <- "NA"
-    
+
     file.remove(file_path)
-    
+
     fwrite(
       savevar$emlal$CatVars[[file_name]],
       file_path,
       sep = "\t"
     )
   })
-  
+
   return(savevar)
 }
 
 #' @importFrom data.table fwrite
-.saveGeoCov <- function(
-  savevar, rv, .method = "columns", .values, globals){
-  
-  geocov <- data.frame(
-    geographicDescription = character(),
-    northBoundingCoordinate = numeric(),
-    southBoundingCoordinate = numeric(),
-    eastBoundingCoordinate = numeric(),
-    westBoundingCoordinate = numeric()
+#' @importFrom shiny reactiveValues
+.saveGeoCov <- function(savevar, rv, globals) {
+  # Initialize variables
+  .method <- if (isTRUE(rv$columns$complete)) {
+    "columns"
+  } else if (isTRUE(rv$custom$complete)) {
+    "custom"
+  } else {
+    ""
+  }
+
+  data.files <- savevar$emlal$DataFiles$datapath
+  data.content <- lapply(data.files, readDataTable, stringsAsFactors = FALSE)
+  names(data.content) <- basename(data.files)
+
+  # format extracted content - keep latlon-valid columns
+  data.content.coordinates <- lapply(
+    names(data.content),
+    function(data.filename) {
+      df <- data.content[[data.filename]]
+      df.num <- unlist(
+        lapply(df, function(df.col) {
+          all(grepl(globals$PATTERNS$LATLON, df.col))
+        })
+      )
+      df[, df.num]
+    }
   )
+  names(data.content.coordinates) <- basename(data.files)
+
+  .values <- list(
+    data.content = data.content,
+    data.content.coordinates = data.content.coordinates
+  )
+
+  geocov <- NULL
   
   # GeoCov written if .method filled
-  if(.method == "columns"){
-    # reset
-    savevar$emlal$GeoCov <- reactiveValues()
+  if (.method == "columns") {
+    savevar$emlal$GeoCov <- reactiveValues() # reset
     savevar$emlal$GeoCov$columns <- rv$columns
-    
+
     # Site
-    site <- rv$columns$site.name
+    site <- printReactiveValues(rv$columns$site)
     .geographicDescription <- .values$data.content[[site["file"]]][[site["col"]]]
-    
+
     # extract queried
     tmp <- extractCoordinates(
       rv,
       "lat",
-      globals$PATTERNS$LATLON, 
+      globals$PATTERNS$LATLON,
       .values$data.content
     )
     .northBoundingCoordinate <- tmp$coordinates$N
     .southBoundingCoordinate <- tmp$coordinates$S
     rv$warnings$latWarnings <- tmp$warnings
-    
+
     tmp <- extractCoordinates(
       rv,
       "lon",
-      globals$PATTERNS$LATLON, 
+      globals$PATTERNS$LATLON,
       .values$data.content
     )
     .eastBoundingCoordinate <- tmp$coordinates$E
     .westBoundingCoordinate <- tmp$coordinates$W
     rv$warnings$lonWarnings <- tmp$warnings
-    
+
     # Final
     geocov <- data.frame(
       geographicDescription = .geographicDescription,
@@ -152,19 +179,18 @@
       westBoundingCoordinate = .westBoundingCoordinate,
       stringsAsFactors = FALSE
     )
-  }
-  else if(.method == "custom"){
+  } else if (.method == "custom") {
     # save
     savevar$emlal$GeoCov <- reactiveValues()
     savevar$emlal$GeoCov$custom <- rv$custom
-    
+
     # fill
     geocov <- rv$custom$coordinates
   }
   # Write data
-  if (!is.null(geocov) && 
-      .method != "" &&
-      all(dim(geocov) > 0)
+  if (!is.null(geocov) &&
+    .method != "" &&
+    all(dim(geocov) > 0)
   ) {
     fwrite(
       geocov,
@@ -176,101 +202,103 @@
       sep = "\t"
     )
   }
-  
+
   return(savevar)
 }
 
 #' @importFrom shiny reactiveValues
-.saveTaxCov <- function(savevar, rv){
+.saveTaxCov <- function(savevar, rv) {
   savevar$emlal$TaxCov <- reactiveValues(
     taxa.table = rv$taxa.table,
     taxa.col = rv$taxa.col,
     taxa.name.type = rv$taxa.name.type,
     taxa.authority = rv$taxa.authority
   )
-  
+
   return(savevar)
 }
 
 #' @importFrom data.table fwrite
-.savePersonnel <- function(savevar, rv){
+.savePersonnel <- function(savevar, rv) {
   # save
   savevar$emlal$Personnel <- rv$Personnel
-  
+
   # prettify
   cols <- c(
-    "givenName", "middleInitial", "surName", 
-    "organizationName", "electronicMailAddress", 
-    "userId", "role", 
+    "givenName", "middleInitial", "surName",
+    "organizationName", "electronicMailAddress",
+    "userId", "role",
     "projectTitle", "fundingAgency", "fundingNumber"
   )
   personnel <- rv$Personnel[names(rv$Personnel) %in% cols]
-  
+
   # write file
   fwrite(
     personnel,
     paste0(
       savevar$emlal$SelectDP$dp_metadata_path,
       "/personnel.txt"
-    ), 
+    ),
     sep = "\t"
   )
-  
+
   return(savevar)
 }
 
 #' @importFrom data.table fwrite
 #' @importFrom shiny withProgress setProgress incProgress
-.saveMisc <- function(savevar, rv){
-  withProgress({
-    savevar$emlal$Misc <- rv
-    
-    setProgress(
-      value = 0.25,
-      message = "Writing 'abstract.txt'."
-    )
-    write.text(
-      rv$abstract$content(),
-      rv$abstract$file
-    )
-    
-    setProgress(
-      value = 0.5,
-      "Writing 'methods.txt'."
-    )
-    write.text(
-      rv$methods$content(),
-      rv$methods$file
-    )
-    
-    setProgress(
-      value = 0.75,
-      "Writing 'keywords.txt'."
-    )
-    fwrite(
-      data.frame(
-        keyword = rv$keywords$keyword,
-        keywordThesaurus = rv$keywords$keywordThesaurus
-      ),
-      paste0(
-        savevar$emlal$SelectDP$dp_metadata_path,
-        "/keywords.txt"
-      ),
-      sep = "\t"
-    )
-    
-    setProgress(
-      value = 0.99,
-      "Writing 'additional_info.txt'."
-    )
-    write.text(
-      rv$additional_info$content(),
-      rv$additional_info$file
-    )
-    
-    incProgress(0.01)
-  },
-    message = "Processing Miscellaneous.")
-  
+.saveMisc <- function(savevar, rv) {
+  withProgress(
+    {
+      savevar$emlal$Misc <- rv
+
+      setProgress(
+        value = 0.25,
+        message = "Writing 'abstract.txt'."
+      )
+      write.text(
+        rv$abstract$content(),
+        rv$abstract$file
+      )
+
+      setProgress(
+        value = 0.5,
+        "Writing 'methods.txt'."
+      )
+      write.text(
+        rv$methods$content(),
+        rv$methods$file
+      )
+
+      setProgress(
+        value = 0.75,
+        "Writing 'keywords.txt'."
+      )
+      fwrite(
+        data.frame(
+          keyword = rv$keywords$keyword,
+          keywordThesaurus = rv$keywords$keywordThesaurus
+        ),
+        paste0(
+          savevar$emlal$SelectDP$dp_metadata_path,
+          "/keywords.txt"
+        ),
+        sep = "\t"
+      )
+
+      setProgress(
+        value = 0.99,
+        "Writing 'additional_info.txt'."
+      )
+      write.text(
+        rv$additional_info$content(),
+        rv$additional_info$file
+      )
+
+      incProgress(0.01)
+    },
+    message = "Processing Miscellaneous."
+  )
+
   return(savevar)
 }

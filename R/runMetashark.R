@@ -12,16 +12,16 @@
 # both is the way filesystems will be used.
 #'
 #' @param test
-#' Logical. Is the application run with `{shinytest}`, or not. 
+#' Logical. Is the application run with `{shinytest}`, or not.
 #' Default to FALSE.
 #'
-#' @param ... 
+#' @param ...
 #' options to pass to the application, ignored if missing or mistyped.
 #' \describe{
 #'   \item{dev}{Logical. Add development elements in the GUI.}
 #' }
 #'
-#' @details 
+#' @details
 #' MetaShARK (METAdata SHiny Automated Resource & Knowledge) is a web app
 #' which is designed to help its user as much as possible for filling ecological
 #' metadata. It uses the EML standard (cf. NCEAS work) to allow a full and
@@ -37,7 +37,7 @@
 #' @importFrom golem with_golem_options
 runMetashark <- function(test = FALSE, ...) {
   args <- list(...)
-  
+
   app <- with_golem_options(
     shinyApp(
       ui = .app_ui,
@@ -47,10 +47,12 @@ runMetashark <- function(test = FALSE, ...) {
     golem_opts = c(args)
   )
 
-  if(isFALSE(test))
+  if (isFALSE(test)) {
     runApp(
       appDir = app
     )
-  if(isTRUE(test))
+  }
+  if (isTRUE(test)) {
     return(app)
+  }
 }

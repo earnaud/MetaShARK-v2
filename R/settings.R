@@ -9,7 +9,7 @@ appOptionsUI <- function(id, dev) {
   tagList(
     tags$h1("Settings"),
     tags$p("This page is dedicated to define different settings in your session."),
-    
+
     # Sessionning ====
     fluidRow(
       tags$h2("Login with ORCID"),
@@ -20,17 +20,19 @@ appOptionsUI <- function(id, dev) {
       # orcidUI(ns("orcid")),
       class = "inputBox wip"
     ),
-    
+
     # CEDAR token input ====
     fluidRow(
-      column(8,
+      column(
+        8,
         textAreaInput(ns("cedar_token"),
           "Authentication token",
           width = "120%",
           value = options("dataone_token")
         )
       ),
-      column(4,
+      column(
+        4,
         tags$b("To fetch your authentication token:"),
         tags$ul(
           tags$li("Login into your CEDAR profile at: https://cedar.metadatacenter.org/"),
@@ -40,10 +42,11 @@ appOptionsUI <- function(id, dev) {
       ),
       class = "inputBox"
     ),
-    
+
     # Metacat token input ====
     fluidRow(
-      column(8,
+      column(
+        8,
         tags$h2("Metacat settings"),
         textAreaInput(ns("metacat_token"),
           "Authentication token",
@@ -56,7 +59,8 @@ appOptionsUI <- function(id, dev) {
           textOutput(ns("verbose_token"))
         }
       ),
-      column(4,
+      column(
+        4,
         tags$b("To fetch your authentication token:"),
         tags$ul(
           tags$li("Login into your metacat through user interface."),
@@ -80,14 +84,14 @@ appOptionsUI <- function(id, dev) {
 appOptions <- function(input, output, session, globals) {
   # Sessionning ====
   # callModule(orcid, "orcid")
-  
+
   # CEDAR token ====
   observeEvent(input$cedar_token, {
     globals$SETTINGS$TOKEN$CEDAR <- input$cedar_token
     req(input$cedar_token)
     globals$SEMANTICS$ONTOLOGIES <- accessOntology(input$cedar_token)
   })
-  
+
   # Metacat token ====
   observeEvent(input$test_metacat, {
     if (input$test_metacat) {
@@ -106,7 +110,7 @@ appOptions <- function(input, output, session, globals) {
   })
 
   observeEvent(input$metacat_save, {
-  # onclick("metacat_save", {
+    # onclick("metacat_save", {
     if (input$test_metacat) {
       globals$SETTINGS$TOKEN$DATAONE.TEST.TOKEN <- input$metacat_token
     } else {

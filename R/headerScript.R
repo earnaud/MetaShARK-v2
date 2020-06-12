@@ -29,11 +29,11 @@
   TMP.PATH <- paste0(HOME, "/EMLAL_tmp/")
   unlink(TMP.PATH, recursive = TRUE) # clear the temp
   dir.create(TMP.PATH, recursive = TRUE, showWarnings = FALSE)
-  
+
   # Sessionning
   DP.LIST.PATH <- paste0(DP.PATH, "index.json")
-  if(isTRUE(file.exists(DP.LIST.PATH))){
-    DP.LIST <- read_json(DP.LIST.PATH, simplifyVector = TRUE) %>% unserializeJSON
+  if (isTRUE(file.exists(DP.LIST.PATH))) {
+    DP.LIST <- read_json(DP.LIST.PATH, simplifyVector = TRUE) %>% unserializeJSON()
   }
   else {
     DP.LIST <- list(
@@ -64,7 +64,7 @@
   # Date time format strings ====
   # TODO better !
   DATE.FORMAT <- c(
-    "YYYY", 
+    "YYYY",
     "YYYY-MM", "YYYY-MM-DD", "YYYY-DD-MM",
     "MM-YYYY", "DD-MM-YYYY", "MM-DD-YYYY"
   )
@@ -73,32 +73,34 @@
   ALL.UNITS <- get_unitList()
   .units <- "custom"
   .names <- "custom"
-  invisible(apply(ALL.UNITS$units[c("unitType","name")], 1, function(row){
+  invisible(apply(ALL.UNITS$units[c("unitType", "name")], 1, function(row) {
     .units <<- c(.units, row["name"])
     .names <<- c(.names, paste(row, collapse = "/"))
   }))
   UNIT.LIST <- .units
-  names(UNIT.LIST) = .names
+  names(UNIT.LIST) <- .names
 
   # DataONE nodes
   DATAONE.LIST <- try(listFormats(CNode()))
-  if(class(DATAONE.LIST) == "try-error")
+  if (class(DATAONE.LIST) == "try-error") {
     DATAONE.LIST <- fread(wwwPaths$dataoneCNodesList.txt)
-  else
+  } else {
     fwrite(DATAONE.LIST, wwwPaths$dataoneCNodesList.txt)
-  
+  }
+
   # Taxa authorities
   TAXA.AUTHORITIES <- try(view_taxa_authorities())
-  if(class(TAXA.AUTHORITIES) == "try-error")
+  if (class(TAXA.AUTHORITIES) == "try-error") {
     TAXA.AUTHORITIES <- fread(wwwPaths$taxaAuthorities.txt)
-  else
+  } else {
     fwrite(TAXA.AUTHORITIES, wwwPaths$taxaAuthorities.txt)
-  
+  }
+
   # Semantics ====
-  
-  
+
+
   # Build global variable ====
-  if(reactive)
+  if (reactive) {
     globals <- reactiveValues(
       dev = dev,
       THRESHOLDS = reactiveValues(data_files_size_max = 500000),
@@ -131,6 +133,7 @@
         HISTORY = "SelectDP",
         NAVIGATE = 1,
         CURRENT = "SelectDP",
+        ITERATOR = 0,
         COMPLETE_CURRENT = FALSE
       ),
       SETTINGS = reactiveValues(
@@ -140,7 +143,7 @@
         ONTOLOGIES = character()
       )
     )
-  else
+  } else {
     globals <- list(
       dev = dev,
       THRESHOLDS = list(data_files_size_max = 500000),
@@ -173,6 +176,7 @@
         HISTORY = "SelectDP",
         NAVIGATE = 1,
         CURRENT = "SelectDP",
+        ITERATOR = 0,
         COMPLETE_CURRENT = FALSE
       ),
       SETTINGS = list(
@@ -182,7 +186,8 @@
         ONTOLOGIES = character()
       )
     )
-  
+  }
+
   # output
   return(globals)
 }

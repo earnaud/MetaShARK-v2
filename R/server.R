@@ -12,20 +12,24 @@
   appArgs <- get_golem_options()
   dev <- appArgs$dev
 
-  if (!is.logical(dev) || is.null(dev))
+  if (!is.logical(dev) || is.null(dev)) {
     dev <- FALSE
+  }
   # initialize global variables
   globals <- .globalScript(dev)
   savevar <- NULL
-  
+
   # DEV -----------------------------------------------------
   if (dev) {
-    onclick("dev", {
-      req(input$side_menu != "fill")
-      browser()
-    }, asis=TRUE)
+    onclick("dev",
+      {
+        req(input$side_menu != "fill")
+        browser()
+      },
+      asis = TRUE
+    )
   }
-  
+
   # Head bar server -----------------------------------------------------
   # Options
   observeEvent(input$appOptions, {
