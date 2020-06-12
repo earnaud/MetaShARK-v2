@@ -16,12 +16,12 @@ MiscellaneousUI <- function(id, help_label = NULL, value = "") {
       tags$br(),
       div(
         # if (isTRUE(server)) {
-          fileInput(
-            ns("file"),
-            "",
-            multiple = FALSE,
-            buttonLabel = span("Load file", icon("file")),
-          )
+        fileInput(
+          ns("file"),
+          "",
+          multiple = FALSE,
+          buttonLabel = span("Load file", icon("file")),
+        )
         # } else {
         #   shinyFilesButton(
         #     ns("file"),
@@ -67,12 +67,13 @@ Miscellaneous <- function(input, output, session, savevar, rv) {
 
   # Get file -----------------------------------------------------
   # if (isTRUE(server)) {
-    observeEvent(input$file, {
+  observeEvent(input$file,
+    {
       req(input$file)
       rv$file <- input$file$datapath
     },
-      priority = 1
-    )
+    priority = 1
+  )
   # }
   # else {
   #   shinyFileChoose(input, "file",

@@ -2,9 +2,9 @@
 #'
 #' @description Shiny module to allow the user to chose multiple files,
 #' and remove all or part of his selection.
-#' 
+#'
 #' @describeIn multiFilesInputUI
-#' 
+#'
 #' @param id shiny module id
 #' @param helpText a character vector to give the user an explanation. Will be inserted into a tags$p() call.
 #'
@@ -12,25 +12,26 @@
 #' @importFrom shinyFiles shinyFilesButton
 multiFilesInputUI <- function(id, helpText = NULL, server = TRUE) {
   ns <- NS(id)
-  
+
   tagList(
     tags$p(helpText),
     tags$div(
-      if(server)
+      if (server) {
         fileInput(
           ns("add_files"),
           label = NULL,
           multiple = TRUE,
           buttonLabel = span(icon("plus-circle"), "Load")
         )
-      else
+      } else {
         shinyFilesButton(
           ns("add_files"),
           "Load files",
           "Select file(s)",
           multiple = TRUE,
           icon = icon("plus-circle")
-        ),
+        )
+      },
       style = "display: inline-block; vertical-align: top;"
     ),
     actionButton(ns("remove_files"), "Remove",
@@ -50,7 +51,7 @@ multiFilesInputUI <- function(id, helpText = NULL, server = TRUE) {
 #' @importFrom shiny reactiveValues observeEvent req renderUI checkboxGroupInput
 #' @importFrom shinyFiles getVolumes shinyFileChoose parseFilePaths
 #' @importFrom fs path_home
-#' 
+#'
 #' @export
 multiFilesInput <- function(input, output, session, server = TRUE) {
   ns <- session$ns
@@ -59,28 +60,29 @@ multiFilesInput <- function(input, output, session, server = TRUE) {
   rv <- reactiveValues(
     files = data.frame()
   )
-  
+
   # Add data files -----------------------------------------------------
-  if(!server){
+  if (!server) {
     volumes <- c(Home = path_home(), getVolumes()())
     shinyFileChoose(input, "add_files",
       roots = volumes,
       session = session
     )
   }
-  
+
   observeEvent(input$add_files, {
 
     # validity checks
     req(input$add_files)
 
     # actions
-    if(server)
+    if (server) {
       loadedFiles <- input$add_files
-    else
+    } else {
       loadedFiles <- as.data.frame(
         parseFilePaths(volumes, input$add_files)
       )
+    }
 
     if (identical(rv$files, data.frame())) {
       rv$files <- loadedFiles

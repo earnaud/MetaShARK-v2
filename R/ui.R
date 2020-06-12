@@ -14,8 +14,9 @@
 
   # prepare variable
   menuWidth <- "250px"
-  if (!is.logical(dev)) 
+  if (!is.logical(dev)) {
     dev <- FALSE
+  }
   globals <- .globalScript(dev, reactive = FALSE)
 
   # action
@@ -26,7 +27,7 @@
       title = "MetaShARK",
       dashboardHeader(
         tags$li(class = "dropdown", actionLink("appOptions", "", icon("gear"))),
-        title = tags$img(src="media/ms_logo_small.png", width="200px", height="50px"),
+        title = tags$img(src = "media/ms_logo_small.png", width = "200px", height = "50px"),
         titleWidth = menuWidth
       ),
       ## Menus -----------------------------------------------------
@@ -60,10 +61,11 @@
               icon = icon("gear")
             )
           ),
-          if(isolate(globals$dev))
+          if (isolate(globals$dev)) {
             actionButton(
               "dev", "DEV CHECK"
             )
+          }
         ),
         width = menuWidth
       ), # end sidebar
@@ -98,5 +100,5 @@
         )
       ) # end body
     ) # end dashboard
-  ) %>% withSpinner # end taglist
+  ) %>% withSpinner() # end taglist
 }

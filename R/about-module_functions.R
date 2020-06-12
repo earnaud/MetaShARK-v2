@@ -12,7 +12,7 @@
 renderBibliography <- function(bib) {
   bib <- ReadBib(bib)
   NoCite(bib, "*")
-  
+
   renderUI(
     # sapply(
     #   bib,
@@ -22,11 +22,11 @@ renderBibliography <- function(bib) {
     #       .opts = list(style = "html")
     #     )
     #   }
-    # ) %>% 
-    #   invisible %>% 
-    #   capture.output %>% 
-    #   paste(collapse = "") %>% 
-    #   HTML %>% 
+    # ) %>%
+    #   invisible %>%
+    #   capture.output %>%
+    #   paste(collapse = "") %>%
+    #   HTML %>%
     #   withProgress(message = "Loading bibtex ...", value = 0)
     withProgress(message = "Loading bibtex ...", value = 0, {
       HTML(

@@ -5,9 +5,10 @@
 #' @importFrom shiny fluidPage headerPanel mainPanel HTML
 welcomeUI <- function(id) {
   ns <- NS(id)
-  
+
   fluidPage(
-    mainPanel(width = 12,
+    mainPanel(
+      width = 12,
       # MetaShARK
       tags$h1("Welcome in MetaShARK"),
       fluidRow(
@@ -17,7 +18,8 @@ welcomeUI <- function(id) {
           testing them."),
           class = "inputBox wip"
         ),
-        column(4,
+        column(
+          4,
           tags$h3("MetaShARK"),
           tags$p(
             tags$b("MetaShARK"), HTML("(<b>Meta</b>data 
@@ -32,7 +34,8 @@ welcomeUI <- function(id) {
             possible.")
           )
         ),
-        column(4,
+        column(
+          4,
           tags$h3("EML"),
           tags$p(
             "The", tags$b("Ecological Metadata Language"), HTML("has been 
@@ -44,7 +47,8 @@ welcomeUI <- function(id) {
             section</a> dedicated to EML.")
           )
         ),
-        column(4,
+        column(
+          4,
           tags$h3("MetaCat & MetaShark"),
           tags$p(
             HTML("The application you are currently using is a front-end
@@ -60,7 +64,8 @@ welcomeUI <- function(id) {
       # EAL
       tags$h1("About EML Assembly Line"),
       fluidRow(
-        column(4,
+        column(
+          4,
           tags$h3("Authorship"),
           tags$p(
             HTML("The `EML Assembly Line` package used in this module and its
@@ -68,9 +73,10 @@ welcomeUI <- function(id) {
             Initiative (EDI). You can find further details on their 
             <a href=https://github.com/EDIorg/EMLassemblyline>git repository</a>.")
           ),
-          tags$img(src = "media/edi_logo_small.png", width = "100px", height="100px")
+          tags$img(src = "media/edi_logo_small.png", width = "100px", height = "100px")
         ),
-        column(8,
+        column(
+          8,
           tags$h3("Usage"),
           HTML(
             "<p><b>EMLassemblyline</b> is a metadata builder for scientists
@@ -87,7 +93,7 @@ welcomeUI <- function(id) {
             is based on a simple file organization scheme, and is not tied to a specific data repository.</p>
             <i>(preface by Colin Smith, EDI)</i>"
           )
-        ) # end about 
+        ) # end about
       )
     )
   )

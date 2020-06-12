@@ -8,7 +8,7 @@
 #' @importFrom shinycssloaders withSpinner
 EMLALUI <- function(id, dev = FALSE) {
   ns <- NS(id)
-  
+
   fluidPage(
     style = "padding-top:2.5%;",
     box(
@@ -34,54 +34,53 @@ EMLALUI <- function(id, dev = FALSE) {
 #' @importFrom shiny observeEvent renderUI renderImage HTML callModule imageOutput actionLink icon
 #' @importFrom shinyBS tipify
 EMLAL <- function(input, output, session,
-  savevar, globals) {
+                  savevar, globals) {
   ns <- session$ns
-  
+
   # NSB -----------------------------------------------------
   # names of EMLAL steps
   steps <- c("SelectDP", "Data Files", "Attributes", "Categorical Variables", "Geographic Coverage", "Taxonomic Coverage", "Personnel", "Miscellaneous", "Make EML")
-  
+
   NSB <- navSidebar("nav", globals, savevar)
-  
-  observe({
-    message(globals$EMLAL$COMPLETE_CURRENT)
-  })
-  
+
   # Output -----------------------------------------------------
   observeEvent(globals$EMLAL$NAVIGATE, {
-    if(globals$EMLAL$CURRENT == "Data Files")
+    if (globals$EMLAL$CURRENT == "Data Files") {
       unlink(globals$EMLAL$TEMP)
+    }
     globals$EMLAL$CURRENT <- steps[globals$EMLAL$NAVIGATE]
-    if(globals$EMLAL$CURRENT == "Data Files" && 
-        !dir.exists(globals$TEMP.PATH))
+    if (globals$EMLAL$CURRENT == "Data Files" &&
+      !dir.exists(globals$TEMP.PATH)) {
       dir.create(globals$TEMP.PATH)
-    
-    if(isFALSE(globals$EMLAL$COMPLETE_CURRENT))
-      globals$EMLAL$COMPLETE_CURRENT <- TRUE # trigger
+    }
+
+    if (isFALSE(globals$EMLAL$COMPLETE_CURRENT)) {
+      globals$EMLAL$COMPLETE_CURRENT <- TRUE
+    } # trigger
     globals$EMLAL$COMPLETE_CURRENT <- FALSE
     NSB$tagList <- tagList()
-    
+
     # Edition changed path -> remove excedent history
     if (!globals$EMLAL$CURRENT %in% globals$EMLAL$HISTORY) {
       globals$EMLAL$HISTORY <- c(globals$EMLAL$HISTORY, globals$EMLAL$CURRENT)
     }
-    
+
     # Savevar modification
     savevar$emlal$step <- globals$EMLAL$NAVIGATE
     savevar$emlal$history <- globals$EMLAL$HISTORY
-    
+
     # * Chain -----------------------------------------------------
     output$chain <- renderUI({
       validate(
         need(globals$EMLAL$NAVIGATE > 1, "")
       )
-      
+
       return(
         tags$span(
           tagList(
             lapply(seq(globals$EMLAL$HISTORY)[-1], function(ind) {
               step_name <- globals$EMLAL$HISTORY[ind]
-              
+
               if (step_name != "Taxonomic Coverage") {
                 style <- "color: dodgerblue;"
                 description <- paste(step_name, "(mandatory)")
@@ -89,15 +88,16 @@ EMLAL <- function(input, output, session,
                 style <- "color: lightseagreen;"
                 description <- paste(step_name, "(facultative)")
               }
-              
+
               return(
                 actionLink(
                   ns(paste0("chain_", step_name)),
                   "",
-                  if(step_name == globals$EMLAL$CURRENT) 
-                    icon("map-marker") 
-                  else 
-                    icon("circle"),
+                  if (step_name == globals$EMLAL$CURRENT) {
+                    icon("map-marker")
+                  } else {
+                    icon("circle")
+                  },
                   style = style
                 ) %>% tipify(
                   title = description,
@@ -116,42 +116,42 @@ EMLAL <- function(input, output, session,
         )
       )
     })
-    
+
     observe({
       validate(
         need(
-          exists("globals") && isTruthy(names(input)), 
+          exists("globals") && isTruthy(names(input)),
           "Not initialized"
-        ), 
+        ),
         need(
           isTruthy(globals$EMLAL$HISTORY),
           "No history available"
         ),
         need(
           any(sapply(
-            globals$EMLAL$HISTORY, 
+            globals$EMLAL$HISTORY,
             grepl,
             x = names(input)
-          ) %>% unlist) && 
+          ) %>% unlist()) &&
             length(globals$EMLAL$HISTORY) > 1,
           "No history available"
         )
       )
-      
+
       sapply(seq(globals$EMLAL$HISTORY)[-1], function(ind) {
         step_name <- globals$EMLAL$HISTORY[ind]
-        
+
         id <- paste0("chain_", step_name)
-        
+
         observeEvent(input[[id]], {
           req(input[[id]] &&
-              ind != globals$EMLAL$NAVIGATE)
+            ind != globals$EMLAL$NAVIGATE)
           globals$EMLAL$NAVIGATE <- ind
-          NSB$NEXT <- NSB$NEXT+1
+          NSB$NEXT <- NSB$NEXT + 1
         })
       })
     })
-    
+
     # * UI -----------------------------------------------------
     namespace <- globals$EMLAL$CURRENT
 
@@ -175,16 +175,11 @@ EMLAL <- function(input, output, session,
         ),
         GeoCovUI(
           id = ns(namespace),
-          dev = globals$dev,
-          data.files = savevar$emlal$DataFiles$datapath,
-          coordPattern = globals$PATTERNS$LATLON
+          dev = globals$dev
         ),
         TaxCovUI(
           id = ns(namespace),
-          dev = globals$dev,
-          data.files = savevar$emlal$DataFiles$datapath,
-          taxa.authorities = globals$FORMAT$AUTHORITIES,
-          default = savevar$emlal$TaxCov
+          dev = globals$dev
         ),
         PersonnelUI(
           id = ns(namespace),
@@ -193,7 +188,7 @@ EMLAL <- function(input, output, session,
         MiscUI(
           id = ns(namespace),
           dev = globals$dev,
-          savevar = savevar
+          savevar = isolate({savevar})
         ),
         MakeEMLUI(
           id = ns(namespace),
@@ -201,17 +196,18 @@ EMLAL <- function(input, output, session,
         ),
         tags$h2("WIP")
       )
-      
+
       return(
         if (globals$EMLAL$NAVIGATE > 1) {
           # NSB modifications
-          .nsb <- if (globals$EMLAL$CURRENT == "Data Files")
-            navSidebarUI(ns("nav"), .prev=FALSE)
-          else if(globals$EMLAL$CURRENT == "Make EML")
-            navSidebarUI(ns("nav"), .next=FALSE)
-          else
+          .nsb <- if (globals$EMLAL$CURRENT == "Data Files") {
+            navSidebarUI(ns("nav"), .prev = FALSE)
+          } else if (globals$EMLAL$CURRENT == "Make EML") {
+            navSidebarUI(ns("nav"), .next = FALSE)
+          } else {
             navSidebarUI(ns("nav"))
-          
+          }
+
           tagList(
             column(10, .ui),
             column(2, .nsb)
@@ -223,7 +219,7 @@ EMLAL <- function(input, output, session,
         }
       )
     })
-    
+
     # * Server -----------------------------------------------------
     savevar <- switch(globals$EMLAL$NAVIGATE,
       callModule(
@@ -265,6 +261,7 @@ EMLAL <- function(input, output, session,
         savevar, globals,
         NSB = NSB
       ),
+      # TODO Add annotations here?
       callModule(
         MakeEML, namespace,
         savevar, globals
@@ -281,9 +278,9 @@ EMLAL <- function(input, output, session,
             and resources (scripts, literature, ...). You can:"),
           tags$ul(
             tags$li("Load an existing data package among local ones (left). You
-              will resume its edition at the last saved encountered step."
-            ),
-            tags$li("Create a new data package. You must fill in", tags$strong("three fields"),
+              will resume its edition at the last saved encountered step."),
+            tags$li(
+              "Create a new data package. You must fill in", tags$strong("three fields"),
               tags$i("Data package name"), "will be used for identifying the DP,",
               tags$i("Data package title"), "will be displayed when consulting the DP
               page once formatted (explained in last step),",
@@ -325,8 +322,8 @@ EMLAL <- function(input, output, session,
             tags$li(tags$i("Date format (only for Date class): how the dates of the attributes are
               written (e.g. DD-MM-YYYY).")),
             tags$li(tags$i("Unit (only for Numeric class):"), "which is the unit used for the 
-              numeric data of the attributes. The list is huge and refers to",tags$a("STMML Scientific
-              units", href ="http://www.ch.ic.ac.uk/rzepa/codata2/"), ". You can also define you own unit
+              numeric data of the attributes. The list is huge and refers to", tags$a("STMML Scientific
+              units", href = "http://www.ch.ic.ac.uk/rzepa/codata2/"), ". You can also define you own unit
               (see Custom Units thereafter)."),
             tags$li(tags$i("Missing Value Code:"), "a one-word code used instead of a missing value among 
               the data of the attribute currently described."),
@@ -404,10 +401,12 @@ EMLAL <- function(input, output, session,
           tags$ul(
             tags$li("Abstract: the abstract of the publication linked to those data."),
             tags$li("Methods: the methods used in the production of this dataset."),
-            tags$li("Keywords: you can type a list of keywords for your dataset. For each keyword, you can add a
-              keyword thesaurus, like", tags$a("the LTER controlled vocabulary ", href="http://vocab.lternet.edu/vocab/vocab/index.php"),
+            tags$li(
+              "Keywords: you can type a list of keywords for your dataset. For each keyword, you can add a
+              keyword thesaurus, like", tags$a("the LTER controlled vocabulary ", href = "http://vocab.lternet.edu/vocab/vocab/index.php"),
               ", which are controlled vocabulary your exact keyword originates from. Keywords thesaurus are not
-              required."),
+              required."
+            ),
             tags$li("Temporal coverage: this lets you define the duration of the study during which the data have been produced."),
             tags$li("Additional information: if any information has been omitted, you can provide it here (e.g. collection metadata
               from GBIF-EML).")
@@ -424,8 +423,11 @@ EMLAL <- function(input, output, session,
       footer = modalButton("Close"),
       easyClose = TRUE, fade = TRUE
     )
-  })
-  
+    # * end ====
+  },
+    label = "EAL0 update"    
+  )
+
   # Save variable
   return(savevar)
 }

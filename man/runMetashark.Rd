@@ -7,7 +7,7 @@
 runMetaShark(...)
 }
 \arguments{
-\item{test}{Logical. Is the application run with `{shinytest}`, or not. 
+\item{test}{Logical. Is the application run with `{shinytest}`, or not.
 Default to FALSE.}
 
 \item{...}{options to pass to the application, ignored if missing or mistyped.

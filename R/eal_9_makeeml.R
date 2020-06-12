@@ -1,13 +1,13 @@
 #' @title MakeEMLUI
-#' 
+#'
 #' @description UI part for the Make EML module
-#' 
+#'
 #' @importFrom shiny NS fluidPage fluidRow tags actionButton icon textOutput
-#' actionLink column 
+#' actionLink column
 #' @importFrom shinyjs hidden disabled
 MakeEMLUI <- function(id, title, dev) {
   ns <- NS(id)
-  
+
   return(
     fluidPage(
       fluidRow(
@@ -25,13 +25,14 @@ MakeEMLUI <- function(id, title, dev) {
         textOutput(ns("warnings")),
         hidden(
           actionLink(
-            ns("bug_report"), 
+            ns("bug_report"),
             span("Please report this to the dev", icon("external-link-alt"))
           )
         ),
         tags$br(),
         fluidRow(
-          column(6,
+          column(
+            6,
             tags$div(
               id = "publish",
               tags$b("Publish data package"),
@@ -39,7 +40,8 @@ MakeEMLUI <- function(id, title, dev) {
                 your data package to a metacat repository."
             )
           ),
-          column(6,
+          column(
+            6,
             tags$b("Generate a summary of your data package."),
             tags$i("(clicking on the below button will open a preview)"),
             # radioButtons(
@@ -80,92 +82,97 @@ MakeEMLUI <- function(id, title, dev) {
 #' @importFrom shinyjs show enable onclick
 #' @importFrom EMLassemblyline make_eml template_arguments
 #' @importFrom emldown render_eml
-MakeEML <- function(input, output, session, savevar,
-  globals) {
+MakeEML <- function(input, output, session, savevar, globals) {
   ns <- session$ns
-  
-  if(globals$dev)
-    onclick("dev", {
-      req(globals$EMLAL$NAVIGATE == 9)
-      browser()
-    }, asis=TRUE)
-  
+
+  if (globals$dev) {
+    onclick("dev",
+      {
+        req(globals$EMLAL$NAVIGATE == 9)
+        browser()
+      },
+      asis = TRUE
+    )
+  }
+
   # Variable initialization -----------------------------------------------------
   outFile <- paste0(
     savevar$emlal$SelectDP$dp_path,
     "/emldown/emldown.html"
   )
-  
+
   # Make eml -----------------------------------------------------
   onclick("make_eml", {
     hide("bug_report")
     req(input$make_eml)
-    withProgress({
-      . <- savevar$emlal
-      fileName <- "localid"
-      
-      x <- try(
-        template_arguments(
-          path = .$SelectDP$dp_metadata_path,
-          data.path = .$SelectDP$dp_data_path,
-          data.table = dir(.$SelectDP$dp_data_path)
-        )
-      )
-      
-      if(class(x) == "try-error") {
-        out <- x
-        out[1] <- paste("Upon templating arguments:", x)
-        incProgress(0.9)
-      } else {
-        incProgress(0.3)
-        
-        x$path <- .$SelectDP$dp_metadata_path
-        x$data.path <- .$SelectDP$dp_data_path
-        x$eml.path <- .$SelectDP$dp_eml_path
-        x$data.table <- dir(x$data.path)
-        x$data.table.name <- .$DataFiles$table_name
-        x$data.table.description <- .$DataFiles$description
-        x$dataset.title <- .$SelectDP$dp_title
-        x$maintenance.description <- "Ongoing"
-        # TODO better package.id
-        x$package.id <- fileName
-        x$return.obj <- TRUE
-        x$temporal.coverage <- .$Misc$temporal_coverage
-        # TODO user domain (pndb?)
-        x$user.domain <- "UserDomain"
-        # TODO user id (orcid?)
-        x$user.id <- "UserID"
-        x$write.file <- TRUE
-        
-        # Yet written in the files then used in make_eml
-        x$geographic.coordinates <- NULL
-        x$geographic.description <- NULL
-        
-        incProgress(0.2)
-        
-        test <- 0
-        out <-try(
-          do.call(
-            make_eml,
-            x[names(x) %in% names(formals(make_eml))]
+    withProgress(
+      {
+        . <- savevar$emlal
+        fileName <- "localid"
+
+        x <- try(
+          template_arguments(
+            path = .$SelectDP$dp_metadata_path,
+            data.path = .$SelectDP$dp_data_path,
+            data.table = dir(.$SelectDP$dp_data_path)
           )
         )
-        if(class(out) == "try-error")
-          out[1] <- paste("Upon writing EML:", out)
-        incProgress(0.4)
-      }
-    },
+
+        if (class(x) == "try-error") {
+          out <- x
+          out[1] <- paste("Upon templating arguments:", x)
+          incProgress(0.9)
+        } else {
+          incProgress(0.3)
+
+          x$path <- .$SelectDP$dp_metadata_path
+          x$data.path <- .$SelectDP$dp_data_path
+          x$eml.path <- .$SelectDP$dp_eml_path
+          x$data.table <- dir(x$data.path)
+          x$data.table.name <- .$DataFiles$table_name
+          x$data.table.description <- .$DataFiles$description
+          x$dataset.title <- .$SelectDP$dp_title
+          x$maintenance.description <- "Ongoing"
+          # TODO better package.id
+          x$package.id <- fileName
+          x$return.obj <- TRUE
+          x$temporal.coverage <- .$Misc$temporal_coverage
+          # TODO user domain (pndb?)
+          x$user.domain <- "UserDomain"
+          # TODO user id (orcid?)
+          x$user.id <- "UserID"
+          x$write.file <- TRUE
+
+          # Yet written in the files then used in make_eml
+          x$geographic.coordinates <- NULL
+          x$geographic.description <- NULL
+
+          incProgress(0.2)
+
+          test <- 0
+          out <- try(
+            do.call(
+              make_eml,
+              x[names(x) %in% names(formals(make_eml))]
+            )
+          )
+          if (class(out) == "try-error") {
+            out[1] <- paste("Upon writing EML:", out)
+          }
+          incProgress(0.4)
+        }
+      },
       message = "Writing EML ...",
       value = 0.1
     )
-    
+
     valid_eml <- eml_validate(
       dir(
         savevar$emlal$SelectDP$dp_eml_path,
         full.names = TRUE
       )
     )
-    
+
     output$warnings <- renderText({
       disable("publish")
       disable("emldown")
@@ -183,9 +190,9 @@ MakeEML <- function(input, output, session, savevar,
       enable("emldown")
       return(NULL)
     })
-    
+
     if (class(out) == "try-error" ||
-        isFALSE(valid_eml)) {
+      isFALSE(valid_eml)) {
       show("bug_report")
       showNotification("EML invalid", type = "error", duration = NULL)
     } else {
@@ -193,28 +200,28 @@ MakeEML <- function(input, output, session, savevar,
       showNotification("EML written.", type = "message")
     }
   })
-  
+
   observeEvent(input$bug_report, {
     browseURL("https://github.com/earnaud/MetaShARK-v2/issues/26")
   })
-  
+
   # emldown -----------------------------------------------------
   onclick("emldown", {
     disable("emldown")
-    
+
     emlFile <- dir(
       savevar$emlal$SelectDP$dp_eml_path,
       full.names = TRUE,
       pattern = "localid"
     )
-    
+
     enable("emldown")
-    req(file.exists(emlFile) && 
-        isTruthy(emlFile))
+    req(file.exists(emlFile) &&
+      isTruthy(emlFile))
     disable("emldown")
-    
+
     dir.create(dirname(outFile), recursive = TRUE)
-    
+
     old.wd <- getwd()
     setwd(dirname(outFile))
     out <- render_eml(
@@ -224,7 +231,7 @@ MakeEML <- function(input, output, session, savevar,
       publish_mode = TRUE
     )
     setwd(old.wd)
-    
+
     # if(input$format != "HTML"){
     #   rmarkdown::pandoc_convert(
     #     input = outFile,
@@ -233,15 +240,15 @@ MakeEML <- function(input, output, session, savevar,
     #     output = gsub("html$","pdf", outFile)
     #   )
     # }
-    
+
     if (file.exists(outFile)) {
       enable("download_emldown")
       showNotification("emldown generated", type = "message")
     }
-    
+
     enable("emldown")
   })
-  
+
   output$download_emldown <- downloadHandler(
     filename = function() {
       paste(
@@ -257,8 +264,9 @@ MakeEML <- function(input, output, session, savevar,
           recursive = TRUE
         )
       )
-    })
-  
+    }
+  )
+
   # Output -----------------------------------------------------
   return(savevar)
 }

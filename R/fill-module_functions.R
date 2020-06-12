@@ -85,95 +85,96 @@ initReactive <- function(sublist = NULL, savevar = NULL, glob) {
 #' @describeIn initReactive
 #'
 #' @description save the `savevar` variable at wanted location
-#' 
-#' @return 
+#'
+#' @return
 #' `savevar` modified.
-#' 
+#'
 #' @importFrom shiny withProgress incProgress isolate
 #' @importFrom jsonlite write_json serializeJSON
 saveReactive <- function(
-  savevar, 
-  rv = NULL, 
-  .method = "",
-  .values = c(),
+  savevar,
+  rv = NULL,
   globals = NULL
-){
+) {
   withProgress({
-    setProgress(1/3, "Module save")
-    
+    setProgress(1 / 3, "Module save")
+
     # Write provided rv
-    if(!is.null(rv)){
-      if(is.null(names(rv)))
+    if (!is.null(rv)) {
+      if (is.null(names(rv))) {
         message("No module name! Give it as a name for `rv`.")
-      else {
+      } else {
         rv <- rv[1]
-        
-        if(names(rv) == "DataFiles") {
+
+        if (names(rv) == "DataFiles") {
           savevar <- .saveDataFiles(
-            savevar = savevar, 
+            savevar = savevar,
             rv = rv[[1]]
           )
-        } 
-        if(names(rv) == "Attributes") {
+        }
+        if (names(rv) == "Attributes") {
           savevar <- .saveAttributes(
-            savevar = savevar, 
+            savevar = savevar,
             rv = rv[[1]]
           )
-        } 
-        if(names(rv) == "CatVars") {
+        }
+        if (names(rv) == "CatVars") {
           savevar <- .saveCatVars(
-            savevar = savevar, 
+            savevar = savevar,
             rv = rv[[1]]
           )
-        } 
-        if(names(rv) == "GeoCov") {
+        }
+        if (names(rv) == "GeoCov") {
           savevar <- .saveGeoCov(
             savevar = savevar,
             rv = rv[[1]],
-            .method = .method,
-            .values = .values,
             globals = globals
           )
-        } 
-        if(names(rv) == "TaxCov") {
+        }
+        if (names(rv) == "TaxCov") {
           savevar <- .saveTaxCov(
             savevar = savevar,
             rv = rv[[1]]
           )
-        } 
-        if(names(rv) == "Personnel") {
+        }
+        if (names(rv) == "Personnel") {
           savevar <- .savePersonnel(
             savevar = savevar,
             rv = rv[[1]]
           )
-        } 
-        if(names(rv) == "Misc") {
+        }
+        if (names(rv) == "Misc") {
           savevar <- .saveMisc(
             savevar = savevar,
             rv = rv[[1]]
           )
-        } 
+        }
       }
     }
-    
-    setProgress(2/3, "Global save")
-    
+
+    setProgress(2 / 3, "Global save")
+
     # Save JSON
     path <- savevar$emlal$SelectDP$dp_path
     filename <- savevar$emlal$SelectDP$dp_name
     location <- paste0(path, "/", filename, ".json")
-    if (file.exists(location))
+    if (file.exists(location)) {
       file.remove(location)
+    }
     write_json(
       serializeJSON(listReactiveValues(savevar)),
       location
     )
-    
-    incProgress(1/3)
-  }) %>% isolate
-  
-  showNotification("Saved !", duration = 1.5, type = "message")
-  
+
+    incProgress(1 / 3)
+  }) %>% isolate()
+
+  showNotification(
+    paste("Saved:", names(rv)[1], "!"), 
+    duration = 1.5, 
+    type = "message"
+  )
+
   return(savevar)
 }
 
@@ -210,5 +211,5 @@ checkTruth <- function(x) {
   if (missing(x)) {
     stop("'x' is missing with no default.")
   }
-  return (isTruthy(x) && isTruthy(unlist(x)))
+  return(isTruthy(x) && isTruthy(unlist(x)))
 }
