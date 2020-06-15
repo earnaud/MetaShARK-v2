@@ -102,7 +102,7 @@ MakeEML <- function(input, output, session, savevar, globals) {
   )
 
   # Make eml -----------------------------------------------------
-  onclick("make_eml", {
+  observeEvent(input$make_eml, {
     hide("bug_report")
     req(input$make_eml)
     withProgress(
@@ -206,7 +206,7 @@ MakeEML <- function(input, output, session, savevar, globals) {
   })
 
   # emldown -----------------------------------------------------
-  onclick("emldown", {
+  observeEvent(input$emldown, {
     disable("emldown")
 
     emlFile <- dir(

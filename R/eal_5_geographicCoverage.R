@@ -493,8 +493,7 @@ GeoCov <- function(input, output, session,
             ns("method"),
             "Method for Geographic Coverage:",
             choices = choices
-          ),
-          actionButton(ns("modal-dev"), "Dev")
+          )
         ),
         easyClose = FALSE,
         footer = tagList(
