@@ -367,13 +367,16 @@ Attributes <- function(input, output, session,
                       tableOutput(ns(paste0("preview-", colnames(rv$current_preview)[row_index]))),
                       tags$hr(),
                       # Annotate ====
-                      annotateUI(
-                        ns(paste(
-                          "annotate",
-                          isolate(rv$current_file),
-                          row_index,
-                          sep = "-"
-                        ))
+                      tags$div(
+                        annotateUI(
+                          ns(paste(
+                            "annotate",
+                            isolate(rv$current_file),
+                            row_index,
+                            sep = "-"
+                          ))
+                        ),
+                        class = "inputbox wip"
                       )
                     ) # end of column
                   )
@@ -409,17 +412,17 @@ Attributes <- function(input, output, session,
         output[[paste0("preview-", preview_column)]] <- renderTable(rv$current_preview[[preview_column]])
 
         # Annotate ====
-        annotateId <- paste(
-          "annotate",
-          isolate(rv$current_file),
-          row_index,
-          sep = "-"
-        )
-
-        .tmp <- callModule(
-          annotate, annotateId,
-          savevar, globals, rv, row_index
-        )
+        # annotateId <- paste(
+        #   "annotate",
+        #   isolate(rv$current_file),
+        #   row_index,
+        #   sep = "-"
+        # )
+        # 
+        # .tmp <- callModule(
+        #   annotate, annotateId,
+        #   savevar, globals, rv, row_index
+        # )
 
         # Input ====
         lapply(fields, function(colname) {
