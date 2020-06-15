@@ -126,7 +126,7 @@ MiscUI <- function(id, title, dev, savevar) {
 #' @describeIn MiscUI
 #'
 #' @importFrom shiny dateRangeInput
-#' @importFrom shinyjs enable disable
+#' @importFrom shinyjs onclick enable disable
 #' @importFrom data.table fread
 Misc <- function(input, output, session,
                  savevar, globals, NSB) {

@@ -122,7 +122,7 @@ Personnel <- function(input, output, session,
   }
 
   # Fill Personnel -----------------------------------------------------
-  onclick("addui", {
+  observeEvent(input$addui, {
     id <- dim(rv$Personnel[-c(1:2), ])[1] + 1
     while (as.character(id) %in% rv$Personnel$id) {
       id <- id + 1
@@ -645,7 +645,7 @@ PersonnelMod <- function(input, output, session, globals,
 
   # Remove UI -----------------------------------------------------
   if (is.null(role)) {
-    onclick(rmv_id, {
+    observeEvent(input$rmv_id, {
       # unload the RV
       ind <- match(ref, rv$Personnel$id)
       rv$Personnel <- rv$Personnel %>% slice(-ind)
