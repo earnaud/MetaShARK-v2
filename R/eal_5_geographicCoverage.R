@@ -509,7 +509,7 @@ GeoCov <- function(input, output, session,
     ignoreInit = TRUE
   )
 
-  onclick("confirm", {
+  observeEvent(input$confirm, {
     removeModal()
     globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1
     NSB$tagList <- tagList()
@@ -526,7 +526,7 @@ GeoCov <- function(input, output, session,
       rv = list(GeoCov = rv),
       globals = globals
     )
-  })
+  }, ignoreInit = TRUE)
 
   # Output -----------------------------------------------------
   return(savevar)

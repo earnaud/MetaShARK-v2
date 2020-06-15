@@ -219,13 +219,6 @@ extractCoordinates <- function(
   }
 
   coordCols <- filesData[[coordCols["file"]]][[coordCols["col"]]]
-  
-  # coordCols <- lapply(coordCols, function(col) {
-  #   browser()
-  #   return(
-  #     filesData[[col$file]][[col$col]]
-  #   )
-  # })
 
   # Extract proper coordinates
   coordinates <- lapply(
