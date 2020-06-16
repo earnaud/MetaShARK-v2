@@ -1,2 +1,3 @@
 mn,URL,cn
-PNDB (dev),https://openstack-192-168-100-101.genouest.org/metacat/d1/mn/v2/,STAGING
+PNDB (dev),http://test.pndb.fr/metacat/d1/mn/v2/,STAGING
+PNDB (prod),http://pndb.fr/metacat/d1/mn/v2/,PROD
