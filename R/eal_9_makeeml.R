@@ -52,21 +52,21 @@ MakeEMLUI <- function(id, title, dev) {
             #   inline = TRUE,
             #   width = "50%"
             # ),
-            disabled(
-              actionButton(
-                ns("emldown"),
-                "Write emldown",
-                icon("file-code"),
-                width = "50%"
-              )
+            # disabled(
+            actionButton(
+              ns("emldown"),
+              "Write emldown",
+              icon("file-code"),
+              width = "50%"
+              # )
             ),
-            disabled(
-              downloadButton(
-                ns("download_emldown"),
-                "Download emldown",
-                width = "50%"
-              )
+            # disabled(
+            downloadButton(
+              ns("download_emldown"),
+              "Download emldown",
+              width = "50%"
             )
+            # )
           ) # End of emldown
         )
       )
