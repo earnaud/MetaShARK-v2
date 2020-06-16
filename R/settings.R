@@ -84,10 +84,10 @@ appOptionsUI <- function(id, dev) {
 #' @importFrom cedarr accessOntology
 appOptions <- function(input, output, session, globals) {
   # Sessionning ====
-  observeEvent(input$cedar_token, {
-    browser()
-    globals$SETTINGS$TOKEN$CEDAR <- orcid_auth(reauth=TRUE)
-  })
+  # observeEvent(input$cedar_token, {
+  #   browser()
+  #   globals$SETTINGS$TOKEN$CEDAR <- orcid_auth(reauth=TRUE)
+  # })
   # callModule(orcid, "orcid")
 
   # CEDAR token ====
