@@ -12,10 +12,10 @@ uploadUI <- function(id, dev, globals) {
   ns <- NS(id)
   registeredEndpoints <- fread(globals$PATHS$registeredEndpoints.txt)
   # registeredEndpoints <- fread(system.file("resources", "registeredEndpoints.txt", package = "MetaShARK"))
-
+  
   # TODO use `runjs` from shinyjs to update css : https://stackoverflow.com/questions/46045222/reactive-css-properties-in-r-shiny
   # TODO add update module
-
+  
   tagList(
     tabsetPanel(
       id = "upload",
@@ -27,9 +27,9 @@ uploadUI <- function(id, dev, globals) {
         # select endpoint -----------------------------------------------------
         tags$h3("Select your MetaCat portal"),
         tags$div(
-          tags$p("'dev' portals are under construction. No guarantee is given of their consistance.
-               'stable' portals are completely functional.
-               Chosing 'Other' will ask you to input some technical information."),
+          tags$p("'dev' portals are under construction. No guarantee is given of
+            their consistance. 'stable' portals are completely functional.
+            Chosing 'Other' will ask you to input some technical information."),
           selectInput(
             ns("endpoint"),
             "Available metacats:",
@@ -40,7 +40,6 @@ uploadUI <- function(id, dev, globals) {
           class = "leftMargin"
         ),
         tags$hr(),
-
         # check authentication token -----------------------------------------------------
         tags$h3("Get your authentication token"),
         tags$div(
@@ -51,7 +50,7 @@ uploadUI <- function(id, dev, globals) {
           class = "leftMargin"
         ),
         tags$hr(),
-
+        
         # files input -----------------------------------------------------
         tags$h3("Select your data, script and metadata files"),
         HTML("Either pick <b>individual files</b> (left) or a complete
@@ -89,14 +88,14 @@ uploadUI <- function(id, dev, globals) {
         #   )
         # ),
         tags$hr(),
-
+        
         # Constraints -----------------------------------------------------
         # div(id="constraints_div",
         #     tags$h4("Add constraints between script and data files"),
         #     actionButton(ns("add_constraint"), "", icon = icon("plus"), width = "40px")
         # ),
         # tags$hr(),
-
+        
         actionButton(ns("process"), "Process",
           icon = icon("rocket"),
           width = "100%"
@@ -105,11 +104,15 @@ uploadUI <- function(id, dev, globals) {
       # Update -----------------------------------------------------
       tabPanel(
         title = "update",
-        # 1. solr query -----------------------------------------------------
-
-        # 2. select items to update -----------------------------------------------------
-
-        # 3. select files -----------------------------------------------------
+        tags$div(
+          "WIP",
+          # 1. solr query -----------------------------------------------------
+          
+          # 2. select items to update -----------------------------------------------------
+          
+          # 3. select files -----------------------------------------------------
+          class = "inputBox wip"
+        )
       ) # end of update tab
     ) # end of tabSetPanel
   ) # end of tagList
@@ -129,25 +132,27 @@ uploadUI <- function(id, dev, globals) {
 #' @importFrom mime guess_type
 upload <- function(input, output, session, globals) {
   ns <- session$ns
-
+  
   registeredEndpoints <- fread(globals$PATHS$registeredEndpoints.txt)
   dev <- globals$dev
-
+  
   # Select endpoint -----------------------------------------------------
   endpoint <- reactive({
     input$endpoint
   })
-
+  
   output$`actual-endpoint` <- renderUI({
     if (endpoint() == "Other") {
       textInput(ns("actual-endpoint"), "Write the URL of the Member Node",
         placeholder = "https://openstack-192-168-100-67.genouest.org/metacat/d1/mn/v2/"
       )
     } else {
-      tags$p(paste("Current endpoint:", registeredEndpoints %>% filter(mn == endpoint()) %>% select(URL)))
+      tags$p(paste("Current endpoint:", registeredEndpoints %>% 
+          filter(mn == endpoint()) %>% 
+          select(URL)))
     }
   })
-
+  
   memberNode <- reactive({
     if (endpoint() != "Other") {
       registeredEndpoints %>%
@@ -157,12 +162,12 @@ upload <- function(input, output, session, globals) {
       input$`actual-endpoint`
     }
   })
-
+  
   # Token input -----------------------------------------------------
   observe({
     if (!is.character(options("dataone_token")) ||
-      !is.character(options("dataone_test_token")) ||
-      (is.null(options("dataone_token")) && is.null(options("dataone_test_token")))
+        !is.character(options("dataone_test_token")) ||
+        (is.null(options("dataone_token")) && is.null(options("dataone_test_token")))
     ) {
       output$token_status <- renderUI({
         tags$div("UNFILLED", class = "danger")
@@ -176,14 +181,14 @@ upload <- function(input, output, session, globals) {
       enable("process")
     }
   })
-
+  
   # * Files input -----------------------------------------------------
   rvFiles <- reactiveValues(
     md = callModule(multiFilesInput, "metadata"),
     data = callModule(multiFilesInput, "data"),
     scr = callModule(multiFilesInput, "scripts")
   )
-
+  
   observe({
     if (
       dim(rvFiles$md())[1] != 1 ||
@@ -193,7 +198,7 @@ upload <- function(input, output, session, globals) {
     } else {
       enable("process")
     }
-
+    
     if (
       dim(rvFiles$scr())[1] == 0 ||
         dim(rvFiles$data())[1] == 0
@@ -203,7 +208,7 @@ upload <- function(input, output, session, globals) {
       enable("add_constraint")
     }
   })
-
+  
   # * DP input -----------------------------------------------------
   # output$EAL_dp <- renderUI({
   #   # get EAL completed data packages list
@@ -250,19 +255,25 @@ upload <- function(input, output, session, globals) {
   # observeEvent(input$EAL_dp_select, {
   # TODO get all interesting files of the dp
   # })
-
+  
   # Process -----------------------------------------------------
   observeEvent(input$process, {
     disable("process")
-
+    
     md_format <- read_eml(rvFiles$md()$datapath)$schemaLocation %>%
       strsplit(split = " ") %>%
       unlist() %>%
       head(n = 1)
-
+    
     out <- uploadDP(
-      mn = as.character(registeredEndpoints %>% filter(mn == endpoint()) %>% select(URL)),
-      cn = as.character(registeredEndpoints %>% filter(mn == endpoint()) %>% select(cn)),
+      mn = registeredEndpoints %>%
+        filter(mn == endpoint()) %>%
+        select(URL) %>%
+        as.character,
+      cn = registeredEndpoints %>%
+        filter(mn == endpoint()) %>%
+        select(cn) %>%
+        as.character,
       token = list(
         test = globals$TOKEN$DATAONE.TEST.TOKEN,
         prod = globals$TOKEN$DATAONE.TOKEN
@@ -286,13 +297,13 @@ upload <- function(input, output, session, globals) {
       formats = globals$FORMAT$DATAONE$MediaType,
       use.doi = FALSE
     )
-
+    
     if (class(out) == "try-error") {
       showNotification(out[1], type = "error")
     } else {
       showNotification(paste("Uploaded DP", out), type = "message")
     }
-
+    
     enable("process")
   })
 }

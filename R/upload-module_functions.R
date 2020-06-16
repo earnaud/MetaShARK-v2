@@ -17,16 +17,17 @@
 #' @importFrom EML read_eml write_eml eml_validate
 #' @importFrom mime guess_type
 uploadDP <- function(
-                     # essential
-                     mn,
-                     cn,
-                     token,
-                     eml,
-                     data,
-                     # facultative
-                     scripts = c(),
-                     formats,
-                     use.doi = FALSE) {
+  # essential
+  mn,
+  cn,
+  token,
+  eml,
+  data,
+  # facultative
+  scripts = c(),
+  formats,
+  use.doi = FALSE
+) {
   # Set variables -----------------------------------------------------
 
   message("Init")
@@ -114,6 +115,8 @@ uploadDP <- function(
     )
   )
 
+  if(class(packageId) == "try-error") browser()
+  
   options(dataone_test_token = NULL)
   options(dataone_token = NULL)
 
