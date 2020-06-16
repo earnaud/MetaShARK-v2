@@ -484,6 +484,9 @@ PersonnelMod <- function(input, output, session, globals,
     req(input$userId)
     localRV$userId <- input$userId
 
+    browser()
+    Sys.setenv(ORCID_TOKEN=token)
+    
     if (grepl(orcid.pattern, input$userId)) {
       localRV$userId <- str_extract(localRV$userId, orcid.pattern)
       updateTextInput(
@@ -495,7 +498,7 @@ PersonnelMod <- function(input, output, session, globals,
 
     orcid.connect <- try(
       as.orcid(
-        localRV$userId
+        localRV$userId #TODO ça déconne ici
       )
     )
 

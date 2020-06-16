@@ -21,28 +21,6 @@ appOptionsUI <- function(id, dev) {
       class = "inputBox wip"
     ),
 
-    # CEDAR token input ====
-    fluidRow(
-      column(
-        8,
-        textAreaInput(ns("cedar_token"),
-          "Authentication token",
-          width = "120%",
-          value = options("dataone_token")
-        )
-      ),
-      column(
-        4,
-        tags$b("To fetch your authentication token:"),
-        tags$ul(
-          tags$li("Login into your CEDAR profile at: https://cedar.metadatacenter.org/"),
-          tags$li("Navigate in the upper-right menu corner and click 'Profile'."),
-          tags$li("Paste the content for `key` field before `Usage from REST client`.")
-        )
-      ),
-      class = "inputBox"
-    ),
-
     # Metacat token input ====
     fluidRow(
       column(
@@ -70,6 +48,29 @@ appOptionsUI <- function(id, dev) {
         )
       ),
       class = "inputBox"
+    ),
+    
+    # CEDAR token input ====
+    fluidRow(
+      tags$h2("CEDAR token"),
+      column(
+        8,
+        textAreaInput(ns("cedar_token"),
+          "Authentication token",
+          width = "120%",
+          value = options("dataone_token")
+        )
+      ),
+      column(
+        4,
+        tags$b("To fetch your authentication token:"),
+        tags$ul(
+          tags$li("Login into your CEDAR profile at: https://cedar.metadatacenter.org/"),
+          tags$li("Navigate in the upper-right menu corner and click 'Profile'."),
+          tags$li("Paste the content for `key` field before `Usage from REST client`.")
+        )
+      ),
+      class = "inputBox"
     )
   )
 }
@@ -83,6 +84,10 @@ appOptionsUI <- function(id, dev) {
 #' @importFrom cedarr accessOntology
 appOptions <- function(input, output, session, globals) {
   # Sessionning ====
+  observeEvent(input$cedar_token, {
+    browser()
+    globals$SETTINGS$TOKEN$CEDAR <- orcid_auth(reauth=TRUE)
+  })
   # callModule(orcid, "orcid")
 
   # CEDAR token ====
