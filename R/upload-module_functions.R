@@ -33,6 +33,7 @@ uploadDP <- function(
   message("Init")
 
   cn <- CNode(cn)
+  browser()
   mn <- MNode(mn)
   if (use.doi) {
     doi <- generateIdentifier(mn, "DOI")
@@ -105,6 +106,8 @@ uploadDP <- function(
   options(dataone_test_token = token$test)
   options(dataone_token = token$prod)
 
+  browser()
+  
   packageId <- try(
     uploadDataPackage(
       d1c,

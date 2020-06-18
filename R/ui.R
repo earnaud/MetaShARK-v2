@@ -22,6 +22,7 @@
   # action
   tagList(
     includeCSS(system.file("app/www/styles.css", package = "MetaShARK")),
+    useShinyjs(),
     # List the first level UI elements here
     dashboardPage(
       title = "MetaShARK",
@@ -32,7 +33,6 @@
       ),
       ## Menus -----------------------------------------------------
       dashboardSidebar(
-        useShinyjs(),
         sidebarMenu(
           id = "side_menu",
           menuItem("Welcome",

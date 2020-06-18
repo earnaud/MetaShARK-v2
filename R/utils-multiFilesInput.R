@@ -129,5 +129,12 @@ multiFilesInput <- function(input, output, session, server = TRUE) {
   })
 
   # Out ------------------------------------------------------
-  return(reactive(rv$files))
+  return(rv$files)
+}
+
+updateMultiFilesInput <- function(inputId, files) {
+  if(!is.character(files) || length(files) == 0)
+    stop("No file path provided.")
+  if(any(isFALSE(sapply(files, file.exist))))
+    stop("All provided paths are not valid.")
 }
