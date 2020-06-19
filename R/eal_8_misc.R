@@ -129,13 +129,13 @@ MiscUI <- function(id, title, dev, savevar) {
 #' @importFrom shinyjs onclick enable disable
 #' @importFrom data.table fread
 Misc <- function(input, output, session,
-                 savevar, globals, NSB) {
+                 savevar, main.env, NSB) {
   ns <- session$ns
 
-  if (globals$dev) {
+  if (main.env$DEV) {
     onclick("dev",
       {
-        req(globals$EMLAL$NAVIGATE == 8)
+        req(main.env$EAL$navigate == 8)
         browser()
       },
       asis = TRUE
@@ -265,7 +265,7 @@ Misc <- function(input, output, session,
 
   # Saves -----------------------------------------------------
   observe({
-    globals$EMLAL$COMPLETE_CURRENT <- all(
+    main.env$EAL$current[2] <- all(
       isTruthy(rv$abstract$content()) &&
         isTruthy(rv$methods$content()) &&
         isTruthy(rv$keywords$keyword) &&
@@ -275,7 +275,7 @@ Misc <- function(input, output, session,
 
   observeEvent(NSB$SAVE,
     {
-      req(globals$EMLAL$CURRENT == "Miscellaneous")
+      req(main.env$EAL$current[1] == "Miscellaneous")
 
       savevar <- saveReactive(
         savevar = savevar,
@@ -288,7 +288,7 @@ Misc <- function(input, output, session,
   # Process data -----------------------------------------------------
   observeEvent(NSB$NEXT,
     {
-      req(globals$EMLAL$CURRENT == "Miscellaneous")
+      req(main.env$EAL$current[1] == "Miscellaneous")
 
       savevar <- saveReactive(
         savevar = savevar,

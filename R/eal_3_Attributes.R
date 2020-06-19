@@ -65,20 +65,20 @@ AttributesUI <- function(id, title, dev) {
 #' @importFrom EMLassemblyline template_categorical_variables template_geographic_coverage
 #' @importFrom shinyBS bsCollapse bsCollapsePanel updateCollapse
 Attributes <- function(input, output, session,
-                       savevar, globals, NSB) {
+                       savevar, main.env, NSB) {
   ns <- session$ns
 
-  if (globals$dev) {
+  if (main.env$DEV) {
     onclick("dev",
       {
-        req(globals$EMLAL$NAVIGATE == 3)
+        req(main.env$EAL$navigate == 3)
         browser()
       },
       asis = TRUE
     )
   }
 
-  if (globals$dev || isTRUE(savevar$emlal$quick)) {
+  if (main.env$DEV || isTRUE(savevar$emlal$quick)) {
     .fill <- function(rv = rv) {
       lapply(seq(rv$tables), function(ind) {
         table <- rv$tables[[ind]]
@@ -92,11 +92,11 @@ Attributes <- function(input, output, session,
           }
           if (col == "dateTimeFormatString") {
             dat_row <- which(rv$tables[[ind]]$class == "Date")
-            rv$tables[[ind]][dat_row, col] <- rep(globals$FORMAT$DATE[3], length(dat_row))
+            rv$tables[[ind]][dat_row, col] <- rep(main.env$FORMATS$dates[3], length(dat_row))
           }
           if (col == "unit") {
             uni_row <- which(rv$tables[[ind]]$class == "numeric")
-            rv$tables[[ind]][uni_row, col] <- rep(globals$FORMAT$UNIT[2], length(uni_row))
+            rv$tables[[ind]][uni_row, col] <- rep(main.env$FORMATS$units[2], length(uni_row))
           }
 
           # Update values
@@ -153,7 +153,7 @@ Attributes <- function(input, output, session,
     dir(savevar$emlal$SelectDP$dp_metadata_path, pattern = "ustom", full.names = TRUE),
     stringsAsFactors = FALSE,
   )
-  rv$unitList <- globals$FORMAT$UNIT
+  rv$unitList <- main.env$FORMATS$units
   if (checkTruth(savevar$emlal$Attributes)) {
     rv$annotations$values <- savevar$emlal$Attributes$annotations
     rv$annotations$count <- nrow(rv$annotations$values)
@@ -189,7 +189,7 @@ Attributes <- function(input, output, session,
           .tab$unit
         })),
         # rv$CU_Table$id,
-        globals$FORMAT$UNIT
+        main.env$FORMATS$units
       ))
       rv$unitList <- .tmp[.tmp != ""]
     },
@@ -299,7 +299,7 @@ Attributes <- function(input, output, session,
                           ns(inputId),
                           colname,
                           saved_value,
-                          globals$FORMAT,
+                          main.env$FORMATS,
                           # rv$unitList,
                           # rv$CU_TABLE$id
                           rv
@@ -324,7 +324,7 @@ Attributes <- function(input, output, session,
                         #       unique(c(
                         #         saved_value,
                         #         as.character(rv$CU_Table$id),
-                        #         globals$FORMAT$UNIT
+                        #         main.env$FORMATS$units
                         #       )),
                         #       selected = if (isTruthy(saved_value)) saved_value
                         #     )
@@ -337,7 +337,7 @@ Attributes <- function(input, output, session,
                         #     tmp <- selectInput( # TODO add a module for hour format
                         #       ns(inputId),
                         #       with_red_star("Select a date format"),
-                        #       unique(c(saved_value, globals$FORMAT$DATE)),
+                        #       unique(c(saved_value, main.env$FORMATS$dates)),
                         #       selected = saved_value
                         #     )
                         #     if (isTruthy(saved_value))
@@ -421,7 +421,7 @@ Attributes <- function(input, output, session,
         # 
         # .tmp <- callModule(
         #   annotate, annotateId,
-        #   savevar, globals, rv, row_index
+        #   savevar, main.env, rv, row_index
         # )
 
         # Input ====
@@ -579,7 +579,7 @@ Attributes <- function(input, output, session,
             selectInput(
               ns("modal_parentSI"),
               label = with_red_star("Parent unit in SI"),
-              choices = globals$FORMAT$UNIT[-1],
+              choices = main.env$FORMATS$units[-1],
               selected = if (!is.na(values[3])) values[3] else NULL
             ),
             # MultiplierToSI
@@ -619,7 +619,7 @@ Attributes <- function(input, output, session,
       updateSelectInput(
         session,
         paste(rv$unitId, collapse = "-"),
-        selected = globals$FORMAT$UNIT[2]
+        selected = main.env$FORMATS$units[2]
       )
     })
     rv$unitId <- character() # reset to default
@@ -703,13 +703,13 @@ Attributes <- function(input, output, session,
   # observeEvent(rv$tables, {
   observe(
     {
-      globals$EMLAL$COMPLETE_CURRENT <- FALSE
+      main.env$EAL$current[2] <- FALSE
       req(
         length(rv$tables) != 0 &&
           !any(sapply(rv$tables, identical, y = data.frame()))
       )
 
-      globals$EMLAL$COMPLETE_CURRENT <- all(
+      main.env$EAL$current[2] <- all(
         unlist(
           lapply(
             rv$tables,
@@ -730,7 +730,7 @@ Attributes <- function(input, output, session,
 
   observeEvent(NSB$SAVE,
     {
-      req(tail(globals$EMLAL$HISTORY, 1) == "Attributes")
+      req(tail(main.env$EAL$history, 1) == "Attributes")
 
       message("NSB$SAVE")
 
@@ -765,7 +765,7 @@ Attributes <- function(input, output, session,
   # Process data -----------------------------------------------------
   observeEvent(NSB$NEXT,
     {
-      req(globals$EMLAL$CURRENT == "Attributes")
+      req(main.env$EAL$current[1] == "Attributes")
 
       withProgress({
         setProgress(0.5, "Saving metadata")
@@ -809,7 +809,7 @@ Attributes <- function(input, output, session,
         )
 
         if (isFALSE(templateCatvars)) {
-          isolate(globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1)
+          isolate(main.env$EAL$navigate <- main.env$EAL$navigate + 1)
         }
         incProgress(0.1)
       })

@@ -75,7 +75,7 @@
   # Values ====
   VALUES <- reactiveValues(
     thresholds = reactiveValues(
-      dp_data_files = 500000
+      files_size_max = 500000
     )
   )
   
@@ -98,19 +98,7 @@
     fwrite(.TAXA.AUTHORITIES, wwwPaths$taxaAuthorities.txt)
   }
   
-  FORMATS <- reactiveValues(
-    dates = c(
-      "YYYY",
-      "YYYY-MM", "YYYY-MM-DD", "YYYY-DD-MM",
-      "MM-YYYY", "DD-MM-YYYY", "MM-DD-YYYY"
-    ),
-    dataone.list = .DATAONE.LIST,
-    taxa.authorities = .TAXA.AUTHORITIES
-  )
-  
-  assign("FORMATS", FORMATS, envir = main.env)
-  
-  # Unit types ====
+  # Unit types
   .all.units <- get_unitList()
   .units <- "custom"
   .names <- "custom"
@@ -118,11 +106,22 @@
     .units <<- c(.units, row["name"])
     .names <<- c(.names, paste(row, collapse = "/"))
   }))
-  UNIT.LIST <- .units
-  names(UNIT.LIST) <- .names
-
-  assign("UNIT.LIST", UNIT.LIST, envir = main.env)
+  .all.units <- .units
+  names(.all.units) <- .names
   
+  FORMATS <- reactiveValues(
+    dates = c(
+      "YYYY",
+      "YYYY-MM", "YYYY-MM-DD", "YYYY-DD-MM",
+      "MM-YYYY", "DD-MM-YYYY", "MM-DD-YYYY"
+    ),
+    units = .all.units,
+    dataone.list = .DATAONE.LIST,
+    taxa.authorities = .TAXA.AUTHORITIES
+  )
+  
+  assign("FORMATS", FORMATS, envir = main.env)
+
   # Semantics ====
 
   SEMANTICS <- reactiveValues(

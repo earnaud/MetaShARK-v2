@@ -35,13 +35,13 @@ PersonnelUI <- function(id, title, dev) {
 #' @importFrom shinyjs onclick enable disable
 #' @importFrom data.table fwrite
 Personnel <- function(input, output, session,
-                      savevar, globals, NSB) {
+                      savevar, main.env, NSB) {
   ns <- session$ns
 
-  if (globals$dev) {
+  if (main.env$DEV) {
     onclick("dev",
       {
-        req(globals$EMLAL$NAVIGATE == 7)
+        req(main.env$EAL$navigate == 7)
         browser()
       },
       asis = TRUE
@@ -95,7 +95,7 @@ Personnel <- function(input, output, session,
         rvid,
         rv,
         ns,
-        globals,
+        main.env,
         role = if (rvid %in% c("creator", "contact")) rvid,
         saved = saved_table
       )
@@ -106,7 +106,7 @@ Personnel <- function(input, output, session,
       "creator",
       rv,
       ns,
-      globals,
+      main.env,
       role = "creator",
       saved = saved_table
     )
@@ -115,7 +115,7 @@ Personnel <- function(input, output, session,
       "contact",
       rv,
       ns,
-      globals,
+      main.env,
       role = "contact",
       saved = saved_table
     )
@@ -131,13 +131,13 @@ Personnel <- function(input, output, session,
       as.character(id),
       rv,
       ns,
-      globals
+      main.env
     )
   })
 
   # Saves -----------------------------------------------------
   observe({
-    globals$EMLAL$COMPLETE_CURRENT <- all(
+    main.env$EAL$current[2] <- all(
       # Personnel
       isTruthy(rv$Personnel$givenName) &&
         isTruthy(rv$Personnel$surName) &&
@@ -149,7 +149,7 @@ Personnel <- function(input, output, session,
 
   observeEvent(NSB$SAVE,
     {
-      req(globals$EMLAL$CURRENT == "Personnel")
+      req(main.env$EAL$current[1] == "Personnel")
 
       # save
       savevar <- saveReactive(
@@ -164,7 +164,7 @@ Personnel <- function(input, output, session,
   observeEvent(NSB$NEXT,
     {
       req(checkTruth(rv$Personnel))
-      req(globals$EMLAL$CURRENT == "Personnel")
+      req(main.env$EAL$current == "Personnel")
 
       savevar <- saveReactive(
         savevar,
@@ -186,7 +186,7 @@ Personnel <- function(input, output, session,
 #' features to delete them.
 #'
 #' @importFrom shiny insertUI callModule
-insertPersonnelInput <- function(id, rv, ns, globals, role = NULL, saved = NULL) {
+insertPersonnelInput <- function(id, rv, ns, main.env, role = NULL, saved = NULL) {
 
   # initialize IDs -----------------------------------------------------
   div_id <- id
@@ -207,7 +207,7 @@ insertPersonnelInput <- function(id, rv, ns, globals, role = NULL, saved = NULL)
   # create associated server
   rv <- callModule(
     PersonnelMod, id, # module args
-    globals, rv, # reactiveValues
+    main.env, rv, # reactiveValues
     rmv_id, site_id, div_id, # renderUI ids
     role = role, saved = saved # set saved
   )
@@ -415,7 +415,7 @@ PersonnelModUI <- function(id, div_id, site_id, rmv_id,
 #' @importFrom shiny insertUI removeUI
 #' @importFrom rorcid as.orcid orcid_person orcid_employments orcid_email orcid_fundings
 #' @importFrom stringr str_extract
-PersonnelMod <- function(input, output, session, globals,
+PersonnelMod <- function(input, output, session, main.env,
                          rv, rmv_id, site_id, ref, role = NULL, saved = NULL) {
   ns <- session$ns
 
@@ -446,7 +446,7 @@ PersonnelMod <- function(input, output, session, globals,
   )
 
   # * Basic Identity -----------------------------------------------------
-  name.pattern <- globals$PATTERNS$NAME
+  name.pattern <- main.env$PATTERNS$name
 
   observeEvent(input$givenName, {
     localRV$givenName <- if (grepl(name.pattern, input$givenName)) {
@@ -465,7 +465,7 @@ PersonnelMod <- function(input, output, session, globals,
   })
 
   # * Contact -----------------------------------------------------
-  mail.pattern <- globals$PATTERNS$EMAIL
+  mail.pattern <- main.env$PATTERNS$email
 
   observeEvent(input$organizationName, {
     localRV$organizationName <- input$organizationName
@@ -478,7 +478,7 @@ PersonnelMod <- function(input, output, session, globals,
   })
 
   # * (ORCID) Personnel identification -----------------------------------------------------
-  orcid.pattern <- globals$PATTERNS$ORCID
+  orcid.pattern <- main.env$PATTERNS$ORCID
 
   observeEvent(input$userId, {
     req(input$userId)

@@ -52,12 +52,12 @@ CatVarsUI <- function(id, title, dev) {
 #' @importFrom shinyBS bsCollapse bsCollapsePanel
 #' @importFrom shinyjs onclick
 CatVars <- function(input, output, session,
-                    savevar, globals, NSB) {
+                    savevar, main.env, NSB) {
   ns <- session$ns
-  if (globals$dev) {
+  if (main.env$DEV) {
     onclick("dev",
       {
-        req(globals$EMLAL$NAVIGATE == 4)
+        req(main.env$EAL$navigate == 4)
         browser()
       },
       asis = TRUE
@@ -234,7 +234,7 @@ CatVars <- function(input, output, session,
 
   # Saves -----------------------------------------------------
   observe({
-    globals$EMLAL$COMPLETE_CURRENT <- all(
+    main.env$EAL$current[2] <- all(
       sapply(basename(rv$catvarFiles), function(file_name) {
         all(sapply(rv[[file_name]]$CatVars$definition, isTruthy))
       })
@@ -242,7 +242,7 @@ CatVars <- function(input, output, session,
   })
 
   observeEvent(NSB$SAVE, {
-    req(tail(globals$EMLAL$HISTORY, 1) == "Categorical Variables")
+    req(tail(main.env$EAL$history, 1) == "Categorical Variables")
 
     savevar <- saveReactive(
       savevar,
@@ -253,7 +253,7 @@ CatVars <- function(input, output, session,
   # Process data -----------------------------------------------------
   observeEvent(NSB$NEXT,
     {
-      req(globals$EMLAL$CURRENT == "Categorical Variables")
+      req(main.env$EAL$current[2] == "Categorical Variables")
 
       savevar <- saveReactive(
         savevar,

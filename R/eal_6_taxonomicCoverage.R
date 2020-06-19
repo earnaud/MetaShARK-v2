@@ -36,12 +36,12 @@ TaxCovUI <- function(id, title, dev) {
 #' @importFrom EMLassemblyline template_taxonomic_coverage
 #' @importFrom shinyjs onclick
 TaxCov <- function(input, output, session,
-                   savevar, globals, NSB) {
+                   savevar, main.env, NSB) {
   ns <- session$ns
-  if (globals$dev) {
+  if (main.env$DEV) {
     onclick("dev",
       {
-        req(globals$EMLAL$NAVIGATE == 6)
+        req(main.env$EAL$navigate == 6)
         browser()
       },
       asis = TRUE
@@ -131,7 +131,7 @@ TaxCov <- function(input, output, session,
   # * taxa.authority ====
   output$taxa.authority <- renderUI({
     isolate({
-      taxa.authority <- globals$FORMAT$AUTHORITIES
+      taxa.authority <- main.env$FORMATS$taxa.authorities
       choices <- taxa.authority$authority
       value <- if(isTruthy(rv$taxa.authority)){
         taxa.authority %>%
@@ -221,7 +221,7 @@ TaxCov <- function(input, output, session,
   observeEvent(input$taxa.authority, {
     req(input$taxa.authority)
 
-    rv$taxa.authority <- globals$FORMAT$AUTHORITIES %>%
+    rv$taxa.authority <- main.env$FORMATS$taxa.authorities %>%
       filter(authority %in% input$taxa.authority) %>%
       select(id) %>%
       unlist()
@@ -229,9 +229,9 @@ TaxCov <- function(input, output, session,
   })
 
   # Saves -----------------------------------------------------
-  globals$EMLAL$COMPLETE_CURRENT <- TRUE
+  main.env$EAL$current[2] <- TRUE
   observe({
-    req(globals$EMLAL$CURRENT == "Taxonomic Coverage")
+    req(main.env$EAL$current[1] == "Taxonomic Coverage")
 
     rv$complete <- all(
       length(rv$taxa.table) > 0 &&
@@ -243,7 +243,7 @@ TaxCov <- function(input, output, session,
 
   observeEvent(NSB$SAVE,
     {
-      req(tail(globals$EMLAL$HISTORY, 1) == "Taxonomic Coverage")
+      req(tail(main.env$EAL$history, 1) == "Taxonomic Coverage")
 
       savevar <- saveReactive(
         savevar = savevar,
@@ -256,7 +256,7 @@ TaxCov <- function(input, output, session,
   # Process data -----------------------------------------------------
   observeEvent(NSB$NEXT,
     {
-      req(globals$EMLAL$CURRENT == "Taxonomic Coverage")
+      req(main.env$EAL$current[1] == "Taxonomic Coverage")
 
       choices <- c(
         "Yes - Taxonomic coverage will be written as file" = if (rv$complete) 1 else NULL,
@@ -286,7 +286,7 @@ TaxCov <- function(input, output, session,
 
   observeEvent(input$confirm, {
     removeModal()
-    globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1
+    main.env$EAL$navigate <- main.env$EAL$navigate + 1
     NSB$tagList <- tagList()
 
     # Write files
