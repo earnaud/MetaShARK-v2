@@ -7,7 +7,7 @@ fillUI <- function(id, dev = FALSE) {
   ns <- NS(id)
   tabsetPanel(
     id = ns("tabs"),
-    tabPanel("EMLAL", EMLALUI(ns("EMLAL"), dev)),
+    tabPanel("EAL", EMLALUI(ns("EAL"), dev)),
     tabPanel("MetaFIN", h1("Under Construction"))
   )
 }
@@ -15,19 +15,19 @@ fillUI <- function(id, dev = FALSE) {
 #' @describeIn fillUI
 #'
 #' @importFrom shiny observeEvent callModule
-fill <- function(input, output, session, globals) {
+fill <- function(input, output, session, main.env) {
   ns <- session$ns
-  # variable initialization ----------------------------------------------------
+  # variable initialization ====
 
-  # save variable
-  savevar <- initReactive(glob = globals$EMLAL)
+  # save variable initialization
+  savevar <- initReactive(main.env = main.env$EMLAL)
 
-  # action -----------------------------------------------------
+  # action ====
   savevar <- callModule(
-    EMLAL, "EMLAL",
-    savevar, globals
+    EMLAL, "EAL",
+    savevar, main.env
   )
 
-  # Output -----------------------------------------------------
+  # Output ====
   return(savevar)
 }

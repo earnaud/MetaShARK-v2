@@ -1,9 +1,9 @@
-#' @title appOptionsUI
+#' @title settingsUI
 #'
-#' @description UI part of the appOptions module. Allow the user to change several settings in the app.
+#' @description UI part of the settings module. Allow the user to change several settings in the app.
 #'
 #' @importFrom shiny NS tags tagList fluidRow column textAreaInput checkboxInput actionButton
-appOptionsUI <- function(id, dev) {
+settingsUI <- function(id, dev) {
   ns <- NS(id)
 
   tagList(
@@ -18,6 +18,7 @@ appOptionsUI <- function(id, dev) {
         to write private data packages that will not appear on other users list.
         "),
       # orcidUI(ns("orcid")),
+      # TODO POC ORCID
       class = "inputBox wip"
     ),
 
@@ -75,52 +76,36 @@ appOptionsUI <- function(id, dev) {
   )
 }
 
-#' @title appOptions
+#' @title settings
 #'
-#' @description server part of the appOptions module. Allow the user to change several settings in the app.
+#' @description server part of the settings module. Allow the user to change several settings in the app.
 #'
 #' @importFrom shiny observeEvent updateTextAreaInput showNotification
 #' @importFrom shinyjs onclick
 #' @importFrom cedarr accessOntology
-appOptions <- function(input, output, session, globals) {
+settings <- function(input, output, session, main.env) {
   # Sessionning ====
   # observeEvent(input$cedar_token, {
   #   browser()
-  #   globals$SETTINGS$TOKEN$CEDAR <- orcid_auth(reauth=TRUE)
+  #   globals$SETTINGS$cedar.token <- orcid_auth(reauth=TRUE)
   # })
   # callModule(orcid, "orcid")
 
   # CEDAR token ====
   observeEvent(input$cedar_token, {
-    globals$SETTINGS$TOKEN$CEDAR <- input$cedar_token
+    main.env$SETTINGS$cedar.token <- input$cedar_token
     req(input$cedar_token)
-    globals$SEMANTICS$ONTOLOGIES <- accessOntology(input$cedar_token)
+    main.env$SEMANTICS$ontologies <- accessOntology(input$cedar_token)
   })
 
   # Metacat token ====
   observeEvent(input$test_metacat, {
-    if (input$test_metacat) {
-      updateTextAreaInput(
-        session,
-        "metacat_token",
-        value = globals$SETTINGS$TOKEN$DATAONE.TEST.TOKEN
-      )
-    }
-    else {
-      updateTextAreaInput(session,
-        "metacat_token",
-        value = globals$SETTINGS$TOKEN$DATAONE.TOKEN
-      )
-    }
+    req(input$test_metacat)
+    main.env$SETTINGS$metacat.test <- input$test_metacat
   })
 
   observeEvent(input$metacat_save, {
-    # onclick("metacat_save", {
-    if (input$test_metacat) {
-      globals$SETTINGS$TOKEN$DATAONE.TEST.TOKEN <- input$metacat_token
-    } else {
-      globals$SETTINGS$TOKEN$DATAONE.TOKEN <- input$metacat_token
-    }
+    main.env$SETTINGS$metacat.token <- input$metacat_token
     showNotification(id = "metacat_set", "Dataone token set.", type = "message")
   })
 }

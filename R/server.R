@@ -9,14 +9,11 @@
 .app_server <- function(input, output, session) {
 
   # get app arguments
-  appArgs <- get_golem_options()
-  dev <- appArgs$dev
+  app.args <- get_golem_options()
+  dev <- app.args$dev
+  main.env <- app.args$main.dev
 
-  if (!is.logical(dev) || is.null(dev)) {
-    dev <- FALSE
-  }
   # initialize global variables
-  globals <- .globalScript(dev)
   savevar <- NULL
 
   # DEV -----------------------------------------------------
@@ -32,16 +29,16 @@
 
   # Head bar server -----------------------------------------------------
   # Options
-  observeEvent(input$appOptions, {
-    updateTabItems(session, "side_menu", "appOptions")
+  observeEvent(input$settings, {
+    updateTabItems(session, "side_menu", "settings")
   })
 
-  callModule(appOptions, "appOptions", globals$SETTINGS)
+  callModule(settings, "settings", main.env)
 
-  # Exit App
-  observeEvent(input$close, {
-    stopApp()
-  })
+  # # Exit App - deprecated on server
+  # observeEvent(input$close, {
+  #   stopApp()
+  # })
 
   ## modules called -----------------------------------------------------
   observeEvent(input$side_menu, {
@@ -49,11 +46,11 @@
       # welcome
       # welcome = callModule(welcome, "welcome"),
       # fill
-      fill = callModule(fill, "fill", globals),
+      fill = callModule(fill, "fill", main.env),
       # upload
-      upload = callModule(upload, "upload", globals),
+      upload = callModule(upload, "upload", main.env),
       # doc
-      documentation = callModule(documentation, "documentation", globals),
+      documentation = callModule(documentation, "documentation"),
       # about
       about = callModule(about, "about"),
       # default

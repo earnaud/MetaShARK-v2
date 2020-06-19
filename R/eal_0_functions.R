@@ -91,11 +91,11 @@ prevTabButton <- function(id) {
 #' The functions are very specific and thus are not exported.
 #'
 #' @param id shiny server id
-#' @param globals MetaShARK globals variable
+#' @param main.env MetaShARK main.env variable
 #' @param savevar MetaShARK savevar variable
 #'
 #' @importFrom shiny callModule
-navSidebar <- function(id, globals, savevar) {
+navSidebar <- function(id, main.env, savevar) {
   NSB <- reactiveValues(
     SAVE = 0,
     NEXT = 0,
@@ -104,10 +104,10 @@ navSidebar <- function(id, globals, savevar) {
     help = modalDialog()
   )
 
-  NSB <- callModule(onQuit, id, globals, savevar, NSB)
+  NSB <- callModule(onQuit, id, main.env, savevar, NSB)
   NSB <- callModule(onSave, id, savevar, NSB)
-  NSB <- callModule(prevTab, id, globals, NSB)
-  NSB <- callModule(nextTab, id, globals, savevar, NSB)
+  NSB <- callModule(prevTab, id, main.env, NSB)
+  NSB <- callModule(nextTab, id, main.env, savevar, NSB)
 
   callModule(
     function(input, output, session, x = NSB) {
@@ -131,7 +131,7 @@ navSidebar <- function(id, globals, savevar) {
 #' icon observeEvent req showModal removeModal
 #' @importFrom shinyjs onclick disable enable
 onQuit <- function(input, output, session,
-                   globals, savevar, NSB) {
+                   main.env, savevar, NSB) {
   ns <- session$ns
 
   # modal dialog for quitting data description
@@ -183,8 +183,8 @@ onQuit <- function(input, output, session,
       NSB$tagList <- tagList()
       NSB$SAVE <- NSB$SAVE + 1
       saveReactive(savevar)
-      globals$EMLAL$HISTORY <- "SelectDP"
-      globals$EMLAL$NAVIGATE <- 1
+      main.env$EAL$history <- "SelectDP"
+      main.env$EAL$navigate <- 1
 
       file.remove(
         list.files(
@@ -205,8 +205,8 @@ onQuit <- function(input, output, session,
       removeModal()
 
       NSB$tagList <- tagList()
-      globals$EMLAL$HISTORY <- "SelectDP"
-      globals$EMLAL$NAVIGATE <- 1
+      main.env$EAL$history <- "SelectDP"
+      main.env$EAL$navigate <- 1
 
       file.remove(
         list.files(
@@ -242,15 +242,15 @@ onSave <- function(input, output, session, savevar, NSB) {
 #' @importFrom shiny observeEvent
 #' @importFrom shinyjs onclick enable disable
 nextTab <- function(input, output, session,
-                    globals, savevar, NSB) {
+                    main.env, savevar, NSB) {
 
-  # observeEvent(globals$EMLAL$COMPLETE_CURRENT,{
-  # req(isTruthy(globals$EMLAL$COMPLETE_CURRENT))
+  # observeEvent(main.env$EAL$current[2],{
+  # req(isTruthy(main.env$EAL$current[2]))
   observe(
     {
-      if (isFALSE(globals$EMLAL$COMPLETE_CURRENT)) {
+      if (isFALSE(main.env$EAL$current[2])) {
         disable("nextTab")
-      } else if (isTRUE(globals$EMLAL$COMPLETE_CURRENT)) {
+      } else if (isTRUE(main.env$EAL$current[2])) {
         enable("nextTab")
       }
     },
@@ -259,14 +259,14 @@ nextTab <- function(input, output, session,
 
   observeEvent(input$nextTab,
     {
-      req(isTRUE(globals$EMLAL$COMPLETE_CURRENT))
+      req(isTRUE(main.env$EAL$current[2]))
       endisableNSB(input, disable)
-      if (!globals$EMLAL$CURRENT %in% c("Geographic Coverage", "Taxonomic Coverage")) {
-        globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1
+      if (!main.env$EAL$current[1] %in% c("Geographic Coverage", "Taxonomic Coverage")) {
+        main.env$EAL$navigate <- main.env$EAL$navigate + 1
         NSB$tagList <- tagList()
 
         # Savevar modification
-        savevar$emlal$step <- globals$EMLAL$NAVIGATE
+        savevar$emlal$step <- main.env$EAL$navigate
       }
       NSB$NEXT <- NSB$NEXT + 1
       endisableNSB(input, enable)
@@ -280,11 +280,11 @@ nextTab <- function(input, output, session,
 #'
 #' @importFrom shiny observeEvent
 #' @importFrom shinyjs onclick enable disable
-prevTab <- function(input, output, session, globals, NSB) {
+prevTab <- function(input, output, session, main.env, NSB) {
   observeEvent(input$prevTab,
     {
       endisableNSB(input, disable)
-      globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE - 1
+      main.env$EAL$navigate <- main.env$EAL$navigate - 1
       NSB$tagList <- tagList()
       NSB$PREV <- NSB$PREV + 1
       endisableNSB(input, enable)

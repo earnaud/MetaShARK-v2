@@ -34,52 +34,55 @@ EMLALUI <- function(id, dev = FALSE) {
 #' @importFrom shiny observeEvent renderUI renderImage HTML callModule imageOutput actionLink icon
 #' @importFrom shinyBS tipify
 EMLAL <- function(input, output, session,
-                  savevar, globals) {
+                  savevar, main.env) {
   ns <- session$ns
 
   # NSB -----------------------------------------------------
   # names of EMLAL steps
   steps <- c("SelectDP", "Data Files", "Attributes", "Categorical Variables", "Geographic Coverage", "Taxonomic Coverage", "Personnel", "Miscellaneous", "Make EML")
 
-  NSB <- navSidebar("nav", globals, savevar)
-
+  NSB <- navSidebar("nav", main.env, savevar)
+  assign("NSB", NSB, envir = main.env)
+  
   # Output -----------------------------------------------------
-  observeEvent(globals$EMLAL$NAVIGATE, {
-    if (globals$EMLAL$CURRENT == "Data Files") {
-      unlink(globals$EMLAL$TEMP)
+  observeEvent(.EAL$navigate, {
+    .EAL <- .EAL
+    
+    if (.EAL$current[1] == "Data Files") {
+      unlink(main.env$PATHS$eal.tmp)
     }
-    globals$EMLAL$CURRENT <- steps[globals$EMLAL$NAVIGATE]
-    if (globals$EMLAL$CURRENT == "Data Files" &&
-      !dir.exists(globals$TEMP.PATH)) {
-      dir.create(globals$TEMP.PATH)
+    .EAL$current[1] <- steps[.EAL$navigate]
+    if (.EAL$current[1] == "Data Files" &&
+      !dir.exists(main.env$PATHS$eal.tmp)) {
+      dir.create(main.env$PATHS$eal.tmp)
     }
 
-    if (isFALSE(globals$EMLAL$COMPLETE_CURRENT)) {
-      globals$EMLAL$COMPLETE_CURRENT <- TRUE
+    if (isFALSE(.EAL$current[2])) {
+      .EAL$current[2] <- TRUE
     } # trigger
-    globals$EMLAL$COMPLETE_CURRENT <- FALSE
+    .EAL$current[2] <- FALSE
     NSB$tagList <- tagList()
 
     # Edition changed path -> remove excedent history
-    if (!globals$EMLAL$CURRENT %in% globals$EMLAL$HISTORY) {
-      globals$EMLAL$HISTORY <- c(globals$EMLAL$HISTORY, globals$EMLAL$CURRENT)
+    if (!.EAL$current[1] %in% .EAL$history) {
+      .EAL$history <- c(.EAL$history, .EAL$current[1])
     }
 
     # Savevar modification
-    savevar$emlal$step <- globals$EMLAL$NAVIGATE
-    savevar$emlal$history <- globals$EMLAL$HISTORY
+    savevar$emlal$step <- .EAL$navigate
+    savevar$emlal$history <- .EAL$history
 
     # * Chain -----------------------------------------------------
     output$chain <- renderUI({
       validate(
-        need(globals$EMLAL$NAVIGATE > 1, "")
+        need(.EAL$navigate > 1, "")
       )
 
       return(
         tags$span(
           tagList(
-            lapply(seq(globals$EMLAL$HISTORY)[-1], function(ind) {
-              step_name <- globals$EMLAL$HISTORY[ind]
+            lapply(seq(.EAL$history)[-1], function(ind) {
+              step_name <- .EAL$history[ind]
 
               if (step_name != "Taxonomic Coverage") {
                 style <- "color: dodgerblue;"
@@ -93,7 +96,7 @@ EMLAL <- function(input, output, session,
                 actionLink(
                   ns(paste0("chain_", step_name)),
                   "",
-                  if (step_name == globals$EMLAL$CURRENT) {
+                  if (step_name == .EAL$current[1]) {
                     icon("map-marker")
                   } else {
                     icon("circle")
@@ -107,9 +110,9 @@ EMLAL <- function(input, output, session,
               ) # end of return
             }),
             paste0(
-              "Step ", globals$EMLAL$NAVIGATE,
+              "Step ", .EAL$navigate,
               "/", length(steps),
-              ": ", globals$EMLAL$CURRENT
+              ": ", .EAL$current[1]
             )
           ),
           style = "position: right"
@@ -120,89 +123,89 @@ EMLAL <- function(input, output, session,
     observe({
       validate(
         need(
-          exists("globals") && isTruthy(names(input)),
+          exists("main.env") && isTruthy(names(input)),
           "Not initialized"
         ),
         need(
-          isTruthy(globals$EMLAL$HISTORY),
+          isTruthy(.EAL$history),
           "No history available"
         ),
         need(
           any(sapply(
-            globals$EMLAL$HISTORY,
+            .EAL$history,
             grepl,
             x = names(input)
           ) %>% unlist()) &&
-            length(globals$EMLAL$HISTORY) > 1,
+            length(.EAL$history) > 1,
           "No history available"
         )
       )
 
-      sapply(seq(globals$EMLAL$HISTORY)[-1], function(ind) {
-        step_name <- globals$EMLAL$HISTORY[ind]
+      sapply(seq(.EAL$history)[-1], function(ind) {
+        step_name <- .EAL$history[ind]
 
         id <- paste0("chain_", step_name)
 
         observeEvent(input[[id]], {
           req(input[[id]] &&
-            ind != globals$EMLAL$NAVIGATE)
-          globals$EMLAL$NAVIGATE <- ind
+            ind != .EAL$navigate)
+          .EAL$navigate <- ind
           NSB$NEXT <- NSB$NEXT + 1
         })
       })
     })
 
     # * UI -----------------------------------------------------
-    namespace <- globals$EMLAL$CURRENT
+    namespace <- .EAL$current[1]
 
     output$currentUI <- renderUI({
-      .ui <- switch(globals$EMLAL$NAVIGATE,
+      .ui <- switch(.EAL$navigate,
         SelectDPUI(
           id = ns(namespace),
-          dev = globals$dev
+          dev = main.env$DEV
         ),
         DataFilesUI(
           id = ns(namespace),
-          dev = globals$dev
+          dev = main.env$DEV
         ),
         AttributesUI(
           id = ns(namespace),
-          dev = globals$dev
+          dev = main.env$DEV
         ),
         CatVarsUI(
           id = ns(namespace),
-          dev = globals$dev
+          dev = main.env$DEV
         ),
         GeoCovUI(
           id = ns(namespace),
-          dev = globals$dev
+          dev = main.env$DEV
         ),
         TaxCovUI(
           id = ns(namespace),
-          dev = globals$dev
+          dev = main.env$DEV
         ),
         PersonnelUI(
           id = ns(namespace),
-          dev = globals$dev
+          dev = main.env$DEV
         ),
         MiscUI(
           id = ns(namespace),
-          dev = globals$dev,
+          dev = main.env$DEV,
           savevar = isolate({savevar})
         ),
         MakeEMLUI(
           id = ns(namespace),
-          dev = globals$dev
+          dev = main.env$DEV
         ),
         tags$h2("WIP")
       )
 
       return(
-        if (globals$EMLAL$NAVIGATE > 1) {
+        if (.EAL$navigate > 1) {
           # NSB modifications
-          .nsb <- if (globals$EMLAL$CURRENT == "Data Files") {
+          .nsb <- if (.EAL$current[1] == "Data Files") {
             navSidebarUI(ns("nav"), .prev = FALSE)
-          } else if (globals$EMLAL$CURRENT == "Make EML") {
+          } else if (.EAL$current[1] == "Make EML") {
             navSidebarUI(ns("nav"), .next = FALSE)
           } else {
             navSidebarUI(ns("nav"))
@@ -221,56 +224,56 @@ EMLAL <- function(input, output, session,
     })
 
     # * Server -----------------------------------------------------
-    savevar <- switch(globals$EMLAL$NAVIGATE,
+    savevar <- switch(.EAL$navigate,
       callModule(
         SelectDP, namespace,
-        savevar, globals
+        savevar, main.env
       ),
       callModule(
         DataFiles, namespace,
-        savevar, globals,
+        savevar, main.env,
         NSB = NSB
       ),
       callModule(
         Attributes, namespace,
-        savevar, globals,
+        savevar, main.env,
         NSB = NSB
       ),
       callModule(
         CatVars, namespace,
-        savevar, globals,
+        savevar, main.env,
         NSB = NSB
       ),
       callModule(
         GeoCov, namespace,
-        savevar, globals,
+        savevar, main.env,
         NSB = NSB
       ),
       callModule(
         TaxCov, namespace,
-        savevar, globals,
+        savevar, main.env,
         NSB = NSB
       ),
       callModule(
         Personnel, namespace,
-        savevar, globals,
+        savevar, main.env,
         NSB = NSB
       ),
       callModule(
         Misc, namespace,
-        savevar, globals,
+        savevar, main.env,
         NSB = NSB
       ),
       # TODO Add annotations here?
       callModule(
         MakeEML, namespace,
-        savevar, globals
+        savevar, main.env
       )
     )
     # * Module helper -----------------------------------------------------
     NSB$help <- modalDialog(
-      title = paste0(globals$EMLAL$CURRENT, " - Help"),
-      switch(globals$EMLAL$NAVIGATE,
+      title = paste0(.EAL$current[1], " - Help"),
+      switch(.EAL$navigate,
         # SelectDP
         tagList(
           tags$p("This module allows you to manage your", tags$strong("data packages"), ".

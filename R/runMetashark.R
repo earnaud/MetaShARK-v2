@@ -5,16 +5,6 @@
 #' @usage
 #' runMetaShark(...)
 #'
-# @param server
-# Logical. Is the app deployed in server or not?
-# If FALSE (default), the app is deployed for a local desktop usage.
-# If TRUE, the app is deployed for a distant server usage. The main difference between
-# both is the way filesystems will be used.
-#'
-#' @param test
-#' Logical. Is the application run with `{shinytest}`, or not.
-#' Default to FALSE.
-#'
 #' @param ...
 #' options to pass to the application, ignored if missing or mistyped.
 #' \describe{
@@ -35,9 +25,11 @@
 #' @export
 #' @importFrom shiny shinyApp runApp
 #' @importFrom golem with_golem_options
-runMetashark <- function(test = FALSE, ...) {
+runMetashark <- function(...) {
   args <- list(...)
-
+  args$dev <- isTRUE(args$dev)
+  args$main.env <- .globalScript(args$dev)
+  
   app <- with_golem_options(
     shinyApp(
       ui = .app_ui,
@@ -47,12 +39,7 @@ runMetashark <- function(test = FALSE, ...) {
     golem_opts = c(args)
   )
 
-  if (isFALSE(test)) {
-    runApp(
-      appDir = app
-    )
-  }
-  if (isTRUE(test)) {
-    return(app)
-  }
+  runApp(
+    appDir = app
+  )
 }

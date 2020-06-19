@@ -52,7 +52,7 @@ docUI <- function(id) {
 #' @importFrom shinyTree renderTree get_selected
 #' @importFrom utils browseURL
 #' @importFrom jsonlite read_json unserializeJSON
-documentation <- function(input, output, session, globals) {
+documentation <- function(input, output, session) {
   ns <- session$ns
 
   # Load data ====

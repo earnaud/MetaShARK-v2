@@ -104,7 +104,7 @@
 
 #' @importFrom data.table fwrite
 #' @importFrom shiny reactiveValues
-.saveGeoCov <- function(savevar, rv, globals) {
+.saveGeoCov <- function(savevar, rv, main.env) {
   # Initialize variables
   .method <- if (isTRUE(rv$columns$complete)) {
     "columns"
@@ -125,7 +125,7 @@
       df <- data.content[[data.filename]]
       df.num <- unlist(
         lapply(df, function(df.col) {
-          all(grepl(globals$PATTERNS$LATLON, df.col))
+          all(grepl(main.env$PATTERNS$coordinates, df.col))
         })
       )
       df[, df.num]
@@ -153,7 +153,7 @@
     tmp <- extractCoordinates(
       rv,
       "lat",
-      globals$PATTERNS$LATLON,
+      main.env$PATTERNS$coordinates,
       .values$data.content
     )
     .northBoundingCoordinate <- tmp$coordinates$N
@@ -163,7 +163,7 @@
     tmp <- extractCoordinates(
       rv,
       "lon",
-      globals$PATTERNS$LATLON,
+      main.env$PATTERNS$coordinates,
       .values$data.content
     )
     .eastBoundingCoordinate <- tmp$coordinates$E
