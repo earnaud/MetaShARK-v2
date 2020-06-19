@@ -23,7 +23,6 @@
   
   
   # Environment setup ====
-  
   main.env <- new.env()
   
   if (!is.logical(dev) || is.null(dev)) 
