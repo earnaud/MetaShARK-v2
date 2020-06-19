@@ -3,7 +3,7 @@
 #' @description UI part of the appOptions module. Allow the user to change several settings in the app.
 #'
 #' @importFrom shiny NS tags tagList fluidRow column textAreaInput checkboxInput actionButton
-appOptionsUI <- function(id, dev) {
+appOptionsUI <- function(id, wip) {
   ns <- NS(id)
   
   tagList(
@@ -11,7 +11,7 @@ appOptionsUI <- function(id, dev) {
     tags$p("This page is dedicated to define different settings in your session."),
     
     # Sessionning ====
-    if(isTRUE(dev)){
+    if(isTRUE(wip)){
       fluidRow(
         tags$h2("Login with ORCID"),
         tags$p("Without login, you can write and read all public data packages
@@ -53,7 +53,7 @@ appOptionsUI <- function(id, dev) {
     ),
     
     # CEDAR token input ====
-    if(isTRUE(dev))
+    if(isTRUE(wip))
     {
       fluidRow(
         tags$h2("CEDAR token"),
