@@ -367,17 +367,17 @@ Attributes <- function(input, output, session,
                       tableOutput(ns(paste0("preview-", colnames(rv$current_preview)[row_index]))),
                       tags$hr(),
                       # Annotate ====
-                      tags$div(
-                        annotateUI(
-                          ns(paste(
-                            "annotate",
-                            isolate(rv$current_file),
-                            row_index,
-                            sep = "-"
-                          ))
-                        ),
-                        class = "inputbox wip"
-                      )
+                      # tags$div(
+                      #   annotateUI(
+                      #     ns(paste(
+                      #       "annotate",
+                      #       isolate(rv$current_file),
+                      #       row_index,
+                      #       sep = "-"
+                      #     ))
+                      #   ),
+                      #   class = "inputbox wip"
+                      # )
                     ) # end of column
                   )
                 ) # end of bsCollapsePanel

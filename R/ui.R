@@ -75,7 +75,7 @@
         tabItems(
           tabItem(
             tabName = "welcome",
-            welcomeUI("welcome")
+            welcomeUI("welcome", dev = dev)
           ),
           tabItem(
             tabName = "fill",
