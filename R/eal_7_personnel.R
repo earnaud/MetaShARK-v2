@@ -484,8 +484,8 @@ PersonnelMod <- function(input, output, session, globals,
     req(input$userId)
     localRV$userId <- input$userId
 
-    browser()
-    Sys.setenv(ORCID_TOKEN=token)
+    # browser()
+    # Sys.setenv(ORCID_TOKEN=token)
     
     if (grepl(orcid.pattern, input$userId)) {
       localRV$userId <- str_extract(localRV$userId, orcid.pattern)
