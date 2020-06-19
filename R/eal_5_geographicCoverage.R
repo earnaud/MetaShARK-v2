@@ -80,12 +80,12 @@ GeoCovUI <- function(id, title, dev) {
 #' @importFrom EMLassemblyline template_geographic_coverage
 #' @importFrom shinyjs onclick show
 GeoCov <- function(input, output, session,
-                   savevar, globals, NSB) {
+                   savevar, main.env, NSB) {
   ns <- session$ns
-  if (globals$dev) {
+  if (main.env$DEV) {
     onclick("dev",
       {
-        req(globals$EMLAL$NAVIGATE == 5)
+        req(main.env$EAL$navigate == 5)
         browser()
       },
       asis = TRUE
@@ -436,7 +436,7 @@ GeoCov <- function(input, output, session,
   )
 
   observe({
-    globals$EMLAL$COMPLETE_CURRENT <- any(
+    main.env$EAL$current[2] <- any(
       isTRUE(rv$custom$complete),
       isTRUE(rv$columns$complete)
     )
@@ -444,12 +444,12 @@ GeoCov <- function(input, output, session,
 
   observeEvent(NSB$SAVE,
     {
-      req(tail(globals$EMLAL$HISTORY, 1) == "Geographic Coverage")
+      req(tail(main.env$EAL$history, 1) == "Geographic Coverage")
 
       savevar <- saveReactive(
         savevar,
         rv = list(GeoCov = rv),
-        globals = globals
+        main.env = main.env
       )
       showNotification(
         "Geographic Coverage has been saved",
@@ -463,10 +463,10 @@ GeoCov <- function(input, output, session,
   # * Previous ----
   observeEvent(NSB$PREV,
     {
-      req(globals$EMLAL$CURRENT == "Geographic Coverage")
+      req(main.env$EAL$current[1] == "Geographic Coverage")
 
-      if (!"Categorical Variables" %in% globals$EMLAL$HISTORY) {
-        globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE - 1
+      if (!"Categorical Variables" %in% main.env$EAL$history) {
+        main.env$EAL$navigate <- main.env$EAL$navigate - 1
       }
     },
     ignoreInit = TRUE
@@ -475,7 +475,7 @@ GeoCov <- function(input, output, session,
   # * Next ----
   observeEvent(NSB$NEXT,
     {
-      req(globals$EMLAL$CURRENT == "Geographic Coverage")
+      req(main.env$EAL$current[1] == "Geographic Coverage")
 
       # Create modal
       choices <- c(
@@ -510,20 +510,20 @@ GeoCov <- function(input, output, session,
 
   observeEvent(input$confirm, {
     removeModal()
-    globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1
+    main.env$EAL$navigate <- main.env$EAL$navigate + 1
     NSB$tagList <- tagList()
 
     .method <- input$method
     
     if(.method == "columns")
-      rv$columns$custome <- FALSE
+      rv$custom$complete <- FALSE
     if(.method == "custom")
       rv$columns$complete <- FALSE
     
     savevar <- saveReactive(
       savevar,
       rv = list(GeoCov = rv),
-      globals = globals
+      main.env = main.env
     )
   }, ignoreInit = TRUE)
 

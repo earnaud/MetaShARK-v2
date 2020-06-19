@@ -143,13 +143,13 @@ SelectDPUI <- function(id, width = 12, dev = FALSE) {
 #' @importFrom EMLassemblyline template_directories template_core_metadata
 #' @importFrom jsonlite read_json unserializeJSON
 SelectDP <- function(input, output, session,
-                     savevar, globals) {
+                     savevar, main.env) {
   ns <- session$ns
 
-  if (globals$dev) {
+  if (main.env$DEV) {
     onclick("dev",
       {
-        req(globals$EMLAL$NAVIGATE == 1)
+        req(main.env$EAL$navigate == 1)
         browser()
       },
       asis = TRUE
@@ -160,7 +160,7 @@ SelectDP <- function(input, output, session,
 
   # variable initialization -----------------------------------------------------
   rv <- reactiveValues(
-    dp_location = globals$DEFAULT.PATH,
+    dp_location = main.env$PATHS$eal.dp,
     dp_name = character(),
     dp_title = character(),
     dp_list = NULL,
@@ -227,7 +227,7 @@ SelectDP <- function(input, output, session,
       zip(
         zipfile = file,
         files = dir(
-          gsub("/+", "/", dir(globals$DEFAULT.PATH, full.names = TRUE, pattern = input$dp_list)),
+          gsub("/+", "/", dir(main.env$PATHS$eal.dp, full.names = TRUE, pattern = input$dp_list)),
           recursive = TRUE,
           full.names = TRUE
         )
@@ -335,7 +335,7 @@ SelectDP <- function(input, output, session,
     withProgress(
       {
         # save in empty dedicated variable
-        savevar$emlal <- initReactive("emlal", savevar, globals$EMLAL)
+        savevar$emlal <- initReactive("emlal", savevar, main.env$EAL)
         savevar$emlal$SelectDP$dp_name <- dp
         savevar$emlal$SelectDP$dp_path <- path
         savevar$emlal$SelectDP$dp_metadata_path <- paste(path, dp, "metadata_templates", sep = "/")
@@ -366,12 +366,12 @@ SelectDP <- function(input, output, session,
 
         if (class(x) != "try-error") {
           rv$dp_list <- c(rv$dp_list, dp)
-          globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1
+          main.env$EAL$navigate <- main.env$EAL$navigate + 1
           saveReactive(savevar)
           incProgress(0.2)
         } else {
           unlink(path, recursive = TRUE)
-          savevar <- initReactive(glob = globals$EMLAL)
+          savevar <- initReactive(glob = main.env$EAL)
           incProgress(0.2)
           showNotification(x, type = "error")
         }
@@ -395,7 +395,7 @@ SelectDP <- function(input, output, session,
     )
 
     # actions
-    savevar$emlal <- initReactive("emlal", savevar, globals$EMLAL)
+    savevar$emlal <- initReactive("emlal", savevar, main.env$EAL)
 
     .savevar <- read_json(paste0(path, "/", dp, ".json"))[[1]] %>%
       unserializeJSON()
@@ -415,11 +415,11 @@ SelectDP <- function(input, output, session,
       )
     }) %>% unname()
     savevar$emlal$quick <- isTRUE(savevar$emlal$quick)
-    globals$EMLAL$NAVIGATE <- ifelse(savevar$emlal$step > 1, # resume where max reached
+    main.env$EAL$navigate <- ifelse(savevar$emlal$step > 1, # resume where max reached
       savevar$emlal$step,
-      globals$EMLAL$NAVIGATE + 1
+      main.env$EAL$navigate + 1
     )
-    globals$EMLAL$HISTORY <- savevar$emlal$history
+    main.env$EAL$history <- savevar$emlal$history
     enable("dp_load")
   })
 

@@ -45,12 +45,12 @@ DataFilesUI <- function(id, dev = FALSE) {
 #' @importFrom shinyjs onclick enable disable
 #' @importFrom EMLassemblyline template_table_attributes
 DataFiles <- function(input, output, session,
-                      savevar, globals, NSB) {
+                      savevar, main.env, NSB) {
   ns <- session$ns
-  if (globals$dev) {
+  if (main.env$DEV) {
     onclick("dev",
       {
-        req(globals$EMLAL$NAVIGATE == 2)
+        req(main.env$EAL$navigate == 2)
         browser()
       },
       asis = TRUE
@@ -114,11 +114,11 @@ DataFiles <- function(input, output, session,
         {
           file.copy(
             rv$data.files$datapath,
-            paste0(globals$TEMP.PATH, rv$data.files$name)
+            paste0(main.env$PATHS$eal.tmp, rv$data.files$name)
           )
           incProgress(0.8)
 
-          rv$data.files$datapath <- paste0(globals$TEMP.PATH, rv$data.files$name)
+          rv$data.files$datapath <- paste0(main.env$PATHS$eal.tmp, rv$data.files$name)
           incProgress(0.2)
         },
         message = "Downloading data files"
@@ -267,7 +267,7 @@ DataFiles <- function(input, output, session,
     } else {
       0
     }
-    files_size_max <- globals$THRESHOLDS$data_files_size_max
+    files_size_max <- main.env$VALUES$thresholds$files_size_max
 
     style <- if (files_size < 0.9 * files_size_max) {
       "color: green;"
@@ -293,13 +293,13 @@ DataFiles <- function(input, output, session,
 
   # Saves -----------------------------------------------------
   observe({
-    globals$EMLAL$COMPLETE_CURRENT <- checkTruth(rv$data.files) &&
+    main.env$EAL$current[2] <- checkTruth(rv$data.files) &&
       all(dim(rv$data.files) > 0)
   })
 
   observeEvent(NSB$SAVE,
     {
-      req(tail(globals$EMLAL$HISTORY, 1) == "Data Files")
+      req(tail(main.env$EAL$history, 1) == "Data Files")
       req(isTruthy(rv$data.files$name))
 
       savevar <- saveReactive(
@@ -314,7 +314,7 @@ DataFiles <- function(input, output, session,
   # Process files -----------------------------------------------------
   observeEvent(NSB$NEXT,
     {
-      req(globals$EMLAL$CURRENT == "Data Files")
+      req(main.env$EAL$current[1] == "Data Files")
       # Save
       savevar <- saveReactive(
         savevar,

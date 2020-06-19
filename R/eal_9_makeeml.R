@@ -82,13 +82,13 @@ MakeEMLUI <- function(id, title, dev) {
 #' @importFrom shinyjs show enable onclick
 #' @importFrom EMLassemblyline make_eml template_arguments
 #' @importFrom emldown render_eml
-MakeEML <- function(input, output, session, savevar, globals) {
+MakeEML <- function(input, output, session, savevar, main.env) {
   ns <- session$ns
 
-  if (globals$dev) {
+  if (main.env$DEV) {
     onclick("dev",
       {
-        req(globals$EMLAL$NAVIGATE == 9)
+        req(main.env$EAL$navigate == 9)
         browser()
       },
       asis = TRUE

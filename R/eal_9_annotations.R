@@ -26,7 +26,7 @@ annotationsUI <- function(id) {
 
 #' @importFrom cedarr search
 #' @importFrom shinyjs disabled enable disable
-annotations <- function(input, output, session, savevar, globals) {
+annotations <- function(input, output, session, savevar, main.env) {
   ns <- session$ns
 
   # Initialize variables ----
@@ -76,7 +76,7 @@ annotations <- function(input, output, session, savevar, globals) {
       as.character(id),
       rv,
       ns,
-      globals
+      main.env
     )
   })
   
@@ -93,7 +93,7 @@ annotations <- function(input, output, session, savevar, globals) {
 #' features to delete them.
 #' 
 #' @importFrom shiny insertUI callModule 
-insertAnnotInput <- function(id, rv, ns, globals, default = NULL) {
+insertAnnotInput <- function(id, rv, ns, main.env, default = NULL) {
   
   # initialize IDs -----------------------------------------------------
   div_id <- id
@@ -114,7 +114,7 @@ insertAnnotInput <- function(id, rv, ns, globals, default = NULL) {
   # create associated server
   rv <- callModule(
     AnnotMod, id, # module args
-    globals, rv, # reactiveValues
+    main.env, rv, # reactiveValues
     rmv_id, site_id, div_id, # renderUI ids
     default = default # set saved
   )
@@ -183,7 +183,7 @@ AnnotModUI <- function(id, div_id, site_id, rmv_id, default = NULL) {
 #' @importFrom shiny insertUI removeUI
 #' @importFrom rorcid as.orcid orcid_person orcid_employments orcid_email orcid_fundings
 #' @importFrom stringr str_extract
-AnnotMod <- function(input, output, session,globals,
+AnnotMod <- function(input, output, session, main.env,
   rv, rmv_id, site_id, ref, role = NULL, saved = NULL) {
   ns <- session$ns
   
