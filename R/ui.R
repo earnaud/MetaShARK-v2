@@ -11,6 +11,7 @@
   # get app arguments
   appArgs <- get_golem_options()
   dev <- appArgs$dev
+  wip <- appArgs$wip
 
   # prepare variable
   menuWidth <- "250px"
@@ -75,7 +76,7 @@
         tabItems(
           tabItem(
             tabName = "welcome",
-            welcomeUI("welcome", dev = dev)
+            welcomeUI("welcome", wip=wip)
           ),
           tabItem(
             tabName = "fill",
@@ -95,7 +96,7 @@
           ),
           tabItem(
             tabName = "appOptions",
-            appOptionsUI("appOptions", dev)
+            appOptionsUI("appOptions", wip=wip)
           )
         )
       ) # end body
