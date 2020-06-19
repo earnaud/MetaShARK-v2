@@ -5,23 +5,24 @@
 #' @importFrom shiny NS tags tagList fluidRow column textAreaInput checkboxInput actionButton
 settingsUI <- function(id, dev) {
   ns <- NS(id)
-
+  
   tagList(
     tags$h1("Settings"),
     tags$p("This page is dedicated to define different settings in your session."),
-
+    
     # Sessionning ====
-    fluidRow(
-      tags$h2("Login with ORCID"),
-      tags$p("Without login, you can write and read all public data packages 
-        created on this instance of MetaShARK. By logging in, you will be able
-        to write private data packages that will not appear on other users list.
-        "),
-      # orcidUI(ns("orcid")),
-      # TODO POC ORCID
-      class = "inputBox wip"
-    ),
-
+    if(isTRUE(dev)){
+      fluidRow(
+        tags$h2("Login with ORCID"),
+        tags$p("Without login, you can write and read all public data packages
+          created on this instance of MetaShARK. By logging in, you will be able
+          to write private data packages that will not appear on other users list.
+          "),
+        # orcidUI(ns("orcid")),
+        # TODO POC ORCID
+        class = "inputBox wip"
+      )
+    },
     # Metacat token input ====
     fluidRow(
       column(
@@ -52,27 +53,30 @@ settingsUI <- function(id, dev) {
     ),
     
     # CEDAR token input ====
-    fluidRow(
-      tags$h2("CEDAR token"),
-      column(
-        8,
-        textAreaInput(ns("cedar_token"),
-          "Authentication token",
-          width = "120%",
-          value = options("dataone_token")
-        )
-      ),
-      column(
-        4,
-        tags$b("To fetch your authentication token:"),
-        tags$ul(
-          tags$li("Login into your CEDAR profile at: https://cedar.metadatacenter.org/"),
-          tags$li("Navigate in the upper-right menu corner and click 'Profile'."),
-          tags$li("Paste the content for `key` field before `Usage from REST client`.")
-        )
-      ),
-      class = "inputBox"
-    )
+    if(isTRUE(dev))
+    {
+      fluidRow(
+        tags$h2("CEDAR token"),
+        column(
+          8,
+          textAreaInput(ns("cedar_token"),
+            "Authentication token",
+            width = "120%",
+            value = options("dataone_token")
+          )
+        ),
+        column(
+          4,
+          tags$b("To fetch your authentication token:"),
+          tags$ul(
+            tags$li("Login into your CEDAR profile at: https://cedar.metadatacenter.org/"),
+            tags$li("Navigate in the upper-right menu corner and click 'Profile'."),
+            tags$li("Paste the content for `key` field before `Usage from REST client`.")
+          )
+        ),
+        class = "inputBox"
+      )
+    }
   )
 }
 
@@ -90,22 +94,22 @@ settings <- function(input, output, session, main.env) {
   #   globals$SETTINGS$cedar.token <- orcid_auth(reauth=TRUE)
   # })
   # callModule(orcid, "orcid")
-
-  # CEDAR token ====
-  observeEvent(input$cedar_token, {
-    main.env$SETTINGS$cedar.token <- input$cedar_token
-    req(input$cedar_token)
-    main.env$SEMANTICS$ontologies <- accessOntology(input$cedar_token)
-  })
-
+  
   # Metacat token ====
   observeEvent(input$test_metacat, {
     req(input$test_metacat)
     main.env$SETTINGS$metacat.test <- input$test_metacat
   })
-
+  
   observeEvent(input$metacat_save, {
     main.env$SETTINGS$metacat.token <- input$metacat_token
     showNotification(id = "metacat_set", "Dataone token set.", type = "message")
   })
+  
+  # CEDAR token ====
+  # observeEvent(input$cedar_token, {
+  #   globals$SETTINGS$TOKEN$CEDAR <- input$cedar_token
+  #   req(input$cedar_token)
+  #   globals$SEMANTICS$ONTOLOGIES <- accessOntology(input$cedar_token)
+  # })
 }

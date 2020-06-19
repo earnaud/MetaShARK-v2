@@ -1,52 +1,43 @@
 #'
 .saveDataFiles <- function(savevar, rv) {
-  tmp <- savevar$emlal$DataFiles
-
-  if (!checkTruth(tmp)) {
-    tmp <- data.frame(
+  .tmp <- isolate(rv$data.files)
+  
+  if (!checkTruth(.tmp)) {
+    .tmp <- data.frame(
       name = character(),
       size = character(),
       type = character(),
       datapath = character()
     )
   }
-
-  # -- Get files data
-  .from <- tmp$datapath
-  .to <- paste0(
-    savevar$emlal$SelectDP$dp_data_path,
-    "/", rv$data_files$name
-  )
-  file.copy(
-    from = .from,
-    to = .to
-  )
-  tmp$datapath <- .to
-
-  # -- set metadatapath
-  tmp$metadatapath <- paste(
-    savevar$emlal$SelectDP$dp_metadata_path,
-    sub(
-      "(.*)\\.[a-zA-Z0-9]*$",
-      "attributes_\\1.txt",
-      tmp$name
-    ),
-    sep = "/"
-  )
-
-  # Set table name
-  tmp$table_name <- rv$data_files$table_name
-  # Set description
-  tmp$description <- rv$data_files$description
-  # Set URL
-  tmp$url <- rv$data_files$url
-
-  savevar$emlal$DataFiles <- rv$data_files <- tmp
-
-  rv$data_files$datapath <- paste0(
-    savevar$emlal$SelectDP$dp_data_path,
-    "/", rv$data_files$name
-  )
+  else {
+    # -- Get files data
+    .from <- .tmp$datapath
+    .to <- paste0(
+      savevar$emlal$SelectDP$dp_data_path,
+      "/", .tmp$name
+    )
+    file.copy(
+      from = .from,
+      to = .to
+    )
+    .tmp$datapath <- .to
+  
+    # -- set metadatapath
+    .tmp$metadatapath <- paste(
+      savevar$emlal$SelectDP$dp_metadata_path,
+      sub(
+        "(.*)\\.[a-zA-Z0-9]*$",
+        "attributes_\\1.txt",
+        .tmp$name
+      ),
+      sep = "/"
+    )
+  }
+  
+  savevar$emlal$DataFiles <- .tmp
+  rv$data.files$datapath <- .tmp$datapath
+  
   return(savevar)
 }
 
@@ -72,11 +63,11 @@
     )
   }
 
-  # Save annotations
+  # Save
   savevar$emlal$Attributes <- rv$tables
   names(savevar$emlal$Attributes) <- savevar$emlal$DataFiles$name
-  if (rv$annotations$count > 0)
-    savevar$emlal$Attributes$annotations <- rv$annotations$values
+  # if (rv$annotations$count > 0)
+  #   savevar$emlal$Attributes$annotations <- rv$annotations$values
 
   return(savevar)
 }
