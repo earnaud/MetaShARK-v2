@@ -8,7 +8,7 @@
 #' @param sublist either NULL, "emlal", "metafin" to precise which sublist to initialize (NULL initializes the whole variable)
 #'
 #' @importFrom shiny reactiveValues
-initReactive <- function(sublist = NULL, savevar = NULL, glob) {
+initReactive <- function(sublist = NULL, savevar = NULL, main.env) {
   if (!is.null(sublist) && is.null(savevar)) {
     stop("Attempt to initialize savevar's sublist without savevar.")
   }
@@ -24,9 +24,9 @@ initReactive <- function(sublist = NULL, savevar = NULL, glob) {
   # emlal reactivelist management
   if (is.null(sublist) || sublist == "emlal") {
     savevar$emlal <- reactiveValues(
-      step = glob$NAVIGATE,
+      step = main.env$NAVIGATE,
       quick = FALSE,
-      history = glob$HISTORY,
+      history = main.env$HISTORY,
       SelectDP = reactiveValues(
         dp_name = NULL,
         dp_path = NULL,
@@ -94,7 +94,7 @@ initReactive <- function(sublist = NULL, savevar = NULL, glob) {
 saveReactive <- function(
   savevar,
   rv = NULL,
-  globals = NULL
+  main.env = NULL
 ) {
   withProgress({
     setProgress(1 / 3, "Module save")
@@ -128,7 +128,7 @@ saveReactive <- function(
           savevar <- .saveGeoCov(
             savevar = savevar,
             rv = rv[[1]],
-            globals = globals
+            main.env = main.env
           )
         }
         if (names(rv) == "TaxCov") {

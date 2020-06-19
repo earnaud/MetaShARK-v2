@@ -7,9 +7,6 @@
 runMetaShark(...)
 }
 \arguments{
-\item{test}{Logical. Is the application run with `{shinytest}`, or not.
-Default to FALSE.}
-
 \item{...}{options to pass to the application, ignored if missing or mistyped.
 \describe{
   \item{dev}{Logical. Add development elements in the GUI.}

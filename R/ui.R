@@ -8,16 +8,14 @@
 #' @importFrom shinyjs useShinyjs hidden
 #' @importFrom shinycssloaders withSpinner
 .app_ui <- function() {
+  
   # get app arguments
-  appArgs <- get_golem_options()
-  dev <- appArgs$dev
+  .app.args <- get_golem_options()
+  dev <- .app.args$dev
+  main.env <- .app.args$main.env
 
   # prepare variable
-  menuWidth <- "250px"
-  if (!is.logical(dev)) {
-    dev <- FALSE
-  }
-  globals <- .globalScript(dev, reactive = FALSE)
+  .menu.width <- "250px"
 
   # action
   tagList(
@@ -27,9 +25,16 @@
     dashboardPage(
       title = "MetaShARK",
       dashboardHeader(
-        tags$li(class = "dropdown", actionLink("appOptions", "", icon("gear"))),
-        title = tags$img(src = "media/ms_logo_small.png", width = "200px", height = "50px"),
-        titleWidth = menuWidth
+        tags$li(
+          class = "dropdown", 
+          actionLink("settings", "", icon("gear"))
+        ),
+        title = tags$img(
+          src = "media/ms_logo_small.png",
+          width = "200px", 
+          height = "50px"
+        ),
+        titleWidth = .menu.width
       ),
       ## Menus -----------------------------------------------------
       dashboardSidebar(
@@ -56,18 +61,18 @@
             icon = icon("beer")
           ),
           hidden( # Ghost tab for options
-            menuItem("appOptions",
-              tabName = "appOptions",
+            menuItem("settings",
+              tabName = "settings",
               icon = icon("gear")
             )
           ),
-          if (isolate(globals$dev)) {
+          if (isolate(main.env$dev)) {
             actionButton(
               "dev", "DEV CHECK"
             )
           }
         ),
-        width = menuWidth
+        width = .menu.width
       ), # end sidebar
       ## Content -----------------------------------------------------
       dashboardBody(
@@ -83,7 +88,7 @@
           ),
           tabItem(
             tabName = "upload",
-            uploadUI("upload", dev, globals)
+            uploadUI("upload", main.env)
           ),
           tabItem(
             tabName = "documentation",
@@ -94,8 +99,8 @@
             aboutUI("about")
           ),
           tabItem(
-            tabName = "appOptions",
-            appOptionsUI("appOptions", dev)
+            tabName = "settings",
+            settingsUI("settings", dev)
           )
         )
       ) # end body

@@ -14,20 +14,6 @@ renderBibliography <- function(bib) {
   NoCite(bib, "*")
 
   renderUI(
-    # sapply(
-    #   bib,
-    #   function(b) {
-    #     incProgress(1 / length(bib))
-    #     PrintBibliography(b,
-    #       .opts = list(style = "html")
-    #     )
-    #   }
-    # ) %>%
-    #   invisible %>%
-    #   capture.output %>%
-    #   paste(collapse = "") %>%
-    #   HTML %>%
-    #   withProgress(message = "Loading bibtex ...", value = 0)
     withProgress(message = "Loading bibtex ...", value = 0, {
       HTML(
         paste(

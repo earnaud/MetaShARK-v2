@@ -17,7 +17,8 @@ aboutUI <- function(id) {
     tags$h1("Thanks"),
     HTML("MetaShARK could not be built without the help of those people: </br>
         <ul>
-          <li>Colin Smith (EDI, US)</li> who collaborates with us since March 2019, and currently provides us the <a href='https://github.com/EDIorg/EMLassemblyline'>EML Assembly Line</a> tool.
+          <li>Colin Smith (EDI, US)</li> who collaborates with us since March 
+          2019, and currently provides us the <a href='https://github.com/EDIorg/EMLassemblyline'>EML Assembly Line</a> tool.
         </ul>"),
 
     tags$h1("References"),

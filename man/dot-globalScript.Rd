@@ -4,7 +4,7 @@
 \alias{.globalScript}
 \title{.globalScript}
 \usage{
-.globalScript(dev = FALSE, server = FALSE, reactive = TRUE)
+.globalScript(dev = FALSE)
 }
 \description{
 script to generate `globals` reactiveValues
