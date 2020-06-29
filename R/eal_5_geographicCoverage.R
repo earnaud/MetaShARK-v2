@@ -336,7 +336,7 @@ GeoCov <- function(input, output, session,
     # * Longitude -----------------------------------------------------
     output$`longitude-ui` <- renderUI({
       isolate({
-        .lon.cols <- printReactiveValues(rv$columns$lat)
+        .lon.cols <- printReactiveValues(rv$columns$lon)
       })
       
       # Init value
@@ -386,9 +386,10 @@ GeoCov <- function(input, output, session,
       ignoreInit = TRUE,
       priority = 1,
       ignoreNULL = FALSE,
-      label = "EAL5 get latitude"
+      label = "EAL5 get longitude"
     )
   }
+  
   # Fill custom -----------------------------------------------------
   # * Setup ----
   if (dim(rv$custom$coordinates)[1] > 0) {
@@ -510,7 +511,7 @@ GeoCov <- function(input, output, session,
 
   observeEvent(input$confirm, {
     removeModal()
-    main.env$EAL$navigate <- main.env$EAL$navigate + 1
+    main.env$EAL$navigate <-  6
     NSB$tagList <- tagList()
 
     .method <- input$method

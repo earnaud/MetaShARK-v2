@@ -13,6 +13,7 @@
   .app.args <- get_golem_options()
   dev <- .app.args$dev
   main.env <- .app.args$main.env
+  wip <- .app.args$wip
 
   # prepare variable
   .menu.width <- "250px"
@@ -80,7 +81,7 @@
         tabItems(
           tabItem(
             tabName = "welcome",
-            welcomeUI("welcome", dev = dev)
+            welcomeUI("welcome", wip=wip)
           ),
           tabItem(
             tabName = "fill",
@@ -100,7 +101,7 @@
           ),
           tabItem(
             tabName = "settings",
-            settingsUI("settings", dev)
+            settingsUI("settings", wip)
           )
         )
       ) # end body
