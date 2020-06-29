@@ -3,7 +3,7 @@
 #' @description Welcome page of the MetaShARK app.
 #'
 #' @importFrom shiny fluidPage headerPanel mainPanel HTML
-welcomeUI <- function(id, dev = FALSE) {
+welcomeUI <- function(id, wip=FALSE) {
   ns <- NS(id)
 
   fluidPage(
@@ -12,11 +12,11 @@ welcomeUI <- function(id, dev = FALSE) {
       # MetaShARK
       tags$h1("Welcome in MetaShARK"),
       fluidRow(
-        if(isTRUE(dev)){
+        if(isTRUE(wip)){
           tags$div(
-            tags$p("DISCLAIMER: this is a dev version. Some parts with this color 
-            code are not meant to be fully functional. So do not bother with 
-            testing them."),
+            tags$p("DISCLAIMER: this is a development version. Some parts with 
+            this color code are not meant to be fully functional. So do not 
+            bother with testing them."),
             class = "inputBox wip"
           )
         },

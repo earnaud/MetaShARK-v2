@@ -4,7 +4,7 @@
 \alias{welcomeUI}
 \title{welcome}
 \usage{
-welcomeUI(id, dev = FALSE)
+welcomeUI(id, wip = FALSE)
 }
 \description{
 Welcome page of the MetaShARK app.

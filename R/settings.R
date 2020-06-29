@@ -35,7 +35,7 @@ appOptionsUI <- function(id, wip) {
         ),
         checkboxInput(ns("test_metacat"), "Test MetaCat", value = TRUE),
         actionButton(ns("metacat_save"), "Save"),
-        if (dev) {
+        if (isTRUE(wip)) {
           textOutput(ns("verbose_token"))
         }
       ),

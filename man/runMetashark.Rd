@@ -12,7 +12,8 @@ Default to FALSE.}
 
 \item{...}{options to pass to the application, ignored if missing or mistyped.
 \describe{
-  \item{dev}{Logical. Add development elements in the GUI.}
+  \item{wip}{logical. Shows WIP parts of the app.}
+  \item{dev}{logical. Add development elements in the GUI.}
 }}
 }
 \description{
