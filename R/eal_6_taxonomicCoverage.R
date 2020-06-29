@@ -286,7 +286,7 @@ TaxCov <- function(input, output, session,
 
   observeEvent(input$confirm, {
     removeModal()
-    main.env$EAL$navigate <- main.env$EAL$navigate + 1
+    main.env$EAL$navigate <- 7
     NSB$tagList <- tagList()
 
     # Write files

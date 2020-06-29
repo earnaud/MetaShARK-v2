@@ -3,7 +3,7 @@
 #' @description UI part of the settings module. Allow the user to change several settings in the app.
 #'
 #' @importFrom shiny NS tags tagList fluidRow column textAreaInput checkboxInput actionButton
-settingsUI <- function(id, dev) {
+settingsUI <- function(id, wip) {
   ns <- NS(id)
   
   tagList(
@@ -11,7 +11,7 @@ settingsUI <- function(id, dev) {
     tags$p("This page is dedicated to define different settings in your session."),
     
     # Sessionning ====
-    if(isTRUE(dev)){
+    if(isTRUE(wip)){
       fluidRow(
         tags$h2("Login with ORCID"),
         tags$p("Without login, you can write and read all public data packages
@@ -35,7 +35,7 @@ settingsUI <- function(id, dev) {
         ),
         checkboxInput(ns("test_metacat"), "Test MetaCat", value = TRUE),
         actionButton(ns("metacat_save"), "Save"),
-        if (dev) {
+        if (isTRUE(wip)) {
           textOutput(ns("verbose_token"))
         }
       ),
@@ -53,7 +53,7 @@ settingsUI <- function(id, dev) {
     ),
     
     # CEDAR token input ====
-    if(isTRUE(dev))
+    if(isTRUE(wip))
     {
       fluidRow(
         tags$h2("CEDAR token"),
