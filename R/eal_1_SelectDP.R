@@ -221,17 +221,20 @@ SelectDP <- function(input, output, session,
 
   output$dp_download <- downloadHandler(
     filename = function() {
-      paste(input$dp_list, "zip", sep = ".")
+      paste0(input$dp_list, "_emldp.zip")
     },
     content = function(file) {
+      .path <- getwd()
+      setwd(globals$DEFAULT.PATH)
       zip(
         zipfile = file,
         files = dir(
-          gsub("/+", "/", dir(globals$DEFAULT.PATH, full.names = TRUE, pattern = input$dp_list)),
+          gsub("/+", "/", dir(".", full.names = TRUE, pattern = input$dp_list)),
           recursive = TRUE,
           full.names = TRUE
         )
       )
+      setwd(.path)
     },
     contentType = "application/zip"
   )
