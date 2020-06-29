@@ -237,6 +237,12 @@ extractCoordinates <- function(
     )
   coordinates[] <- lapply(coordinates, as.numeric)
 
+  if(dim(coordinates)[2] > dim(coordinates)[1])
+    coordinates <- t(coordinates)
+  
+  if(!is.data.frame(coordinates))
+    coordinates <- as.data.frame(coordinates, stringsAsFactors = FALSE)
+  
   # Check for having only two columns
   if (dim(coordinates)[2] > 2) {
     coordinates <- coordinates[, 1:2]
