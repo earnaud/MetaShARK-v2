@@ -4,7 +4,7 @@
 \alias{settingsUI}
 \title{settingsUI}
 \usage{
-settingsUI(id, dev)
+settingsUI(id, wip)
 }
 \description{
 UI part of the settings module. Allow the user to change several settings in the app.

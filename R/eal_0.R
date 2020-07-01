@@ -36,6 +36,7 @@ EMLALUI <- function(id, dev = FALSE) {
 EMLAL <- function(input, output, session,
                   savevar, main.env) {
   ns <- session$ns
+  .EAL <- main.env$EAL
 
   # NSB -----------------------------------------------------
   # names of EMLAL steps
@@ -46,7 +47,6 @@ EMLAL <- function(input, output, session,
   
   # Output -----------------------------------------------------
   observeEvent(.EAL$navigate, {
-    .EAL <- .EAL
     
     if (.EAL$current[1] == "Data Files") {
       unlink(main.env$PATHS$eal.tmp)

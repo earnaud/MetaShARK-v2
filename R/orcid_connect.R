@@ -7,33 +7,35 @@ orcidUI <- function(id, globals) {
 
 #' @importFrom shiny renderUI tagList actionButton icon tags
 #' @importFrom shinyjs onclick
-orcid <- function(input, output, session) {
+orcid <- function(input, output, session, main.env) {
   ns <- session$ns
 
-  # Initialize variables ====
-  globals <- reactiveValues(
-    SESSION = reactiveValues(
-      LOGGED = FALSE,
-      ORCID.TOKEN = character()
-    )
-  )
-
+  # Variable initialization ====
+  .SETTINGS <- main.env$SETTINGS
+  
   # Set UI ====
-  observeEvent(globals$SESSION$LOGGED, {
+  observeEvent(.SETTINGS$logged, {
     output$infos <- renderUI({
-      if (isFALSE(globals$SESSION$LOGGED)) {
+      if (isFALSE(.SETTINGS$logged)) {
         tagList(
+          textInput(ns("orcid"), "Write your ORCID here"),
           actionButton(
             ns("connect"),
             "Connect with ORCID",
-            icon = icon("orcid")
+            icon = icon("sign-in-alt")
           )
         )
       } else {
         tagList(
-          tags$h3("You name here"),
-          tags$p("WIP: here will be your infos."),
-          actionButton(ns("disconnect"), "Logout")
+          tags$h3("Your name here"),
+          tags$p("WIP: here will be your infos:"),
+          fluidRow(
+            column(6,
+              tags$p(tags$b("ORCID: "), .SETTINGS$user)
+            ),
+            column(6)
+          ),
+          actionButton(ns("disconnect"), "Logout", icon = icon("sign-out-alt"))
         )
       }
     })
@@ -41,23 +43,41 @@ orcid <- function(input, output, session) {
 
   # Log in/out ====
   onclick("connect", {
+    if(isTruthy(input$orcid) && grepl(main.env$PATTERNS$ORCID, input$orcid)){
+      .SETTINGS$logged <- TRUE
+      .SETTINGS$user <- str_extract(input$orcid, main.env$PATTERNS$ORCID)
+    }
+    else {
+      showNotification(
+        "Invalid or mistyped orcid.",
+        type = "error"
+      )
+      updateTextInput(inputId = "orcid", value = "")
+    }
+  })
+  
+  onclick("disconnect", {
+    .SETTINGS$logged <- FALSE
+    .SETTINGS$user <- "public"
+  })
+    
     ###
-    reso <- httr::GET(
-      "https://orcid.org/"
-    )
-    cookie <- cookies(reso)[cookies(reso)$name == "XSRF-TOKEN", ]
-    credentials <- list(userId = "000-0003-3416-7653", password = "Z@bud!78")
-    resa <- httr::POST(
-      "https://orcid.org/oauth/token",
-      authenticate(
-        credentials$userId,
-        credentials$password
-      ),
-      add_headers(c(
-        accept = "application/json",
-        `x-xsrf-token` = cookie$value
-      ))
-    )
+    # reso <- httr::GET(
+    #   "https://orcid.org/"
+    # )
+    # cookie <- cookies(reso)[cookies(reso)$name == "XSRF-TOKEN", ]
+    # credentials <- list(userId = "000-0003-3416-7653", password = "Z@bud!78")
+    # resa <- httr::POST(
+    #   "https://orcid.org/oauth/token",
+    #   authenticate(
+    #     credentials$userId,
+    #     credentials$password
+    #   ),
+    #   add_headers(c(
+    #     accept = "application/json",
+    #     `x-xsrf-token` = cookie$value
+    #   ))
+    # )
     ###
 
     # globals$SESSION$ORCID.TOKEN <- rorcid::orcid_auth(
@@ -95,17 +115,5 @@ orcid <- function(input, output, session) {
     # res2 <- session$get(
     #   "/portal/token"
     # )
-
-    browser()
-    stop("still working")
-    globals$SESSION$LOGGED <- TRUE
-    message(globals$SESSION$LOGGED)
-  })
-
-  onclick("disconnect", {
-    globals$SESSION <- reactiveValues(
-      LOGGED = FALSE,
-      ORCID.TOKEN = character()
-    )
-  })
+  
 }

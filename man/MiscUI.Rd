@@ -7,7 +7,7 @@
 \usage{
 MiscUI(id, title, dev, savevar)
 
-Misc(input, output, session, savevar, globals, NSB)
+Misc(input, output, session, savevar, main.env, NSB)
 }
 \description{
 UI for "last but not least" module

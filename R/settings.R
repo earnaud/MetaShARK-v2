@@ -18,7 +18,7 @@ settingsUI <- function(id, wip) {
           created on this instance of MetaShARK. By logging in, you will be able
           to write private data packages that will not appear on other users list.
           "),
-        # orcidUI(ns("orcid")),
+        orcidUI(ns("orcid")),
         # TODO POC ORCID
         class = "inputBox wip"
       )
@@ -30,8 +30,7 @@ settingsUI <- function(id, wip) {
         tags$h2("Metacat settings"),
         textAreaInput(ns("metacat_token"),
           "Authentication token",
-          width = "120%",
-          value = options("dataone_token")
+          width = "120%"
         ),
         checkboxInput(ns("test_metacat"), "Test MetaCat", value = TRUE),
         actionButton(ns("metacat_save"), "Save"),
@@ -59,11 +58,12 @@ settingsUI <- function(id, wip) {
         tags$h2("CEDAR token"),
         column(
           8,
-          textAreaInput(ns("cedar_token"),
+          textAreaInput(
+            ns("cedar_token"),
             "Authentication token",
-            width = "120%",
-            value = options("dataone_token")
-          )
+            width = "120%"
+          ),
+          actionButton(ns("cedar_save"), "Save")
         ),
         column(
           4,
@@ -74,7 +74,7 @@ settingsUI <- function(id, wip) {
             tags$li("Paste the content for `key` field before `Usage from REST client`.")
           )
         ),
-        class = "inputBox"
+        class = "inputBox wip"
       )
     }
   )
@@ -89,11 +89,7 @@ settingsUI <- function(id, wip) {
 #' @importFrom cedarr accessOntology
 settings <- function(input, output, session, main.env) {
   # Sessionning ====
-  # observeEvent(input$cedar_token, {
-  #   browser()
-  #   globals$SETTINGS$cedar.token <- orcid_auth(reauth=TRUE)
-  # })
-  # callModule(orcid, "orcid")
+  callModule(orcid, "orcid", main.env)
   
   # Metacat token ====
   observeEvent(input$test_metacat, {
@@ -107,9 +103,12 @@ settings <- function(input, output, session, main.env) {
   })
   
   # CEDAR token ====
-  # observeEvent(input$cedar_token, {
-  #   globals$SETTINGS$TOKEN$CEDAR <- input$cedar_token
-  #   req(input$cedar_token)
-  #   globals$SEMANTICS$ONTOLOGIES <- accessOntology(input$cedar_token)
-  # })
+  observeEvent({
+    input$cedar_token
+    input$cedar_save
+  }, {
+    req(input$cedar_token)
+    .SETTINGS$cedar.token <- input$cedar_token
+    main.env$SEMANTICS$ontologies <- accessOntology(.SETTINGS$cedar.token)
+  })
 }

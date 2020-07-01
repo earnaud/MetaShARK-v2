@@ -11,7 +11,7 @@
   # get app arguments
   app.args <- get_golem_options()
   dev <- app.args$dev
-  main.env <- app.args$main.dev
+  main.env <- app.args$main.env
 
   # initialize global variables
   savevar <- NULL

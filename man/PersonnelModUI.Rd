@@ -11,7 +11,7 @@ PersonnelMod(
   input,
   output,
   session,
-  globals,
+  main.env,
   rv,
   rmv_id,
   site_id,

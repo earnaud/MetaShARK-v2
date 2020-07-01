@@ -4,7 +4,7 @@
 \alias{CatVars}
 \title{Geographic coverage}
 \usage{
-CatVars(input, output, session, savevar, globals, NSB)
+CatVars(input, output, session, savevar, main.env, NSB)
 }
 \description{
 UI part for the Geographic Coverage module

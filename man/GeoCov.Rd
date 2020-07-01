@@ -4,7 +4,7 @@
 \alias{GeoCov}
 \title{Geographic coverage}
 \usage{
-GeoCov(input, output, session, savevar, globals, NSB)
+GeoCov(input, output, session, savevar, main.env, NSB)
 }
 \description{
 server part for the Geographic Coverage module

@@ -146,7 +146,7 @@ SelectDP <- function(input, output, session,
                      savevar, main.env) {
   ns <- session$ns
 
-  if (main.env$DEV) {
+  if (main.env$dev) {
     onclick("dev",
       {
         req(main.env$EAL$navigate == 1)
@@ -158,7 +158,7 @@ SelectDP <- function(input, output, session,
 
   callModule(collapsible, "usage")
 
-  # variable initialization -----------------------------------------------------
+  # variable initialization ----
   rv <- reactiveValues(
     dp_location = main.env$PATHS$eal.dp,
     dp_name = character(),
@@ -167,8 +167,8 @@ SelectDP <- function(input, output, session,
     dp_license = NULL,
     warning_dp_name = NULL
   )
-
-  # DP location -----------------------------------------------------
+  
+  # DP location ----
   observeEvent(input$dp_location,
     {
       req(input$dp_location)
@@ -185,25 +185,65 @@ SelectDP <- function(input, output, session,
   # DP load -----------------------------------------------------
   # reset input if user comes back on this screen
   # fetch list of DP at selected location
-  observeEvent(rv$dp_location,
-    {
-      dpList <- list.files(rv$dp_location, pattern = "_emldp$")
-      if (length(dpList) != 0) {
-        rv$dp_list <- sub("_emldp", "", dpList)
-      } else {
-        rv$dp_list <- NULL
+  observeEvent({
+    rv$dp_location
+    main.env$SETTINGS$logged
+  }, {
+      # Build full DP list
+      dpPath <- gsub("/+","/", list.files(rv$dp_location, pattern = "_emldp$", full.names = TRUE))
+      dpList <- basename(dpPath)
+      
+      # Note for local version: shall check for index (create it if not exists)
+      # Index non-indexed DP
+      if(length(dpList) > nrow(main.env$DP.LIST)){
+        sapply(dpList, function(dp){
+          .index <- main.env$DP.LIST
+          if(!dp %in% .index$name){
+            .tmp <- data.frame(
+              creator.orcid = main.env$SETTINGS$user,
+              name = dp,
+              title = dp,
+              path = gsub("/+","/", dpPath[which(dpList == dp)])
+            )
+            
+            .index <- rbind(.index, .tmp)
+            assign("DP.LIST", .index, envir = main.env)
+          }
+        })
       }
+      
+      # Reduce list by property
+      # - gather public and user's list = retrieve non-public, non-user DP
+      .out <- main.env$DP.LIST %>% 
+        dplyr::filter(creator.orcid == "public") %>%
+        dplyr::select(name) %>% 
+        lapply(paste, "(public)") %>% 
+        unlist
+      if(isTRUE(main.env$SETTINGS$logged)){
+        .out <- c(
+          .out,
+          main.env$DP.LIST %>% 
+            dplyr::filter(creator.orcid == main.env$SETTINGS$user) %>%
+            dplyr::select(name) %>% 
+            lapply(paste, "(public)") %>% 
+            unlist
+        )
+      }
+      
+      if(length(.out) != 0)
+        rv$dp_list <- sub("_emldp", "", .out) %>% unname
+      else
+        rv$dp_list <- NULL
     },
     label = "EAL1: build dp list"
   )
-
+  
   # Render list of DP at selected location
   output$dp_list <- renderUI({
-    # req(rv$dp_list)
     validate(
       need(
         isTruthy(rv$dp_list),
-        "No existing data package at this location"
+        "No data package has been written."
       )
     )
     tagList(
@@ -218,7 +258,13 @@ SelectDP <- function(input, output, session,
       downloadButton(ns("dp_download"), label = "Download .zip", icon = icon("file-download"))
     )
   })
+  
+  # * Update index ----
+  observeEvent(main.env$DP.LIST, {
+    fwrite(main.env$DP.LIST, isolate(main.env$PATHS$eal.dp.index), sep = "\t")
+  })
 
+  # Manage DP download ----
   output$dp_download <- downloadHandler(
     filename = function() {
       paste0(input$dp_list, "_emldp.zip")
@@ -349,6 +395,16 @@ SelectDP <- function(input, output, session,
         incProgress(0.2)
 
         dir.create(path, recursive = TRUE)
+        # add DP to index
+        main.env$DP.LIST <- rbind(
+          main.env$DP.LIST,
+          data.frame(
+            creator.orcid = main.env$SETTINGS$user,
+            name = dp,
+            title = title,
+            path = path
+          )
+        )
         incProgress(0.2)
 
         # EAL template import
@@ -453,6 +509,8 @@ SelectDP <- function(input, output, session,
   onclick("delete_confirm", {
     # variable operation - legibility purpose
     dp <- input$dp_list
+    if(grepl("\\(public\\)", dp))
+      dp <- gsub(" \\(public\\)", "", dp)
     path <- paste0(rv$dp_location, dp, "_emldp")
 
     # verbose
@@ -461,8 +519,10 @@ SelectDP <- function(input, output, session,
     ) # to replace by deleting DP
 
     # actions
+    browser()
     unlink(path, recursive = TRUE)
     rv$dp_list <- rv$dp_list[rv$dp_list != dp]
+    main.env$DP.LIST <- main.env$DP.LIST[main.env$DP.LIST$name != dp]
     removeModal()
   })
 

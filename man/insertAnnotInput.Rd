@@ -4,7 +4,7 @@
 \alias{insertAnnotInput}
 \title{insertPersonnelInput}
 \usage{
-insertAnnotInput(id, rv, ns, globals, default = NULL)
+insertAnnotInput(id, rv, ns, main.env, default = NULL)
 }
 \description{
 helper function to insert PersonnelMod* functions. Calling this from
