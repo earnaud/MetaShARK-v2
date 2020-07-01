@@ -405,7 +405,7 @@ GeoCov <- function(input, output, session,
   }
 
   # * Manage input ----
-  onclick("addui", {
+  observeEvent(input$addui, {
     show("slider_tips")
     rv$custom <- insertGeoCovInput(
       as.numeric(input$addui), # from 1 to n
