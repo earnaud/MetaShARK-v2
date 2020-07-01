@@ -4,7 +4,7 @@
 \alias{Personnel}
 \title{Personnel}
 \usage{
-Personnel(input, output, session, savevar, globals, NSB)
+Personnel(input, output, session, savevar, main.env, NSB)
 }
 \description{
 server part of Personnel module

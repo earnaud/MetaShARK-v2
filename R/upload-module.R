@@ -8,9 +8,11 @@
 #' @importFrom shiny NS tagList actionButton tags selectInput
 #' uiOutput textOutput icon tabsetPanel tabPanel HTML
 #' @importFrom data.table fread
-uploadUI <- function(id, dev, globals) {
+uploadUI <- function(id, main.env) {
   ns <- NS(id)
-  registeredEndpoints <- fread(globals$PATHS$registeredEndpoints.txt)
+  dev <- main.env$dev
+  
+  registeredEndpoints <- fread(isolate(main.env$PATHS$resources)$registeredEndpoints.txt)
   dp.list <- list.files(
     "~/dataPackagesOutput/emlAssemblyLine/",
     pattern = "_emldp$",
@@ -156,7 +158,7 @@ uploadUI <- function(id, dev, globals) {
 #'
 #' @describeIn uploadUI
 #'
-#' @param globals inner variable
+#' @param main.env inner global environment
 #'
 #' @importFrom shiny observeEvent reactive textInput tags
 # observe renderUI reactiveValues callModule showNotification
@@ -164,13 +166,13 @@ uploadUI <- function(id, dev, globals) {
 #' @importFrom shinyjs enable disable click
 #' @importFrom data.table fread fwrite
 #' @importFrom mime guess_type
-upload <- function(input, output, session, globals) {
+upload <- function(input, output, session, main.env) {
   ns <- session$ns
   
-  registeredEndpoints <- fread(globals$PATHS$registeredEndpoints.txt)
-  dev <- globals$dev
+  registeredEndpoints <- fread(main.env$PATHS$resources$registeredEndpoints.txt)
+  dev <- main.env$dev
   
-  # Select endpoint -----------------------------------------------------
+  # Select endpoint ----
   endpoint <- reactive({
     input$endpoint
   })
@@ -368,8 +370,8 @@ upload <- function(input, output, session, globals) {
         select(cn) %>%
         as.character,
       token = list(
-        test = globals$TOKEN$DATAONE.TEST.TOKEN,
-        prod = globals$TOKEN$DATAONE.TOKEN
+        test = main.env$SETTINGS$metacat.test,
+        prod = main.env$SETTINGS$metacat.token
       ),
       eml = list(
         file = rv$md$datapath,
@@ -387,7 +389,7 @@ upload <- function(input, output, session, globals) {
       } else {
         c()
       },
-      formats = globals$FORMAT$DATAONE$MediaType,
+      formats = main.env$FORMAT$dataone.list$MediaType,
       use.doi = FALSE
     )
     

@@ -5,9 +5,9 @@
 \alias{saveReactive}
 \title{initReactive}
 \usage{
-initReactive(sublist = NULL, savevar = NULL, glob)
+initReactive(sublist = NULL, savevar = NULL, main.env)
 
-saveReactive(savevar, rv = NULL, globals = NULL)
+saveReactive(savevar, rv = NULL, main.env = NULL)
 }
 \arguments{
 \item{sublist}{either NULL, "emlal", "metafin" to precise which sublist to initialize (NULL initializes the whole variable)}

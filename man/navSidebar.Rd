@@ -8,20 +8,20 @@
 \alias{prevTab}
 \title{navSidebar}
 \usage{
-navSidebar(id, globals, savevar)
+navSidebar(id, main.env, savevar)
 
-onQuit(input, output, session, globals, savevar, NSB)
+onQuit(input, output, session, main.env, savevar, NSB)
 
 onSave(input, output, session, savevar, NSB)
 
-nextTab(input, output, session, globals, savevar, NSB)
+nextTab(input, output, session, main.env, savevar, NSB)
 
-prevTab(input, output, session, globals, NSB)
+prevTab(input, output, session, main.env, NSB)
 }
 \arguments{
 \item{id}{shiny server id}
 
-\item{globals}{MetaShARK globals variable}
+\item{main.env}{MetaShARK main.env variable}
 
 \item{savevar}{MetaShARK savevar variable}
 }

@@ -21,16 +21,14 @@
 #' @importFrom jsonlite serializeJSON unserializeJSON read_json write_json
 .globalScript <- function(dev = FALSE) {
   
-  
   # Environment setup ====
   main.env <- new.env()
   
-  if (!is.logical(dev) || is.null(dev)) 
-    dev <- FALSE
-  else
-    dev <- TRUE
-  
-  assign("DEV", dev, main.env)
+  assign(
+    "dev",
+    is.logical(dev) && !is.null(dev),
+    main.env
+  )
   
   # Paths====
   wwwPaths <- system.file("resources", package = "MetaShARK") %>%
@@ -40,46 +38,79 @@
   PATHS <- reactiveValues(
     home = path_home(),
     eal.dp = paste0(path_home(), "/dataPackagesOutput/emlAssemblyLine/"),
-    eal.dp.index = paste0(path_home(), "/dataPackagesOutput/emlAssemblyLine/index.json"),
+    eal.dp.index = paste0(path_home(), "/dataPackagesOutput/emlAssemblyLine/index.txt"),
     eal.tmp = paste0(path_home(), "/EMLAL_tmp/"),
     resources = wwwPaths
   )
   dir.create(isolate(PATHS$eal.dp), recursive = TRUE, showWarnings = FALSE)
-  unlink(isolate(PATHS$eal.tmp), recursive = TRUE) # clear the temp
+  # unlink(isolate(PATHS$eal.tmp), recursive = TRUE) # clear the temp
   dir.create(isolate(PATHS$eal.tmp), recursive = TRUE, showWarnings = FALSE)
-
-  # Sessionning
-  if (isTRUE(file.exists(isolate(PATHS$eal.dp.index)))) {
-    DP.LIST <- read_json(isolate(PATHS$eal.dp.index), simplifyVector = TRUE) %>%
-      unserializeJSON
-  }
-  else {
-    DP.LIST <- list(
-      public = list( # user.name = "public"
-        creator.orcid = "public",
-        data.packages = data.frame(
-          path = character(),
-          name = character()
-        )
-      )
-    )
-    serializeJSON(
-      DP.LIST
-    ) %>% write_json(
-      path = isolate(PATHS$eal.dp.index)
-    )
-  }
   
-  assign("PATHS", PATHS, envir = main.env)
-
-  # Values ====
-  VALUES <- reactiveValues(
-    thresholds = reactiveValues(
-      files_size_max = 500000
-    )
+  assign(
+    "PATHS", 
+    PATHS, 
+    envir = main.env
   )
   
-  assign("VALUES", VALUES, envir = main.env)
+  # Sessionning ====
+  if (isTRUE(file.exists(isolate(PATHS$eal.dp.index)))) {
+    DP.LIST <- fread(isolate(PATHS$eal.dp.index), sep = "\t")
+    # .index <- read_json(isolate(PATHS$eal.dp.index), simplifyVector = TRUE) %>%
+    #   unserializeJSON
+    # DP.LIST <- reactiveValues()
+    # lapply(names(.index), function(ind){ 
+    #   DP.LIST[[ind]] <- reactiveValues(
+    #     creator.orcid = .index[[ind]]$creator.orcid,
+    #     data.packages = .index[[ind]]$data.packages
+    #   )
+    # }) %>% invisible
+  }
+  else {
+    DP.LIST <- data.frame(
+      creator.orcid = character(),
+      name = character(),
+      title = character(),
+      path = character(),
+      stringsAsFactors = FALSE
+    )
+    fwrite(DP.LIST, isolate(PATHS$eal.dp.index), sep = "\t")
+    # DP.LIST <- reactiveValues(
+    #   public = reactiveValues( # user.name = "public"
+    #     
+    #     data.packages = data.frame(
+    #       creator.orcid = character(),
+    #       path = character(),
+    #       name = character(),
+    #       stringsAsFactors = FALSE
+    #     )
+    #   )
+    # )
+    # serializeJSON(
+    #   listReactiveValues(DP.LIST)
+    # ) %>% write_json(
+    #   path = isolate(PATHS$eal.dp.index)
+    # )
+  }
+  assign(
+    "DP.LIST",
+    DP.LIST,
+    envir = main.env
+  )
+  makeReactiveBinding(
+    "DP.LIST", 
+    env = main.env
+  )
+  
+  # Values ====
+  assign(
+    "VALUES", 
+    reactiveValues(
+      thresholds = reactiveValues(
+        files_size_max = 500000
+      )
+    ), 
+    envir = main.env
+  )
   
   # Formats ====
   # DataONE nodes
@@ -109,150 +140,73 @@
   .all.units <- .units
   names(.all.units) <- .names
   
-  FORMATS <- reactiveValues(
-    dates = c(
-      "YYYY",
-      "YYYY-MM", "YYYY-MM-DD", "YYYY-DD-MM",
-      "MM-YYYY", "DD-MM-YYYY", "MM-DD-YYYY"
+  assign(
+    "FORMATS", 
+    reactiveValues(
+      dates = c(
+        "YYYY",
+        "YYYY-MM", "YYYY-MM-DD", "YYYY-DD-MM",
+        "MM-YYYY", "DD-MM-YYYY", "MM-DD-YYYY"
+      ),
+      units = .all.units,
+      dataone.list = .DATAONE.LIST,
+      taxa.authorities = .TAXA.AUTHORITIES
     ),
-    units = .all.units,
-    dataone.list = .DATAONE.LIST,
-    taxa.authorities = .TAXA.AUTHORITIES
+    envir = main.env
   )
-  
-  assign("FORMATS", FORMATS, envir = main.env)
 
   # Semantics ====
 
-  SEMANTICS <- reactiveValues(
-    ontologies = character()
+  assign(
+    "SEMANTICS",
+    reactiveValues(
+      ontologies = character()
+    ),
+    envir = main.env
   )
-  
-  assign("SEMANTICS", SEMANTICS, envir = main.env)
   
   # Settings ====
   
-  SETTINGS <- reactiveValues(
-    logged = FALSE,
-    orcid.token = character(),
-    cedar.token = character(),
-    metacat.token = character(),
-    metacat.test = FALSE
+  assign(
+    "SETTINGS", 
+    reactiveValues(
+      logged = FALSE,
+      user = "public",
+      orcid.token = character(),
+      cedar.token = character(),
+      metacat.token = character(),
+      metacat.test = FALSE
+    ), 
+    envir = main.env
   )
-  
-  assign("SETTINGS", SETTINGS, envir = main.env)
   
   # EAL ====
   
-  EAL = reactiveValues(
-    history = "SelectDP",
-    navigate = 1,
-    current = c(name = "SelectDP", completed = FALSE),
-    iterator = 0
-    #, COMPLETE_CURRENT = FALSE
+  assign(
+    "EAL", 
+    reactiveValues(
+      history = "SelectDP",
+      navigate = 1,
+      current = c(name = "SelectDP", completed = FALSE),
+      iterator = 0
+      #, COMPLETE_CURRENT = FALSE
+    ), 
+    envir = main.env
   )
-  
-  assign("EAL", EAL, envir = main.env)
   
   # Patterns ====
   
-  PATTERNS = reactiveValues(
-    # match one expression for latitude or longitude
-    coordinates = "[+-]?[[:digit:]]+[.,]*[[:digit:]]*",
-    name = "^[[:alpha:] \\'\\.\\-]+$",
-    email = "^[^@]+@[^@]+\\.[[:alpha:]]",
-    ORCID = "\\d{4}-\\d{4}-\\d{4}-(\\d{4}|\\d{3}X)"
+  assign(
+    "PATTERNS", 
+    reactiveValues(
+      # match one expression for latitude or longitude
+      coordinates = "[+-]?[[:digit:]]+[.,]*[[:digit:]]*",
+      name = "^[[:alpha:] \\'\\.\\-]+$",
+      email = "^[^@]+@[^@]+\\.[[:alpha:]]",
+      ORCID = "\\d{4}-\\d{4}-\\d{4}-(\\d{4}|\\d{3}X)"
+    ),
+    envir = main.env
   )
-  
-  # Build global variable ====
-  # if (reactive) {
-  #   globals <- reactiveValues(
-  #     dev = dev,
-  #     THRESHOLDS = reactiveValues(data_files_size_max = 500000),
-  #     DEFAULT.PATH = DP.PATH,
-  #     DP.LIST = DP.LIST,
-  #     SESSION = reactiveValues(
-  #       LOGGED = FALSE,
-  #       ORCID.TOKEN = character()
-  #     ),
-  #     TEMP.PATH = TMP.PATH,
-  #     HOME = HOME,
-  #     PATHS = wwwPaths,
-  #     # Formats lists
-  #     FORMAT = list(
-  #       DATE = DATE.FORMAT,
-  #       UNIT = UNIT.LIST,
-  #       DATAONE = DATAONE.LIST,
-  #       AUTHORITIES = TAXA.AUTHORITIES
-  #     ),
-  #     # Regex patterns
-  #     PATTERNS = list(
-  #       # match one expression for latitude or longitude
-  #       LATLON = "[+-]?[[:digit:]]+[.,]*[[:digit:]]*",
-  #       NAME = "^[[:alpha:] \\'\\.\\-]+$",
-  #       EMAIL = "^[^@]+@[^@]+\\.[[:alpha:]]",
-  #       ORCID = "\\d{4}-\\d{4}-\\d{4}-(\\d{4}|\\d{3}X)"
-  #     ),
-  #     # navigation variable in EMLAL module
-      # EMLAL = reactiveValues(
-      #   HISTORY = "SelectDP",
-      #   NAVIGATE = 1,
-      #   CURRENT = "SelectDP",
-      #   ITERATOR = 0,
-      #   COMPLETE_CURRENT = FALSE
-      # ),
-  #     SETTINGS = reactiveValues(
-  #       TOKENS = reactiveValues()
-  #     ),
-  #     SEMANTICS = reactiveValues(
-  #       ONTOLOGIES = character()
-  #     )
-  #   )
-  # } else
-  #   {
-  #   globals <- list(
-  #     dev = dev,
-  #     THRESHOLDS = list(data_files_size_max = 500000),
-  #     DEFAULT.PATH = DP.PATH,
-  #     DP.LIST = DP.LIST,
-  #     SESSION = list(
-  #       LOGGED = FALSE,
-  #       ORCID.TOKEN = character()
-  #     ),
-  #     TEMP.PATH = TMP.PATH,
-  #     HOME = HOME,
-  #     PATHS = wwwPaths,
-  #     # Formats lists
-  #     FORMAT = list(
-  #       DATE = DATE.FORMAT,
-  #       UNIT = UNIT.LIST,
-  #       DATAONE = DATAONE.LIST,
-  #       AUTHORITIES = TAXA.AUTHORITIES
-  #     ),
-  #     # Regex patterns
-  #     PATTERNS = list(
-  #       # match one expression for latitude or longitude
-  #       LATLON = "[+-]?[[:digit:]]+[.,]*[[:digit:]]*",
-  #       NAME = "^[[:alpha:] \\'\\.\\-]+$",
-  #       EMAIL = "^[^@]+@[^@]+\\.[[:alpha:]]",
-  #       ORCID = "\\d{4}-\\d{4}-\\d{4}-(\\d{4}|\\d{3}X)"
-  #     ),
-  #     # navigation variable in EMLAL module
-  #     EMLAL = list(
-  #       HISTORY = "SelectDP",
-  #       NAVIGATE = 1,
-  #       CURRENT = "SelectDP",
-  #       ITERATOR = 0,
-  #       COMPLETE_CURRENT = FALSE
-  #     ),
-  #     SETTINGS = list(
-  #       TOKENS = list()
-  #     ),
-  #     SEMANTICS = list(
-  #       ONTOLOGIES = character()
-  #     )
-  #   )
-  # }
   
   # output ====
   

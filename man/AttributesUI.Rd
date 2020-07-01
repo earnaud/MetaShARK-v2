@@ -7,7 +7,7 @@
 \usage{
 AttributesUI(id, title, dev)
 
-Attributes(input, output, session, savevar, globals, NSB)
+Attributes(input, output, session, savevar, main.env, NSB)
 }
 \description{
 UI part of the Attributes module. Fill in the attributes of the data package

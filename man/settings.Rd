@@ -4,7 +4,7 @@
 \alias{settings}
 \title{settings}
 \usage{
-settings(input, output, session, globals)
+settings(input, output, session, main.env)
 }
 \description{
 server part of the settings module. Allow the user to change several settings in the app.

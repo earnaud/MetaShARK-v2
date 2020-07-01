@@ -5,14 +5,14 @@
 \alias{upload}
 \title{uploadUI}
 \usage{
-uploadUI(id, dev, globals)
+uploadUI(id, main.env)
 
-upload(input, output, session, globals)
+upload(input, output, session, main.env)
 }
 \arguments{
 \item{id}{shiny module id}
 
-\item{globals}{inner variable}
+\item{main.env}{inner global environment}
 }
 \description{
 UI part for the upload module. Used to build and drop
