@@ -81,22 +81,26 @@ Attributes <- function(input, output, session,
   if (globals$dev || isTRUE(savevar$emlal$quick)) {
     .fill <- function(rv = rv) {
       lapply(seq(rv$tables), function(ind) {
-        table <- rv$tables[[ind]]
-        sapply(colnames(table), function(col) {
+        .table <- rv$tables[[ind]]
+        sapply(colnames(.table), function(col) {
           # Set values
           if (col == "attributeDefinition") {
             rv$tables[[ind]][[col]] <- paste("Description for", rv$tables[[ind]][["attributeName"]])
           }
           if (col %in% c("missingValueCodeExplanation", "missingValueCode")) {
-            rv$tables[[ind]][[col]] <- rep("LoremIpsum", dim(table)[1])
+            rv$tables[[ind]][[col]] <- rep("LoremIpsum", dim(.table)[1])
           }
           if (col == "dateTimeFormatString") {
             dat_row <- which(rv$tables[[ind]]$class == "Date")
-            rv$tables[[ind]][dat_row, col] <- rep(globals$FORMAT$DATE[3], length(dat_row))
+            rv$tables[[ind]][[col]] <- rep("", dim(.table)[1])
+            if(isTruthy(dat_row))
+              rv$tables[[ind]][dat_row, col] <- rep(globals$FORMAT$DATE[3], length(dat_row))
           }
           if (col == "unit") {
             uni_row <- which(rv$tables[[ind]]$class == "numeric")
-            rv$tables[[ind]][uni_row, col] <- rep(globals$FORMAT$UNIT[2], length(uni_row))
+            rv$tables[[ind]][[col]] <- rep("", dim(.table)[1])
+            if(isTruthy(uni_row))
+              rv$tables[[ind]][uni_row, col] <- rep(globals$FORMAT$UNIT[2], length(uni_row))
           }
 
           # Update values
@@ -134,13 +138,13 @@ Attributes <- function(input, output, session,
     tables = NULL,
     current_table = NULL,
     current_preview = NULL,
-    CU_Table = data.frame(),
+    CU_Table = data.frame(stringsAsFactors = FALSE),
     cu_values = rep(NA, 5),
     modalOn = FALSE,
     unitId = character(),
     unitList = character(),
     annotations = reactiveValues(
-      values = data.frame(),
+      values = data.frame(stringsAsFactors = FALSE),
       count = 0
     )
   )
@@ -154,7 +158,7 @@ Attributes <- function(input, output, session,
     stringsAsFactors = FALSE,
   )
   rv$unitList <- globals$FORMAT$UNIT
-  if (checkTruth(savevar$emlal$Attributes)) {
+  if (checkTruth(savevar$emlal$Attributes$annotations)) {
     rv$annotations$values <- savevar$emlal$Attributes$annotations
     rv$annotations$count <- nrow(rv$annotations$values)
   }
@@ -242,14 +246,18 @@ Attributes <- function(input, output, session,
   output$current_file <- renderUI(
     tags$div(
       h4(rv$filenames[rv$current_file]),
+      class = "ellipsis",
       style = paste0(
-        "background: linear-gradient(90deg, #3c8dbc ",
+        "display: inline-block;
+        font-size:14pt;
+        text-align:center;
+        width:100%;
+        background: linear-gradient(90deg, #3c8dbc ",
         round(100 * rv$currentIndex / length(rv$filenames)),
         "%, white ",
         round(100 * rv$currentIndex / length(rv$filenames)),
         "%);"
-      ),
-      class = "ellipsis text-title"
+      )
     )
   )
 
@@ -731,8 +739,6 @@ Attributes <- function(input, output, session,
   observeEvent(NSB$SAVE,
     {
       req(tail(globals$EMLAL$HISTORY, 1) == "Attributes")
-
-      message("NSB$SAVE")
 
       savevar <- saveReactive(
         savevar = savevar,

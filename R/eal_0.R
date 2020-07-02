@@ -45,6 +45,10 @@ EMLAL <- function(input, output, session,
 
   # Output -----------------------------------------------------
   observeEvent(globals$EMLAL$NAVIGATE, {
+    # On loading DP, correct step
+    if(globals$EMLAL$NAVIGATE == -1)
+      globals$EMLAL$NAVIGATE <- match(tail(savevar$emlal$history,1), steps)
+    
     if (globals$EMLAL$CURRENT == "Data Files") {
       unlink(globals$EMLAL$TEMP)
     }

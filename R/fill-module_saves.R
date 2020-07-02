@@ -7,7 +7,8 @@
       name = character(),
       size = character(),
       type = character(),
-      datapath = character()
+      datapath = character(),
+      stringsAsFactors = FALSE
     )
   }
   else {
@@ -35,6 +36,7 @@
     )
   }
   
+  .tmp[] <- lapply(.tmp, as.character)
   savevar$emlal$DataFiles <- .tmp
   rv$data.files$datapath <- .tmp$datapath
   

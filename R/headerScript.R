@@ -23,7 +23,7 @@
   if (!is.logical(dev) || is.null(dev)) dev <- FALSE
 
   # Paths====
-  HOME <- path_home()
+  HOME <- "~"
   DP.PATH <- paste0(HOME, "/dataPackagesOutput/emlAssemblyLine/")
   dir.create(DP.PATH, recursive = TRUE, showWarnings = FALSE)
   TMP.PATH <- paste0(HOME, "/EMLAL_tmp/")
@@ -33,7 +33,8 @@
   # Sessionning
   DP.LIST.PATH <- paste0(DP.PATH, "index.json")
   if (isTRUE(file.exists(DP.LIST.PATH))) {
-    DP.LIST <- read_json(DP.LIST.PATH, simplifyVector = TRUE) %>% unserializeJSON()
+    DP.LIST <- read_json(DP.LIST.PATH, simplifyVector = TRUE) %>% 
+      unserializeJSON()
   }
   else {
     DP.LIST <- list(

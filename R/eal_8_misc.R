@@ -105,7 +105,7 @@ MiscUI <- function(id, title, dev, savevar) {
             title = "Additional Info",
             value = 5,
             MiscellaneousUI(
-              ns("additional_info"),
+              ns("additional_information"),
               help_label = tags$p(
                 "If you have additional information that doesn't fall under the scope of the abstract or methods (e.g. a list of research articles or theses derived from this dataset) about your dataset, you may share it here."
               ),
@@ -256,9 +256,9 @@ Misc <- function(input, output, session,
   })
 
   # * Additional information ====
-  rv$additional_info <- callModule(
+  rv$additional_information <- callModule(
     Miscellaneous,
-    "additional_info",
+    "additional_information",
     savevar,
     rv = rv$additional_information
   )
