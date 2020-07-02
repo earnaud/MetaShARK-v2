@@ -71,22 +71,23 @@ attributeInput <- function(input, output, session,
 
       # Class ====
       if (colname == "class") {
+        browser()
         # Date
         date_id <- "dateTimeFormatString"
         if (input[[colname]] == "Date") {
-          show(date_id)
+          shinyjs::show(date_id)
         } else {
           isolate(rv$current_table[row_index, "dateTimeFormatString"] <- "")
-          hide(date_id)
+          shinyjs::hide(date_id)
         }
 
         # Unit
         unit_id <- "unit"
         if (input[[colname]] == "numeric") {
-          show(unit_id)
+          shinyjs::show(unit_id)
         } else {
           isolate(rv$current_table[row_index, "unit"] <- "")
-          hide(unit_id)
+          shinyjs::hide(unit_id)
         }
       }
       # Missing Value Code ====
@@ -113,17 +114,8 @@ attributeInput <- function(input, output, session,
         # Trigger CU
         if (input[[colname]] == "custom" &&
           isFALSE(rv$modalOn)) {
-          # isolate(rv$unitId <- c(
-          #   isolate(rv$current_file),
-          #   row_index,
-          #   colname
-          # ))
           curt$trigger()
         }
-        # .all.units <- unique(c(
-        #   rv$unitList,
-        #   unlist(sapply(rv$tables, function(t) t$unit))
-        # ))
 
         if (isFALSE(input[[colname]] %in% rv$unitList)) {
           .cu <- rv$current_table[row_index, colname]
@@ -132,6 +124,8 @@ attributeInput <- function(input, output, session,
             rv$CU_Table$id <- rv$CU_Table$id[-.ind]
           }
         }
+        if(session$ns("") == "fill-EMLAL-Attributes-3-6-")
+          browser()
       }
 
       rv$current_table[row_index, colname] <- .val

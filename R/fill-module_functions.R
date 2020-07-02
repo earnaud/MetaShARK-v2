@@ -32,7 +32,7 @@ initReactive <- function(sublist = NULL, savevar = NULL, glob) {
         dp_path = NULL,
         dp_title = NULL
       ),
-      DataFiles = data.frame(),
+      DataFiles = data.frame(stringsAsFactors = FALSE),
       CatVars = reactiveValues(),
       GeoCov = reactiveValues(),
       TaxCov = reactiveValues(
