@@ -36,7 +36,7 @@
     as.list()
   names(wwwPaths) <- basename(unlist(wwwPaths))
   PATHS <- reactiveValues(
-    home = path_home(),
+    home = "~",
     eal.dp = paste0(path_home(), "/dataPackagesOutput/emlAssemblyLine/"),
     eal.dp.index = paste0(path_home(), "/dataPackagesOutput/emlAssemblyLine/index.txt"),
     eal.tmp = paste0(path_home(), "/EMLAL_tmp/"),
@@ -55,15 +55,6 @@
   # Sessionning ====
   if (isTRUE(file.exists(isolate(PATHS$eal.dp.index)))) {
     DP.LIST <- fread(isolate(PATHS$eal.dp.index), sep = "\t")
-    # .index <- read_json(isolate(PATHS$eal.dp.index), simplifyVector = TRUE) %>%
-    #   unserializeJSON
-    # DP.LIST <- reactiveValues()
-    # lapply(names(.index), function(ind){ 
-    #   DP.LIST[[ind]] <- reactiveValues(
-    #     creator.orcid = .index[[ind]]$creator.orcid,
-    #     data.packages = .index[[ind]]$data.packages
-    #   )
-    # }) %>% invisible
   }
   else {
     DP.LIST <- data.frame(
@@ -74,22 +65,6 @@
       stringsAsFactors = FALSE
     )
     fwrite(DP.LIST, isolate(PATHS$eal.dp.index), sep = "\t")
-    # DP.LIST <- reactiveValues(
-    #   public = reactiveValues( # user.name = "public"
-    #     
-    #     data.packages = data.frame(
-    #       creator.orcid = character(),
-    #       path = character(),
-    #       name = character(),
-    #       stringsAsFactors = FALSE
-    #     )
-    #   )
-    # )
-    # serializeJSON(
-    #   listReactiveValues(DP.LIST)
-    # ) %>% write_json(
-    #   path = isolate(PATHS$eal.dp.index)
-    # )
   }
   assign(
     "DP.LIST",

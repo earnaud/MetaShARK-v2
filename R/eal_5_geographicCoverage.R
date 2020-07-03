@@ -105,7 +105,7 @@ GeoCov <- function(input, output, session,
       choices = reactiveValues(
         files = "all",
         sites = NA_character_,
-        coord = NA_character_
+        coords = NA_character_
       ),
       site = reactiveValues(
         col = character(),
@@ -134,6 +134,16 @@ GeoCov <- function(input, output, session,
       complete = FALSE
     )
   )
+  if(isTruthy(savevar$emlal$GeoCov) &&
+      isTruthy(names(savevar$emlal$GeoCov))){
+    . <- isolate(savevar$emlal$GeoCov)
+    if(names(.) == "columns"){
+      rv$columns <- .$columns
+    }
+    if(names(.) == "custom"){
+      rv$custom <- .$custom
+    }
+  }
 
   # Pre-fill -----------------------------------------------------
   # * Set choices ====
@@ -175,7 +185,7 @@ GeoCov <- function(input, output, session,
         rv$columns$choices$sites <- columns
         rv$columns$choices$coords <- columns.coordinates
       }
-      else if(length(.file) == "1"){
+      else if(length(.file) == 1){
         rv$columns$choices$sites <- columns[.file]
         rv$columns$choices$coords <- columns.coordinates[.file]
       }
@@ -405,7 +415,7 @@ GeoCov <- function(input, output, session,
   }
 
   # * Manage input ----
-  onclick("addui", {
+  observeEvent(input$addui, {
     show("slider_tips")
     rv$custom <- insertGeoCovInput(
       as.numeric(input$addui), # from 1 to n

@@ -59,7 +59,7 @@ DataFiles <- function(input, output, session,
 
   # Variable initialization -----------------------------------------------------
   rv <- reactiveValues(
-    data.files = data.frame()
+    data.files = data.frame(stringsAsFactors = FALSE)
   )
 
   if (checkTruth(savevar$emlal$DataFiles)) { # from create button in SelectDP
@@ -311,7 +311,7 @@ DataFiles <- function(input, output, session,
     ignoreInit = TRUE
   )
 
-  # Process files -----------------------------------------------------
+  # Process files ----
   observeEvent(NSB$NEXT,
     {
       req(main.env$EAL$current[1] == "Data Files")

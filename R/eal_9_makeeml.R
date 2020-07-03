@@ -43,7 +43,7 @@ MakeEMLUI <- function(id, title, dev) {
           column(
             6,
             tags$b("Generate a summary of your data package."),
-            tags$i("(clicking on the below button will open a preview)"),
+            tags$i("(clicking on the below button will open a preview)"), # False ?
             # radioButtons(
             #   inputId = ns("format"),
             #   label = "Chose your output format",
@@ -52,14 +52,14 @@ MakeEMLUI <- function(id, title, dev) {
             #   inline = TRUE,
             #   width = "50%"
             # ),
-            # disabled(
-            actionButton(
-              ns("emldown"),
-              "Write emldown",
-              icon("file-code"),
-              width = "50%"
-              # )
-            ),
+            # # disabled(
+            # actionButton(
+            #   ns("emldown"),
+            #   "Write emldown",
+            #   icon("file-code"),
+            #   width = "50%"
+            # )
+            # # ),
             # disabled(
             downloadButton(
               ns("download_emldown"),
@@ -108,7 +108,7 @@ MakeEML <- function(input, output, session, savevar, main.env) {
     withProgress(
       {
         . <- savevar$emlal
-        fileName <- "localid"
+        fileName <- .$SelectDP$dp_title
 
         x <- try(
           template_arguments(
@@ -198,6 +198,27 @@ MakeEML <- function(input, output, session, savevar, main.env) {
     } else {
       hide("bug_report")
       showNotification("EML written.", type = "message")
+      
+      # emldown
+      emlFile <- dir(
+        savevar$emlal$SelectDP$dp_eml_path,
+        full.names = TRUE,
+        pattern = savevar$emlal$SelectDP$dp_title
+      )
+      dir.create(dirname(outFile), recursive = TRUE)
+      old.wd <- getwd()
+      setwd(dirname(outFile))
+      out <- render_eml(
+        file = emlFile,
+        open = TRUE,
+        outfile = outFile,
+        publish_mode = TRUE
+      )
+      setwd(old.wd)
+      if (file.exists(outFile)) {
+        showNotification("emldown generated", type = "message")
+      }
+      
     }
   })
 
@@ -206,51 +227,9 @@ MakeEML <- function(input, output, session, savevar, main.env) {
   })
 
   # emldown -----------------------------------------------------
-  observeEvent(input$emldown, {
-    disable("emldown")
-
-    emlFile <- dir(
-      savevar$emlal$SelectDP$dp_eml_path,
-      full.names = TRUE,
-      pattern = "localid"
-    )
-
-    enable("emldown")
-    req(file.exists(emlFile) &&
-      isTruthy(emlFile))
-    disable("emldown")
-
-    dir.create(dirname(outFile), recursive = TRUE)
-
-    old.wd <- getwd()
-    setwd(dirname(outFile))
-    out <- render_eml(
-      file = emlFile,
-      open = TRUE,
-      outfile = outFile,
-      publish_mode = TRUE
-    )
-    setwd(old.wd)
-
-    # if(input$format != "HTML"){
-    #   rmarkdown::pandoc_convert(
-    #     input = outFile,
-    #     to = tolower(input$format),
-    #     from = "html",
-    #     output = gsub("html$","pdf", outFile)
-    #   )
-    # }
-
-    if (file.exists(outFile)) {
-      enable("download_emldown")
-      showNotification("emldown generated", type = "message")
-    }
-
-    enable("emldown")
-  })
-
   output$download_emldown <- downloadHandler(
     filename = function() {
+      browser()
       paste(
         savevar$emlal$SelectDP$dp_name,
         "_emldown.zip"

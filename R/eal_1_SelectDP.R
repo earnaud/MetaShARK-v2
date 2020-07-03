@@ -460,6 +460,49 @@ SelectDP <- function(input, output, session,
       unserializeJSON()
     savevar$emlal <- setSavevar(.savevar$emlal, savevar$emlal)
 
+    # Update paths from another file system
+    # * selectDP
+    sapply(
+      names(savevar$emlal$SelectDP),
+      function(.dp.item){
+        savevar$emlal$SelectDP[[.dp.item]] <- gsub(
+          pattern=".*/dataPackagesOutput/emlAssemblyLine/", 
+          replacement = rv$dp_location,
+          savevar$emlal$SelectDP[[.dp.item]]
+        )
+      }
+    )
+    # * datafiles
+    if(isTruthy(savevar$emlal$DataFiles)){
+      sapply(names(savevar$emlal$DataFiles), function(col){
+        savevar$emlal$DataFiles[,col] <- gsub(
+          pattern=".*/dataPackagesOutput/emlAssemblyLine/", 
+          replacement = rv$dp_location,
+          savevar$emlal$DataFiles[,col]
+        )
+        if(col == "size")
+          savevar$emlal$DataFiles[,col] <- as.integer(savevar$emlal$DataFiles[,col])
+      })
+    }
+    # * misc
+    if(isTruthy(savevar$emlal$Misc$abstract)){
+      savevar$emlal$Misc$abstract <- gsub(
+        ".*/dataPackagesOutput/emlAssemblyLine/",
+        rv$dp_location,
+        savevar$emlal$Misc$abstract
+      )
+      savevar$emlal$Misc$methods <- gsub(
+        ".*/dataPackagesOutput/emlAssemblyLine/",
+        rv$dp_location,
+        savevar$emlal$Misc$methods
+      )
+      savevar$emlal$Misc$additional_information <- gsub(
+        ".*/dataPackagesOutput/emlAssemblyLine/",
+        rv$dp_location,
+        savevar$emlal$Misc$additional_information
+      )
+    }
+    
     # TODO remove this later : update history
     savevar$emlal$history <- sapply(savevar$emlal$history, function(h) {
       switch(h,
@@ -474,11 +517,13 @@ SelectDP <- function(input, output, session,
       )
     }) %>% unname()
     savevar$emlal$quick <- isTRUE(savevar$emlal$quick)
-    main.env$EAL$navigate <- ifelse(savevar$emlal$step > 1, # resume where max reached
-      savevar$emlal$step,
+    
+    # resume where max reached
+      main.env$EAL$navigate <- if(savevar$emlal$step > 1)
+      -1
+    else
       main.env$EAL$navigate + 1
-    )
-    main.env$EAL$history <- savevar$emlal$history
+    main.env$EAL$HISTORY <- savevar$emlal$history
     enable("dp_load")
   })
 
