@@ -134,7 +134,8 @@ GeoCov <- function(input, output, session,
       complete = FALSE
     )
   )
-  if(isTruthy(savevar$emlal$GeoCov)){
+  if(isTruthy(savevar$emlal$GeoCov) &&
+      isTruthy(names(savevar$emlal$GeoCov))){
     . <- isolate(savevar$emlal$GeoCov)
     if(names(.) == "columns"){
       rv$columns <- .$columns
