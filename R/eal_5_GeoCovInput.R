@@ -207,8 +207,6 @@ extractCoordinates <- function(
   filesData
 ) {
   # initialize variables
-  localWarnings <- c()
-
   if (coordCols == "lat") {
     coordCols <- printReactiveValues(rv$columns$lat)
     coordTags <- c("N", "S")
@@ -218,52 +216,30 @@ extractCoordinates <- function(
     coordTags <- c("E", "W")
   }
 
-  coordCols <- filesData[[coordCols["file"]]][[coordCols["col"]]]
-
   # Extract proper coordinates
-  coordinates <- lapply(
-    coordCols,
-    str_extract_all,
-    .pattern,
-    simplify = TRUE
-  ) %>% # uniformize decimal separators
-    lapply(.,
+  coordinates <- filesData[[coordCols["file"]]][[coordCols["col"]]] %>% # uniformize decimal separators
+    sapply(.,
       gsub,
       pattern = ",",
       replacement = "."
-    ) %>%
-    as.data.frame(.,
-      stringsAsFactors = FALSE
     )
-  coordinates[] <- lapply(coordinates, as.numeric)
+  coordIndex <- which(grepl(.pattern, coordinates))
+  coordinates <- coordinates[coordIndex] %>% 
+    unname %>% 
+    as.numeric
 
-  if(dim(coordinates)[2] > dim(coordinates)[1])
-    coordinates <- t(coordinates)
-  
   if(!is.data.frame(coordinates))
-    coordinates <- as.data.frame(coordinates, stringsAsFactors = FALSE)
+    coordinates <- data.frame(
+      coordinates, stringsAsFactors = FALSE
+    )
   
   # Check for having only two columns
-  if (dim(coordinates)[2] > 2) {
+  if (dim(coordinates)[2] > 2) 
     coordinates <- coordinates[, 1:2]
-    localWarnings <- c(
-      localWarnings,
-      "One of your column provides more than one coordinate per row. This might 
-      be a range. Only the two first values have been kept."
-    )
-  }
-
-  if (dim(coordinates)[2] == 1) {
+  if (dim(coordinates)[2] == 1)
     coordinates <- cbind(coordinates, coordinates)
-    localWarnings <- c(
-      localWarnings,
-      "Only one column has been provided: coordinates are considered as 
-      representing single sites."
-    )
-  }
 
   if (dim(coordinates)[2] <= 2 && dim(coordinates)[2] > 0) {
-
     # assign West and East / North and South to columns
     coordinates[
       coordinates[, 1] <= coordinates[, 2],
@@ -280,7 +256,7 @@ extractCoordinates <- function(
   return(
     list(
       coordinates = coordinates,
-      warnings = paste(localWarnings, collapse = " ")
+      coordIndex = coordIndex
     )
   )
 }

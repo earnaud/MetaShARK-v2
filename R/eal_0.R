@@ -47,6 +47,9 @@ EMLAL <- function(input, output, session,
   
   # Output -----------------------------------------------------
   observeEvent(.EAL$navigate, {
+    # On loading DP, correct step
+    if(.EAL$navigate == -1)
+      .EAL$navigate <- match(tail(savevar$emlal$history,1), steps)
     
     if (.EAL$current[1] == "Data Files") {
       unlink(main.env$PATHS$eal.tmp)

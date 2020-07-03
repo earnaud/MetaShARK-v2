@@ -7,7 +7,8 @@
       name = character(),
       size = character(),
       type = character(),
-      datapath = character()
+      datapath = character(),
+      stringsAsFactors = FALSE
     )
   }
   else {
@@ -35,6 +36,7 @@
     )
   }
   
+  .tmp[] <- lapply(.tmp, as.character)
   savevar$emlal$DataFiles <- .tmp
   rv$data.files$datapath <- .tmp$datapath
   
@@ -149,7 +151,7 @@
     )
     .northBoundingCoordinate <- tmp$coordinates$N
     .southBoundingCoordinate <- tmp$coordinates$S
-    rv$warnings$latWarnings <- tmp$warnings
+    .latIndex <- tmp$coordIndex
 
     tmp <- extractCoordinates(
       rv,
@@ -159,8 +161,12 @@
     )
     .eastBoundingCoordinate <- tmp$coordinates$E
     .westBoundingCoordinate <- tmp$coordinates$W
-    rv$warnings$lonWarnings <- tmp$warnings
+    .lonIndex <- tmp$coordIndex
 
+    .geographicDescription <- .geographicDescription[
+      .latIndex[which(.latIndex %in% .lonIndex)]
+      ]
+    
     # Final
     geocov <- data.frame(
       geographicDescription = .geographicDescription,
@@ -282,8 +288,8 @@
         "Writing 'additional_info.txt'."
       )
       write.text(
-        rv$additional_info$content(),
-        rv$additional_info$file
+        rv$additional_information$content(),
+        rv$additional_information$file
       )
 
       incProgress(0.01)
