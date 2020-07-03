@@ -114,6 +114,9 @@ CatVars <- function(input, output, session,
         # value = attribute,
         ... = tagList(
           lapply(unlist(codes), function(cod) {
+            if(is.na(cod))
+              cod <- "NA"
+            
             inputId <- paste(
               attribute,
               cod %>%
@@ -126,12 +129,15 @@ CatVars <- function(input, output, session,
               cod,
               value = rv[[file_name]]$CatVars %>%
                 filter(attributeName == attribute, code == cod) %>%
-                select(definition)
+                select(definition) %>% 
+                unique
+              # TODO FIX with EAL
             )
           })
         ) # end of "tagapply" -- text areas
       ) # end of bsCollapsePanel
     }) # end of "tagapply" -- collapse boxes
+    
     rv[[file_name]]$UI <- do.call(
       bsCollapse,
       c(
@@ -205,6 +211,8 @@ CatVars <- function(input, output, session,
     validate(
       need(rv[[rv$currentFile]]$UI, "No UI set.")
     )
+    # if(rv$currentFile == "catvars_Base_de_données_Lorraine__table3observation.txt")
+    #   browser()
     rv[[rv$currentFile]]$UI
   }) # end of renderUI
 

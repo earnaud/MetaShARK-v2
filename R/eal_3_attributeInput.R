@@ -1,7 +1,7 @@
 #' @importFrom shiny NS tagList
 attributeInputUI <- function(id, colname, value, formats, rv) {
   ns <- NS(id)
-
+  
   ui <- switch(colname,
     attributeDefinition = textAreaInput(
       ns(colname),
@@ -52,7 +52,7 @@ attributeInputUI <- function(id, colname, value, formats, rv) {
     ),
     NULL
   ) # end of switch
-
+  
   return(ui)
 }
 
@@ -60,30 +60,31 @@ attributeInputUI <- function(id, colname, value, formats, rv) {
 #' HTML
 #' @importFrom shinyjs show hide
 attributeInput <- function(input, output, session,
-                           rv, row_index, colname, obs, curt) {
+  rv, row_index, colname, obs, curt) {
   ns <- session$ns
-
+  
   obs[[ns(colname)]] <- observeEvent(input[[colname]],
     {
       req(input[[colname]])
-
+      
       .val <- input[[colname]]
-
+      
       # Class ====
       if (colname == "class") {
-        browser()
         # Date
         date_id <- "dateTimeFormatString"
         if (input[[colname]] == "Date") {
+          isolate(rv$current_table[row_index, "unit"] <- input[[date_id]])
           shinyjs::show(date_id)
         } else {
           isolate(rv$current_table[row_index, "dateTimeFormatString"] <- "")
           shinyjs::hide(date_id)
         }
-
+        
         # Unit
         unit_id <- "unit"
         if (input[[colname]] == "numeric") {
+          isolate(rv$current_table[row_index, "unit"] <- input[[unit_id]])
           shinyjs::show(unit_id)
         } else {
           isolate(rv$current_table[row_index, "unit"] <- "")
@@ -94,7 +95,7 @@ attributeInput <- function(input, output, session,
       if (colname == "missingValueCode") { # input: missing Value code
         if (grepl(".+ +.*", input[[colname]])) {
           .val <- strsplit(gsub("^ +", "", .val), split = " ")[[1]][1]
-
+          
           updateTextInput(
             session,
             colname,
@@ -113,10 +114,10 @@ attributeInput <- function(input, output, session,
       if (grepl("unit", ns(colname))) {
         # Trigger CU
         if (input[[colname]] == "custom" &&
-          isFALSE(rv$modalOn)) {
+            isFALSE(rv$modalOn)) {
           curt$trigger()
         }
-
+        
         if (isFALSE(input[[colname]] %in% rv$unitList)) {
           .cu <- rv$current_table[row_index, colname]
           if (.cu %in% rv$CU_Table$id) {
@@ -124,16 +125,27 @@ attributeInput <- function(input, output, session,
             rv$CU_Table$id <- rv$CU_Table$id[-.ind]
           }
         }
-        if(session$ns("") == "fill-EMLAL-Attributes-3-6-")
-          browser()
       }
-
+      
+      # Set values ====
+      if(
+        (colname == "unit" && 
+            rv$current_table[row_index, "class"] != "numeric") ||
+          (colname == "dateTimeFormatString" && 
+              rv$current_table[row_index, "class"] != "Date")
+      )
+        .val <- ""
       rv$current_table[row_index, colname] <- .val
       rv$tables[[rv$current_file]] <- rv$current_table
     },
     label = ns(colname)
   )
-
+  
   # Output ----
   return(obs)
 }
+
+
+
+
+
