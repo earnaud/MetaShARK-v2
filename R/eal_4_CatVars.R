@@ -131,7 +131,6 @@ CatVars <- function(input, output, session,
                 filter(attributeName == attribute, code == cod) %>%
                 select(definition) %>% 
                 unique
-              # TODO FIX with EAL
             )
           })
         ) # end of "tagapply" -- text areas

@@ -250,7 +250,7 @@ Attributes <- function(input, output, session,
   # display
   output$current_file <- renderUI(
     tags$div(
-      h4(rv$filenames[rv$current_file]),
+      rv$filenames[rv$current_file],
       class = "ellipsis",
       style = paste0(
         "display: inline-block;
