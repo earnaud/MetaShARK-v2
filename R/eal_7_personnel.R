@@ -498,7 +498,7 @@ PersonnelMod <- function(input, output, session, main.env,
 
     orcid.connect <- try(
       as.orcid(
-        localRV$userId #TODO ça déconne ici
+        localRV$userId #TODO ORCID auth % snake
       )
     )
 
@@ -555,7 +555,6 @@ PersonnelMod <- function(input, output, session, main.env,
         if (isTruthy(unlist(orcid_info$fundings$`put-code`))) {
           localRV$fundingNumber <- orcid_info$fundings$`put-code`
           updateTextInput(session, "fundingNumber", value = localRV$fundingNumber)
-          # NOTE post Git issue concerning: 'EAL fundingNumber == ORCID::put-code'?
         }
       }
     } else {

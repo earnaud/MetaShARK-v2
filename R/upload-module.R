@@ -34,7 +34,6 @@ uploadUI <- function(id, main.env) {
       tabPanel(
         title = "upload",
         if (dev) actionButton(ns("dev"), "Dev"),
-        tags$hr(),
         # select endpoint -----------------------------------------------------
         tags$h3("Select your MetaCat portal"),
         tags$div(
