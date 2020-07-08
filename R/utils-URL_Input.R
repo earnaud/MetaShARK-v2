@@ -5,7 +5,7 @@
 #' @return (output of `callModule`) If input is a valid URL (regex-tested + curl-tested), returns input.
 #' Else, returns NA.
 #'
-#' @importFrom shiny textInput textOutput tagList NS
+#' @import shiny
 URL_Input_UI <- function(id, label = "URL", width = "100%") {
   ns <- NS(id)
 
@@ -19,7 +19,7 @@ URL_Input_UI <- function(id, label = "URL", width = "100%") {
 #'
 #' @describeIn URL_Input_UI
 #'
-#' @importFrom shiny observeEvent reactiveVal renderText validate need req
+#' @import shiny
 #' @importFrom RCurl url.exists
 URL_Input <- function(input, output, session) {
   # variable initialization

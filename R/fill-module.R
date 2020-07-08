@@ -2,7 +2,7 @@
 #'
 #' @description server part of the fill module. Root script for whole module (comprise EML AL and MetaFIN)
 #'
-#' @importFrom shiny NS tabsetPanel tabPanel h1
+#' @import shiny
 fillUI <- function(id, dev = FALSE) {
   ns <- NS(id)
   tabsetPanel(
@@ -14,7 +14,7 @@ fillUI <- function(id, dev = FALSE) {
 
 #' @describeIn fillUI
 #'
-#' @importFrom shiny observeEvent callModule
+#' @import shiny
 fill <- function(input, output, session, main.env) {
   ns <- session$ns
   # variable initialization ====

@@ -13,7 +13,7 @@
 #'
 #' @importFrom fs path_home
 #' @importFrom dataone listFormats CNode
-#' @importFrom shiny reactiveValues
+#' @import shiny
 #' @importFrom EML get_unitList
 #' @importFrom data.table fread
 #' @importFrom taxonomyCleanr view_taxa_authorities
@@ -81,7 +81,7 @@
     "VALUES", 
     reactiveValues(
       thresholds = reactiveValues(
-        files_size_max = 500000
+        files.size.max = 500000
       )
     ), 
     envir = main.env

@@ -130,7 +130,7 @@ uploadDP <- function(
 #'
 #' @description UI part of the script-data workflow-describing linking module (in upload).
 #'
-#' @importFrom shiny NS span div selectInput actionButton icon
+#' @import shiny
 describeWorkflowUI <- function(id, sources, targets) {
   ns <- NS(id)
 
@@ -152,7 +152,7 @@ describeWorkflowUI <- function(id, sources, targets) {
 #'
 #' @description server part of the script-data workflow-describing linking module (in upload).
 #'
-#' @importFrom shiny reactiveValues reactive observeEvent removeUI
+#' @import shiny
 describeWorkflow <- function(input, output, session) {
   ns <- session$ns
   rv <- reactiveValues()

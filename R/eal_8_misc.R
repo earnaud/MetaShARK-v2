@@ -2,14 +2,14 @@
 #'
 #' @description UI for "last but not least" module
 #'
-#' @importFrom shiny h5
+#' @import shiny
 #' @importFrom tagsinput tagsTextInput
 #' @importFrom data.table fread
 MiscUI <- function(id, title, dev, savevar) {
   ns <- NS(id)
 
   keywords <- fread(
-    paste0(savevar$emlal$SelectDP$dp_metadata_path, "/keywords.txt"),
+    paste0(savevar$emlal$SelectDP$dp.metadata.path, "/keywords.txt"),
     data.table = FALSE, stringsAsFactors = FALSE
   )
   if (checkTruth(keywords)) {
@@ -40,7 +40,7 @@ MiscUI <- function(id, title, dev, savevar) {
             MiscellaneousUI(
               ns("abstract"),
               value = readPlainText(
-                paste0(savevar$emlal$SelectDP$dp_metadata_path, "/abstract.txt")
+                paste0(savevar$emlal$SelectDP$dp.metadata.path, "/abstract.txt")
               )
             )
           ),
@@ -52,7 +52,7 @@ MiscUI <- function(id, title, dev, savevar) {
             MiscellaneousUI(
               ns("methods"),
               value = readPlainText(
-                paste0(savevar$emlal$SelectDP$dp_metadata_path, "/methods.txt")
+                paste0(savevar$emlal$SelectDP$dp.metadata.path, "/methods.txt")
               )
             )
           ),
@@ -110,7 +110,7 @@ MiscUI <- function(id, title, dev, savevar) {
                 "If you have additional information that doesn't fall under the scope of the abstract or methods (e.g. a list of research articles or theses derived from this dataset) about your dataset, you may share it here."
               ),
               value = readPlainText(
-                paste0(savevar$emlal$SelectDP$dp_metadata_path, "/additional_info.txt")
+                paste0(savevar$emlal$SelectDP$dp.metadata.path, "/additional_info.txt")
               )
             )
           )
@@ -125,7 +125,7 @@ MiscUI <- function(id, title, dev, savevar) {
 #'
 #' @describeIn MiscUI
 #'
-#' @importFrom shiny dateRangeInput
+#' @import shiny
 #' @importFrom shinyjs onclick enable disable
 #' @importFrom data.table fread
 Misc <- function(input, output, session,
@@ -144,7 +144,7 @@ Misc <- function(input, output, session,
 
   # Variable initialization -----------------------------------------------------
   kw <- fread(
-    paste0(savevar$emlal$SelectDP$dp_metadata_path, "/keywords.txt"),
+    paste0(savevar$emlal$SelectDP$dp.metadata.path, "/keywords.txt"),
     data.table = FALSE, stringsAsFactors = FALSE
   )
 
@@ -153,7 +153,7 @@ Misc <- function(input, output, session,
     abstract = reactiveValues(
       content = character(),
       file = paste(
-        isolate(savevar$emlal$SelectDP$dp_metadata_path),
+        isolate(savevar$emlal$SelectDP$dp.metadata.path),
         "abstract.txt",
         sep = "/"
       )
@@ -162,7 +162,7 @@ Misc <- function(input, output, session,
     methods = reactiveValues(
       content = character(),
       file = paste(
-        isolate(savevar$emlal$SelectDP$dp_metadata_path),
+        isolate(savevar$emlal$SelectDP$dp.metadata.path),
         "methods.txt",
         sep = "/"
       )
@@ -178,7 +178,7 @@ Misc <- function(input, output, session,
     additional_information = reactiveValues(
       content = character(),
       file = paste(
-        isolate(savevar$emlal$SelectDP$dp_metadata_path),
+        isolate(savevar$emlal$SelectDP$dp.metadata.path),
         "additional_info.txt",
         sep = "/"
       )
@@ -296,10 +296,10 @@ Misc <- function(input, output, session,
       )
 
       # template_annotations(
-      #   savevar$emlal$SelectDP$dp_metadata_path,
-      #   savevar$emlal$SelectDP$dp_data_path,
-      #   dir(savevar$emlal$SelectDP$dp_data_path),
-      #   eml.path = savevar$emlal$SelectDP$dp_eml_path
+      #   savevar$emlal$SelectDP$dp.metadata.path,
+      #   savevar$emlal$SelectDP$dp.data.path,
+      #   dir(savevar$emlal$SelectDP$dp.data.path),
+      #   eml.path = savevar$emlal$SelectDP$dp.eml.path
       # )
     },
     priority = 1,

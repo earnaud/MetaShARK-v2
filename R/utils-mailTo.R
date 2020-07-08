@@ -9,7 +9,7 @@
 #' 
 #' #' mailTo
 #' #' 
-#' #' @importFrom shiny reactiveValues modalDialog modalButton tagList tags fluidRow
+#' #' @import shiny
 #' #'  column textInput textAreaInput actionButton icon showModal removeModal 
 #' #'  observeEvent isTruthy req isolate
 #' #' @importFrom tagsinput tagsTextInput Input

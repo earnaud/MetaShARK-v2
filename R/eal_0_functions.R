@@ -13,7 +13,7 @@
 #' @param .next logical. Do you want a "Next" actionButton? (nextTabButton)
 #' @param ... UI tags set at the bottom of the navigation side bar
 #'
-#' @importFrom shiny NS HTML tags uiOutput verticalLayout
+#' @import shiny
 navSidebarUI <- function(id, class = "navSidebar",
                          .prev = TRUE, .next = TRUE) {
   ns <- NS(id)
@@ -26,7 +26,7 @@ navSidebarUI <- function(id, class = "navSidebar",
       saveButton(id),
       if (isTRUE(.prev)) prevTabButton(id) else NULL,
       if (isTRUE(.next)) nextTabButton(id) else NULL,
-      uiOutput(ns("NSB_customUI")),
+      uiOutput(ns("NSB_custom_ui")),
       tags$hr(),
       actionButton(ns("EAL_help"), "Help")
     ),
@@ -36,11 +36,13 @@ navSidebarUI <- function(id, class = "navSidebar",
 
 #' @describeIn navSidebarUI
 #'
-#' @importFrom shiny NS actionButton icon
+#' @import shiny
 quitButton <- function(id) {
   ns <- NS(id)
 
-  actionButton(ns("quit"), "Quit",
+  actionButton(
+    ns("quit"),
+    "Quit",
     icon = icon("sign-out-alt"),
     width = "100%"
   )
@@ -48,11 +50,13 @@ quitButton <- function(id) {
 
 #' @describeIn navSidebarUI
 #'
-#' @importFrom shiny NS actionButton icon
+#' @import shiny
 saveButton <- function(id) {
   ns <- NS(id)
 
-  actionButton(ns("save"), "Save",
+  actionButton(
+    ns("save"),
+    "Save",
     icon = icon("save", class = "regular"),
     width = "100%"
   )
@@ -60,12 +64,13 @@ saveButton <- function(id) {
 
 #' @describeIn navSidebarUI
 #'
-#' @importFrom shiny NS actionButton icon
-#' @importFrom shinyjs disabled
+#' @import shiny
 nextTabButton <- function(id) {
   ns <- NS(id)
 
-  actionButton(ns("nextTab"), "Next",
+  actionButton(
+    ns("nextTab"),
+    "Next",
     icon = icon("arrow-right"),
     width = "100%"
   )
@@ -73,11 +78,13 @@ nextTabButton <- function(id) {
 
 #' @describeIn navSidebarUI
 #'
-#' @importFrom shiny NS actionButton icon
+#' @import shiny
 prevTabButton <- function(id) {
   ns <- NS(id)
 
-  actionButton(ns("prevTab"), "Previous",
+  actionButton(
+    ns("prevTab"),
+    "Previous",
     icon = icon("arrow-left"),
     width = "100%"
   )
@@ -94,13 +101,13 @@ prevTabButton <- function(id) {
 #' @param main.env MetaShARK main.env variable
 #' @param savevar MetaShARK savevar variable
 #'
-#' @importFrom shiny callModule
+#' @import shiny
 navSidebar <- function(id, main.env, savevar) {
   NSB <- reactiveValues(
     SAVE = 0,
     NEXT = 0,
     PREV = 0,
-    taglist = tagList(),
+    tag.list = tagList(),
     help = modalDialog()
   )
 
@@ -109,10 +116,11 @@ navSidebar <- function(id, main.env, savevar) {
   NSB <- callModule(prevTab, id, main.env, NSB)
   NSB <- callModule(nextTab, id, main.env, savevar, NSB)
 
+  # Custom on-the-fly server
   callModule(
     function(input, output, session, x = NSB) {
-      output$NSB_customUI <- renderUI({
-        x$tagList
+      output$NSB_custom_ui <- renderUI({
+        x$tag.list
       })
 
       observeEvent(input$EAL_help, {
@@ -127,8 +135,7 @@ navSidebar <- function(id, main.env, savevar) {
 
 #' @describeIn navSidebar
 #'
-#' @importFrom shiny modalDialog tagList modalButton actionButton
-#' icon observeEvent req showModal removeModal
+#' @import shiny
 #' @importFrom shinyjs onclick disable enable
 onQuit <- function(input, output, session,
                    main.env, savevar, NSB) {
@@ -188,7 +195,7 @@ onQuit <- function(input, output, session,
 
       file.remove(
         list.files(
-          savevar$emlal$SelectDP$dp_data_path,
+          savevar$emlal$SelectDP$dp.data.path,
           pattern = "preview_"
         )
       )
@@ -204,13 +211,13 @@ onQuit <- function(input, output, session,
       endisableNSB(input, enable)
       removeModal()
 
-      NSB$tagList <- tagList()
+      NSB$tag.list <- tagList()
       main.env$EAL$history <- "SelectDP"
       main.env$EAL$navigate <- 1
 
       file.remove(
         list.files(
-          savevar$emlal$SelectDP$dp_data_path,
+          savevar$emlal$SelectDP$dp.data.path,
           pattern = "preview___"
         )
       )
@@ -223,7 +230,7 @@ onQuit <- function(input, output, session,
 
 #' @describeIn navSidebar
 #'
-#' @importFrom shiny observeEvent
+#' @import shiny
 #' @importFrom shinyjs onclick disable enable
 onSave <- function(input, output, session, savevar, NSB) {
   observeEvent(input$save,
@@ -239,13 +246,11 @@ onSave <- function(input, output, session, savevar, NSB) {
 
 #' @describeIn navSidebar
 #'
-#' @importFrom shiny observeEvent
+#' @import shiny
 #' @importFrom shinyjs onclick enable disable
 nextTab <- function(input, output, session,
                     main.env, savevar, NSB) {
 
-  # observeEvent(main.env$EAL$current[2],{
-  # req(isTruthy(main.env$EAL$current[2]))
   observe(
     {
       if (isFALSE(main.env$EAL$current[2])) {
@@ -259,11 +264,16 @@ nextTab <- function(input, output, session,
 
   observeEvent(input$nextTab,
     {
+      if(!isTRUE(main.env$EAL$current[2]))
+        showNotification(
+          "Check input information: some are not valid.", 
+          type = "warning"
+        )
       req(isTRUE(main.env$EAL$current[2]))
       endisableNSB(input, disable)
       if (!main.env$EAL$current[1] %in% c("Geographic Coverage", "Taxonomic Coverage")) {
         main.env$EAL$navigate <- main.env$EAL$navigate + 1
-        NSB$tagList <- tagList()
+        NSB$tag.list <- tagList()
 
         # Savevar modification
         savevar$emlal$step <- main.env$EAL$navigate
@@ -278,14 +288,14 @@ nextTab <- function(input, output, session,
 }
 #' @describeIn navSidebar
 #'
-#' @importFrom shiny observeEvent
+#' @import shiny 
 #' @importFrom shinyjs onclick enable disable
 prevTab <- function(input, output, session, main.env, NSB) {
   observeEvent(input$prevTab,
     {
       endisableNSB(input, disable)
       main.env$EAL$navigate <- main.env$EAL$navigate - 1
-      NSB$tagList <- tagList()
+      NSB$tag.list <- tagList()
       NSB$PREV <- NSB$PREV + 1
       endisableNSB(input, enable)
     },
@@ -296,18 +306,12 @@ prevTab <- function(input, output, session, main.env, NSB) {
 }
 
 #' @importFrom shinyjs enable disable
+#' 
+#' @noRd
 endisableNSB <- function(input, todo) {
-  n <- names(input)
-  n <- n[which(n %in% c("save", "quit", "nextTab", "prevTab"))]
-  sapply(n, function(ui, action = todo) {
+  .n <- names(input)
+  .n <- .n[which(.n %in% c("save", "quit", "nextTab", "prevTab"))]
+  sapply(.n, function(ui, action = todo) {
     action(ui)
   })
-}
-
-# Misc -----------------------------------------------------
-
-# R to JS boolean
-r2js.boolean <- function(condition) {
-  if (is.character(condition)) condition <- as.logical(condition)
-  return(tolower(as.character(condition)))
 }

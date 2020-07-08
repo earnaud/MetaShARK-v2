@@ -6,7 +6,7 @@
 #' @param ... shiny UI elements. Any UI element displayed as core content.
 #' @param class character. CSS class to apply to ... .
 #'
-#' @importFrom shiny NS tagList actionLink icon div tags
+#' @import shiny
 #' @importFrom shinyjs useShinyjs hidden
 #'
 #' @export
@@ -34,7 +34,7 @@ collapsibleUI <- function(id, label, hidden = TRUE, ..., class = NULL) {
 
 #' @describeIn collapsibleUI
 #'
-#' @importFrom shiny observeEvent updateActionButton icon
+#' @import shiny
 #' @importFrom shinyjs toggle
 collapsible <- function(input, output, session) {
   observeEvent(input$link, {

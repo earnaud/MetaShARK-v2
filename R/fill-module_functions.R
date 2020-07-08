@@ -7,7 +7,7 @@
 #'
 #' @param sublist either NULL, "emlal", "metafin" to precise which sublist to initialize (NULL initializes the whole variable)
 #'
-#' @importFrom shiny reactiveValues
+#' @import shiny
 initReactive <- function(sublist = NULL, savevar = NULL, main.env) {
   if (!is.null(sublist) && is.null(savevar)) {
     stop("Attempt to initialize savevar's sublist without savevar.")
@@ -89,7 +89,7 @@ initReactive <- function(sublist = NULL, savevar = NULL, main.env) {
 #' @return
 #' `savevar` modified.
 #'
-#' @importFrom shiny withProgress incProgress isolate
+#' @import shiny
 #' @importFrom jsonlite write_json serializeJSON
 saveReactive <- function(
   savevar,
@@ -155,8 +155,8 @@ saveReactive <- function(
     setProgress(2 / 3, "Global save")
 
     # Save JSON
-    path <- savevar$emlal$SelectDP$dp_path
-    filename <- savevar$emlal$SelectDP$dp_name
+    path <- savevar$emlal$SelectDP$dp.path
+    filename <- savevar$emlal$SelectDP$dp.name
     location <- paste0(path, "/", filename, ".json")
     if (file.exists(location)) {
       file.remove(location)
@@ -206,7 +206,7 @@ readPlainText <- function(files, prefix = NULL, sep = "/", ...) {
 #' @param x argument to check fo truthiness
 #' @param output what to return if `x` is not truthy
 #'
-#' @importFrom shiny isTruthy
+#' @import shiny
 checkTruth <- function(x) {
   if (missing(x)) {
     stop("'x' is missing with no default.")

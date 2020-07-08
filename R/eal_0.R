@@ -3,7 +3,7 @@
 #' @description UI part of the EMLAL module. Allow the user to use a front-end shiny interface to the EML Assembly Line package, from
 #' Environmental Data Initiative. ARAR
 #'
-#' @importFrom shiny NS fluidPage column HTML tags imageOutput uiOutput
+#' @import shiny
 #' @importFrom shinydashboard box
 #' @importFrom shinycssloaders withSpinner
 EMLALUI <- function(id, dev = FALSE) {
@@ -11,7 +11,7 @@ EMLALUI <- function(id, dev = FALSE) {
 
   fluidPage(
     style = "padding-top:2.5%;",
-    box(
+    shinydashboard::box(
       title = span(
         div("EML Assembly Line", style = "padding-right: 15px"),
         uiOutput(ns("chain")),
@@ -20,7 +20,7 @@ EMLALUI <- function(id, dev = FALSE) {
       width = 12,
       fluidRow(
         uiOutput(ns("currentUI")) %>%
-          withSpinner(color = "#599cd4")
+          shinycssloaders::withSpinner(color = "#599cd4")
       )
     ) # end variable UI
   ) # end fluidPage
@@ -31,12 +31,12 @@ EMLALUI <- function(id, dev = FALSE) {
 #' @description server part of the EMLAL module. Allow the user to use a front-end shiny interface to the EML Assembly Line package, from
 #' Environmental Data Initiative.
 #'
-#' @importFrom shiny observeEvent renderUI renderImage HTML callModule imageOutput actionLink icon
+#' @import shiny
 #' @importFrom shinyBS tipify
 EMLAL <- function(input, output, session,
                   savevar, main.env) {
   ns <- session$ns
-  .EAL <- main.env$EAL
+  .EAL <- main.env$EAL # local copy
 
   # NSB -----------------------------------------------------
   # names of EMLAL steps
@@ -64,7 +64,7 @@ EMLAL <- function(input, output, session,
       .EAL$current[2] <- TRUE
     } # trigger
     .EAL$current[2] <- FALSE
-    NSB$tagList <- tagList()
+    NSB$tag.list <- tagList()
 
     # Edition changed path -> remove excedent history
     if (!.EAL$current[1] %in% .EAL$history) {
@@ -85,30 +85,30 @@ EMLAL <- function(input, output, session,
         tags$span(
           tagList(
             lapply(seq(.EAL$history)[-1], function(ind) {
-              step_name <- .EAL$history[ind]
+              .step.name <- .EAL$history[ind]
 
-              if (step_name != "Taxonomic Coverage") {
-                style <- "color: dodgerblue;"
-                description <- paste(step_name, "(mandatory)")
+              if (.step.name != "Taxonomic Coverage") {
+                .style <- "color: dodgerblue;"
+                .description <- paste(.step.name, "(mandatory)")
               } else {
-                style <- "color: lightseagreen;"
-                description <- paste(step_name, "(facultative)")
+                .style <- "color: lightseagreen;"
+                .description <- paste(.step.name, "(facultative)")
               }
 
               return(
                 actionLink(
-                  ns(paste0("chain_", step_name)),
+                  ns(paste0("chain_", .step.name)),
                   "",
-                  if (step_name == .EAL$current[1]) {
+                  if (step.name == .EAL$current[1]) {
                     icon("map-marker")
                   } else {
                     icon("circle")
                   },
-                  style = style
-                ) %>% tipify(
-                  title = description,
-                  placement = "bottom",
-                  trigger = "hover"
+                  style = .style
+                ) %>% shinyBS::tipify(
+                  title = .description
+                  # , placement = "bottom"
+                  # , trigger = "hover"
                 )
               ) # end of return
             }),
@@ -144,15 +144,13 @@ EMLAL <- function(input, output, session,
         )
       )
 
-      sapply(seq(.EAL$history)[-1], function(ind) {
-        step_name <- .EAL$history[ind]
-
-        id <- paste0("chain_", step_name)
+      sapply(seq(.EAL$history)[-1], function(.ind) {
+        id <- paste0("chain_", .EAL$history[.ind])
 
         observeEvent(input[[id]], {
           req(input[[id]] &&
-            ind != .EAL$navigate)
-          .EAL$navigate <- ind
+            .ind != .EAL$navigate)
+          .EAL$navigate <- .ind
           NSB$NEXT <- NSB$NEXT + 1
         })
       })

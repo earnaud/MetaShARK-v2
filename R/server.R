@@ -2,7 +2,7 @@
 #'
 #' @description server part for the app's main script.
 #'
-#' @importFrom shiny renderImage callModule observeEvent stopApp
+#' @import shiny
 #' @importFrom shinydashboard updateTabItems
 #' @importFrom golem get_golem_options
 #' @importFrom shinyjs onclick

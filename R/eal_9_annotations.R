@@ -42,7 +42,7 @@ annotations <- function(input, output, session, savevar, main.env) {
       object_uri = character()
     ),
     file = paste(
-      savevar$emlal$SelectDP$dp_metadata_path,
+      savevar$emlal$SelectDP$dp.metadata.path,
       "annotations.txt",
       collapse = "/"
     )
@@ -92,7 +92,7 @@ annotations <- function(input, output, session, savevar, main.env) {
 #' a shiny server will insert PersonnelModUI and create its server part. Provided with
 #' features to delete them.
 #' 
-#' @importFrom shiny insertUI callModule 
+#' @import shiny
 insertAnnotInput <- function(id, rv, ns, main.env, default = NULL) {
   
   # initialize IDs -----------------------------------------------------
@@ -180,7 +180,7 @@ AnnotModUI <- function(id, div_id, site_id, rmv_id, default = NULL) {
 #'
 #' @describeIn AnnotModUI
 #'
-#' @importFrom shiny insertUI removeUI
+#' @import shiny
 #' @importFrom rorcid as.orcid orcid_person orcid_employments orcid_email orcid_fundings
 #' @importFrom stringr str_extract
 AnnotMod <- function(input, output, session, main.env,

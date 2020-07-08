@@ -6,7 +6,7 @@
 #' @param rv reactiveValues to turn into list
 #' @param lv (verbose purposes)
 #'
-#' @importFrom shiny isolate reactiveValuesToList is.reactivevalues
+#' @import shiny
 #' is.reactive
 listReactiveValues <- function(rv, lv = 0, name = "root") {
   if (missing(rv)) {

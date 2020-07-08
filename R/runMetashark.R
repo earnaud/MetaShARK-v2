@@ -24,7 +24,7 @@
 #' @author Elie Arnaud <elie.arnaud@mnhn.fr>
 #'
 #' @export
-#' @importFrom shiny shinyApp runApp
+#' @import shiny
 #' @importFrom golem with_golem_options
 runMetashark <- function(...) {
   args <- list(...)

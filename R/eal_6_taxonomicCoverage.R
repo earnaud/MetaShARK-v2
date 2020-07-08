@@ -2,7 +2,7 @@
 #'
 #' @description UI part for the Taxonomic Coverage module
 #'
-#' @importFrom shiny NS fluidPage fluidRow column tagList tags actionButton
+#' @import shiny
 #' @importFrom shinyjs hidden disabled
 TaxCovUI <- function(id, title, dev) {
   ns <- NS(id)
@@ -29,8 +29,7 @@ TaxCovUI <- function(id, title, dev) {
 #'
 #' @description server part for the Taxonomic Coverage module
 #'
-#' @importFrom shiny observeEvent callModule
-#' @importFrom shinyBS updateCollapse
+#' @import shiny
 #' @importFrom stringr str_extract_all
 #' @importFrom dplyr %>%
 #' @importFrom EMLassemblyline template_taxonomic_coverage
@@ -39,7 +38,7 @@ TaxCov <- function(input, output, session,
                    savevar, main.env, NSB) {
   ns <- session$ns
   if (main.env$DEV) {
-    onclick("dev",
+    shinyjs::onclick("dev",
       {
         req(main.env$EAL$navigate == 6)
         browser()
@@ -87,17 +86,17 @@ TaxCov <- function(input, output, session,
   # * taxa.col ====
   output$taxa.col <- renderUI({
     .ind <- match(rv$taxa.table, savevar$emlal$DataFiles$name)
-    if(isTruthy(.ind)){
+    if(isTruthy(.ind)) {
       choices <- isolate(savevar$emlal$Attributes[[.ind]]$attributeName)
       value <- isolate(rv$taxa.col)
       if(isFALSE(value %in% choices))
         value <- NULL
       .embed <- tagList
     }
-    else{
+    else {
       choices <- NULL
       value <- NULL 
-      .embed <- disabled
+      .embed <- shinyjs::disabled
     }
     
     .embed(
@@ -135,8 +134,8 @@ TaxCov <- function(input, output, session,
       choices <- taxa.authority$authority
       value <- if(isTruthy(rv$taxa.authority)){
         taxa.authority %>%
-          filter(id == rv$taxa.authority) %>%
-          select(authority)
+          dplyr::filter(id == rv$taxa.authority) %>%
+          dplyr::select(authority)
       }
     })
     
@@ -156,7 +155,7 @@ TaxCov <- function(input, output, session,
     {
       # invalid-selected/no value(s)
       if (!isTruthy(input$taxa.table)) {
-        disable("taxa.col")
+        shinyjs::disable("taxa.col")
 
         updateSelectizeInput(
           session,
@@ -166,7 +165,7 @@ TaxCov <- function(input, output, session,
       }
       # valid-selected value(s)
       else {
-        enable("taxa.col")
+        shinyjs::enable("taxa.col")
         
         taxa.col.list <- lapply(input$taxa.table, function(file) {
           all.files <- savevar$emlal$DataFiles
@@ -176,7 +175,7 @@ TaxCov <- function(input, output, session,
         })
         names(taxa.col.list) <- input$taxa.table
 
-        updateVar <- if (isTRUE(rv$taxa.col %in% taxa.col.list))
+        .update.var <- if (isTRUE(rv$taxa.col %in% taxa.col.list))
           rv$taxa.col
         else
           NULL
@@ -185,7 +184,7 @@ TaxCov <- function(input, output, session,
           session,
           "taxa.col",
           choices = taxa.col.list,
-          selected = updateVar
+          selected = .update.var
         )
       }
 
@@ -222,8 +221,8 @@ TaxCov <- function(input, output, session,
     req(input$taxa.authority)
 
     rv$taxa.authority <- main.env$FORMATS$taxa.authorities %>%
-      filter(authority %in% input$taxa.authority) %>%
-      select(id) %>%
+      dplyr::filter(authority %in% input$taxa.authority) %>%
+      dplyr::select(id) %>%
       unlist()
     savevar$emlal$TaxCov$taxa.authority <- rv$taxa.authority
   })
@@ -299,8 +298,8 @@ TaxCov <- function(input, output, session,
       # Template coverage
       try(
         template_taxonomic_coverage(
-          savevar$emlal$SelectDP$dp_metadata_path,
-          savevar$emlal$SelectDP$dp_data_path,
+          savevar$emlal$SelectDP$dp.metadata.path,
+          savevar$emlal$SelectDP$dp.data.path,
           taxa.table = rv$taxa.table,
           taxa.col = rv$taxa.col,
           taxa.name.type = rv$taxa.name.type,

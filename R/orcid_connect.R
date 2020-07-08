@@ -1,11 +1,11 @@
-#' @importFrom shiny NS uiOutput
+#' @import shiny
 orcidUI <- function(id, globals) {
   ns <- NS(id)
 
   uiOutput(ns("infos"))
 }
 
-#' @importFrom shiny renderUI tagList actionButton icon tags
+#' @import shiny
 #' @importFrom shinyjs onclick
 orcid <- function(input, output, session, main.env) {
   ns <- session$ns

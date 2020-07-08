@@ -2,7 +2,7 @@
 #'
 #' @description UI part of the settings module. Allow the user to change several settings in the app.
 #'
-#' @importFrom shiny NS tags tagList fluidRow column textAreaInput checkboxInput actionButton
+#' @import shiny
 settingsUI <- function(id, wip) {
   ns <- NS(id)
   
@@ -84,7 +84,7 @@ settingsUI <- function(id, wip) {
 #'
 #' @description server part of the settings module. Allow the user to change several settings in the app.
 #'
-#' @importFrom shiny observeEvent updateTextAreaInput showNotification
+#' @import shiny
 #' @importFrom shinyjs onclick
 #' @importFrom cedarr accessOntology
 settings <- function(input, output, session, main.env) {

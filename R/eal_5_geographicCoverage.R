@@ -2,7 +2,7 @@
 #'
 #' @description UI part for the Geographic Coverage module
 #'
-#' @importFrom shiny NS fluidPage fluidRow column tagList tags actionButton
+#' @import shiny
 #' @importFrom shinyjs hidden
 GeoCovUI <- function(id, title, dev) {
   ns <- NS(id)
@@ -51,9 +51,10 @@ GeoCovUI <- function(id, title, dev) {
                 hidden(
                   tags$div(
                     id = ns("slider_tips"),
-                    HTML("You can detail a more precise number by using the left/right (or down/up) arrows 
-                      of your keyboard. Precision can be given at 0.01°. Items can be removed by
-                      using the Delete (&#9003) key."),
+                    HTML("You can detail a more precise number by using the 
+                      left/right (or down/up) arrows of your keyboard. Precision 
+                      can be given at 0.01°. Items can be removed by using the
+                      Delete (&#9003) key."),
                     style = "position: left"
                   )
                 )
@@ -72,18 +73,18 @@ GeoCovUI <- function(id, title, dev) {
 #'
 #' @description server part for the Geographic Coverage module
 #'
-#' @importFrom shiny observeEvent callModule showNotification reactiveValues
+#' @import shiny
 #' updateSelectInput updateSelectizeInput
 #' @importFrom shinyBS updateCollapse
 #' @importFrom stringr str_extract_all
 #' @importFrom dplyr %>%
 #' @importFrom EMLassemblyline template_geographic_coverage
 #' @importFrom shinyjs onclick show
-GeoCov <- function(input, output, session,
-                   savevar, main.env, NSB) {
+GeoCov <- function(input, output, session, savevar, main.env, NSB) {
   ns <- session$ns
+  
   if (main.env$DEV) {
-    onclick("dev",
+    shinyjs::onclick("dev",
       {
         req(main.env$EAL$navigate == 5)
         browser()
@@ -96,11 +97,6 @@ GeoCov <- function(input, output, session,
 
   # Reactive Values
   rv <- reactiveValues(
-    warnings = reactiveValues(
-      latWarnings = NULL,
-      lonWarnings = NULL
-    ),
-    # fileChoices = character(),
     columns = reactiveValues(
       choices = reactiveValues(
         files = "all",
@@ -377,16 +373,16 @@ GeoCov <- function(input, output, session,
     # Get input
     observeEvent(input$longitude,
       {
-        lonCols <- input$longitude
+        .lon.cols <- input$longitude
         
-        if(!isTruthy(lonCols)){
+        if(!isTruthy(.lon.cols)){
           rv$columns$lon$col <- ""
           rv$columns$lon$file <- ""
         }
         
-        req(isTruthy(lonCols))
+        req(isTruthy(.lon.cols))
         
-        .tmp <- lonCols %>%
+        .tmp <- .lon.cols %>%
           strsplit(., "///", TRUE) %>%
           unlist()
         

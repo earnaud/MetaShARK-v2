@@ -3,7 +3,7 @@
 #' @description UI part of the mainapp's  script
 #'
 #' @importFrom golem get_golem_options
-#' @importFrom shiny tagList tags actionLink icon span imageOutput actionButton HTML includeCSS
+#' @import shiny
 #' @importFrom shinydashboard dashboardPage dashboardHeader dashboardSidebar sidebarMenu menuItem dashboardBody tabItems tabItem
 #' @importFrom shinyjs useShinyjs hidden
 #' @importFrom shinycssloaders withSpinner
