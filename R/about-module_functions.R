@@ -5,25 +5,24 @@
 #'
 #' @param bib file path to bibliography
 #'
-#' @export
+#' @import shiny
 #' @importFrom RefManageR ReadBib NoCite PrintBibliography
-#' @importFrom shiny renderUI withProgress incProgress HTML
 #' @importFrom utils capture.output
 renderBibliography <- function(bib) {
-  bib <- ReadBib(bib)
-  NoCite(bib, "*")
+  .bib <- RefManageR::ReadBib(bib)
+  RefManageR::NoCite(bib, "*")
 
   renderUI(
     withProgress(message = "Loading bibtex ...", value = 0, {
       HTML(
         paste(
-          capture.output(
+          utils::capture.output(
             invisible(
               sapply(
-                bib,
+                .bib,
                 function(b) {
-                  incProgress(1 / length(bib))
-                  PrintBibliography(b,
+                  incProgress(1 / length(.bib))
+                  RefManageR::PrintBibliography(b,
                     .opts = list(style = "html")
                   )
                 }

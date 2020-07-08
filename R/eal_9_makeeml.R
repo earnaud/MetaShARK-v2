@@ -2,7 +2,7 @@
 #'
 #' @description UI part for the Make EML module
 #'
-#' @importFrom shiny NS fluidPage fluidRow tags actionButton icon textOutput
+#' @import shiny
 #' actionLink column
 #' @importFrom shinyjs hidden disabled
 MakeEMLUI <- function(id, title, dev) {
@@ -78,7 +78,7 @@ MakeEMLUI <- function(id, title, dev) {
 #'
 #' @description server part of the make EML module
 #'
-#' @importFrom shiny showNotification renderText validate need req isTruthy observeEvent
+#' @import shiny
 #' @importFrom shinyjs show enable onclick
 #' @importFrom EMLassemblyline make_eml template_arguments
 #' @importFrom emldown render_eml
@@ -97,7 +97,7 @@ MakeEML <- function(input, output, session, savevar, main.env) {
 
   # Variable initialization -----------------------------------------------------
   outFile <- paste0(
-    savevar$emlal$SelectDP$dp_path,
+    savevar$emlal$SelectDP$dp.path,
     "/emldown/emldown.html"
   )
 
@@ -168,7 +168,7 @@ MakeEML <- function(input, output, session, savevar, main.env) {
 
     valid_eml <- eml_validate(
       dir(
-        savevar$emlal$SelectDP$dp_eml_path,
+        savevar$emlal$SelectDP$dp.eml.path,
         full.names = TRUE
       )
     )
@@ -201,9 +201,9 @@ MakeEML <- function(input, output, session, savevar, main.env) {
       
       # emldown
       emlFile <- dir(
-        savevar$emlal$SelectDP$dp_eml_path,
+        savevar$emlal$SelectDP$dp.eml.path,
         full.names = TRUE,
-        pattern = savevar$emlal$SelectDP$dp_title
+        pattern = savevar$emlal$SelectDP$dp.title
       )
       dir.create(dirname(outFile), recursive = TRUE)
       old.wd <- getwd()
@@ -231,7 +231,7 @@ MakeEML <- function(input, output, session, savevar, main.env) {
     filename = function() {
       browser()
       paste(
-        savevar$emlal$SelectDP$dp_name,
+        savevar$emlal$SelectDP$dp.name,
         "_emldown.zip"
       )
     },

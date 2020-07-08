@@ -2,7 +2,7 @@
 #'
 #' @description Welcome page of the MetaShARK app.
 #'
-#' @importFrom shiny fluidPage headerPanel mainPanel HTML
+#' @import shiny
 welcomeUI <- function(id, wip=FALSE) {
   ns <- NS(id)
 

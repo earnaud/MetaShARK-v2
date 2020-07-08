@@ -2,7 +2,7 @@
 #'
 #' @description UI part of the about module.
 #'
-#' @importFrom shiny NS fluidPage tags HTML uiOutput
+#' @import shiny
 aboutUI <- function(id) {
   ns <- NS(id)
 

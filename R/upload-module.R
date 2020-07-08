@@ -5,7 +5,7 @@
 #'
 #' @param id shiny module id
 #'
-#' @importFrom shiny NS tagList actionButton tags selectInput
+#' @import shiny
 #' uiOutput textOutput icon tabsetPanel tabPanel HTML
 #' @importFrom data.table fread
 uploadUI <- function(id, main.env) {
@@ -159,7 +159,7 @@ uploadUI <- function(id, main.env) {
 #'
 #' @param main.env inner global environment
 #'
-#' @importFrom shiny observeEvent reactive textInput tags
+#' @import shiny
 # observe renderUI reactiveValues callModule showNotification
 #' @importFrom dplyr filter select %>%
 #' @importFrom shinyjs enable disable click

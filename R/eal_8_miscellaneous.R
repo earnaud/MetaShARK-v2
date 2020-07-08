@@ -2,7 +2,7 @@
 #'
 #' @description
 #'
-#' @importFrom shiny NS fluidRow column tags fileInput span icon
+#' @import shiny
 #' textOutput div tagList
 #' @importFrom shinyFiles shinyFilesButton
 MiscellaneousUI <- function(id, help_label = NULL, value = "") {
@@ -53,7 +53,7 @@ MiscellaneousUI <- function(id, help_label = NULL, value = "") {
 
 #' @title Miscellaneous
 #'
-#' @importFrom shiny req observeEvent isTruthy
+#' @import shiny
 #' @importFrom shinyFiles getVolumes shinyFileChoose parseFilePaths
 #' @importFrom shinyAce updateAceEditor
 #' @importFrom fs path_home

@@ -8,7 +8,7 @@
 #' @param id shiny module id
 #' @param helpText a character vector to give the user an explanation. Will be inserted into a tags$p() call.
 #'
-#' @importFrom shiny NS tagList tags icon actionButton uiOutput
+#' @import shiny
 #' @importFrom shinyFiles shinyFilesButton
 multiFilesInputUI <- function(id, helpText = NULL, server = TRUE) {
   ns <- NS(id)
@@ -48,7 +48,7 @@ multiFilesInputUI <- function(id, helpText = NULL, server = TRUE) {
 #' @param output shiny module output
 #' @param session shiny module session
 #'
-#' @importFrom shiny reactiveValues observeEvent req renderUI checkboxGroupInput
+#' @import shiny
 #' @importFrom shinyFiles getVolumes shinyFileChoose parseFilePaths
 #' @importFrom fs path_home
 #'

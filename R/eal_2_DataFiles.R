@@ -2,7 +2,7 @@
 #'
 #' @description UI part of the DataFiles module.
 #'
-#' @importFrom shiny NS fluidPage column tags HTML icon actionButton uiOutput tagList textOutput
+#' @import shiny
 #' @importFrom shinyFiles shinyFilesButton
 DataFilesUI <- function(id, dev = FALSE) {
   ns <- NS(id)
@@ -16,7 +16,6 @@ DataFilesUI <- function(id, dev = FALSE) {
         class = "disclaimer"
       ),
       tags$div(
-        # if (isTRUE(server)) {
         tagList(
           fileInput(
             ns("add_data_files"),
@@ -40,15 +39,14 @@ DataFilesUI <- function(id, dev = FALSE) {
 #'
 #' @description server part of the DataFiles module.
 #'
-#' @importFrom shiny observeEvent reactiveValues callModule req checkboxGroupInput renderUI renderText
+#' @import shiny
 #' @importFrom shinyFiles getVolumes shinyFileChoose parseFilePaths
 #' @importFrom shinyjs onclick enable disable
 #' @importFrom EMLassemblyline template_table_attributes
-DataFiles <- function(input, output, session,
-                      savevar, main.env, NSB) {
+DataFiles <- function(input, output, session, savevar, main.env, NSB) {
   ns <- session$ns
   if (main.env$DEV) {
-    onclick("dev",
+    shinyjs::onclick("dev",
       {
         req(main.env$EAL$navigate == 2)
         browser()
@@ -76,24 +74,23 @@ DataFiles <- function(input, output, session,
       req(input$add_data_files)
 
       # retrieve data files info
-      loadedFiles <- input$add_data_files
+      loaded.files <- input$add_data_files
 
-      req(checkTruth(loadedFiles))
+      req(checkTruth(loaded.files))
 
       # remove spaces
-      loadedFiles$name <- gsub(" ", "_", loadedFiles$name)
+      loaded.files$name <- gsub(" ", "_", loaded.files$name)
 
       # add URL, description and table name columns
-      loadedFiles$url <- rep("", dim(loadedFiles)[1])
-      loadedFiles$description <- rep("", dim(loadedFiles)[1])
-      loadedFiles$table_name <- rep("", dim(loadedFiles)[1])
+      loaded.files$url <- rep("", dim(loaded.files)[1])
+      loaded.files$description <- rep("", dim(loaded.files)[1])
+      loaded.files$table.name <- rep("", dim(loaded.files)[1])
 
       # bind into input
       if (isFALSE(checkTruth(rv$data.files) && all(dim(rv$data.files) > 0))) {
-        rv$data.files <- loadedFiles
+        rv$data.files <- loaded.files
       } else {
-        sapply(loadedFiles$name, function(filename){
-        # for (filename in loadedFiles$name) {
+        sapply(loaded.files$name, function(filename){
           if (fs::is_dir(filename)) {
             showNotification(
               paste(filename, "is a folder."),
@@ -103,7 +100,7 @@ DataFiles <- function(input, output, session,
           if (!filename %in% rv$data.files$name) {
             rv$data.files <- unique(rbind(
               rv$data.files,
-              loadedFiles[loadedFiles$name == filename, ]
+              loaded.files[loaded.files$name == filename, ]
             ))
           }
         })
@@ -134,8 +131,6 @@ DataFiles <- function(input, output, session,
       # validity check
       req(input$select_data_files)
 
-      browser()
-      
       # actions
       rv$data.files <- rv$data.files[
         !(rv$data.files$name %in% input$select_data_files),
@@ -233,7 +228,7 @@ DataFiles <- function(input, output, session,
       observeEvent(input[[paste0(ind, "-dataName")]],
         {
           isolate(
-            rv$data.files[ind, "table_name"] <- input[[paste0(ind, "-dataName")]]
+            rv$data.files[ind, "table.name"] <- input[[paste0(ind, "-dataName")]]
           )
         },
         ignoreInit = FALSE
@@ -262,16 +257,16 @@ DataFiles <- function(input, output, session,
   # Warnings: data size
   observeEvent(rv$data.files, {
     req(checkTruth(rv$data.files))
-    files_size <- if (checkTruth(rv$data.files$size)) {
+    files.size <- if (checkTruth(rv$data.files$size)) {
       sum(rv$data.files$size)
     } else {
       0
     }
-    files_size_max <- main.env$VALUES$thresholds$files_size_max
+    files.size.max <- main.env$VALUES$thresholds$files.size.max
 
-    style <- if (files_size < 0.9 * files_size_max) {
+    style <- if (files.size < 0.9 * files.size.max) {
       "color: green;"
-    } else if (files_size >= 0.9 * files_size_max && files_size < files_size_max) {
+    } else if (files.size >= 0.9 * files.size.max && files.size < files.size.max) {
       "color: gold;"
     } else {
       "color: red"
@@ -280,9 +275,9 @@ DataFiles <- function(input, output, session,
     NSB$tagList <- tagList(
       "Files size:",
       tags$p(
-        utils:::format.object_size(files_size, "auto"),
-        if (files_size >= files_size_max) {
-          paste("Max. recommended:", utils:::format.object_size(files_size_max, "auto"))
+        utils:::format.object_size(files.size, "auto"),
+        if (files.size >= files.size.max) {
+          paste("Max. recommended:", utils:::format.object_size(files.size.max, "auto"))
         } else {
           NULL
         },
@@ -323,9 +318,9 @@ DataFiles <- function(input, output, session,
 
       # EMLAL templating function
       try(
-        template_table_attributes(
-          path = savevar$emlal$SelectDP$dp_metadata_path,
-          data.path = savevar$emlal$SelectDP$dp_data_path,
+        EMLassemblyline::template_table_attributes(
+          path = savevar$emlal$SelectDP$dp.metadata.path,
+          data.path = savevar$emlal$SelectDP$dp.data.path,
           data.table = savevar$emlal$DataFiles$name
         )
       )

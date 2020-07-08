@@ -1,4 +1,4 @@
-#' @importFrom shiny NS tagList
+#' @import shiny
 attributeInputUI <- function(id, colname, value, formats, rv) {
   ns <- NS(id)
   
@@ -18,13 +18,13 @@ attributeInputUI <- function(id, colname, value, formats, rv) {
       tmp <- selectInput(
         ns(colname),
         with_red_star("Select an unit"),
-        rv$unitList,
+        rv$units.list,
         selected = if (isTruthy(value)) value
       )
       if (isTruthy(value)) {
         tmp
       } else {
-        hidden(tmp)
+        shinyjs::hidden(tmp)
       }
     },
     dateTimeFormatString = {
@@ -37,7 +37,7 @@ attributeInputUI <- function(id, colname, value, formats, rv) {
       if (isTruthy(value)) {
         tmp
       } else {
-        hidden(tmp)
+        shinyjs::hidden(tmp)
       }
     },
     missingValueCode = textInput(
@@ -56,11 +56,10 @@ attributeInputUI <- function(id, colname, value, formats, rv) {
   return(ui)
 }
 
-#' @importFrom shiny observeEvent req isolate updateTextInput showNotification
-#' HTML
+#' @import shiny
 #' @importFrom shinyjs show hide
 attributeInput <- function(input, output, session,
-  rv, row_index, colname, obs, curt) {
+  rv, row.index, colname, obs, curt) {
   ns <- session$ns
   
   obs[[ns(colname)]] <- observeEvent(input[[colname]],
@@ -72,23 +71,23 @@ attributeInput <- function(input, output, session,
       # Class ====
       if (colname == "class") {
         # Date
-        date_id <- "dateTimeFormatString"
+        date.id <- "dateTimeFormatString"
         if (input[[colname]] == "Date") {
-          isolate(rv$current_table[row_index, "unit"] <- input[[date_id]])
-          shinyjs::show(date_id)
+          isolate(rv$current.table[row.index, "unit"] <- input[[date.id]])
+          shinyjs::show(date.id)
         } else {
-          isolate(rv$current_table[row_index, "dateTimeFormatString"] <- "")
-          shinyjs::hide(date_id)
+          isolate(rv$current.table[row.index, "dateTimeFormatString"] <- "")
+          shinyjs::hide(date.id)
         }
         
         # Unit
-        unit_id <- "unit"
+        unit.id <- "unit"
         if (input[[colname]] == "numeric") {
-          isolate(rv$current_table[row_index, "unit"] <- input[[unit_id]])
-          shinyjs::show(unit_id)
+          isolate(rv$current.table[row.index, "unit"] <- input[[unit.id]])
+          shinyjs::show(unit.id)
         } else {
-          isolate(rv$current_table[row_index, "unit"] <- "")
-          shinyjs::hide(unit_id)
+          isolate(rv$current.table[row.index, "unit"] <- "")
+          shinyjs::hide(unit.id)
         }
       }
       # Missing Value Code ====
@@ -114,15 +113,15 @@ attributeInput <- function(input, output, session,
       if (grepl("unit", ns(colname))) {
         # Trigger CU
         if (input[[colname]] == "custom" &&
-            isFALSE(rv$modalOn)) {
+            isFALSE(rv$modal.on)) {
           curt$trigger()
         }
         
-        if (isFALSE(input[[colname]] %in% rv$unitList)) {
-          .cu <- rv$current_table[row_index, colname]
-          if (.cu %in% rv$CU_Table$id) {
-            .ind <- which(rv$CU_Table$id == .cu)
-            rv$CU_Table$id <- rv$CU_Table$id[-.ind]
+        if (isFALSE(input[[colname]] %in% rv$units.list)) {
+          .cu <- rv$current.table[row.index, colname]
+          if (.cu %in% rv$cu.table$id) {
+            .ind <- which(rv$cu.table$id == .cu)
+            rv$cu.table$id <- rv$cu.table$id[-.ind]
           }
         }
       }
@@ -130,13 +129,13 @@ attributeInput <- function(input, output, session,
       # Set values ====
       if(
         (colname == "unit" && 
-            rv$current_table[row_index, "class"] != "numeric") ||
+            rv$current.table[row.index, "class"] != "numeric") ||
           (colname == "dateTimeFormatString" && 
-              rv$current_table[row_index, "class"] != "Date")
+              rv$current.table[row.index, "class"] != "Date")
       )
         .val <- ""
-      rv$current_table[row_index, colname] <- .val
-      rv$tables[[rv$current_file]] <- rv$current_table
+      rv$current.table[row.index, colname] <- .val
+      rv$tables[[rv$current.file]] <- rv$current.table
     },
     label = ns(colname)
   )
@@ -144,8 +143,3 @@ attributeInput <- function(input, output, session,
   # Output ----
   return(obs)
 }
-
-
-
-
-

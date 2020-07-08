@@ -15,7 +15,7 @@
     # -- Get files data
     .from <- .tmp$datapath
     .to <- paste0(
-      savevar$emlal$SelectDP$dp_data_path,
+      savevar$emlal$SelectDP$dp.data.path,
       "/", .tmp$name
     )
     file.copy(
@@ -26,7 +26,7 @@
   
     # -- set metadatapath
     .tmp$metadatapath <- paste(
-      savevar$emlal$SelectDP$dp_metadata_path,
+      savevar$emlal$SelectDP$dp.metadata.path,
       sub(
         "(.*)\\.[a-zA-Z0-9]*$",
         "attributes_\\1.txt",
@@ -43,7 +43,7 @@
   return(savevar)
 }
 
-#' @importFrom shiny withProgress incProgress reactiveValues
+#' @import shiny
 #' @importFrom data.table fwrite
 .saveAttributes <- function(savevar, rv) {
   # Write attribute tables
@@ -61,7 +61,7 @@
   if (checkTruth(rv$CU_Table)) {
     fwrite(
       rv$CU_Table,
-      paste0(savevar$emlal$SelectDP$dp_metadata_path, "/custom_units.txt")
+      paste0(savevar$emlal$SelectDP$dp.metadata.path, "/custom_units.txt")
     )
   }
 
@@ -96,7 +96,7 @@
 }
 
 #' @importFrom data.table fwrite
-#' @importFrom shiny reactiveValues
+#' @import shiny
 .saveGeoCov <- function(savevar, rv, main.env) {
   # Initialize variables
   .method <- if (isTRUE(rv$columns$complete)) {
@@ -192,7 +192,7 @@
     fwrite(
       geocov,
       paste(
-        savevar$emlal$SelectDP$dp_metadata_path,
+        savevar$emlal$SelectDP$dp.metadata.path,
         "geographic_coverage.txt",
         sep = "/"
       ),
@@ -203,7 +203,7 @@
   return(savevar)
 }
 
-#' @importFrom shiny reactiveValues
+#' @import shiny
 .saveTaxCov <- function(savevar, rv) {
   savevar$emlal$TaxCov <- reactiveValues(
     taxa.table = rv$taxa.table,
@@ -233,7 +233,7 @@
   fwrite(
     personnel,
     paste0(
-      savevar$emlal$SelectDP$dp_metadata_path,
+      savevar$emlal$SelectDP$dp.metadata.path,
       "/personnel.txt"
     ),
     sep = "\t"
@@ -243,7 +243,7 @@
 }
 
 #' @importFrom data.table fwrite
-#' @importFrom shiny withProgress setProgress incProgress
+#' @import shiny
 .saveMisc <- function(savevar, rv) {
   withProgress(
     {
@@ -277,7 +277,7 @@
           keywordThesaurus = rv$keywords$keywordThesaurus
         ),
         paste0(
-          savevar$emlal$SelectDP$dp_metadata_path,
+          savevar$emlal$SelectDP$dp.metadata.path,
           "/keywords.txt"
         ),
         sep = "\t"

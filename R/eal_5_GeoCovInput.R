@@ -3,13 +3,12 @@
 #' @description UI part for the Geographic Coverage modular input, used
 #' in Geographic Coverage module to input a custom entry in the dataset.
 #'
-#' @importFrom shiny NS fluidPage fluidRow column tagList tags actionButton
+#' @import shiny
 #' @importFrom shinyjs hidden
-# @importFrom shinyBS bsTooltip
-GeoCovInputUI <- function(id, site_id, rmv_id, default = NULL) {
+GeoCovInputUI <- function(id, site.id, rmv.id, default = NULL) {
   ns <- NS(id)
 
-  div_id <- id
+  div.id <- id
 
   if (!is.null(default)) {
     default <- as.vector(default)
@@ -30,14 +29,14 @@ GeoCovInputUI <- function(id, site_id, rmv_id, default = NULL) {
   }
 
   tags$div(
-    id = site_id,
+    id = site.id,
     fluidRow(
       column(2, "Description", style = "text-align: right"),
-      column(9, textInput(ns("site_description"), def.site, site_id)),
+      column(9, textInput(ns("site_description"), def.site, site.id)),
       column(
         1,
         actionButton(
-          ns(rmv_id),
+          ns(rmv.id),
           "",
           icon("trash"),
           class = "danger"
@@ -48,7 +47,7 @@ GeoCovInputUI <- function(id, site_id, rmv_id, default = NULL) {
       column(
         6,
         sliderInput(
-          ns(paste0("lat_", site_id)),
+          ns(paste0("lat_", site.id)),
           tags$h4("Latitude"),
           min = -90, max = 90,
           value = def.lat,
@@ -62,7 +61,7 @@ GeoCovInputUI <- function(id, site_id, rmv_id, default = NULL) {
       column(
         6,
         sliderInput(
-          ns(paste0("lon_", site_id)),
+          ns(paste0("lon_", site.id)),
           tags$h4("Longitude"),
           min = -180, max = 180,
           value = def.lon,
@@ -82,14 +81,14 @@ GeoCovInputUI <- function(id, site_id, rmv_id, default = NULL) {
 #'
 #' @describeIn GeoCovInputUI
 #'
-#' @importFrom shiny observeEvent removeUI
+#' @import shiny
 #' @importFrom dplyr slice %>%
 #' @importFrom shinyjs onclick
 GeoCovInput <- function(input, output, session,
-                        rv, rmv_id, site_id, ref) {
+                        rv, rmv.id, site.id, ref) {
 
   # Metadata acquisition -----------------------------------------------------
-  localRV <- reactiveValues(
+  local.rv <- reactiveValues(
     id = ref,
     geographicDescription = "",
     northBoundingCoordinate = 0,
@@ -102,25 +101,27 @@ GeoCovInput <- function(input, output, session,
   observeEvent(input$site_description,
     {
       req(input$site_description)
-      localRV$geographicDescription <- input$site_description
+      local.rv$geographicDescription <- input$site_description
     },
     priority = 1
   )
+  
   # latitude
-  observeEvent(input[[paste0("lat_", site_id)]],
+  observeEvent(input[[paste0("lat_", site.id)]],
     {
-      req(input[[paste0("lat_", site_id)]])
-      localRV$northBoundingCoordinate <- max(input[[paste0("lat_", site_id)]])
-      localRV$southBoundingCoordinate <- min(input[[paste0("lat_", site_id)]])
+      req(input[[paste0("lat_", site.id)]])
+      local.rv$northBoundingCoordinate <- max(input[[paste0("lat_", site.id)]])
+      local.rv$southBoundingCoordinate <- min(input[[paste0("lat_", site.id)]])
     },
     priority = 1
   )
+  
   # longitude
-  observeEvent(input[[paste0("lon_", site_id)]],
+  observeEvent(input[[paste0("lon_", site.id)]],
     {
-      req(input[[paste0("lon_", site_id)]])
-      localRV$eastBoundingCoordinate <- max(input[[paste0("lon_", site_id)]])
-      localRV$westBoundingCoordinate <- min(input[[paste0("lon_", site_id)]])
+      req(input[[paste0("lon_", site.id)]])
+      local.rv$eastBoundingCoordinate <- max(input[[paste0("lon_", site.id)]])
+      local.rv$westBoundingCoordinate <- min(input[[paste0("lon_", site.id)]])
     },
     priority = 1
   )
@@ -129,8 +130,8 @@ GeoCovInput <- function(input, output, session,
   observeEvent(
     {
       input$site_description
-      input[[paste0("lat_", site_id)]]
-      input[[paste0("lon_", site_id)]]
+      input[[paste0("lat_", site.id)]]
+      input[[paste0("lon_", site.id)]]
     },
     {
       # Fetch correct index
@@ -140,19 +141,19 @@ GeoCovInput <- function(input, output, session,
       }
 
       # print values into rv at selected index
-      actualValues <- printReactiveValues(localRV)
-      rv$id <- c(rv$id, actualValues["id"])
-      actualValues <- actualValues[names(actualValues) != "id"]
-      rv$coordinates[ind, ] <- actualValues[colnames(rv$coordinates)]
+      .actual.values <- printReactiveValues(local.rv)
+      rv$id <- c(rv$id, .actual.values["id"])
+      .actual.values <- .actual.values[names(.actual.values) != "id"]
+      rv$coordinates[ind, ] <- .actual.values[colnames(rv$coordinates)]
     },
     ignoreInit = TRUE,
     priority = 0
   )
 
   # Remove UI -----------------------------------------------------
-  onclick(rmv_id, {
+  shinyjs::onclick(rmv.id, {
     # remove the UI
-    removeUI(selector = paste0("#", site_id), immediate = TRUE)
+    removeUI(selector = paste0("#", site.id), immediate = TRUE)
 
     # unload the UI
     ind <- match(ref, rv$id)
@@ -170,27 +171,26 @@ GeoCovInput <- function(input, output, session,
 #' GUI and its associated server
 #'
 #' @importFrom dplyr bind_rows
-#' @importFrom shiny callModule
-insertGeoCovInput <- function(
-                              id, rv, ns, default = NULL) {
+#' @import shiny
+insertGeoCovInput <- function(id, rv, ns, default = NULL) {
   # !!! warning: rv = rv$custom here !!!
 
   # initialize IDs -----------------------------------------------------
-  div_id <- id
-  site_id <- paste0("site_", div_id)
-  rmv_id <- paste0("rmv_", div_id)
+  div.id <- id
+  site.id <- paste0("site_", div.id)
+  rmv.id <- paste0("rmv_", div.id)
 
   # Proper module server -----------------------------------------------------
   # create the UI
-  newUI <- GeoCovInputUI(ns(div_id), site_id, rmv_id, default = default)
+  new.ui <- GeoCovInputUI(ns(div.id), site.id, rmv.id, default = default)
 
   # insert the UI
-  insertUI(selector = "#inserthere", ui = newUI)
+  insertUI(selector = "#inserthere", ui = new.ui)
 
   # create the server
   rv <- callModule(
-    GeoCovInput, div_id,
-    rv, rmv_id, site_id, id
+    GeoCovInput, div.id,
+    rv, rmv.id, site.id, id
   )
 
   # Output -----------------------------------------------------
@@ -202,29 +202,29 @@ insertGeoCovInput <- function(
 #' @importFrom stringr str_extract_all
 extractCoordinates <- function(
   rv,
-  coordCols,
+  coord.cols,
   .pattern,
-  filesData
+  files.data
 ) {
   # initialize variables
-  if (coordCols == "lat") {
-    coordCols <- printReactiveValues(rv$columns$lat)
-    coordTags <- c("N", "S")
+  if (coord.cols == "lat") {
+    coord.cols <- printReactiveValues(rv$columns$lat)
+    coord.tags <- c("N", "S")
   }
-  else if (coordCols == "lon") {
-    coordCols <- printReactiveValues(rv$columns$lon)
-    coordTags <- c("E", "W")
+  else if (coord.cols == "lon") {
+    coord.cols <- printReactiveValues(rv$columns$lon)
+    coord.tags <- c("E", "W")
   }
 
   # Extract proper coordinates
-  coordinates <- filesData[[coordCols["file"]]][[coordCols["col"]]] %>% # uniformize decimal separators
+  coordinates <- files.data[[coord.cols["file"]]][[coord.cols["col"]]] %>% # uniformize decimal separators
     sapply(.,
       gsub,
       pattern = ",",
       replacement = "."
     )
-  coordIndex <- which(grepl(.pattern, coordinates))
-  coordinates <- coordinates[coordIndex] %>% 
+  coord.index <- which(grepl(.pattern, coordinates))
+  coordinates <- coordinates[coord.index] %>% 
     unname %>% 
     as.numeric
 
@@ -247,16 +247,16 @@ extractCoordinates <- function(
       coordinates[, 1] <= coordinates[, 2],
     ])
 
-    colnames(coordinates) <- coordTags
+    colnames(coordinates) <- coord.tags
     if (all(coordinates[, 1] <= coordinates[, 2])) {
-      colnames(coordinates) <- rev(coordTags)
+      colnames(coordinates) <- rev(coord.tags)
     }
   }
 
   return(
     list(
       coordinates = coordinates,
-      coordIndex = coordIndex
+      coord.index = coord.index
     )
   )
 }

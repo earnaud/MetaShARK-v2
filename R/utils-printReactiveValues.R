@@ -1,4 +1,4 @@
-#' @importFrom shiny is.reactive
+#' @import shiny
 printReactiveValues <- function(values) {
   sapply(
     names(values),
