@@ -1,4 +1,4 @@
-#' @title with_red_star
+#' @title withRedStar
 #'
 #' @description Add a red star at the end of the text
 #'
@@ -10,9 +10,10 @@
 #' @return an html element
 #'
 #' @examples
-#' with_red_star("Enter your name here")
-#' @importFrom htmltools tags HTML
-with_red_star <- function(text) {
+#' withRedStar("Enter your name here")
+#' 
+#' @import shiny
+withRedStar <- function(text) {
   tags$span(
     HTML(
       paste0(

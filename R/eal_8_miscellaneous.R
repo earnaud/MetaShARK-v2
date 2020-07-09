@@ -5,7 +5,7 @@
 #' @import shiny
 #' textOutput div tagList
 #' @importFrom shinyFiles shinyFilesButton
-MiscellaneousUI <- function(id, help_label = NULL, value = "") {
+MiscellaneousUI <- function(id, help.label = NULL, value = "") {
   ns <- NS(id)
 
   fluidRow(
@@ -15,22 +15,12 @@ MiscellaneousUI <- function(id, help_label = NULL, value = "") {
       tags$b(paste0("Select '", gsub(".*-(.*)$", "\\1", id), "' file.")),
       tags$br(),
       div(
-        # if (isTRUE(server)) {
         fileInput(
           ns("file"),
           "",
           multiple = FALSE,
           buttonLabel = span("Load file", icon("file")),
         )
-        # } else {
-        #   shinyFilesButton(
-        #     ns("file"),
-        #     "Load file",
-        #     paste0("Select '", gsub(".*-(.*)$", "\\1", id), "' file."),
-        #     multiple = FALSE,
-        #     icon = icon("file")
-        #   )
-        # }
       ),
       div(textOutput(ns("selected")), class = "ellipsis")
     ),
@@ -39,7 +29,7 @@ MiscellaneousUI <- function(id, help_label = NULL, value = "") {
       8,
       tagList(
         tags$b("Content"),
-        help_label,
+        help.label,
         markdownInputUI(
           ns("content"),
           label = "",
@@ -54,19 +44,15 @@ MiscellaneousUI <- function(id, help_label = NULL, value = "") {
 #' @title Miscellaneous
 #'
 #' @import shiny
-#' @importFrom shinyFiles getVolumes shinyFileChoose parseFilePaths
 #' @importFrom shinyAce updateAceEditor
-#' @importFrom fs path_home
 Miscellaneous <- function(input, output, session, savevar, rv) {
   # Variable initialization -----------------------------------------------------
   ns <- session$ns
-  volumes <- c(Home = path_home(), getVolumes()())
 
   # Get content -----------------------------------------------------
   rv$content <- callModule(markdownInput, "content", preview = FALSE)
 
   # Get file -----------------------------------------------------
-  # if (isTRUE(server)) {
   observeEvent(input$file,
     {
       req(input$file)
@@ -74,20 +60,6 @@ Miscellaneous <- function(input, output, session, savevar, rv) {
     },
     priority = 1
   )
-  # }
-  # else {
-  #   shinyFileChoose(input, "file",
-  #     roots = volumes,
-  #     session = session
-  #   )
-  #   observeEvent(input$file,
-  #     {
-  #       req(input$file)
-  #       rv$file <- parseFilePaths(volumes, input$file)$datapath
-  #     },
-  #     priority = 1
-  #   )
-  # }
 
   observeEvent(input$file,
     {

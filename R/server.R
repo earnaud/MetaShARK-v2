@@ -9,7 +9,7 @@
 .app_server <- function(input, output, session) {
 
   # get app arguments
-  app.args <- get_golem_options()
+  app.args <- golem::get_golem_options()
   dev <- app.args$dev
   main.env <- app.args$main.env
 
@@ -18,7 +18,7 @@
 
   # DEV -----------------------------------------------------
   if (dev) {
-    onclick("dev",
+    shinyjs::onclick("dev",
       {
         req(input$side_menu != "fill")
         browser()
@@ -35,16 +35,9 @@
 
   callModule(settings, "settings", main.env)
 
-  # # Exit App - deprecated on server
-  # observeEvent(input$close, {
-  #   stopApp()
-  # })
-
   ## modules called -----------------------------------------------------
   observeEvent(input$side_menu, {
     savevar <- switch(input$side_menu,
-      # welcome
-      # welcome = callModule(welcome, "welcome"),
       # fill
       fill = callModule(fill, "fill", main.env),
       # upload

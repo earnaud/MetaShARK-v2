@@ -1,4 +1,4 @@
-#'
+#' @noRd
 .saveDataFiles <- function(savevar, rv) {
   .tmp <- isolate(rv$data.files)
   
@@ -43,6 +43,8 @@
   return(savevar)
 }
 
+#' @noRd
+#'
 #' @import shiny
 #' @importFrom data.table fwrite
 .saveAttributes <- function(savevar, rv) {
@@ -74,6 +76,8 @@
   return(savevar)
 }
 
+#' @noRd
+#' 
 #' @importFrom data.table fwrite
 .saveCatVars <- function(savevar, rv) {
   sapply(rv$catvarFiles, function(file_path) {
@@ -95,6 +99,8 @@
   return(savevar)
 }
 
+#' @noRd
+#' 
 #' @importFrom data.table fwrite
 #' @import shiny
 .saveGeoCov <- function(savevar, rv, main.env) {
@@ -203,6 +209,8 @@
   return(savevar)
 }
 
+#' @noRd
+#' 
 #' @import shiny
 .saveTaxCov <- function(savevar, rv) {
   savevar$emlal$TaxCov <- reactiveValues(
@@ -215,6 +223,8 @@
   return(savevar)
 }
 
+#' @noRd
+#' 
 #' @importFrom data.table fwrite
 .savePersonnel <- function(savevar, rv) {
   # save
@@ -242,6 +252,8 @@
   return(savevar)
 }
 
+#' @noRd
+#' 
 #' @importFrom data.table fwrite
 #' @import shiny
 .saveMisc <- function(savevar, rv) {

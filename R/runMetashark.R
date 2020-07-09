@@ -31,7 +31,7 @@ runMetashark <- function(...) {
   args$dev <- isTRUE(args$dev)
   args$main.env <- .globalScript(args$dev)
   
-  app <- with_golem_options(
+  app <- golem::with_golem_options(
     shinyApp(
       ui = .app_ui,
       server = .app_server,

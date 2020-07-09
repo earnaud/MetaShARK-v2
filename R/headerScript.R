@@ -33,17 +33,16 @@
   # Paths====
   wwwPaths <- system.file("resources", package = "MetaShARK") %>%
     paste(., dir(.), sep = "/") %>%
-    as.list()
+    as.list
   names(wwwPaths) <- basename(unlist(wwwPaths))
   PATHS <- reactiveValues(
     home = "~",
-    eal.dp = paste0(path_home(), "/dataPackagesOutput/emlAssemblyLine/"),
-    eal.dp.index = paste0(path_home(), "/dataPackagesOutput/emlAssemblyLine/index.txt"),
-    eal.tmp = paste0(path_home(), "/EMLAL_tmp/"),
+    eal.dp = paste0("~/dataPackagesOutput/emlAssemblyLine/"),
+    eal.dp.index = paste0("~/dataPackagesOutput/emlAssemblyLine/index.txt"),
+    eal.tmp = paste0("~/EMLAL_tmp/"),
     resources = wwwPaths
   )
   dir.create(isolate(PATHS$eal.dp), recursive = TRUE, showWarnings = FALSE)
-  # unlink(isolate(PATHS$eal.tmp), recursive = TRUE) # clear the temp
   dir.create(isolate(PATHS$eal.tmp), recursive = TRUE, showWarnings = FALSE)
   
   assign(
@@ -54,7 +53,7 @@
   
   # Sessionning ====
   if (isTRUE(file.exists(isolate(PATHS$eal.dp.index)))) {
-    DP.LIST <- fread(isolate(PATHS$eal.dp.index), sep = "\t")
+    DP.LIST <- data.table::fread(isolate(PATHS$eal.dp.index), sep = "\t")
   }
   else {
     DP.LIST <- data.frame(
@@ -64,7 +63,7 @@
       path = character(),
       stringsAsFactors = FALSE
     )
-    fwrite(DP.LIST, isolate(PATHS$eal.dp.index), sep = "\t")
+    data.table::fwrite(DP.LIST, isolate(PATHS$eal.dp.index), sep = "\t")
   }
   assign(
     "DP.LIST",
@@ -89,23 +88,23 @@
   
   # Formats ====
   # DataONE nodes
-  .DATAONE.LIST <- try(listFormats(CNode()))
+  .DATAONE.LIST <- try(listFormats(dataone::CNode()))
   if (class(.DATAONE.LIST) == "try-error") {
-    .DATAONE.LIST <- fread(wwwPaths$dataoneCNodesList.txt)
+    .DATAONE.LIST <- data.table::fread(wwwPaths$dataoneCNodesList.txt)
   } else {
-    fwrite(.DATAONE.LIST, wwwPaths$dataoneCNodesList.txt)
+    data.table::fwrite(.DATAONE.LIST, wwwPaths$dataoneCNodesList.txt)
   }
   
   # Taxa authorities
-  .TAXA.AUTHORITIES <- try(view_taxa_authorities())
+  .TAXA.AUTHORITIES <- try(taxonomyCleanr::view_taxa_authorities())
   if (class(.TAXA.AUTHORITIES) == "try-error") {
-    .TAXA.AUTHORITIES <- fread(wwwPaths$taxaAuthorities.txt)
+    .TAXA.AUTHORITIES <- data.table::fread(wwwPaths$taxaAuthorities.txt)
   } else {
-    fwrite(.TAXA.AUTHORITIES, wwwPaths$taxaAuthorities.txt)
+    data.table::fwrite(.TAXA.AUTHORITIES, wwwPaths$taxaAuthorities.txt)
   }
   
   # Unit types
-  .all.units <- get_unitList()
+  .all.units <- EML::get_unitList()
   .units <- "custom"
   .names <- "custom"
   invisible(apply(.all.units$units[c("unitType", "name")], 1, function(row) {
@@ -164,7 +163,6 @@
       navigate = 1,
       current = c(name = "SelectDP", completed = FALSE),
       iterator = 0
-      #, COMPLETE_CURRENT = FALSE
     ), 
     envir = main.env
   )
@@ -184,6 +182,5 @@
   )
   
   # output ====
-  
   return(main.env)
 }

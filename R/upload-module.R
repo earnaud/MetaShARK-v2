@@ -6,13 +6,14 @@
 #' @param id shiny module id
 #'
 #' @import shiny
-#' uiOutput textOutput icon tabsetPanel tabPanel HTML
 #' @importFrom data.table fread
 uploadUI <- function(id, main.env) {
   ns <- NS(id)
   dev <- main.env$dev
   
-  registeredEndpoints <- fread(isolate(main.env$PATHS$resources)$registeredEndpoints.txt)
+  registeredEndpoints <- data.table::fread(
+    isolate(main.env$PATHS$resources)$registeredEndpoints.txt
+  )
   dp.list <- list.files(
     "~/dataPackagesOutput/emlAssemblyLine/",
     pattern = "_emldp$",
@@ -86,32 +87,18 @@ uploadUI <- function(id, main.env) {
               # individual files inputs
               tags$h4("Add or remove files"),
               # * Metadata ====
-              # multiFilesInputUI(
-              #   ns("metadata"),
-              #   "Please select an .xml file validating EML schema."
-              # ),
               fileInput(
                 ns("metadata"),
                 "EML-valid file (only one allowed)"
               ),
               textOutput(ns("warnings-metadata")),
               # * Data ====
-              # tags$h4("Data (at least one file required)"),
-              # multiFilesInputUI(
-              #   ns("data"),
-              #   "Please select the data described in the provided metadata."
-              # ),
               fileInput(
                 ns("data"),
                 "Data files described in your EML file"
               ),
               textOutput(ns("warnings-data")),
               # * Scripts ====
-              # tags$h4("Scripts"),
-              # multiFilesInputUI(
-              #   ns("scripts"),
-              #   "Please select the scripts described in the provided metadata."
-              # ),
               fileInput(
                 ns("scripts"),
                 "Scripts used to produce or process data"
@@ -133,7 +120,9 @@ uploadUI <- function(id, main.env) {
         # ),
         # tags$hr(),
         
-        actionButton(ns("process"), "Process",
+        actionButton(
+          ns("process"),
+          "Process",
           icon = icon("rocket"),
           width = "100%"
         )
@@ -160,7 +149,6 @@ uploadUI <- function(id, main.env) {
 #' @param main.env inner global environment
 #'
 #' @import shiny
-# observe renderUI reactiveValues callModule showNotification
 #' @importFrom dplyr filter select %>%
 #' @importFrom shinyjs enable disable click
 #' @importFrom data.table fread fwrite
@@ -168,7 +156,7 @@ uploadUI <- function(id, main.env) {
 upload <- function(input, output, session, main.env) {
   ns <- session$ns
   
-  registeredEndpoints <- fread(main.env$PATHS$resources$registeredEndpoints.txt)
+  registeredEndpoints <- data.table::fread(main.env$PATHS$resources$registeredEndpoints.txt)
   dev <- main.env$dev
   
   # Select endpoint ----
@@ -176,32 +164,27 @@ upload <- function(input, output, session, main.env) {
     input$endpoint
   })
   
-  output$`actual-endpoint` <- renderUI({
-    if (endpoint() == "Other") {
-      URL_Input_UI(ns("actual-endpoint"), "Write the URL of the Member Node")
-      # textInput(ns("actual-endpoint"), "Write the URL of the Member Node",
-      #   placeholder = "http://pndb.fr/metacat/d1/mn/v2/"
-      # )
-    } else {
-      tags$p(tags$b("Current endpoint:"), registeredEndpoints %>% 
-          filter(mn == endpoint()) %>% 
-          select(URL))
-    }
-  })
-  
   memberNode <- reactive({
     if (endpoint() != "Other") {
       registeredEndpoints %>%
-        filter(mn == endpoint()) %>%
-        select(URL)
+        dplyr::filter(mn == endpoint()) %>%
+        dplyr::select(URL)
     } else {
       callModule(URL_Input, "actual-endpoint")
     }
   })
   
+  output$`actual-endpoint` <- renderUI({
+    if (endpoint() != "Other") {
+      tags$p(tags$b("Current endpoint:"), memberNode())
+    } else {
+      URL_Input_UI(ns("actual-endpoint"), "Write the URL of the Member Node")
+    }
+  })
+  
   # Token input -----------------------------------------------------
   observeEvent(input$toSettings, {
-    click("appOptions", asis = TRUE)
+    shinyjs::click("appOptions", asis = TRUE)
   }, ignoreInit = TRUE)
   
   observe({
@@ -212,22 +195,17 @@ upload <- function(input, output, session, main.env) {
       output$token_status <- renderUI({
         tags$div("UNFILLED", class = "danger")
       })
-      disable("process")
+      shinyjs::disable("process")
     }
     else {
       output$token_status <- renderUI({
         tags$div("FILLED", class = "valid")
       })
-      enable("process")
+      shinyjs::enable("process")
     }
   })
   
   # Files input -----------------------------------------------------
-  # rv <- reactiveValues(
-  #   md = callModule(multiFilesInput, "metadata"),
-  #   data = callModule(multiFilesInput, "data"),
-  #   scr = callModule(multiFilesInput, "scripts")
-  # )
   rv <- reactiveValues(
     md = data.frame(stringsAsFactors = FALSE),
     data = data.frame(stringsAsFactors = FALSE),
@@ -241,8 +219,8 @@ upload <- function(input, output, session, main.env) {
       dir(full.names = TRUE)
     rv$md <- data.frame(
       name = basename(.eml.files),
-      size = file.info(.eml.files)$size,
-      type = guess_type(.eml.files),
+      size = base::file.size(.eml.files),
+      type = mime::guess_type(.eml.files),
       datapath= .eml.files
     )
     
@@ -250,8 +228,8 @@ upload <- function(input, output, session, main.env) {
       dir(full.names = TRUE)
     rv$data <- data.frame(
       name = basename(.data.files),
-      size = file.info(.data.files)$size,
-      type = guess_type(.data.files),
+      size = base::file.size(.data.files),
+      type = mime::guess_type(.data.files),
       datapath = .data.files
     )
   }, 
@@ -335,18 +313,18 @@ upload <- function(input, output, session, main.env) {
       dim(rv$md)[1] != 1 ||
         dim(rv$data)[1] < 1
     ) {
-      disable("process")
+      shinyjs::disable("process")
     } else {
-      enable("process")
+      shinyjs::enable("process")
     }
     
     if (
       dim(rv$scr)[1] == 0 ||
         dim(rv$data)[1] == 0
     ) {
-      disable("add_constraint")
+      shinyjs::disable("add_constraint")
     } else {
-      enable("add_constraint")
+      shinyjs::enable("add_constraint")
     }
   })
   
@@ -354,19 +332,19 @@ upload <- function(input, output, session, main.env) {
   observeEvent(input$process, {
     disable("process")
     
-    md_format <- read_eml(as.character(rv$md$datapath))$schemaLocation %>%
+    md.format <- EML::read_eml(as.character(rv$md$datapath))$schemaLocation %>%
       strsplit(split = " ") %>%
-      unlist() %>%
+      unlist %>%
       head(n = 1)
     
     out <- uploadDP(
       mn = registeredEndpoints %>%
-        filter(mn == endpoint()) %>%
-        select(URL) %>%
+        dplyr::filter(mn == endpoint()) %>%
+        dplyr::select(URL) %>%
         as.character,
       cn = registeredEndpoints %>%
-        filter(mn == endpoint()) %>%
-        select(cn) %>%
+        dplyr::filter(mn == endpoint()) %>%
+        dplyr::select(cn) %>%
         as.character,
       token = list(
         test = main.env$SETTINGS$metacat.test,
@@ -374,16 +352,16 @@ upload <- function(input, output, session, main.env) {
       ),
       eml = list(
         file = rv$md$datapath,
-        format = md_format
+        format = md.format
       ),
       data = list(
         file = rv$data$datapath,
-        format = guess_type(rv$data$datapath)
+        format = mime::guess_type(rv$data$datapath)
       ),
       scripts = if (dim(rv$scr)[1] > 0) {
         list(
           file = rv$scr$datapath,
-          format = guess_type(rv$scr$datapath)
+          format = mime::guess_type(rv$scr$datapath)
         )
       } else {
         c()
@@ -398,6 +376,6 @@ upload <- function(input, output, session, main.env) {
       showNotification(paste("Uploaded DP", out), type = "message")
     }
     
-    enable("process")
+    shinyjs::enable("process")
   })
 }
