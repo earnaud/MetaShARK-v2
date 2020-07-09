@@ -20,7 +20,7 @@ fill <- function(input, output, session, main.env) {
   # variable initialization ====
 
   # save variable initialization
-  savevar <- initReactive(main.env = main.env$EMLAL)
+  savevar <- initReactive(main.env = main.env$EAL)
 
   # action ====
   savevar <- callModule(

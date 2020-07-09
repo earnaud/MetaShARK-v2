@@ -254,7 +254,7 @@ PersonnelModUI <- function(id, div.id, site.id, rmv.id,
                 selectInput(
                   ns("role"),
                   c("creator", "PI (principal investigator)", "contact", "(other)"),
-                  label = with_red_star("Role"),
+                  label = withRedStar("Role"),
                   selected = if (!is.null(value)) {
                     if (value$role %in% c("creator", "PI (principal investigator)", "contact")) {
                       value$role
@@ -315,7 +315,7 @@ PersonnelModUI <- function(id, div.id, site.id, rmv.id,
             4,
             textInput(
               ns("givenName"),
-              label = with_red_star("First name"),
+              label = withRedStar("First name"),
               value = if (!is.null(value)) value$givenName else ""
             )
           ),
@@ -331,7 +331,7 @@ PersonnelModUI <- function(id, div.id, site.id, rmv.id,
             4,
             textInput(
               ns("surName"),
-              label = with_red_star("Last name"),
+              label = withRedStar("Last name"),
               value = if (!is.null(value)) value$surName else ""
             )
           )
@@ -343,7 +343,7 @@ PersonnelModUI <- function(id, div.id, site.id, rmv.id,
             8,
             textInput(
               ns("organizationName"),
-              label = with_red_star("Name of organization the person is associated with."),
+              label = withRedStar("Name of organization the person is associated with."),
               value = if (!is.null(value)) value$organizationName else ""
             )
           ),
@@ -351,7 +351,7 @@ PersonnelModUI <- function(id, div.id, site.id, rmv.id,
             4,
             textInput(
               ns("electronicMailAddress"),
-              label = with_red_star("Email address"),
+              label = withRedStar("Email address"),
               value = if (!is.null(value)) value$electronicMailAddress else ""
             )
           )

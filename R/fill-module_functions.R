@@ -1,36 +1,35 @@
-# fill_functions.R
-
 # Manage savevar variable -----------------------------------------------------
 #' @title initReactive
 #'
 #' @description EMLAL module specific function. Initialize `savevar` variable.
 #'
-#' @param sublist either NULL, "emlal", "metafin" to precise which sublist to initialize (NULL initializes the whole variable)
+#' @param sub.list either NULL, "emlal", "metafin" to precise which sub.list to initialize (NULL initializes the whole variable)
 #'
 #' @import shiny
-initReactive <- function(sublist = NULL, savevar = NULL, main.env) {
-  if (!is.null(sublist) && is.null(savevar)) {
-    stop("Attempt to initialize savevar's sublist without savevar.")
+initReactive <- function(sub.list = NULL, savevar = NULL, main.env) {
+  if (!is.null(sub.list) && is.null(savevar)) {
+    stop("Attempt to initialize savevar's sub.list without savevar.")
   }
-  if (!(is.null(sublist) || sublist %in% c("emlal", "metafin"))) {
+  if (!(is.null(sub.list) || sub.list %in% c("emlal", "metafin"))) {
     stop("Attempt to initialize savevar with inconsistent arguments")
   }
 
   # re-creates a whole savevar
-  if (is.null(sublist)) {
+  if (is.null(sub.list)) {
     savevar <- reactiveValues()
   }
 
   # emlal reactivelist management
-  if (is.null(sublist) || sublist == "emlal") {
+  if (is.null(sub.list) || sub.list == "emlal") {
     savevar$emlal <- reactiveValues(
-      step = main.env$NAVIGATE,
+      step = main.env$EAL$navigate,
       quick = FALSE,
-      history = main.env$HISTORY,
+      history = main.env$EAL$history,
       SelectDP = reactiveValues(
-        dp_name = NULL,
-        dp_path = NULL,
-        dp_title = NULL
+        dp.name = NULL,
+        dp.path = NULL,
+        dp.metadata.path = NULL,
+        dp.title = NULL
       ),
       DataFiles = data.frame(stringsAsFactors = FALSE),
       CatVars = reactiveValues(),
@@ -54,11 +53,11 @@ initReactive <- function(sublist = NULL, savevar = NULL, main.env) {
           file = character()
         ),
         keywords = reactiveValues(
-          keywords = character(),
-          keywordsThesaurus = character()
+          keyword = character(),
+          keyword.thesaurus = character()
         ),
         temporal_coverage = NULL,
-        additional_information = reactiveValues(
+        additional.information = reactiveValues(
           content = character(),
           file = character()
         )
@@ -67,15 +66,15 @@ initReactive <- function(sublist = NULL, savevar = NULL, main.env) {
   }
 
   # metafin reactivelist management
-  if (is.null(sublist) || sublist == "metafin") {
+  if (is.null(sub.list) || sub.list == "metafin") {
     savevar$metafin <- reactiveValues()
   }
 
   # differential returns
-  return(if (is.null(sublist)) {
+  return(if (is.null(sub.list)) {
     savevar
   } else {
-    switch(sublist,
+    switch(sub.list,
       emlal = savevar$emlal,
       metafin = savevar$metafin
     )
@@ -106,49 +105,65 @@ saveReactive <- function(
       } else {
         rv <- rv[1]
 
-        if (names(rv) == "DataFiles") {
-          savevar <- .saveDataFiles(
+        savevar <- do.call(
+          switch(names(rv),
+            DataFiles = .saveDataFiles,
+            Attributes = .saveAttributes,
+            CatVars = .saveCatVars,
+            GeoCov = .saveGeoCov,
+            TaxCov = .saveTaxCov,
+            Personnel = .savePersonnel,
+            Misc = .saveMisc,
+          ),
+          args = list(
             savevar = savevar,
             rv = rv[[1]]
           )
-        }
-        if (names(rv) == "Attributes") {
-          savevar <- .saveAttributes(
-            savevar = savevar,
-            rv = rv[[1]]
-          )
-        }
-        if (names(rv) == "CatVars") {
-          savevar <- .saveCatVars(
-            savevar = savevar,
-            rv = rv[[1]]
-          )
-        }
-        if (names(rv) == "GeoCov") {
-          savevar <- .saveGeoCov(
-            savevar = savevar,
-            rv = rv[[1]],
-            main.env = main.env
-          )
-        }
-        if (names(rv) == "TaxCov") {
-          savevar <- .saveTaxCov(
-            savevar = savevar,
-            rv = rv[[1]]
-          )
-        }
-        if (names(rv) == "Personnel") {
-          savevar <- .savePersonnel(
-            savevar = savevar,
-            rv = rv[[1]]
-          )
-        }
-        if (names(rv) == "Misc") {
-          savevar <- .saveMisc(
-            savevar = savevar,
-            rv = rv[[1]]
-          )
-        }
+        )
+        
+        # if (names(rv) == "DataFiles") {
+        #   savevar <- .saveDataFiles(
+        #     savevar = savevar,
+        #     rv = rv[[1]]
+        #   )
+        # }
+        # if (names(rv) == "Attributes") {
+        #   savevar <- .saveAttributes(
+        #     savevar = savevar,
+        #     rv = rv[[1]]
+        #   )
+        # }
+        # if (names(rv) == "CatVars") {
+        #   savevar <- .saveCatVars(
+        #     savevar = savevar,
+        #     rv = rv[[1]]
+        #   )
+        # }
+        # if (names(rv) == "GeoCov") {
+        #   savevar <- .saveGeoCov(
+        #     savevar = savevar,
+        #     rv = rv[[1]],
+        #     main.env = main.env
+        #   )
+        # }
+        # if (names(rv) == "TaxCov") {
+        #   savevar <- .saveTaxCov(
+        #     savevar = savevar,
+        #     rv = rv[[1]]
+        #   )
+        # }
+        # if (names(rv) == "Personnel") {
+        #   savevar <- .savePersonnel(
+        #     savevar = savevar,
+        #     rv = rv[[1]]
+        #   )
+        # }
+        # if (names(rv) == "Misc") {
+        #   savevar <- .saveMisc(
+        #     savevar = savevar,
+        #     rv = rv[[1]]
+        #   )
+        # }
       }
     }
 
@@ -161,13 +176,13 @@ saveReactive <- function(
     if (file.exists(location)) {
       file.remove(location)
     }
-    write_json(
-      serializeJSON(listReactiveValues(savevar)),
+    jsonlite::write_json(
+      jsonlite::serializeJSON(listReactiveValues(savevar)),
       location
     )
 
     incProgress(1 / 3)
-  }) %>% isolate()
+  }) %>% isolate
 
   showNotification(
     paste("Saved:", names(rv)[1], "!"), 
@@ -189,7 +204,7 @@ saveReactive <- function(
 readPlainText <- function(files, prefix = NULL, sep = "/", ...) {
   if (is.null(prefix)) sep <- ""
 
-  readtext(
+  readtext::readtext(
     paste(
       prefix,
       files,

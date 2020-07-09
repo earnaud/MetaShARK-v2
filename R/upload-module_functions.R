@@ -13,7 +13,7 @@
 #' @param formats List of DataONE CN supported [formats](https://cn.dataone.org/cn/v2/formats)
 #'
 #' @importFrom dataone generateIdentifier CNode MNode D1Client uploadDataPackage
-#' @importFrom datapack addMember
+#' @importFrom datapack DataObject-class DataPackage-class addMember
 #' @importFrom EML read_eml write_eml eml_validate
 #' @importFrom mime guess_type
 uploadDP <- function(
@@ -32,11 +32,10 @@ uploadDP <- function(
 
   message("Init")
 
-  cn <- CNode(cn)
-  browser()
-  mn <- MNode(mn)
+  cn <- dataone::CNode(cn)
+  mn <- dataone::MNode(mn)
   if (use.doi) {
-    doi <- generateIdentifier(mn, "DOI")
+    doi <- dataone::generateIdentifier(mn, "DOI")
   } # TODO check this feature
 
   # # Write DP -----------------------------------------------------
@@ -53,7 +52,7 @@ uploadDP <- function(
     format = eml$format,
     filename = eml$file
   )
-  dp <- addMember(dp, metadataObj)
+  dp <- datapack::addMember(dp, metadataObj)
 
   message("Data")
 
@@ -67,7 +66,7 @@ uploadDP <- function(
         format = data$format[d],
         filename = data$file[d]
       )
-      dp <- addMember(dp, dataObj, metadataObj)
+      dp <- datapack::addMember(dp, dataObj, metadataObj)
       return(dataObj)
     }
   )
@@ -84,7 +83,7 @@ uploadDP <- function(
           format = scripts$format[s],
           filename = scripts$file[s]
         )
-        dp <- addMember(dp, progObj, metadataObj)
+        dp <- datapack::addMember(dp, progObj, metadataObj)
 
         return(progObj)
       }
@@ -99,17 +98,15 @@ uploadDP <- function(
 
   # # Upload -----------------------------------------------------
 
-  d1c <- D1Client(cn, mn)
+  d1c <- dataone::D1Client(cn, mn)
 
   message("Upload")
 
   options(dataone_test_token = token$test)
   options(dataone_token = token$prod)
-
-  browser()
   
   packageId <- try(
-    uploadDataPackage(
+    dataone::uploadDataPackage(
       d1c,
       dp,
       public = TRUE,

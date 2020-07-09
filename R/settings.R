@@ -109,6 +109,6 @@ settings <- function(input, output, session, main.env) {
   }, {
     req(input$cedar_token)
     .SETTINGS$cedar.token <- input$cedar_token
-    main.env$SEMANTICS$ontologies <- accessOntology(.SETTINGS$cedar.token)
+    main.env$SEMANTICS$ontologies <- cedarr::accessOntology(.SETTINGS$cedar.token)
   })
 }

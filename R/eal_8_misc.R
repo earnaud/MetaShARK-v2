@@ -15,10 +15,9 @@ MiscUI <- function(id, title, dev, savevar) {
   if (checkTruth(keywords)) {
     kw <- keywords$keyword %>%
       strsplit(split = ",") %>%
-      unlist() %>%
+      unlist %>%
       paste(collapse = ",")
   }
-
 
   return(
     fluidPage(
@@ -35,7 +34,7 @@ MiscUI <- function(id, title, dev, savevar) {
 
           # * Abstract -----------------------------------------------------
           bsCollapsePanel(
-            title = with_red_star("Abstract"),
+            title = withRedStar("Abstract"),
             value = 1,
             MiscellaneousUI(
               ns("abstract"),
@@ -47,7 +46,7 @@ MiscUI <- function(id, title, dev, savevar) {
 
           # * Methods -----------------------------------------------------
           bsCollapsePanel(
-            title = with_red_star("Methods"),
+            title = withRedStar("Methods"),
             value = 2,
             MiscellaneousUI(
               ns("methods"),
@@ -59,12 +58,12 @@ MiscUI <- function(id, title, dev, savevar) {
 
           # * Keywords -----------------------------------------------------
           bsCollapsePanel(
-            title = with_red_star("Keywords"),
+            title = withRedStar("Keywords"),
             value = 3,
             tagList(
               column(
                 6,
-                tagsTextInput(
+                tagsInput::tagsTextInput(
                   ns("keywords"),
                   tags$p("List the keywords that best describe your dataset.
                     Type a 'tab' to separate each keyword."),
@@ -105,8 +104,8 @@ MiscUI <- function(id, title, dev, savevar) {
             title = "Additional Info",
             value = 5,
             MiscellaneousUI(
-              ns("additional_information"),
-              help_label = tags$p(
+              ns("additional.information"),
+              help.label = tags$p(
                 "If you have additional information that doesn't fall under the scope of the abstract or methods (e.g. a list of research articles or theses derived from this dataset) about your dataset, you may share it here."
               ),
               value = readPlainText(
@@ -128,12 +127,11 @@ MiscUI <- function(id, title, dev, savevar) {
 #' @import shiny
 #' @importFrom shinyjs onclick enable disable
 #' @importFrom data.table fread
-Misc <- function(input, output, session,
-                 savevar, main.env, NSB) {
+Misc <- function(input, output, session, savevar, main.env, NSB) {
   ns <- session$ns
 
   if (main.env$DEV) {
-    onclick("dev",
+    shinyjs::onclick("dev",
       {
         req(main.env$EAL$navigate == 8)
         browser()
@@ -170,12 +168,12 @@ Misc <- function(input, output, session,
     # Keywords
     keywords = reactiveValues(
       keyword = kw$keyword,
-      keywordThesaurus = kw$keywordThesaurus
+      keyword.thesaurus = kw$keyword.thesaurus
     ),
     # Temporal coverage
-    temporal_coverage = c(Sys.Date() - 1, Sys.Date()),
+    temporal.coverage = c(Sys.Date() - 1, Sys.Date()),
     # Additional information
-    additional_information = reactiveValues(
+    additional.information = reactiveValues(
       content = character(),
       file = paste(
         isolate(savevar$emlal$SelectDP$dp.metadata.path),
@@ -213,14 +211,14 @@ Misc <- function(input, output, session,
         need(checkTruth(rv$keywords$keyword), "No keyword input")
       )
       tagList(
-        lapply(seq_along(rv$keywords$keyword), function(k_id) {
-          keyword <- rv$keywords$keyword[k_id]
-          valKT <- rv$keywords$keywordThesaurus[k_id]
+        lapply(seq_along(rv$keywords$keyword), function(kid) {
+          keyword <- rv$keywords$keyword[kid]
+          .val <- rv$keywords$keyword.thesaurus[kid]
 
           textInput(
             ns(paste0("thesaurus-for-", keyword)),
             keyword,
-            value = if (isTruthy(valKT)) valKT else ""
+            value = if (isTruthy(.val)) .val else ""
           )
         })
       )
@@ -232,35 +230,35 @@ Misc <- function(input, output, session,
     validate(
       need(rv$keywords$keyword, "No keyword input")
     )
-    sapply(seq_along(rv$keywords$keyword), function(k_id) {
-      keyword <- rv$keywords$keyword[k_id]
+    sapply(seq_along(rv$keywords$keyword), function(kid) {
+      keyword <- rv$keywords$keyword[kid]
       input_id <- paste0("thesaurus-for-", keyword)
       .val <- if (isTruthy(input[[input_id]])) input[[input_id]] else ""
 
-      rv$keywords$keywordThesaurus[k_id] <- .val
+      rv$keywords$keyword.thesaurus[kid] <- .val
     })
   })
 
   # * Temporal coverage ====
-  if (!is.null(savevar$emlal$Misc$temporal_coverage)) {
-    rv$temporal_coverage <- savevar$emlal$Misc$temporal_coverage
+  if (!is.null(savevar$emlal$Misc$temporal.coverage)) {
+    rv$temporal.coverage <- savevar$emlal$Misc$temporal.coverage
     updateDateRangeInput(
       session,
-      "temporal_coverage",
-      start = rv$temporal_coverage[1],
-      end = rv$temporal_coverage[2]
+      "temporal.coverage",
+      start = rv$temporal.coverage[1],
+      end = rv$temporal.coverage[2]
     )
   }
   observeEvent(input$temporal_coverage, {
-    rv$temporal_coverage <- input$temporal_coverage
+    rv$temporal.coverage <- input$temporal_coverage
   })
 
   # * Additional information ====
-  rv$additional_information <- callModule(
+  rv$additional.information <- callModule(
     Miscellaneous,
-    "additional_information",
+    "additional.information",
     savevar,
-    rv = rv$additional_information
+    rv = rv$additional.information
   )
 
   # Saves -----------------------------------------------------
@@ -269,7 +267,7 @@ Misc <- function(input, output, session,
       isTruthy(rv$abstract$content()) &&
         isTruthy(rv$methods$content()) &&
         isTruthy(rv$keywords$keyword) &&
-        isTruthy(rv$temporal_coverage)
+        isTruthy(rv$temporal.coverage)
     )
   })
 
@@ -294,13 +292,6 @@ Misc <- function(input, output, session,
         savevar = savevar,
         rv = list(Misc = rv)
       )
-
-      # template_annotations(
-      #   savevar$emlal$SelectDP$dp.metadata.path,
-      #   savevar$emlal$SelectDP$dp.data.path,
-      #   dir(savevar$emlal$SelectDP$dp.data.path),
-      #   eml.path = savevar$emlal$SelectDP$dp.eml.path
-      # )
     },
     priority = 1,
     ignoreInit = TRUE

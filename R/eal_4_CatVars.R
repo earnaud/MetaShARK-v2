@@ -56,7 +56,7 @@ CatVars <- function(input, output, session,
   ns <- session$ns
   
   if (main.env$DEV) {
-    onclick("dev",
+shinyjs::onclick("dev",
       {
         req(main.env$EAL$navigate == 4)
         browser()

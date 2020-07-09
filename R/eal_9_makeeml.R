@@ -23,7 +23,7 @@ MakeEMLUI <- function(id, title, dev) {
           width = "50%"
         ),
         textOutput(ns("warnings")),
-        hidden(
+        shinyjs::hidden(
           actionLink(
             ns("bug_report"),
             span("Please report this to the dev", icon("external-link-alt"))
@@ -43,30 +43,12 @@ MakeEMLUI <- function(id, title, dev) {
           column(
             6,
             tags$b("Generate a summary of your data package."),
-            tags$i("(clicking on the below button will open a preview)"), # False ?
-            # radioButtons(
-            #   inputId = ns("format"),
-            #   label = "Chose your output format",
-            #   choices = c("HTML", "PDF"),
-            #   selected = "HTML",
-            #   inline = TRUE,
-            #   width = "50%"
-            # ),
-            # # disabled(
-            # actionButton(
-            #   ns("emldown"),
-            #   "Write emldown",
-            #   icon("file-code"),
-            #   width = "50%"
-            # )
-            # # ),
-            # disabled(
+            tags$i("(clicking on the below button will open a preview)"),
             downloadButton(
               ns("download_emldown"),
               "Download emldown",
               width = "50%"
             )
-            # )
           ) # End of emldown
         )
       )
@@ -86,7 +68,7 @@ MakeEML <- function(input, output, session, savevar, main.env) {
   ns <- session$ns
 
   if (main.env$DEV) {
-    onclick("dev",
+    shinyjs::onclick("dev",
       {
         req(main.env$EAL$navigate == 9)
         browser()
@@ -96,14 +78,14 @@ MakeEML <- function(input, output, session, savevar, main.env) {
   }
 
   # Variable initialization -----------------------------------------------------
-  outFile <- paste0(
+  out.file <- paste0(
     savevar$emlal$SelectDP$dp.path,
     "/emldown/emldown.html"
   )
 
   # Make eml -----------------------------------------------------
   observeEvent(input$make_eml, {
-    hide("bug_report")
+    shinyjs::hide("bug_report")
     req(input$make_eml)
     withProgress(
       {
@@ -111,7 +93,7 @@ MakeEML <- function(input, output, session, savevar, main.env) {
         fileName <- .$SelectDP$dp_title
 
         x <- try(
-          template_arguments(
+          EMLassemblyline::template_arguments(
             path = .$SelectDP$dp_metadata_path,
             data.path = .$SelectDP$dp_data_path,
             data.table = dir(.$SelectDP$dp_data_path)
@@ -149,10 +131,10 @@ MakeEML <- function(input, output, session, savevar, main.env) {
 
           incProgress(0.2)
 
-          test <- 0
+          .test <- 0
           out <- try(
             do.call(
-              make_eml,
+              EMLassemblyline::make_eml,
               x[names(x) %in% names(formals(make_eml))]
             )
           )
@@ -166,7 +148,7 @@ MakeEML <- function(input, output, session, savevar, main.env) {
       value = 0.1
     )
 
-    valid_eml <- eml_validate(
+    valid.eml <- EML::eml_validate(
       dir(
         savevar$emlal$SelectDP$dp.eml.path,
         full.names = TRUE
@@ -182,64 +164,62 @@ MakeEML <- function(input, output, session, savevar, main.env) {
           out[1]
         ),
         need(
-          !isFALSE(valid_eml),
-          unique(attr(valid_eml, "errors"))
+          !isFALSE(valid.eml),
+          unique(attr(valid.eml, "errors"))
         )
       )
-      enable("publish")
-      enable("emldown")
+      shinyjs::enable("publish")
+      shinyjs::enable("emldown")
       return(NULL)
     })
 
     if (class(out) == "try-error" ||
-      isFALSE(valid_eml)) {
-      show("bug_report")
+      isFALSE(valid.eml)) {
+      shinyjs::show("bug_report")
       showNotification("EML invalid", type = "error", duration = NULL)
     } else {
-      hide("bug_report")
+      shinyjs::hide("bug_report")
       showNotification("EML written.", type = "message")
       
       # emldown
-      emlFile <- dir(
+      eml.file <- dir(
         savevar$emlal$SelectDP$dp.eml.path,
         full.names = TRUE,
         pattern = savevar$emlal$SelectDP$dp.title
       )
-      dir.create(dirname(outFile), recursive = TRUE)
+      dir.create(dirname(out.file), recursive = TRUE)
       old.wd <- getwd()
-      setwd(dirname(outFile))
-      out <- render_eml(
-        file = emlFile,
+      setwd(dirname(out.file))
+      out <- emldown::render_eml(
+        file = eml.file,
         open = TRUE,
-        outfile = outFile,
+        out.file = out.file,
         publish_mode = TRUE
       )
       setwd(old.wd)
-      if (file.exists(outFile)) {
+      if (file.exists(out.file)) {
         showNotification("emldown generated", type = "message")
       }
-      
     }
   })
 
   observeEvent(input$bug_report, {
-    browseURL("https://github.com/earnaud/MetaShARK-v2/issues/26")
+    utils::browseURL("https://github.com/earnaud/MetaShARK-v2/issues/26")
   })
 
   # emldown -----------------------------------------------------
   output$download_emldown <- downloadHandler(
     filename = function() {
-      browser()
       paste(
         savevar$emlal$SelectDP$dp.name,
         "_emldown.zip"
       )
     },
     content = function(file) {
-      zip(
+      utils::zip(
         zipfile = file,
         files = dir(
-          dirname(outFile),
+          dirname(out.file),
           recursive = TRUE
         )
       )

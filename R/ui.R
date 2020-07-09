@@ -10,7 +10,7 @@
 .app_ui <- function() {
   
   # get app arguments
-  .app.args <- get_golem_options()
+  .app.args <- golem::get_golem_options()
   dev <- .app.args$dev
   main.env <- .app.args$main.env
   wip <- .app.args$wip
@@ -21,7 +21,7 @@
   # action
   tagList(
     includeCSS(system.file("app/www/styles.css", package = "MetaShARK")),
-    useShinyjs(),
+    shinyjs::useShinyjs(),
     # List the first level UI elements here
     dashboardPage(
       title = "MetaShARK",
@@ -61,7 +61,7 @@
             tabName = "about",
             icon = icon("beer")
           ),
-          hidden( # Ghost tab for options
+          shinyjs::hidden( # Ghost tab for options
             menuItem("settings",
               tabName = "settings",
               icon = icon("gear")
@@ -106,5 +106,5 @@
         )
       ) # end body
     ) # end dashboard
-  ) %>% withSpinner() # end taglist
+  ) %>% shinycssloaders::withSpinner # end taglist
 }

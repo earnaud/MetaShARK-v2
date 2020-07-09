@@ -12,7 +12,7 @@ AttributesUI <- function(id, title, dev) {
         "Even if EML Assembly Line automatically infers most
         of your data's metadata, some steps need you to check
         out. Please check the following attribute, and fill
-        in at least the", with_red_star("mandatory elements.")
+        in at least the", withRedStar("mandatory elements.")
       ),
       # Attributes
       fluidRow(
@@ -70,7 +70,7 @@ Attributes <- function(input, output, session,
   ns <- session$ns
   
   if (main.env$DEV) {
-    onclick("dev",
+shinyjs::onclick("dev",
       {
         req(main.env$EAL$navigate == 3)
         browser()
@@ -450,34 +450,34 @@ Attributes <- function(input, output, session,
             offset = 3,
             textInput(
               ns("modal_id"),
-              label = with_red_star("Unit identifier"),
+              label = withRedStar("Unit identifier"),
               placeholder = "e.g. milligramsPerGram",
               value = if (!is.na(values[1])) values[1] else NULL
             ),
             # unitType
             textInput(
               ns("modal_unitType"),
-              label = with_red_star("Physical property types the unit belongs to"),
+              label = withRedStar("Physical property types the unit belongs to"),
               placeholder = "e.g. mass",
               value = if (!is.na(values[2])) values[2] else NULL
             ),
             # ParentSI
             selectInput(
               ns("modal_parentSI"),
-              label = with_red_star("Parent unit in SI"),
+              label = withRedStar("Parent unit in SI"),
               choices = main.env$FORMATS$units[-1],
               selected = if (!is.na(values[3])) values[3] else NULL
             ),
             # MultiplierToSI
             numericInput(
               ns("modal_multiplier"),
-              label = with_red_star("Numeric multiplier computed from Parent unit in SI"),
+              label = withRedStar("Numeric multiplier computed from Parent unit in SI"),
               value = 1,
             ),
             # Description
             textAreaInput(
               ns("modal_description"),
-              label = with_red_star("Unit description"),
+              label = withRedStar("Unit description"),
               placeholder = "e.g. milligrams per gram",
               value = if (!is.na(values[5])) values[5] else NULL
             )

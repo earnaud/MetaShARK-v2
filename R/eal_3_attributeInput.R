@@ -6,7 +6,7 @@ attributeInputUI <- function(id, colname, value, formats, rv) {
     attributeDefinition = textAreaInput(
       ns(colname),
       value = value,
-      with_red_star("Describe the attribute")
+      withRedStar("Describe the attribute")
     ),
     class = selectInput(
       ns(colname),
@@ -17,7 +17,7 @@ attributeInputUI <- function(id, colname, value, formats, rv) {
     unit = {
       tmp <- selectInput(
         ns(colname),
-        with_red_star("Select an unit"),
+        withRedStar("Select an unit"),
         rv$units.list,
         selected = if (isTruthy(value)) value
       )
@@ -30,7 +30,7 @@ attributeInputUI <- function(id, colname, value, formats, rv) {
     dateTimeFormatString = {
       tmp <- selectInput( # TODO better hour format
         ns(colname),
-        with_red_star("Select a date format"),
+        withRedStar("Select a date format"),
         unique(c(value, formats$DATE)),
         selected = value
       )
