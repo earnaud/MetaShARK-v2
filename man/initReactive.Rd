@@ -5,20 +5,20 @@
 \alias{saveReactive}
 \title{initReactive}
 \usage{
-initReactive(sublist = NULL, savevar = NULL, main.env)
+initReactive(sub.list = NULL, save.variable = NULL, main.env)
 
-saveReactive(savevar, rv = NULL, main.env = NULL)
+saveReactive(save.variable, rv = NULL, main.env = NULL)
 }
 \arguments{
-\item{sublist}{either NULL, "emlal", "metafin" to precise which sublist to initialize (NULL initializes the whole variable)}
+\item{sub.list}{either NULL, "emlal", "metafin" to precise which sub.list to initialize (NULL initializes the whole variable)}
 }
 \value{
-`savevar` modified.
+`save.variable` modified.
 }
 \description{
-EMLAL module specific function. Initialize `savevar` variable.
+EMLAL module specific function. Initialize `save.variable` variable.
 
-save the `savevar` variable at wanted location
+save the `save.variable` variable at wanted location
 }
 \section{Functions}{
 \itemize{

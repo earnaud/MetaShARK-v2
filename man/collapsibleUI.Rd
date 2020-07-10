@@ -5,12 +5,14 @@
 \alias{collapsible}
 \title{collapsibleUI}
 \usage{
-collapsibleUI(id, label, hidden = TRUE, ..., class = NULL)
+collapsibleUI(id, label, .hidden = TRUE, ..., class = NULL)
 
 collapsible(input, output, session)
 }
 \arguments{
 \item{label}{character. A label appearing on the clickable link.}
+
+\item{.hidden}{logical. A flag to make the UI display as collapsed or not.}
 
 \item{...}{shiny UI elements. Any UI element displayed as core content.}
 

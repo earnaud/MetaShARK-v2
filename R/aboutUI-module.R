@@ -1,8 +1,6 @@
-#' @title aboutUI
-#'
-#' @description UI part of the about module.
-#'
 #' @import shiny
+#' 
+#' @noRd
 aboutUI <- function(id) {
   ns <- NS(id)
 
@@ -10,7 +8,7 @@ aboutUI <- function(id) {
     tags$h1("About MetaShARK dev team"),
     HTML("MetaShARK is developped within the french Museum National 
           d'Histoire Naturelle / UMS Patrimoine Naturel / Pole 
-          National de Biodiversité. Its development team is currently
+          National de Biodiversite. Its development team is currently
           composed of <a href='https://fr.linkedin.com/in/elie-arnaud-440132151?trk=people-guest_profile-result-card_result-card_full-click'>Elie Arnaud</a>
           (lead developer) and <a href ='https://fr.linkedin.com/in/yvan-le-bras-aa2b3738?trk=people-guest_profile-result-card_result-card_full-click'>Yvan Le Bras</a> (team director)."),
 

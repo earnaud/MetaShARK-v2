@@ -13,7 +13,7 @@
 #' @param formats List of DataONE CN supported [formats](https://cn.dataone.org/cn/v2/formats)
 #'
 #' @importFrom dataone generateIdentifier CNode MNode D1Client uploadDataPackage
-#' @importFrom datapack DataObject-class DataPackage-class addMember
+#' @importFrom datapack addMember
 #' @importFrom EML read_eml write_eml eml_validate
 #' @importFrom mime guess_type
 uploadDP <- function(
@@ -41,12 +41,12 @@ uploadDP <- function(
   # # Write DP -----------------------------------------------------
 
   # set data package
-  dp <- new("DataPackage")
+  dp <- methods::new("DataPackage")
 
   message("Metadata")
 
   # Add metadata to the data package
-  metadataObj <- new(
+  metadataObj <- methods::new(
     "DataObject",
     # id = if(use.doi) doi else NULL,
     format = eml$format,
@@ -61,7 +61,7 @@ uploadDP <- function(
     seq(data$file),
     function(d, metadataObj = metadataObj) {
       # add data object
-      dataObj <- new(
+      dataObj <- methods::new(
         "DataObject",
         format = data$format[d],
         filename = data$file[d]
@@ -78,7 +78,7 @@ uploadDP <- function(
     progObjs <- sapply(
       seq(scripts$file),
       function(s, metadataObj = metadataObj) {
-        progObj <- new(
+        progObj <- methods::new(
           "DataObject",
           format = scripts$format[s],
           filename = scripts$file[s]
@@ -123,11 +123,9 @@ uploadDP <- function(
   return(packageId)
 }
 
-#' @title describeWorkflowUI
-#'
-#' @description UI part of the script-data workflow-describing linking module (in upload).
-#'
 #' @import shiny
+#' 
+#' @noRd
 describeWorkflowUI <- function(id, sources, targets) {
   ns <- NS(id)
 
@@ -145,11 +143,9 @@ describeWorkflowUI <- function(id, sources, targets) {
   )
 }
 
-#' @describeIn  describeWorkflowUI
-#'
-#' @description server part of the script-data workflow-describing linking module (in upload).
-#'
 #' @import shiny
+#' 
+#' @noRd
 describeWorkflow <- function(input, output, session) {
   ns <- session$ns
   rv <- reactiveValues()

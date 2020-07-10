@@ -1,14 +1,10 @@
-#' @title docUI
-#'
-#' @description UI part of the documentation module
-#'
 #' @import shiny
 #' @importFrom shinydashboard box
 #' @importFrom shinyTree shinyTree
+#' 
+#' @noRd
 docUI <- function(id) {
   ns <- NS(id)
-
-  require(shinyTree)
 
   # UI output
   tagList(
@@ -43,13 +39,11 @@ docUI <- function(id) {
   )
 }
 
-#' @title documentation
-#'
-#' @description server part of the documentation module.
-#'
 #' @import shiny
 #' @importFrom shinyTree renderTree get_selected
 #' @importFrom jsonlite read_json unserializeJSON
+#' 
+#' @noRd
 documentation <- function(input, output, session) {
   ns <- session$ns
 

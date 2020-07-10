@@ -7,7 +7,8 @@
 makeReactiveTrigger()
 }
 \description{
-create a 'reactiveTrigger' object (NOT a proper R class) with two methods:
+c
+Create a 'reactiveTrigger' object (NOT a proper R class) with two methods:
 1. depend() : must be written in a code chunk to execute on triggering
 2. trigger() : when executed, trigger the object (and all the "depending" code chunks)
 This function is freely reused from Dean Attali's work.

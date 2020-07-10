@@ -5,9 +5,9 @@
 \alias{GeoCovInput}
 \title{Geographic coverage modular Input}
 \usage{
-GeoCovInputUI(id, site_id, rmv_id, default = NULL)
+GeoCovInputUI(id, site.id, rmv.id, default = NULL)
 
-GeoCovInput(input, output, session, rv, rmv_id, site_id, ref)
+GeoCovInput(input, output, session, rv, rmv.id, site.id, ref)
 }
 \description{
 UI part for the Geographic Coverage modular input, used

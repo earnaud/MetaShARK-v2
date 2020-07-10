@@ -8,13 +8,13 @@
 \alias{prevTab}
 \title{navSidebar}
 \usage{
-navSidebar(id, main.env, savevar)
+navSidebar(id, main.env, save.variable)
 
-onQuit(input, output, session, main.env, savevar, NSB)
+onQuit(input, output, session, main.env, save.variable, NSB)
 
-onSave(input, output, session, savevar, NSB)
+onSave(input, output, session, save.variable, NSB)
 
-nextTab(input, output, session, main.env, savevar, NSB)
+nextTab(input, output, session, main.env, save.variable, NSB)
 
 prevTab(input, output, session, main.env, NSB)
 }
@@ -23,7 +23,7 @@ prevTab(input, output, session, main.env, NSB)
 
 \item{main.env}{MetaShARK main.env variable}
 
-\item{savevar}{MetaShARK savevar variable}
+\item{save.variable}{MetaShARK savevar variable}
 }
 \description{
 server part for shiny navigation sidebar module (see [navSidebar()]).

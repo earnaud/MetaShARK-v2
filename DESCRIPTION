@@ -38,7 +38,15 @@ Imports:
     config,
     markdown,
     stringr,
-    rorcid
+    rorcid,
+    cedarr,
+    emldown,
+    gdata,
+    jsonlite,
+    tagsinput,
+    taxonomyCleanr,
+    methods,
+    utils
 Remotes:
     ThinkR-open/tagsinput,
     ropenscilabs/emldown

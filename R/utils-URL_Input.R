@@ -2,6 +2,11 @@
 #'
 #' @description URL Shiny input module.
 #'
+#' @param id (character) shiny module inputId.
+#' @param label (character) display label for the control, or NULL for no label.
+#' @param width	(character) the width of the input, e.g. '400px', or '100%'; see
+#' validateCssUnit().
+#'
 #' @return (output of `callModule`) If input is a valid URL (regex-tested + curl-tested), returns input.
 #' Else, returns NA.
 #'
@@ -27,7 +32,7 @@ URL_Input <- function(input, output, session) {
 
   # actions
   observeEvent(input$url, {
-    is.url <- url.exists(input$url)
+    is.url <- RCurl::url.exists(input$url)
 
     output$warnings <- renderText({
       validate(

@@ -5,6 +5,7 @@
 #'
 #' @param inputId character. The input slot that will be used to access the value.
 #' @param label character. Display label for the control, or NULL for no label.
+#' @param icon 	character. An optional `icon()` to appear on the button.
 #' @param preview logical. Shall a preview panel appear? (right-sided, 50\% width)
 #' @param value character. Initial value of the text input (default to "")
 #'
@@ -12,6 +13,7 @@
 #'
 #' @references Ace technologies \url{https://ace.c9.io/#nav=about}
 #'
+#' @import shiny
 #' @importFrom shinyAce aceEditor
 #'
 #' @examples
@@ -55,6 +57,7 @@ markdownInputUI <- function(inputId, label = "Text", icon = TRUE, preview = FALS
 
 #' @describeIn markdownInputUI Server side of the module.
 #'
+#' @import shiny
 #' @importFrom markdown markdownToHTML
 markdownInput <- function(input, output, session, preview = FALSE) {
   rv <- reactive({

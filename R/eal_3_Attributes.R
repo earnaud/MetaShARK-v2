@@ -3,6 +3,8 @@
 #' @description UI part of the Attributes module. Fill in the attributes of the data package
 #'
 #' @import shiny
+#' 
+#' @noRd
 AttributesUI <- function(id, title, dev) {
   ns <- NS(id)
   
@@ -61,12 +63,11 @@ AttributesUI <- function(id, title, dev) {
 #'
 #' @importFrom data.table fwrite
 #' @import shiny
-#' observe eventReactive validate
 #' @importFrom shinyjs hide show enable disable onclick
 #' @importFrom EMLassemblyline template_categorical_variables template_geographic_coverage
 #' @importFrom shinyBS bsCollapse bsCollapsePanel updateCollapse
 Attributes <- function(input, output, session,
-  savevar, main.env, NSB){
+  save.variable, main.env, NSB){
   ns <- session$ns
   
   if (main.env$DEV) {
@@ -79,7 +80,7 @@ shinyjs::onclick("dev",
     )
   }
   
-  if (main.env$DEV || isTRUE(savevar$emlal$quick)) {
+  if (main.env$DEV || isTRUE(save.variable$emlal$quick)) {
     .fill <- function(rv = rv) {
       lapply(seq(rv$tables), function(ind) {
         .table <- rv$tables[[ind]]
@@ -131,9 +132,9 @@ shinyjs::onclick("dev",
   
   # variable initialization -----------------------------------------------------
   rv <- reactiveValues(
-    data.filepath = savevar$emlal$DataFiles$datapath,
-    filepath = savevar$emlal$DataFiles$metadatapath,
-    filenames = basename(savevar$emlal$DataFiles$metadatapath),
+    data.filepath = save.variable$emlal$DataFiles$datapath,
+    filepath = save.variable$emlal$DataFiles$metadatapath,
+    filenames = basename(save.variable$emlal$DataFiles$metadatapath),
     current.file = 1,
     tables = NULL,
     current.table = NULL,
@@ -155,15 +156,15 @@ shinyjs::onclick("dev",
   rv$current.table <- rv$tables[[rv$current.file]]
   rv$cu.table <- readDataTable(
     dir(
-      savevar$emlal$SelectDP$dp.metadata.path,
+      save.variable$emlal$SelectDP$dp.metadata.path,
       pattern = "ustom",
       full.names = TRUE
     ),
     stringsAsFactors = FALSE,
   )
   rv$units.list <- main.env$FORMATS$units
-  if (checkTruth(savevar$emlal$Attributes$annotations)) {
-    rv$annotations$values <- savevar$emlal$Attributes$annotations
+  if (checkTruth(save.variable$emlal$Attributes$annotations)) {
+    rv$annotations$values <- save.variable$emlal$Attributes$annotations
     rv$annotations$count <- nrow(rv$annotations$values)
   }
   else {
@@ -175,11 +176,12 @@ shinyjs::onclick("dev",
       predicate_label = character(),
       predicate_uri = character(),
       object_label = character(),
-      object_uri = character()
+      object_uri = character(),
+      stringsAsFactors = FALSE
     )
   }
   
-  if (isTRUE(savevar$emlal$quick)) {
+  if (isTRUE(save.variable$emlal$quick)) {
     rv <- .fill(rv)
   }
   
@@ -285,9 +287,9 @@ shinyjs::onclick("dev",
           lapply(
             seq(dim(.current.table)[1]), # rows
             fields = colnames(.current.table),
-            function(row_index, fields) {
+            function(row.index, fields) {
               # prepare variables
-              attribute.row <- .current.table[row_index, ]
+              attribute.row <- .current.table[row.index, ]
               
               return(
                 bsCollapsePanel(
@@ -298,10 +300,10 @@ shinyjs::onclick("dev",
                       # Input ====
                       lapply(fields[-1], function(colname) {
                         # prepare var
-                        saved.value <- .current.table[row_index, colname]
+                        saved.value <- .current.table[row.index, colname]
                         inputId <- paste(
                           isolate(rv$current.file),
-                          row_index,
+                          row.index,
                           sep = "-"
                         )
                         
@@ -322,7 +324,7 @@ shinyjs::onclick("dev",
                       tableOutput(
                         ns(paste0(
                           "preview-", 
-                          colnames(rv$current.preview)[row_index]
+                          colnames(rv$current.preview)[row.index]
                         ))
                       ),
                       tags$hr(),
@@ -332,7 +334,7 @@ shinyjs::onclick("dev",
                       #     ns(paste(
                       #       "annotate",
                       #       isolate(rv$current.file),
-                      #       row_index,
+                      #       row.index,
                       #       sep = "-"
                       #     ))
                       #   ),
@@ -343,7 +345,7 @@ shinyjs::onclick("dev",
                 ) # end of bsCollapsePanel
               ) # end of return
             }
-          ), # end of lapply : row_index
+          ), # end of lapply : row.index
           id = ns("collapse")
         )
       )
@@ -368,7 +370,7 @@ shinyjs::onclick("dev",
         #   )
         
         # Preview ====
-        preview.column <- colnames(rv$current.preview)[row_index]
+        preview.column <- colnames(rv$current.preview)[row.index]
         output[[paste0("preview-", preview.column)]] <- renderTable(rv$current.preview[[preview.column]])
         
         # Annotate ====
@@ -381,7 +383,7 @@ shinyjs::onclick("dev",
         # 
         # .tmp <- callModule(
         #   annotate, annotateId,
-        #   savevar, main.env, rv, row.index
+        #   save.variable, main.env, rv, row.index
         # )
         
         # Input ====
@@ -403,7 +405,7 @@ shinyjs::onclick("dev",
           )
         }) # end of lapply colname
       } # end of *in situ* function
-    ) # end of sapply : row_index
+    ) # end of sapply : row.index
   }) # end of observeEvent
   
   # Custom units ----
@@ -425,7 +427,7 @@ shinyjs::onclick("dev",
     if (class == "numeric" &&
         modal.on == FALSE) {
       rv$cu.values <- rv$cu.table %>%
-        filter(grepl(class, id))
+        dplyr::filter(grepl(class, id))
       if (any(dim(rv$cu.values) == 0)) {
         rv$cu.values <- rep(NA, 5)
       }
@@ -551,8 +553,8 @@ shinyjs::onclick("dev",
       # Update CU values
       if (rv$cu.values[1] %in% rv$cu.table$id) {
         rv$cu.table <- rv$cu.table %>%
-          filter(id = rv$cu.values[1]) %>%
-          replace(values = rv$cu.values)
+          dplyr::filter(id = rv$cu.values[1]) %>%
+          base::replace(values = rv$cu.values)
       } # Add CU values
       else {
         names(rv$cu.values) <- colnames(rv$cu.table)
@@ -616,10 +618,10 @@ shinyjs::onclick("dev",
   
   observeEvent(NSB$SAVE,
     {
-      req(tail(main.env$EAL$history, 1) == "Attributes")
+      req(utils::tail(main.env$EAL$history, 1) == "Attributes")
       
-      savevar <- saveReactive(
-        savevar = savevar,
+      save.variable <- saveReactive(
+        save.variable = savevar,
         rv = list(Attributes = rv)
       )
     },
@@ -654,8 +656,8 @@ shinyjs::onclick("dev",
       withProgress({
         setProgress(0.5, "Saving metadata")
         
-        savevar <- saveReactive(
-          savevar = savevar,
+        save.variable <- saveReactive(
+          save.variable = savevar,
           rv = list(Attributes = rv)
         )
         
@@ -676,8 +678,8 @@ shinyjs::onclick("dev",
         if (isTRUE(.do.template.catvars)) {
           try(
             EMLassemblyline::template_categorical_variables(
-              path = savevar$emlal$SelectDP$dp.metadata.path,
-              data.path = savevar$emlal$SelectDP$dp.data.path
+              path = save.variable$emlal$SelectDP$dp.metadata.path,
+              data.path = save.variable$emlal$SelectDP$dp.data.path
             )
           )
         }
@@ -685,8 +687,8 @@ shinyjs::onclick("dev",
         setProgress(0.9, "Templating geographic coverage")
         try(
           EMLassemblyline::template_geographic_coverage(
-            path = savevar$emlal$SelectDP$dp.metadata.path,
-            data.path = savevar$emlal$SelectDP$dp.data.path,
+            path = save.variable$emlal$SelectDP$dp.metadata.path,
+            data.path = save.variable$emlal$SelectDP$dp.data.path,
             empty = TRUE,
             write.file = TRUE
           )
@@ -703,5 +705,5 @@ shinyjs::onclick("dev",
   )
   
   # Output -----------------------------------------------------
-  return(savevar)
+  return(save.variable)
 }

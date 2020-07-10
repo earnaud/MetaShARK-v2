@@ -1,10 +1,7 @@
-#' @title MiscellaneousUI
-#'
-#' @description
-#'
 #' @import shiny
-#' textOutput div tagList
 #' @importFrom shinyFiles shinyFilesButton
+#' 
+#' @noRd
 MiscellaneousUI <- function(id, help.label = NULL, value = "") {
   ns <- NS(id)
 
@@ -41,11 +38,11 @@ MiscellaneousUI <- function(id, help.label = NULL, value = "") {
   ) # end of fluidRow
 }
 
-#' @title Miscellaneous
-#'
 #' @import shiny
 #' @importFrom shinyAce updateAceEditor
-Miscellaneous <- function(input, output, session, savevar, rv) {
+#' 
+#' @noRd
+Miscellaneous <- function(input, output, session, save.variable, rv) {
   # Variable initialization -----------------------------------------------------
   ns <- session$ns
 

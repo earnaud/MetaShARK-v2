@@ -1,9 +1,7 @@
-#' @title Geographic coverage
-#'
-#' @description UI part for the Geographic Coverage module
-#'
 #' @import shiny
 #' @importFrom shinyjs hidden
+#' 
+#' @noRd
 GeoCovUI <- function(id, title, dev) {
   ns <- NS(id)
 
@@ -53,7 +51,7 @@ GeoCovUI <- function(id, title, dev) {
                     id = ns("slider_tips"),
                     HTML("You can detail a more precise number by using the 
                       left/right (or down/up) arrows of your keyboard. Precision 
-                      can be given at 0.01°. Items can be removed by using the
+                      can be given at 0.01 &#176. Items can be removed by using the
                       Delete (&#9003) key."),
                     style = "position: left"
                   )
@@ -69,18 +67,15 @@ GeoCovUI <- function(id, title, dev) {
   ) # end of return
 }
 
-#' @title Geographic coverage
-#'
-#' @description server part for the Geographic Coverage module
-#'
 #' @import shiny
-#' updateSelectInput updateSelectizeInput
 #' @importFrom shinyBS updateCollapse
 #' @importFrom stringr str_extract_all
 #' @importFrom dplyr %>%
 #' @importFrom EMLassemblyline template_geographic_coverage
 #' @importFrom shinyjs onclick show
-GeoCov <- function(input, output, session, savevar, main.env, NSB) {
+#' 
+#' @noRd
+GeoCov <- function(input, output, session, save.variable, main.env, NSB) {
   ns <- session$ns
   
   if (main.env$DEV) {
@@ -130,9 +125,9 @@ GeoCov <- function(input, output, session, savevar, main.env, NSB) {
       complete = FALSE
     )
   )
-  if(isTruthy(savevar$emlal$GeoCov) &&
-      isTruthy(names(savevar$emlal$GeoCov))){
-    . <- isolate(savevar$emlal$GeoCov)
+  if(isTruthy(save.variable$emlal$GeoCov) &&
+      isTruthy(names(save.variable$emlal$GeoCov))){
+    . <- isolate(save.variable$emlal$GeoCov)
     if(names(.) == "columns"){
       rv$columns <- .$columns
     }
@@ -144,34 +139,34 @@ GeoCov <- function(input, output, session, savevar, main.env, NSB) {
   # Pre-fill -----------------------------------------------------
   # * Set choices ====
   columns <- lapply(
-    seq_along(savevar$emlal$Attributes),
+    seq_along(save.variable$emlal$Attributes),
     function(n) {
       .tmp <- paste(
-        savevar$emlal$Attributes[[n]]$attributeName,
-        savevar$emlal$DataFiles$name[n],
+        save.variable$emlal$Attributes[[n]]$attributeName,
+        save.variable$emlal$DataFiles$name[n],
         sep = "///"
       )
-      names(.tmp) <- savevar$emlal$Attributes[[n]]$attributeName
+      names(.tmp) <- save.variable$emlal$Attributes[[n]]$attributeName
       return(.tmp)
     }
   )
-  names(columns) <- savevar$emlal$DataFiles$name
+  names(columns) <- save.variable$emlal$DataFiles$name
   
   columns.coordinates <- lapply(
-    seq_along(savevar$emlal$Attributes),
+    seq_along(save.variable$emlal$Attributes),
     function(n) {
-      .ind <- which(savevar$emlal$Attributes[[n]]$class == "numeric")
+      .ind <- which(save.variable$emlal$Attributes[[n]]$class == "numeric")
       
       .tmp <- paste(
-        savevar$emlal$Attributes[[n]]$attributeName[.ind],
-        savevar$emlal$DataFiles$name[n],
+        save.variable$emlal$Attributes[[n]]$attributeName[.ind],
+        save.variable$emlal$DataFiles$name[n],
         sep = "///"
       )
-      names(.tmp) <- savevar$emlal$Attributes[[n]]$attributeName[.ind]
+      names(.tmp) <- save.variable$emlal$Attributes[[n]]$attributeName[.ind]
       return(.tmp)
     }
   )
-  names(columns.coordinates) <- savevar$emlal$DataFiles$name
+  names(columns.coordinates) <- save.variable$emlal$DataFiles$name
 
   observeEvent(rv$columns$choices$files, 
     {
@@ -190,24 +185,24 @@ GeoCov <- function(input, output, session, savevar, main.env, NSB) {
   )
   
   # * Read saved values ----
-  if (isTRUE(grepl("columns", names(savevar$emlal$GeoCov)))) {
-    site.name <- savevar$emlal$GeoCov$columns$site$col
-    lat.col <- savevar$emlal$GeoCov$columns$lat$col
-    lon.col <- savevar$emlal$GeoCov$columns$lon$col
+  if (isTRUE(grepl("columns", names(save.variable$emlal$GeoCov)))) {
+    site.name <- save.variable$emlal$GeoCov$columns$site$col
+    lat.col <- save.variable$emlal$GeoCov$columns$lat$col
+    lon.col <- save.variable$emlal$GeoCov$columns$lon$col
     
     if (any(grepl(site.name, columns)))
-      rv$columns$site <- savevar$emlal$GeoCov$columns$site
+      rv$columns$site <- save.variable$emlal$GeoCov$columns$site
     if (any(grepl(lat.col, columns.coordinates))){
-      rv$columns$lat$col <- savevar$emlal$GeoCov$columns$lat$col
-      rv$columns$lat$file <- savevar$emlal$GeoCov$columns$lat$file
+      rv$columns$lat$col <- save.variable$emlal$GeoCov$columns$lat$col
+      rv$columns$lat$file <- save.variable$emlal$GeoCov$columns$lat$file
     }
     if (any(grepl(lon.col, columns.coordinates))){
-      rv$columns$lon$col <- savevar$emlal$GeoCov$columns$lon$col
-      rv$columns$lon$file <- savevar$emlal$GeoCov$columns$lon$file
+      rv$columns$lon$col <- save.variable$emlal$GeoCov$columns$lon$col
+      rv$columns$lon$file <- save.variable$emlal$GeoCov$columns$lon$file
     }
   }
-  if (isTRUE(grepl("custom", names(savevar$emlal$GeoCov)))) {
-    saved_table <- savevar$emlal$GeoCov$custom$coordinates
+  if (isTRUE(grepl("custom", names(save.variable$emlal$GeoCov)))) {
+    saved_table <- save.variable$emlal$GeoCov$custom$coordinates
     if (all(dim(saved_table) != 0)) {
       rv$custom$coordinates <- saved_table
     }
@@ -451,10 +446,10 @@ GeoCov <- function(input, output, session, savevar, main.env, NSB) {
 
   observeEvent(NSB$SAVE,
     {
-      req(tail(main.env$EAL$history, 1) == "Geographic Coverage")
+      req(utils::tail(main.env$EAL$history, 1) == "Geographic Coverage")
 
-      savevar <- saveReactive(
-        savevar,
+      save.variable <- saveReactive(
+        save.variable,
         rv = list(GeoCov = rv),
         main.env = main.env
       )
@@ -527,13 +522,13 @@ GeoCov <- function(input, output, session, savevar, main.env, NSB) {
     if(.method == "custom")
       rv$columns$complete <- FALSE
     
-    savevar <- saveReactive(
-      savevar,
+    save.variable <- saveReactive(
+      save.variable,
       rv = list(GeoCov = rv),
       main.env = main.env
     )
   }, ignoreInit = TRUE)
 
   # Output -----------------------------------------------------
-  return(savevar)
+  return(save.variable)
 }

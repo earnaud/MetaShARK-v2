@@ -1,10 +1,7 @@
-#' @title Data Package selection
-#'
-#' @description UI part for the Data Package selection. Allow the user to choose between
-#' creating a new data package or loading an existing one.
-#'
 #' @import shiny
 #' @importFrom shinyFiles shinyDirButton
+#' 
+#' @noRd
 SelectDPUI <- function(id, width = 12, dev = FALSE) {
   ns <- NS(id)
 
@@ -131,17 +128,14 @@ SelectDPUI <- function(id, width = 12, dev = FALSE) {
   ) # end return
 }
 
-#' @title Data Package selection
-#'
-#' @description UI part for the Data Package selection. Allow the user to choose between
-#' creating a new data package or loading an existing one.
-#'
 #' @import shiny
 #' @importFrom shinyFiles getVolumes shinyDirChoose parseDirPath
 #' @importFrom shinyjs enable disable onclick
 #' @importFrom EMLassemblyline template_directories template_core_metadata
 #' @importFrom jsonlite read_json unserializeJSON
-SelectDP <- function(input, output, session, savevar, main.env) {
+#' 
+#' @noRd
+SelectDP <- function(input, output, session, save.variable, main.env) {
   ns <- session$ns
 
   if (main.env$dev) {
@@ -208,7 +202,8 @@ SelectDP <- function(input, output, session, savevar, main.env) {
               creator.orcid = main.env$SETTINGS$user,
               name = dp,
               title = dp,
-              path = gsub("/+","/", .dp.path[which(.dp.list == dp)])
+              path = gsub("/+","/", .dp.path[which(.dp.list == dp)]),
+              stringsAsFactors = FALSE
             )
             
             .index <- rbind(.index, .tmp)
@@ -293,7 +288,7 @@ SelectDP <- function(input, output, session, savevar, main.env) {
     },
     content = function(file) {
       .path <- getwd()
-      setwd(globals$DEFAULT.PATH)
+      setwd(main.env$PATHS$eal.dp)
       utils::zip(
         zipfile = file,
         files = dir(
@@ -415,14 +410,14 @@ SelectDP <- function(input, output, session, savevar, main.env) {
     withProgress(
       {
         # save in empty dedicated variable
-        savevar$emlal <- initReactive("emlal", savevar, main.env$EAL)
-        savevar$emlal$SelectDP$dp.name <- dp
-        savevar$emlal$SelectDP$dp.path <- path
-        savevar$emlal$SelectDP$dp.metadata.path <- paste(path, dp, "metadata_templates", sep = "/")
-        savevar$emlal$SelectDP$dp.data.path <- paste(path, dp, "data_objects", sep = "/")
-        savevar$emlal$SelectDP$dp.eml.path <- paste(path, dp, "eml", sep = "/")
-        savevar$emlal$SelectDP$dp.title <- title
-        savevar$emlal$quick <- input$quick
+        save.variable$emlal <- initReactive("emlal", savevar, main.env$EAL)
+        save.variable$emlal$SelectDP$dp.name <- dp
+        save.variable$emlal$SelectDP$dp.path <- path
+        save.variable$emlal$SelectDP$dp.metadata.path <- paste(path, dp, "metadata_templates", sep = "/")
+        save.variable$emlal$SelectDP$dp.data.path <- paste(path, dp, "data_objects", sep = "/")
+        save.variable$emlal$SelectDP$dp.eml.path <- paste(path, dp, "eml", sep = "/")
+        save.variable$emlal$SelectDP$dp.title <- title
+        save.variable$emlal$quick <- input$quick
         incProgress(0.2)
 
         dir.create(path, recursive = TRUE)
@@ -433,7 +428,8 @@ SelectDP <- function(input, output, session, savevar, main.env) {
             creator.orcid = main.env$SETTINGS$user,
             name = dp,
             title = title,
-            path = path
+            path = path,
+            stringsAsFactors = FALSE
           )
         )
         incProgress(0.2)
@@ -441,14 +437,14 @@ SelectDP <- function(input, output, session, savevar, main.env) {
         # EAL template import
         try(
           EMLassemblyline::template_directories(
-            savevar$emlal$SelectDP$dp.path,
-            savevar$emlal$SelectDP$dp.name
+            save.variable$emlal$SelectDP$dp.path,
+            save.variable$emlal$SelectDP$dp.name
           )
         )
         incProgress(0.2)
         x <- try(
           EMLassemblyline::template_core_metadata(
-            savevar$emlal$SelectDP$dp.metadata.path,
+            save.variable$emlal$SelectDP$dp.metadata.path,
             license
           )
         )
@@ -457,11 +453,11 @@ SelectDP <- function(input, output, session, savevar, main.env) {
         if (class(x) != "try-error") {
           rv$dp.list <- c(rv$dp.list, dp)
           main.env$EAL$navigate <- main.env$EAL$navigate + 1
-          saveReactive(savevar)
+          saveReactive(save.variable)
           incProgress(0.2)
         } else {
           unlink(path, recursive = TRUE)
-          savevar <- initReactive(glob = main.env$EAL)
+          save.variable <- initReactive(main.env = main.env$EAL)
           incProgress(0.2)
           showNotification(x, type = "error")
         }
@@ -485,59 +481,59 @@ SelectDP <- function(input, output, session, savevar, main.env) {
     )
 
     # actions
-    savevar$emlal <- initReactive("emlal", savevar, main.env$EAL)
+    save.variable$emlal <- initReactive("emlal", savevar, main.env$EAL)
 
-    .savevar <- jsonlite::read_json(paste0(path, "/", dp, ".json"))[[1]] %>%
+    .save.variable <- jsonlite::read_json(paste0(path, "/", dp, ".json"))[[1]] %>%
       jsonlite::unserializeJSON()
-    savevar$emlal <- setSavevar(.savevar$emlal, savevar$emlal)
+    save.variable$emlal <- setSavevar(.savevar$emlal, savevar$emlal)
 
     # Update paths from another file system
     # * selectDP
     sapply(
-      names(savevar$emlal$SelectDP),
+      names(save.variable$emlal$SelectDP),
       function(.dp.item){
-        savevar$emlal$SelectDP[[.dp.item]] <- gsub(
+        save.variable$emlal$SelectDP[[.dp.item]] <- gsub(
           pattern=".*/dataPackagesOutput/emlAssemblyLine/", 
           replacement = rv$dp.location,
-          savevar$emlal$SelectDP[[.dp.item]]
+          save.variable$emlal$SelectDP[[.dp.item]]
         )
       }
     )
     # * datafiles
-    if(isTruthy(savevar$emlal$DataFiles)){
-      sapply(names(savevar$emlal$DataFiles), function(col){
-        savevar$emlal$DataFiles[,col] <- gsub(
+    if(isTruthy(save.variable$emlal$DataFiles)){
+      sapply(names(save.variable$emlal$DataFiles), function(col){
+        save.variable$emlal$DataFiles[,col] <- gsub(
           pattern=".*/dataPackagesOutput/emlAssemblyLine/", 
           replacement = rv$dp.location,
-          savevar$emlal$DataFiles[,col]
+          save.variable$emlal$DataFiles[,col]
         )
         if(col == "size")
-          savevar$emlal$DataFiles[,col] <- as.integer(
-            savevar$emlal$DataFiles[,col]
+          save.variable$emlal$DataFiles[,col] <- as.integer(
+            save.variable$emlal$DataFiles[,col]
           )
       })
     }
     # * misc
-    if(isTruthy(savevar$emlal$Misc$abstract)){
-      savevar$emlal$Misc$abstract <- gsub(
+    if(isTruthy(save.variable$emlal$Misc$abstract)){
+      save.variable$emlal$Misc$abstract <- gsub(
         ".*/dataPackagesOutput/emlAssemblyLine/",
         rv$dp.location,
-        savevar$emlal$Misc$abstract
+        save.variable$emlal$Misc$abstract
       )
-      savevar$emlal$Misc$methods <- gsub(
+      save.variable$emlal$Misc$methods <- gsub(
         ".*/dataPackagesOutput/emlAssemblyLine/",
         rv$dp.location,
-        savevar$emlal$Misc$methods
+        save.variable$emlal$Misc$methods
       )
-      savevar$emlal$Misc$additional.information <- gsub(
+      save.variable$emlal$Misc$additional.information <- gsub(
         ".*/dataPackagesOutput/emlAssemblyLine/",
         rv$dp.location,
-        savevar$emlal$Misc$additional.information
+        save.variable$emlal$Misc$additional.information
       )
     }
     
     # TODO remove this later : update history
-    savevar$emlal$history <- sapply(savevar$emlal$history, function(h) {
+    save.variable$emlal$history <- sapply(savevar$emlal$history, function(h) {
       switch(h,
         create = "Select Data Package",
         DataFiles = "Data Files",
@@ -549,14 +545,14 @@ SelectDP <- function(input, output, session, savevar, main.env) {
         h
       )
     }) %>% unname()
-    savevar$emlal$quick <- isTRUE(savevar$emlal$quick)
+    save.variable$emlal$quick <- isTRUE(savevar$emlal$quick)
     
     # resume where max reached
-    main.env$EAL$navigate <- if(savevar$emlal$step > 1)
+    main.env$EAL$navigate <- if(save.variable$emlal$step > 1)
       -1
     else
       main.env$EAL$navigate + 1
-    main.env$EAL$HISTORY <- savevar$emlal$history
+    main.env$EAL$HISTORY <- save.variable$emlal$history
     shinyjs::enable("dp_load")
   })
 
@@ -604,14 +600,12 @@ SelectDP <- function(input, output, session, savevar, main.env) {
   })
 
   # Output -----------------------------------------------------
-  return(savevar)
+  return(save.variable)
 }
 
-#' @describeIn SelectDPUI
-#'
-#' Sets up a DP from a pre-written EML file.
-#'
-#' @importFrom EML read_eml
-loadFromDP <- function(savevar, file) {
-  loaded.eml <- read_eml(file)
-}
+# @importFrom EML read_eml
+#
+# @noRd
+# loadFromDP <- function(save.variable, file) {
+#   loaded.eml <- read_eml(file)
+# }

@@ -1,8 +1,6 @@
-#' @title Fill
-#'
-#' @description server part of the fill module. Root script for whole module (comprise EML AL and MetaFIN)
-#'
 #' @import shiny
+#' 
+#' @noRd
 fillUI <- function(id, dev = FALSE) {
   ns <- NS(id)
   tabsetPanel(
@@ -12,22 +10,22 @@ fillUI <- function(id, dev = FALSE) {
   )
 }
 
-#' @describeIn fillUI
-#'
 #' @import shiny
+#' 
+#' @noRd
 fill <- function(input, output, session, main.env) {
   ns <- session$ns
   # variable initialization ====
 
   # save variable initialization
-  savevar <- initReactive(main.env = main.env$EAL)
+  save.variable <- initReactive(main.env = main.env$EAL)
 
   # action ====
-  savevar <- callModule(
+  save.variable <- callModule(
     EMLAL, "EAL",
-    savevar, main.env
+    save.variable, main.env
   )
 
   # Output ====
-  return(savevar)
+  return(save.variable)
 }

@@ -1,4 +1,5 @@
-#' @title PersonnelUI
+#' @import shiny
+#' @noRd
 PersonnelUI <- function(id, title, dev) {
   ns <- NS(id)
 
@@ -26,14 +27,12 @@ PersonnelUI <- function(id, title, dev) {
   ) # end of return
 }
 
-#' @title Personnel
-#'
-#' @description server part of Personnel module
-#'
 #' @import shiny
 #' @importFrom shinyjs onclick enable disable
 #' @importFrom data.table fwrite
-Personnel <- function(input, output, session, savevar, main.env, NSB) {
+#' 
+#' @noRd
+Personnel <- function(input, output, session, save.variable, main.env, NSB) {
   ns <- session$ns
 
   if (main.env$DEV) {
@@ -69,14 +68,14 @@ Personnel <- function(input, output, session, savevar, main.env, NSB) {
   )
 
   personnel.file <- dir(
-    savevar$emlal$SelectDP$dp.metadata.path,
+    save.variable$emlal$SelectDP$dp.metadata.path,
     pattern = "ersonnel",
     full.names = TRUE
   )
   saved.table <- if (isTruthy(personnel.file)) {
     data.table::fread(personnel.file, data.table = FALSE, stringsAsFactors = FALSE)
-  } else if (isTruthy(unlist(savevar$emlal$Personnel))) {
-    isolate(savevar$emlal$Personnel)
+  } else if (isTruthy(unlist(save.variable$emlal$Personnel))) {
+    isolate(save.variable$emlal$Personnel)
   } else {
     NULL
   }
@@ -150,8 +149,8 @@ Personnel <- function(input, output, session, savevar, main.env, NSB) {
       req(main.env$EAL$current[1] == "Personnel")
 
       # save
-      savevar <- saveReactive(
-        savevar = savevar,
+      save.variable <- saveReactive(
+        save.variable = savevar,
         rv = list(Personnel = rv)
       )
     },
@@ -164,8 +163,8 @@ Personnel <- function(input, output, session, savevar, main.env, NSB) {
       req(checkTruth(rv$Personnel))
       req(main.env$EAL$current == "Personnel")
 
-      savevar <- saveReactive(
-        savevar,
+      save.variable <- saveReactive(
+        save.variable,
         rv = list(Personnel = rv)
       )
     },
@@ -174,16 +173,12 @@ Personnel <- function(input, output, session, savevar, main.env, NSB) {
   )
 
   # Output -----------------------------------------------------
-  return(savevar)
+  return(save.variable)
 }
 
-#' @title insertPersonnelInput
-#'
-#' @description helper function to insert PersonnelMod* functions. Calling this from
-#' a shiny server will insert PersonnelModUI and create its server part. Provided with
-#' features to delete them.
-#'
 #' @import shiny
+#' 
+#' @noRd
 insertPersonnelInput <- function(id, rv, ns, main.env, role = NULL, saved = NULL) {
 
   # initialize IDs -----------------------------------------------------
@@ -214,11 +209,9 @@ insertPersonnelInput <- function(id, rv, ns, main.env, role = NULL, saved = NULL
   return(rv)
 }
 
-#' @title PersonnelModUI
-#'
-#' @description module to document EML Personnel
-#'
 #' @importFrom shinyBS bsTooltip
+#' 
+#' @noRd
 PersonnelModUI <- function(id, div.id, site.id, rmv.id,
                            role = NULL, saved = NULL) {
   ns <- NS(id)
@@ -394,13 +387,11 @@ PersonnelModUI <- function(id, div.id, site.id, rmv.id,
   ) # end of module div
 }
 
-#' @title PersonnelMod
-#'
-#' @describeIn PersonnelModUI
-#'
 #' @import shiny
 #' @importFrom rorcid as.orcid orcid_person orcid_employments orcid_email orcid_fundings
 #' @importFrom stringr str_extract
+#' 
+#' @noRd
 PersonnelMod <- function(input, output, session, main.env,
                          rv, rmv.id, site.id, ref, role = NULL, saved = NULL) {
   ns <- session$ns
