@@ -1,16 +1,12 @@
-#' @title .headerScript
-#'
 #' @description Misc preparations commands
+#'
+#' @noRd
 .headerScript <- function() {
   rm(list = ls())
   options(shiny.reactlog = TRUE)
   addResourcePath("media", system.file("media/", package = "MetaShARK"))
 }
 
-#' @title .globalScript
-#'
-#' @description script to generate `globals` reactiveValues
-#'
 #' @importFrom fs path_home
 #' @importFrom dataone listFormats CNode
 #' @import shiny
@@ -19,6 +15,8 @@
 #' @importFrom taxonomyCleanr view_taxa_authorities
 #' @importFrom dplyr %>%
 #' @importFrom jsonlite serializeJSON unserializeJSON read_json write_json
+#'
+#' @noRd
 .globalScript <- function(dev = FALSE) {
   
   # Environment setup ====

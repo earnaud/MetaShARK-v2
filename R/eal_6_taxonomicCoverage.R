@@ -1,9 +1,7 @@
-#' @title Taxonomic coverage
-#'
-#' @description UI part for the Taxonomic Coverage module
-#'
 #' @import shiny
 #' @importFrom shinyjs hidden disabled
+#' 
+#' @noRd
 TaxCovUI <- function(id, title, dev) {
   ns <- NS(id)
 
@@ -25,17 +23,15 @@ TaxCovUI <- function(id, title, dev) {
   ) # end of return
 }
 
-#' @title Taxonomic coverage
-#'
-#' @description server part for the Taxonomic Coverage module
-#'
 #' @import shiny
 #' @importFrom stringr str_extract_all
 #' @importFrom dplyr %>%
 #' @importFrom EMLassemblyline template_taxonomic_coverage
 #' @importFrom shinyjs onclick
+#' 
+#' @noRd
 TaxCov <- function(input, output, session,
-                   savevar, main.env, NSB) {
+                   save.variable, main.env, NSB) {
   ns <- session$ns
   if (main.env$DEV) {
     shinyjs::onclick("dev",
@@ -56,11 +52,11 @@ TaxCov <- function(input, output, session,
     complete = FALSE
   )
 
-  if (sapply(printReactiveValues(savevar$emlal$TaxCov), checkTruth) %>% all()) {
-    rv$taxa.table <- savevar$emlal$TaxCov$taxa.table
-    rv$taxa.col <- savevar$emlal$TaxCov$taxa.col
-    rv$taxa.name.type <- savevar$emlal$TaxCov$taxa.authority
-    rv$taxa.authority <- savevar$emlal$TaxCov$taxa.authority
+  if (sapply(printReactiveValues(save.variable$emlal$TaxCov), checkTruth) %>% all()) {
+    rv$taxa.table <- save.variable$emlal$TaxCov$taxa.table
+    rv$taxa.col <- save.variable$emlal$TaxCov$taxa.col
+    rv$taxa.name.type <- save.variable$emlal$TaxCov$taxa.authority
+    rv$taxa.authority <- save.variable$emlal$TaxCov$taxa.authority
   }
 
   # Set UI ====
@@ -68,7 +64,7 @@ TaxCov <- function(input, output, session,
   # * taxa.table ====
   output$taxa.table <- renderUI({
     isolate({
-      data.files <- basename(savevar$emlal$DataFiles$datapath)
+      data.files <- basename(save.variable$emlal$DataFiles$datapath)
       value <- rv$taxa.table
       if(isFALSE(value %in% data.files))
         value <- NULL
@@ -85,9 +81,9 @@ TaxCov <- function(input, output, session,
   
   # * taxa.col ====
   output$taxa.col <- renderUI({
-    .ind <- match(rv$taxa.table, savevar$emlal$DataFiles$name)
+    .ind <- match(rv$taxa.table, save.variable$emlal$DataFiles$name)
     if(isTruthy(.ind)) {
-      choices <- isolate(savevar$emlal$Attributes[[.ind]]$attributeName)
+      choices <- isolate(save.variable$emlal$Attributes[[.ind]]$attributeName)
       value <- isolate(rv$taxa.col)
       if(isFALSE(value %in% choices))
         value <- NULL
@@ -168,7 +164,7 @@ TaxCov <- function(input, output, session,
         shinyjs::enable("taxa.col")
         
         taxa.col.list <- lapply(input$taxa.table, function(file) {
-          all.files <- savevar$emlal$DataFiles
+          all.files <- save.variable$emlal$DataFiles
           file <- all.files[all.files$name == file, "datapath"]
           df <- readDataTable(file, stringsAsFactors = FALSE)
           return(colnames(df))
@@ -190,7 +186,7 @@ TaxCov <- function(input, output, session,
 
       # save
       rv$taxa.table <- list(input$taxa.table)
-      isolate({savevar$emlal$TaxCov$taxa.table <- rv$taxa.table})
+      isolate({save.variable$emlal$TaxCov$taxa.table <- rv$taxa.table})
     },
     priority = -1
   )
@@ -200,7 +196,7 @@ TaxCov <- function(input, output, session,
     req(input$taxa.col)
 
     rv$taxa.col <- input$taxa.col
-    isolate({savevar$emlal$TaxCov$taxa.col <- rv$taxa.col})
+    isolate({save.variable$emlal$TaxCov$taxa.col <- rv$taxa.col})
   })
 
   # * Taxa type ====
@@ -213,7 +209,7 @@ TaxCov <- function(input, output, session,
       "common" %in% rv$taxa.name.type) {
       rv$taxa.name.type <- "both"
     }
-    savevar$emlal$TaxCov$taxa.name.type <- rv$taxa.name.type
+    save.variable$emlal$TaxCov$taxa.name.type <- rv$taxa.name.type
   })
 
   # * Taxa authority ====
@@ -224,7 +220,7 @@ TaxCov <- function(input, output, session,
       dplyr::filter(authority %in% input$taxa.authority) %>%
       dplyr::select(id) %>%
       unlist()
-    savevar$emlal$TaxCov$taxa.authority <- rv$taxa.authority
+    save.variable$emlal$TaxCov$taxa.authority <- rv$taxa.authority
   })
 
   # Saves -----------------------------------------------------
@@ -242,10 +238,10 @@ TaxCov <- function(input, output, session,
 
   observeEvent(NSB$SAVE,
     {
-      req(tail(main.env$EAL$history, 1) == "Taxonomic Coverage")
+      req(utils::tail(main.env$EAL$history, 1) == "Taxonomic Coverage")
 
-      savevar <- saveReactive(
-        savevar = savevar,
+      save.variable <- saveReactive(
+        save.variable = savevar,
         rv = list(TaxCov = rv)
       )
     },
@@ -290,16 +286,16 @@ TaxCov <- function(input, output, session,
 
     # Write files
     if (input$filled == "1") {
-      savevar <- saveReactive(
-        savevar,
+      save.variable <- saveReactive(
+        save.variable,
         rv = list(TaxCov = rv)
       )
 
       # Template coverage
       try(
         template_taxonomic_coverage(
-          savevar$emlal$SelectDP$dp.metadata.path,
-          savevar$emlal$SelectDP$dp.data.path,
+          save.variable$emlal$SelectDP$dp.metadata.path,
+          save.variable$emlal$SelectDP$dp.data.path,
           taxa.table = rv$taxa.table,
           taxa.col = rv$taxa.col,
           taxa.name.type = rv$taxa.name.type,
@@ -320,5 +316,5 @@ TaxCov <- function(input, output, session,
   })
 
   # Output -----------------------------------------------------
-  return(savevar)
+  return(save.variable)
 }

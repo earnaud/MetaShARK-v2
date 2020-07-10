@@ -3,6 +3,8 @@
 #' @description server part of the about module.
 #' 
 #' @import shiny
+#' 
+#' @noRd
 about <- function(input, output, session) {
   ns <- session$ns
 

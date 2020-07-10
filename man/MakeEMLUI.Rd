@@ -7,7 +7,7 @@
 \usage{
 MakeEMLUI(id, title, dev)
 
-MakeEML(input, output, session, savevar, main.env)
+MakeEML(input, output, session, save.variable, main.env)
 }
 \description{
 UI part for the Make EML module

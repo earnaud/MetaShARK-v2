@@ -335,7 +335,7 @@ upload <- function(input, output, session, main.env) {
     md.format <- EML::read_eml(as.character(rv$md$datapath))$schemaLocation %>%
       strsplit(split = " ") %>%
       unlist %>%
-      head(n = 1)
+      utils::head(n = 1)
     
     out <- uploadDP(
       mn = registeredEndpoints %>%

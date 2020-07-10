@@ -1,12 +1,11 @@
-#' @title .app_ui
-#'
-#' @description UI part of the mainapp's  script
-#'
 #' @importFrom golem get_golem_options
 #' @import shiny
-#' @importFrom shinydashboard dashboardPage dashboardHeader dashboardSidebar sidebarMenu menuItem dashboardBody tabItems tabItem
+#' @importFrom shinydashboard dashboardPage dashboardHeader dashboardSidebar 
+#' sidebarMenu menuItem dashboardBody tabItems tabItem
 #' @importFrom shinyjs useShinyjs hidden
 #' @importFrom shinycssloaders withSpinner
+#'
+#' @noRd
 .app_ui <- function() {
   
   # get app arguments

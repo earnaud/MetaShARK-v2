@@ -1,10 +1,7 @@
-#' @title MakeEMLUI
-#'
-#' @description UI part for the Make EML module
-#'
 #' @import shiny
-#' actionLink column
 #' @importFrom shinyjs hidden disabled
+#' 
+#' @noRd
 MakeEMLUI <- function(id, title, dev) {
   ns <- NS(id)
 
@@ -56,15 +53,13 @@ MakeEMLUI <- function(id, title, dev) {
   ) # end of return
 }
 
-#' @describeIn MakeEMLUI
-#'
-#' @description server part of the make EML module
-#'
 #' @import shiny
 #' @importFrom shinyjs show enable onclick
 #' @importFrom EMLassemblyline make_eml template_arguments
 #' @importFrom emldown render_eml
-MakeEML <- function(input, output, session, savevar, main.env) {
+#' 
+#' @noRd
+MakeEML <- function(input, output, session, save.variable, main.env) {
   ns <- session$ns
 
   if (main.env$DEV) {
@@ -79,7 +74,7 @@ MakeEML <- function(input, output, session, savevar, main.env) {
 
   # Variable initialization -----------------------------------------------------
   out.file <- paste0(
-    savevar$emlal$SelectDP$dp.path,
+    save.variable$emlal$SelectDP$dp.path,
     "/emldown/emldown.html"
   )
 
@@ -89,7 +84,7 @@ MakeEML <- function(input, output, session, savevar, main.env) {
     req(input$make_eml)
     withProgress(
       {
-        . <- savevar$emlal
+        . <- save.variable$emlal
         fileName <- .$SelectDP$dp_title
 
         x <- try(
@@ -150,7 +145,7 @@ MakeEML <- function(input, output, session, savevar, main.env) {
 
     valid.eml <- EML::eml_validate(
       dir(
-        savevar$emlal$SelectDP$dp.eml.path,
+        save.variable$emlal$SelectDP$dp.eml.path,
         full.names = TRUE
       )
     )
@@ -183,9 +178,9 @@ MakeEML <- function(input, output, session, savevar, main.env) {
       
       # emldown
       eml.file <- dir(
-        savevar$emlal$SelectDP$dp.eml.path,
+        save.variable$emlal$SelectDP$dp.eml.path,
         full.names = TRUE,
-        pattern = savevar$emlal$SelectDP$dp.title
+        pattern = save.variable$emlal$SelectDP$dp.title
       )
       dir.create(dirname(out.file), recursive = TRUE)
       old.wd <- getwd()
@@ -211,7 +206,7 @@ MakeEML <- function(input, output, session, savevar, main.env) {
   output$download_emldown <- downloadHandler(
     filename = function() {
       paste(
-        savevar$emlal$SelectDP$dp.name,
+        save.variable$emlal$SelectDP$dp.name,
         "_emldown.zip"
       )
     },
@@ -227,5 +222,5 @@ MakeEML <- function(input, output, session, savevar, main.env) {
   )
 
   # Output -----------------------------------------------------
-  return(savevar)
+  return(save.variable)
 }

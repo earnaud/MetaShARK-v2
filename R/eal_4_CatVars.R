@@ -1,7 +1,3 @@
-#' @title Geographic coverage
-#'
-#' @description UI part for the Geographic Coverage module
-#'
 #' @import shiny
 CatVarsUI <- function(id, title, dev) {
   ns <- NS(id)
@@ -43,16 +39,14 @@ CatVarsUI <- function(id, title, dev) {
   ) # end of return
 }
 
-#' @title Geographic coverage
-#'
-#' @description UI part for the Geographic Coverage module
-#'
 #' @import shiny
 #' @importFrom dplyr %>% filter select mutate
 #' @importFrom shinyBS bsCollapse bsCollapsePanel
 #' @importFrom shinyjs onclick
+#' 
+#' @noRd
 CatVars <- function(input, output, session,
-                    savevar, main.env, NSB) {
+                    save.variable, main.env, NSB) {
   ns <- session$ns
   
   if (main.env$DEV) {
@@ -68,7 +62,7 @@ shinyjs::onclick("dev",
   # variables initialization -----------------------------------------------------
   rv <- reactiveValues(
     catvar.files = list.files(
-      savevar$emlal$SelectDP$dp.metadata.path,
+      save.variable$emlal$SelectDP$dp.metadata.path,
       pattern = "catvar",
       full.names = TRUE
     ),
@@ -178,7 +172,7 @@ shinyjs::onclick("dev",
   # Previous file
   observeEvent(input$file_prev, {
     req(rv$current.index, rv$catvar.files)
-    savevar$emlal$CatVars[[rv$current.file]] <- rv[[rv$current.file]]$CatVars
+    save.variable$emlal$CatVars[[rv$current.file]] <- rv[[rv$current.file]]$CatVars
     if (rv$current.index > 1) {
       rv$current.index <- rv$current.index - 1
     }
@@ -187,7 +181,7 @@ shinyjs::onclick("dev",
   # Next file
   observeEvent(input$file_next, {
     req(rv$current.index, rv$catvar.files)
-    savevar$emlal$CatVars[[rv$current.file]] <- rv[[rv$current.file]]$CatVars
+    save.variable$emlal$CatVars[[rv$current.file]] <- rv[[rv$current.file]]$CatVars
     if (rv$current.index < length(rv$catvar.files)) {
       rv$current.index <- rv$current.index + 1
     }
@@ -254,10 +248,10 @@ shinyjs::onclick("dev",
   })
 
   observeEvent(NSB$SAVE, {
-    req(tail(main.env$EAL$history, 1) == "Categorical Variables")
+    req(utils::tail(main.env$EAL$history, 1) == "Categorical Variables")
 
-    savevar <- saveReactive(
-      savevar,
+    save.variable <- saveReactive(
+      save.variable,
       rv = list(CatVars = rv)
     )
   })
@@ -267,8 +261,8 @@ shinyjs::onclick("dev",
     {
       req(main.env$EAL$current[2] == "Categorical Variables")
 
-      savevar <- saveReactive(
-        savevar,
+      save.variable <- saveReactive(
+        save.variable,
         rv = list(CatVars = rv)
       )
     },
@@ -277,5 +271,5 @@ shinyjs::onclick("dev",
   )
 
   # Output -----------------------------------------------------
-  return(savevar)
+  return(save.variable)
 }

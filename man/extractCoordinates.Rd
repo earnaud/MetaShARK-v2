@@ -4,7 +4,7 @@
 \alias{extractCoordinates}
 \title{extractCoordinates}
 \usage{
-extractCoordinates(rv, coordCols, .pattern, filesData)
+extractCoordinates(rv, coord.cols, .pattern, files.data)
 }
 \description{
 extractCoordinates

@@ -99,10 +99,10 @@ prevTabButton <- function(id) {
 #'
 #' @param id shiny server id
 #' @param main.env MetaShARK main.env variable
-#' @param savevar MetaShARK savevar variable
+#' @param save.variable MetaShARK savevar variable
 #'
 #' @import shiny
-navSidebar <- function(id, main.env, savevar) {
+navSidebar <- function(id, main.env, save.variable) {
   NSB <- reactiveValues(
     SAVE = 0,
     NEXT = 0,
@@ -111,10 +111,10 @@ navSidebar <- function(id, main.env, savevar) {
     help = modalDialog()
   )
 
-  NSB <- callModule(onQuit, id, main.env, savevar, NSB)
-  NSB <- callModule(onSave, id, savevar, NSB)
+  NSB <- callModule(onQuit, id, main.env, save.variable, NSB)
+  NSB <- callModule(onSave, id, save.variable, NSB)
   NSB <- callModule(prevTab, id, main.env, NSB)
-  NSB <- callModule(nextTab, id, main.env, savevar, NSB)
+  NSB <- callModule(nextTab, id, main.env, save.variable, NSB)
 
   # Custom on-the-fly server
   callModule(
@@ -138,7 +138,7 @@ navSidebar <- function(id, main.env, savevar) {
 #' @import shiny
 #' @importFrom shinyjs onclick disable enable
 onQuit <- function(input, output, session,
-                   main.env, savevar, NSB) {
+                   main.env, save.variable, NSB) {
   ns <- session$ns
 
   # modal dialog for quitting data description
@@ -189,13 +189,13 @@ onQuit <- function(input, output, session,
 
       NSB$tagList <- tagList()
       NSB$SAVE <- NSB$SAVE + 1
-      saveReactive(savevar)
+      saveReactive(save.variable)
       main.env$EAL$history <- "SelectDP"
       main.env$EAL$navigate <- 1
 
       file.remove(
         list.files(
-          savevar$emlal$SelectDP$dp.data.path,
+          save.variable$emlal$SelectDP$dp.data.path,
           pattern = "preview_"
         )
       )
@@ -217,7 +217,7 @@ onQuit <- function(input, output, session,
 
       file.remove(
         list.files(
-          savevar$emlal$SelectDP$dp.data.path,
+          save.variable$emlal$SelectDP$dp.data.path,
           pattern = "preview___"
         )
       )
@@ -232,7 +232,7 @@ onQuit <- function(input, output, session,
 #'
 #' @import shiny
 #' @importFrom shinyjs onclick disable enable
-onSave <- function(input, output, session, savevar, NSB) {
+onSave <- function(input, output, session, save.variable, NSB) {
   observeEvent(input$save,
     {
       req(input$save)
@@ -249,7 +249,7 @@ onSave <- function(input, output, session, savevar, NSB) {
 #' @import shiny
 #' @importFrom shinyjs onclick enable disable
 nextTab <- function(input, output, session,
-                    main.env, savevar, NSB) {
+                    main.env, save.variable, NSB) {
 
   observe(
     {
@@ -276,7 +276,7 @@ nextTab <- function(input, output, session,
         NSB$tag.list <- tagList()
 
         # Savevar modification
-        savevar$emlal$step <- main.env$EAL$navigate
+        save.variable$emlal$step <- main.env$EAL$navigate
       }
       NSB$NEXT <- NSB$NEXT + 1
       endisableNSB(input, enable)

@@ -5,9 +5,9 @@
 #'
 #' @param rv reactiveValues to turn into list
 #' @param lv (verbose purposes)
+#' @param name root node name
 #'
 #' @import shiny
-#' is.reactive
 listReactiveValues <- function(rv, lv = 0, name = "root") {
   if (missing(rv)) {
     stop("No reactiveValues provided")

@@ -1,27 +1,23 @@
-# Manage savevar variable -----------------------------------------------------
-#' @title initReactive
-#'
-#' @description EMLAL module specific function. Initialize `savevar` variable.
-#'
-#' @param sub.list either NULL, "emlal", "metafin" to precise which sub.list to initialize (NULL initializes the whole variable)
-#'
+# Manage save.variable variable -----------------------------------------------------
 #' @import shiny
-initReactive <- function(sub.list = NULL, savevar = NULL, main.env) {
-  if (!is.null(sub.list) && is.null(savevar)) {
-    stop("Attempt to initialize savevar's sub.list without savevar.")
+#' 
+#' @noRd
+initReactive <- function(sub.list = NULL, save.variable = NULL, main.env) {
+  if (!is.null(sub.list) && is.null(save.variable)) {
+    stop("Attempt to initialize save.variable's sub.list without savevar.")
   }
   if (!(is.null(sub.list) || sub.list %in% c("emlal", "metafin"))) {
-    stop("Attempt to initialize savevar with inconsistent arguments")
+    stop("Attempt to initialize save.variable with inconsistent arguments")
   }
 
-  # re-creates a whole savevar
+  # re-creates a whole save.variable
   if (is.null(sub.list)) {
-    savevar <- reactiveValues()
+    save.variable <- reactiveValues()
   }
 
   # emlal reactivelist management
   if (is.null(sub.list) || sub.list == "emlal") {
-    savevar$emlal <- reactiveValues(
+    save.variable$emlal <- reactiveValues(
       step = main.env$EAL$navigate,
       quick = FALSE,
       history = main.env$EAL$history,
@@ -67,31 +63,31 @@ initReactive <- function(sub.list = NULL, savevar = NULL, main.env) {
 
   # metafin reactivelist management
   if (is.null(sub.list) || sub.list == "metafin") {
-    savevar$metafin <- reactiveValues()
+    save.variable$metafin <- reactiveValues()
   }
 
   # differential returns
   return(if (is.null(sub.list)) {
-    savevar
+    save.variable
   } else {
     switch(sub.list,
-      emlal = savevar$emlal,
-      metafin = savevar$metafin
+      emlal = save.variable$emlal,
+      metafin = save.variable$metafin
     )
   })
 }
 
 #' @describeIn initReactive
 #'
-#' @description save the `savevar` variable at wanted location
+#' @description save the `save.variable` variable at wanted location
 #'
 #' @return
-#' `savevar` modified.
+#' `save.variable` modified.
 #'
 #' @import shiny
 #' @importFrom jsonlite write_json serializeJSON
 saveReactive <- function(
-  savevar,
+  save.variable,
   rv = NULL,
   main.env = NULL
 ) {
@@ -105,7 +101,7 @@ saveReactive <- function(
       } else {
         rv <- rv[1]
 
-        savevar <- do.call(
+        save.variable <- do.call(
           switch(names(rv),
             DataFiles = .saveDataFiles,
             Attributes = .saveAttributes,
@@ -116,51 +112,51 @@ saveReactive <- function(
             Misc = .saveMisc,
           ),
           args = list(
-            savevar = savevar,
+            save.variable = savevar,
             rv = rv[[1]]
           )
         )
         
         # if (names(rv) == "DataFiles") {
-        #   savevar <- .saveDataFiles(
-        #     savevar = savevar,
+        #   save.variable <- .saveDataFiles(
+        #     save.variable = savevar,
         #     rv = rv[[1]]
         #   )
         # }
         # if (names(rv) == "Attributes") {
-        #   savevar <- .saveAttributes(
-        #     savevar = savevar,
+        #   save.variable <- .saveAttributes(
+        #     save.variable = savevar,
         #     rv = rv[[1]]
         #   )
         # }
         # if (names(rv) == "CatVars") {
-        #   savevar <- .saveCatVars(
-        #     savevar = savevar,
+        #   save.variable <- .saveCatVars(
+        #     save.variable = savevar,
         #     rv = rv[[1]]
         #   )
         # }
         # if (names(rv) == "GeoCov") {
-        #   savevar <- .saveGeoCov(
-        #     savevar = savevar,
+        #   save.variable <- .saveGeoCov(
+        #     save.variable = savevar,
         #     rv = rv[[1]],
         #     main.env = main.env
         #   )
         # }
         # if (names(rv) == "TaxCov") {
-        #   savevar <- .saveTaxCov(
-        #     savevar = savevar,
+        #   save.variable <- .saveTaxCov(
+        #     save.variable = savevar,
         #     rv = rv[[1]]
         #   )
         # }
         # if (names(rv) == "Personnel") {
-        #   savevar <- .savePersonnel(
-        #     savevar = savevar,
+        #   save.variable <- .savePersonnel(
+        #     save.variable = savevar,
         #     rv = rv[[1]]
         #   )
         # }
         # if (names(rv) == "Misc") {
-        #   savevar <- .saveMisc(
-        #     savevar = savevar,
+        #   save.variable <- .saveMisc(
+        #     save.variable = savevar,
         #     rv = rv[[1]]
         #   )
         # }
@@ -170,14 +166,14 @@ saveReactive <- function(
     setProgress(2 / 3, "Global save")
 
     # Save JSON
-    path <- savevar$emlal$SelectDP$dp.path
-    filename <- savevar$emlal$SelectDP$dp.name
+    path <- save.variable$emlal$SelectDP$dp.path
+    filename <- save.variable$emlal$SelectDP$dp.name
     location <- paste0(path, "/", filename, ".json")
     if (file.exists(location)) {
       file.remove(location)
     }
     jsonlite::write_json(
-      jsonlite::serializeJSON(listReactiveValues(savevar)),
+      jsonlite::serializeJSON(listReactiveValues(save.variable)),
       location
     )
 
@@ -190,7 +186,7 @@ saveReactive <- function(
     type = "message"
   )
 
-  return(savevar)
+  return(save.variable)
 }
 
 #' @title readFilesText
@@ -211,20 +207,4 @@ readPlainText <- function(files, prefix = NULL, sep = "/", ...) {
       sep = sep
     )
   )$text
-}
-
-#' @title checkTruth
-#'
-#' @description check if `x` is truthy (as shiny::isTruthy) or not.
-#' Returns the argument if truthy, or the `output` argument if not (default to NULL)
-#'
-#' @param x argument to check fo truthiness
-#' @param output what to return if `x` is not truthy
-#'
-#' @import shiny
-checkTruth <- function(x) {
-  if (missing(x)) {
-    stop("'x' is missing with no default.")
-  }
-  return(isTruthy(x) && isTruthy(unlist(x)))
 }

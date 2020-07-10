@@ -1,11 +1,9 @@
-#' @title .app_server
-#'
-#' @description server part for the app's main script.
-#'
 #' @import shiny
 #' @importFrom shinydashboard updateTabItems
 #' @importFrom golem get_golem_options
 #' @importFrom shinyjs onclick
+#'
+#' @noRd
 .app_server <- function(input, output, session) {
 
   # get app arguments
@@ -14,7 +12,7 @@
   main.env <- app.args$main.env
 
   # initialize global variables
-  savevar <- NULL
+  save.variable <- NULL
 
   # DEV -----------------------------------------------------
   if (dev) {
@@ -37,7 +35,7 @@
 
   ## modules called -----------------------------------------------------
   observeEvent(input$side_menu, {
-    savevar <- switch(input$side_menu,
+    save.variable <- switch(input$side_menu,
       # fill
       fill = callModule(fill, "fill", main.env),
       # upload

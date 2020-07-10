@@ -1,3 +1,5 @@
+#' @noRd
+#'
 #' @import shiny
 printReactiveValues <- function(values) {
   sapply(

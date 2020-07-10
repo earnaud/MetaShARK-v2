@@ -1,10 +1,7 @@
-#' @title Geographic coverage modular Input
-#'
-#' @description UI part for the Geographic Coverage modular input, used
-#' in Geographic Coverage module to input a custom entry in the dataset.
-#'
 #' @import shiny
 #' @importFrom shinyjs hidden
+#' 
+#' @noRd
 GeoCovInputUI <- function(id, site.id, rmv.id, default = NULL) {
   ns <- NS(id)
 
@@ -77,13 +74,11 @@ GeoCovInputUI <- function(id, site.id, rmv.id, default = NULL) {
   )
 }
 
-#' @title GeoCovInput
-#'
-#' @describeIn GeoCovInputUI
-#'
 #' @import shiny
 #' @importFrom dplyr slice %>%
 #' @importFrom shinyjs onclick
+#' 
+#' @noRd
 GeoCovInput <- function(input, output, session,
                         rv, rmv.id, site.id, ref) {
 
@@ -165,13 +160,10 @@ GeoCovInput <- function(input, output, session,
   return(rv)
 }
 
-#' @title insertGeoCovInput
-#'
-#' @description Leads all the process of rendering a GeoCovInput
-#' GUI and its associated server
-#'
 #' @importFrom dplyr bind_rows
 #' @import shiny
+#' 
+#' @noRd
 insertGeoCovInput <- function(id, rv, ns, default = NULL) {
   # !!! warning: rv = rv$custom here !!!
 
@@ -197,9 +189,9 @@ insertGeoCovInput <- function(id, rv, ns, default = NULL) {
   return(rv)
 }
 
-#' @title extractCoordinates
-#'
 #' @importFrom stringr str_extract_all
+#' 
+#' @noRd
 extractCoordinates <- function(
   rv,
   coord.cols,

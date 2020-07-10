@@ -1,15 +1,13 @@
-#' @title MiscUI
-#'
-#' @description UI for "last but not least" module
-#'
 #' @import shiny
 #' @importFrom tagsinput tagsTextInput
 #' @importFrom data.table fread
-MiscUI <- function(id, title, dev, savevar) {
+#' 
+#' @noRd
+MiscUI <- function(id, title, dev, save.variable) {
   ns <- NS(id)
 
   keywords <- fread(
-    paste0(savevar$emlal$SelectDP$dp.metadata.path, "/keywords.txt"),
+    paste0(save.variable$emlal$SelectDP$dp.metadata.path, "/keywords.txt"),
     data.table = FALSE, stringsAsFactors = FALSE
   )
   if (checkTruth(keywords)) {
@@ -39,7 +37,7 @@ MiscUI <- function(id, title, dev, savevar) {
             MiscellaneousUI(
               ns("abstract"),
               value = readPlainText(
-                paste0(savevar$emlal$SelectDP$dp.metadata.path, "/abstract.txt")
+                paste0(save.variable$emlal$SelectDP$dp.metadata.path, "/abstract.txt")
               )
             )
           ),
@@ -51,7 +49,7 @@ MiscUI <- function(id, title, dev, savevar) {
             MiscellaneousUI(
               ns("methods"),
               value = readPlainText(
-                paste0(savevar$emlal$SelectDP$dp.metadata.path, "/methods.txt")
+                paste0(save.variable$emlal$SelectDP$dp.metadata.path, "/methods.txt")
               )
             )
           ),
@@ -63,7 +61,7 @@ MiscUI <- function(id, title, dev, savevar) {
             tagList(
               column(
                 6,
-                tagsInput::tagsTextInput(
+                tagsinput::tagsTextInput(
                   ns("keywords"),
                   tags$p("List the keywords that best describe your dataset.
                     Type a 'tab' to separate each keyword."),
@@ -109,7 +107,7 @@ MiscUI <- function(id, title, dev, savevar) {
                 "If you have additional information that doesn't fall under the scope of the abstract or methods (e.g. a list of research articles or theses derived from this dataset) about your dataset, you may share it here."
               ),
               value = readPlainText(
-                paste0(savevar$emlal$SelectDP$dp.metadata.path, "/additional_info.txt")
+                paste0(save.variable$emlal$SelectDP$dp.metadata.path, "/additional_info.txt")
               )
             )
           )
@@ -120,14 +118,12 @@ MiscUI <- function(id, title, dev, savevar) {
 }
 
 
-#' @title Misc
-#'
-#' @describeIn MiscUI
-#'
 #' @import shiny
 #' @importFrom shinyjs onclick enable disable
 #' @importFrom data.table fread
-Misc <- function(input, output, session, savevar, main.env, NSB) {
+#' 
+#' @noRd
+Misc <- function(input, output, session, save.variable, main.env, NSB) {
   ns <- session$ns
 
   if (main.env$DEV) {
@@ -142,7 +138,7 @@ Misc <- function(input, output, session, savevar, main.env, NSB) {
 
   # Variable initialization -----------------------------------------------------
   kw <- fread(
-    paste0(savevar$emlal$SelectDP$dp.metadata.path, "/keywords.txt"),
+    paste0(save.variable$emlal$SelectDP$dp.metadata.path, "/keywords.txt"),
     data.table = FALSE, stringsAsFactors = FALSE
   )
 
@@ -151,7 +147,7 @@ Misc <- function(input, output, session, savevar, main.env, NSB) {
     abstract = reactiveValues(
       content = character(),
       file = paste(
-        isolate(savevar$emlal$SelectDP$dp.metadata.path),
+        isolate(save.variable$emlal$SelectDP$dp.metadata.path),
         "abstract.txt",
         sep = "/"
       )
@@ -160,7 +156,7 @@ Misc <- function(input, output, session, savevar, main.env, NSB) {
     methods = reactiveValues(
       content = character(),
       file = paste(
-        isolate(savevar$emlal$SelectDP$dp.metadata.path),
+        isolate(save.variable$emlal$SelectDP$dp.metadata.path),
         "methods.txt",
         sep = "/"
       )
@@ -176,7 +172,7 @@ Misc <- function(input, output, session, savevar, main.env, NSB) {
     additional.information = reactiveValues(
       content = character(),
       file = paste(
-        isolate(savevar$emlal$SelectDP$dp.metadata.path),
+        isolate(save.variable$emlal$SelectDP$dp.metadata.path),
         "additional_info.txt",
         sep = "/"
       )
@@ -188,7 +184,7 @@ Misc <- function(input, output, session, savevar, main.env, NSB) {
   rv$abstract <- callModule(
     Miscellaneous,
     "abstract",
-    savevar,
+    save.variable,
     rv = rv$abstract
   )
 
@@ -196,7 +192,7 @@ Misc <- function(input, output, session, savevar, main.env, NSB) {
   rv$methods <- callModule(
     Miscellaneous,
     "methods",
-    savevar,
+    save.variable,
     rv = rv$methods
   )
 
@@ -240,8 +236,8 @@ Misc <- function(input, output, session, savevar, main.env, NSB) {
   })
 
   # * Temporal coverage ====
-  if (!is.null(savevar$emlal$Misc$temporal.coverage)) {
-    rv$temporal.coverage <- savevar$emlal$Misc$temporal.coverage
+  if (!is.null(save.variable$emlal$Misc$temporal.coverage)) {
+    rv$temporal.coverage <- save.variable$emlal$Misc$temporal.coverage
     updateDateRangeInput(
       session,
       "temporal.coverage",
@@ -257,7 +253,7 @@ Misc <- function(input, output, session, savevar, main.env, NSB) {
   rv$additional.information <- callModule(
     Miscellaneous,
     "additional.information",
-    savevar,
+    save.variable,
     rv = rv$additional.information
   )
 
@@ -275,8 +271,8 @@ Misc <- function(input, output, session, savevar, main.env, NSB) {
     {
       req(main.env$EAL$current[1] == "Miscellaneous")
 
-      savevar <- saveReactive(
-        savevar = savevar,
+      save.variable <- saveReactive(
+        save.variable = savevar,
         rv = list(Misc = rv)
       )
     },
@@ -288,8 +284,8 @@ Misc <- function(input, output, session, savevar, main.env, NSB) {
     {
       req(main.env$EAL$current[1] == "Miscellaneous")
 
-      savevar <- saveReactive(
-        savevar = savevar,
+      save.variable <- saveReactive(
+        save.variable = savevar,
         rv = list(Misc = rv)
       )
     },
@@ -298,5 +294,5 @@ Misc <- function(input, output, session, savevar, main.env, NSB) {
   )
 
   # Output -----------------------------------------------------
-  return(savevar)
+  return(save.variable)
 }

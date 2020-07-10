@@ -1,9 +1,7 @@
-#' @title Data Package files
-#'
-#' @description UI part of the DataFiles module.
-#'
 #' @import shiny
 #' @importFrom shinyFiles shinyFilesButton
+#' 
+#' @noRd
 DataFilesUI <- function(id, dev = FALSE) {
   ns <- NS(id)
 
@@ -35,15 +33,13 @@ DataFilesUI <- function(id, dev = FALSE) {
   ) # end return
 }
 
-#' @title Data Package files
-#'
-#' @description server part of the DataFiles module.
-#'
 #' @import shiny
 #' @importFrom shinyFiles getVolumes shinyFileChoose parseFilePaths
 #' @importFrom shinyjs onclick enable disable
 #' @importFrom EMLassemblyline template_table_attributes
-DataFiles <- function(input, output, session, savevar, main.env, NSB) {
+#' 
+#' @noRd
+DataFiles <- function(input, output, session, save.variable, main.env, NSB) {
   ns <- session$ns
   if (main.env$DEV) {
     shinyjs::onclick("dev",
@@ -60,10 +56,10 @@ DataFiles <- function(input, output, session, savevar, main.env, NSB) {
     data.files = data.frame(stringsAsFactors = FALSE)
   )
 
-  if (checkTruth(savevar$emlal$DataFiles)) { # from create button in SelectDP
-    .ind <- which(file.exists(savevar$emlal$DataFiles$datapath))
-    .col <- which(names(savevar$emlal$DataFiles) != "metadatapath")
-    rv$data.files <- savevar$emlal$DataFiles[.ind, .col]
+  if (checkTruth(save.variable$emlal$DataFiles)) { # from create button in SelectDP
+    .ind <- which(file.exists(save.variable$emlal$DataFiles$datapath))
+    .col <- which(names(save.variable$emlal$DataFiles) != "metadatapath")
+    rv$data.files <- save.variable$emlal$DataFiles[.ind, .col]
   }
 
   # Data file upload -----------------------------------------------------
@@ -275,9 +271,9 @@ DataFiles <- function(input, output, session, savevar, main.env, NSB) {
     NSB$tagList <- tagList(
       "Files size:",
       tags$p(
-        utils:::format.object_size(files.size, "auto"),
+        utils::object.size(files.size),
         if (files.size >= files.size.max) {
-          paste("Max. recommended:", utils:::format.object_size(files.size.max, "auto"))
+          paste("Max. recommended:", utils::object.size(files.size.max))
         } else {
           NULL
         },
@@ -294,11 +290,11 @@ DataFiles <- function(input, output, session, savevar, main.env, NSB) {
 
   observeEvent(NSB$SAVE,
     {
-      req(tail(main.env$EAL$history, 1) == "Data Files")
+      req(utils::tail(main.env$EAL$history, 1) == "Data Files")
       req(isTruthy(rv$data.files$name))
 
-      savevar <- saveReactive(
-        savevar = savevar,
+      save.variable <- saveReactive(
+        save.variable = savevar,
         rv = list(DataFiles = rv)
       )
     },
@@ -311,17 +307,17 @@ DataFiles <- function(input, output, session, savevar, main.env, NSB) {
     {
       req(main.env$EAL$current[1] == "Data Files")
       # Save
-      savevar <- saveReactive(
-        savevar,
+      save.variable <- saveReactive(
+        save.variable,
         rv = list(DataFiles = rv)
       )
 
       # EMLAL templating function
       try(
         EMLassemblyline::template_table_attributes(
-          path = savevar$emlal$SelectDP$dp.metadata.path,
-          data.path = savevar$emlal$SelectDP$dp.data.path,
-          data.table = savevar$emlal$DataFiles$name
+          path = save.variable$emlal$SelectDP$dp.metadata.path,
+          data.path = save.variable$emlal$SelectDP$dp.data.path,
+          data.table = save.variable$emlal$DataFiles$name
         )
       )
     },
@@ -330,5 +326,5 @@ DataFiles <- function(input, output, session, savevar, main.env, NSB) {
   )
 
   # Output -----------------------------------------------------
-  return(savevar)
+  return(save.variable)
 }

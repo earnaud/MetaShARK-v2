@@ -1,11 +1,8 @@
-#' @title EMLALUI
-#'
-#' @description UI part of the EMLAL module. Allow the user to use a front-end shiny interface to the EML Assembly Line package, from
-#' Environmental Data Initiative. ARAR
-#'
 #' @import shiny
 #' @importFrom shinydashboard box
 #' @importFrom shinycssloaders withSpinner
+#' 
+#' @noRd
 EMLALUI <- function(id, dev = FALSE) {
   ns <- NS(id)
 
@@ -26,15 +23,12 @@ EMLALUI <- function(id, dev = FALSE) {
   ) # end fluidPage
 }
 
-#' @title EMLAL
-#'
-#' @description server part of the EMLAL module. Allow the user to use a front-end shiny interface to the EML Assembly Line package, from
-#' Environmental Data Initiative.
-#'
 #' @import shiny
 #' @importFrom shinyBS tipify
+#' 
+#' @noRd
 EMLAL <- function(input, output, session,
-                  savevar, main.env) {
+                  save.variable, main.env) {
   ns <- session$ns
   .EAL <- main.env$EAL # local copy
 
@@ -42,14 +36,14 @@ EMLAL <- function(input, output, session,
   # names of EMLAL steps
   steps <- c("SelectDP", "Data Files", "Attributes", "Categorical Variables", "Geographic Coverage", "Taxonomic Coverage", "Personnel", "Miscellaneous", "Make EML")
 
-  NSB <- navSidebar("nav", main.env, savevar)
+  NSB <- navSidebar("nav", main.env, save.variable)
   assign("NSB", NSB, envir = main.env)
   
   # Output -----------------------------------------------------
   observeEvent(.EAL$navigate, {
     # On loading DP, correct step
     if(.EAL$navigate == -1)
-      .EAL$navigate <- match(tail(savevar$emlal$history,1), steps)
+      .EAL$navigate <- match(utils::tail(save.variable$emlal$history,1), steps)
     
     if (.EAL$current[1] == "Data Files") {
       unlink(main.env$PATHS$eal.tmp)
@@ -72,8 +66,8 @@ EMLAL <- function(input, output, session,
     }
 
     # Savevar modification
-    savevar$emlal$step <- .EAL$navigate
-    savevar$emlal$history <- .EAL$history
+    save.variable$emlal$step <- .EAL$navigate
+    save.variable$emlal$history <- .EAL$history
 
     # * Chain -----------------------------------------------------
     output$chain <- renderUI({
@@ -99,7 +93,7 @@ EMLAL <- function(input, output, session,
                 actionLink(
                   ns(paste0("chain_", .step.name)),
                   "",
-                  if (step.name == .EAL$current[1]) {
+                  if (.step.name == .EAL$current[1]) {
                     icon("map-marker")
                   } else {
                     icon("circle")
@@ -192,7 +186,7 @@ EMLAL <- function(input, output, session,
         MiscUI(
           id = ns(namespace),
           dev = main.env$DEV,
-          savevar = isolate({savevar})
+          save.variable = isolate({savevar})
         ),
         MakeEMLUI(
           id = ns(namespace),
@@ -225,50 +219,50 @@ EMLAL <- function(input, output, session,
     })
 
     # * Server -----------------------------------------------------
-    savevar <- switch(.EAL$navigate,
+    save.variable <- switch(.EAL$navigate,
       callModule(
         SelectDP, namespace,
-        savevar, main.env
+        save.variable, main.env
       ),
       callModule(
         DataFiles, namespace,
-        savevar, main.env,
+        save.variable, main.env,
         NSB = NSB
       ),
       callModule(
         Attributes, namespace,
-        savevar, main.env,
+        save.variable, main.env,
         NSB = NSB
       ),
       callModule(
         CatVars, namespace,
-        savevar, main.env,
+        save.variable, main.env,
         NSB = NSB
       ),
       callModule(
         GeoCov, namespace,
-        savevar, main.env,
+        save.variable, main.env,
         NSB = NSB
       ),
       callModule(
         TaxCov, namespace,
-        savevar, main.env,
+        save.variable, main.env,
         NSB = NSB
       ),
       callModule(
         Personnel, namespace,
-        savevar, main.env,
+        save.variable, main.env,
         NSB = NSB
       ),
       callModule(
         Misc, namespace,
-        savevar, main.env,
+        save.variable, main.env,
         NSB = NSB
       ),
       # TODO Add annotations here?
       callModule(
         MakeEML, namespace,
-        savevar, main.env
+        save.variable, main.env
       )
     )
     # * Module helper -----------------------------------------------------
@@ -433,5 +427,5 @@ EMLAL <- function(input, output, session,
   )
 
   # Save variable
-  return(savevar)
+  return(save.variable)
 }

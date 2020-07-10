@@ -20,7 +20,7 @@ readDataTable <- function(file, data.table = FALSE, dev = FALSE, ...) {
   if (isTRUE(dev)) browser()
 
   if (grepl("xlsx?$", file)) {
-    df <- read.xls(file, ...)
+    df <- gdata::read.xls(file, ...)
   } else {
     df <- fread(file, data.table = data.table, ...)
   }
