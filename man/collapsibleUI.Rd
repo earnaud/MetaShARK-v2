@@ -2,14 +2,13 @@
 % Please edit documentation in R/utils-collapsible.R
 \name{collapsibleUI}
 \alias{collapsibleUI}
-\alias{collapsible}
 \title{collapsibleUI}
 \usage{
 collapsibleUI(id, label, .hidden = TRUE, ..., class = NULL)
-
-collapsible(input, output, session)
 }
 \arguments{
+\item{id}{character. The input slot that will be used to access the value.}
+
 \item{label}{character. A label appearing on the clickable link.}
 
 \item{.hidden}{logical. A flag to make the UI display as collapsed or not.}
@@ -21,8 +20,3 @@ collapsible(input, output, session)
 \description{
 A shiny module to get a div collapsed by clicking on a link.
 }
-\section{Functions}{
-\itemize{
-\item \code{collapsible}: 
-}}
-

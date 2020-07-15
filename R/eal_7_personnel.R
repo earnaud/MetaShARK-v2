@@ -1,14 +1,14 @@
 #' @import shiny
 #' @noRd
-PersonnelUI <- function(id, title, dev) {
+PersonnelUI <- function(id, main.env) {
   ns <- NS(id)
-
+  
   return(
     fluidPage(
       fluidRow(
         column(
           2,
-          actionButton(ns("addui"), "", icon("plus"))
+          actionButton(NS(id, "addui"), "", icon("plus"))
         ),
         column(
           10,
@@ -22,7 +22,7 @@ PersonnelUI <- function(id, title, dev) {
               fill the remaining fields.</p>")
         )
       ),
-      tags$div(id = ns("inserthere"))
+      tags$div(id = NS(id, "inserthere"))
     ) # end of fluidPage
   ) # end of return
 }
@@ -32,180 +32,177 @@ PersonnelUI <- function(id, title, dev) {
 #' @importFrom data.table fwrite
 #' 
 #' @noRd
-Personnel <- function(input, output, session, save.variable, main.env, NSB) {
-  ns <- session$ns
-
-  if (main.env$DEV) {
-    shinyjs::onclick("dev",
-      {
-        req(main.env$EAL$navigate == 7)
-        browser()
-      },
-      asis = TRUE
+Personnel <- function(id, main.env) {
+  moduleServer(id, function(input, output, session){
+    save.variable <- main.env$save.variable
+    ns <- session$ns
+    
+    # Variable initialization ----
+    rv <- reactiveValues(
+      Personnel = data.frame(
+        id = numeric(),
+        # Basic Identity
+        givenName = character(),
+        middleInitial = character(),
+        surName = character(),
+        # Contact
+        organizationName = character(),
+        electronicMailAddress = character(),
+        # Personnel information
+        userId = character(),
+        role = character(),
+        # Project information
+        projectTitle = character(),
+        fundingAgency = character(),
+        fundingNumber = character(),
+        stringsAsFactors = FALSE
+      )
     )
-  }
-
-  # Variable initialization -----------------------------------------------------
-  rv <- reactiveValues(
-    Personnel = data.frame(
-      id = numeric(),
-      # Basic Identity
-      givenName = character(),
-      middleInitial = character(),
-      surName = character(),
-      # Contact
-      organizationName = character(),
-      electronicMailAddress = character(),
-      # Personnel information
-      userId = character(),
-      role = character(),
-      # Project information
-      projectTitle = character(),
-      fundingAgency = character(),
-      fundingNumber = character(),
-      stringsAsFactors = FALSE
+    
+    personnel.file <- dir(
+      save.variable$emlal$SelectDP$dp.metadata.path,
+      pattern = "ersonnel",
+      full.names = TRUE
     )
-  )
-
-  personnel.file <- dir(
-    save.variable$emlal$SelectDP$dp.metadata.path,
-    pattern = "ersonnel",
-    full.names = TRUE
-  )
-  saved.table <- if (isTruthy(personnel.file)) {
-    data.table::fread(personnel.file, data.table = FALSE, stringsAsFactors = FALSE)
-  } else if (isTruthy(unlist(save.variable$emlal$Personnel))) {
-    isolate(save.variable$emlal$Personnel)
-  } else {
-    NULL
-  }
-  saved.table[is.na(saved.table)] <- ""
-  if (checkTruth(saved.table)) {
-    saved.table$id <- c(
-      saved.table$role[1:2],
-      seq_along(saved.table$givenName)[-(1:2)]
-    )
-    isolate(rv$Personnel <- saved.table)
-
-    sapply(rv$Personnel$id, function(rvid) {
+    saved.table <- if (isTruthy(personnel.file)) {
+      data.table::fread(personnel.file, data.table = FALSE, stringsAsFactors = FALSE)
+    } else if (isTruthy(unlist(save.variable$emlal$Personnel))) {
+      isolate(save.variable$emlal$Personnel)
+    } else {
+      NULL
+    }
+    saved.table[is.na(saved.table)] <- ""
+    if (checkTruth(saved.table)) {
+      saved.table$id <- c(
+        saved.table$role[1:2],
+        seq_along(saved.table$givenName)[-(1:2)]
+      )
+      isolate(rv$Personnel <- saved.table)
+      
+      sapply(rv$Personnel$id, function(rvid) {
+        rv <- insertPersonnelInput(
+          rvid,
+          rv,
+          ns,
+          main.env,
+          role = if (rvid %in% c("creator", "contact")) rvid,
+          saved = saved.table
+        )
+        return()
+      })
+    } else { # New
       rv <- insertPersonnelInput(
-        rvid,
+        "creator",
         rv,
         ns,
         main.env,
-        role = if (rvid %in% c("creator", "contact")) rvid,
+        role = "creator",
         saved = saved.table
       )
-      return()
-    })
-  } else { # New
-    rv <- insertPersonnelInput(
-      "creator",
-      rv,
-      ns,
-      main.env,
-      role = "creator",
-      saved = saved.table
-    )
-
-    rv <- insertPersonnelInput(
-      "contact",
-      rv,
-      ns,
-      main.env,
-      role = "contact",
-      saved = saved.table
-    )
-  }
-
-  # Fill Personnel -----------------------------------------------------
-  observeEvent(input$addui, {
-    id <- dim(rv$Personnel[-c(1:2), ])[1] + 1
-    while (as.character(id) %in% rv$Personnel$id) {
-      id <- id + 1
+      
+      rv <- insertPersonnelInput(
+        "contact",
+        rv,
+        ns,
+        main.env,
+        role = "contact",
+        saved = saved.table
+      )
     }
-    rv <- insertPersonnelInput(
-      as.character(id),
-      rv,
-      ns,
-      main.env
-    )
-  })
-
-  # Saves -----------------------------------------------------
-  observe({
-    main.env$EAL$current[2] <- all(
-      # Personnel
-      isTruthy(rv$Personnel$givenName) &&
-        isTruthy(rv$Personnel$surName) &&
-        isTruthy(rv$Personnel$organizationName) &&
-        isTruthy(rv$Personnel$electronicMailAddress) &&
-        all(c("creator", "contact") %in% rv$Personnel$role)
-    )
-  })
-
-  observeEvent(NSB$SAVE,
-    {
-      req(main.env$EAL$current[1] == "Personnel")
-
-      # save
-      save.variable <- saveReactive(
-        save.variable = savevar,
-        rv = list(Personnel = rv)
+    
+    # Fill Personnel ----
+    observeEvent(input$addui, {
+      id <- dim(rv$Personnel[-c(1:2), ])[1] + 1
+      while (as.character(id) %in% rv$Personnel$id) {
+        id <- id + 1
+      }
+      rv <- insertPersonnelInput(
+        as.character(id),
+        rv,
+        ns,
+        main.env
       )
-    },
-    ignoreInit = TRUE
-  )
-
-  # Process data -----------------------------------------------------
-  observeEvent(NSB$NEXT,
-    {
-      req(checkTruth(rv$Personnel))
-      req(main.env$EAL$current == "Personnel")
-
-      save.variable <- saveReactive(
-        save.variable,
-        rv = list(Personnel = rv)
+    })
+    
+    # Saves ----
+    observe({
+      main.env$EAL$completed <- all(
+        # Personnel
+        isTruthy(rv$Personnel$givenName) &&
+          isTruthy(rv$Personnel$surName) &&
+          isTruthy(rv$Personnel$organizationName) &&
+          isTruthy(rv$Personnel$electronicMailAddress) &&
+          all(c("creator", "contact") %in% rv$Personnel$role)
       )
-    },
-    priority = 1,
-    ignoreInit = TRUE
-  )
-
-  # Output -----------------------------------------------------
-  return(save.variable)
+    })
+    
+    # observeEvent(NSB$SAVE,
+    shinyjs::onclick(
+      "fill-wizard-save",
+      asis = TRUE,
+      add = TRUE,
+      {
+        req(main.env$EAL$current == "Personnel")
+        
+        # save
+        save.variable <- saveReactive(
+          save.variable = savevar,
+          rv = list(Personnel = rv)
+        )
+      },
+      ignoreInit = TRUE
+    )
+    
+    # Process data ----
+    observeEvent(EAL$.next,
+      {
+        req(checkTruth(rv$Personnel))
+        req(main.env$EAL$current == "Personnel")
+        
+        save.variable <- saveReactive(
+          save.variable,
+          rv = list(Personnel = rv)
+        )
+      },
+      priority = 1,
+      ignoreInit = TRUE
+    )
+    
+    # Output ----
+    return(save.variable)
+  })
 }
 
 #' @import shiny
 #' 
 #' @noRd
 insertPersonnelInput <- function(id, rv, ns, main.env, role = NULL, saved = NULL) {
-
-  # initialize IDs -----------------------------------------------------
+  
+  # initialize IDs ----
   div.id <- id
   site.id <- paste0("site_", id)
   rmv.id <- paste0("rmv_", id)
-
-  # Proper module server -----------------------------------------------------
+  
+  # Proper module server ----
   # insert new UI
   newUI <- PersonnelModUI(
     ns(id), div.id, site.id, rmv.id,
     role = role, saved = saved
   )
   insertUI(
-    selector = paste0("#", ns("inserthere")),
+    selector = paste0("#", NS(id, "inserthere")),
     ui = newUI
   )
-
+  
   # create associated server
-  rv <- callModule(
-    PersonnelMod, id, # module args
+  rv <- PersonnelMod(
+    id, 
     main.env, rv, # reactiveValues
     rmv.id, site.id, div.id, # renderUI ids
     role = role, saved = saved # set saved
   )
-
-  # Output -----------------------------------------------------
+  
+  # Output ----
   return(rv)
 }
 
@@ -213,30 +210,30 @@ insertPersonnelInput <- function(id, rv, ns, main.env, role = NULL, saved = NULL
 #' 
 #' @noRd
 PersonnelModUI <- function(id, div.id, site.id, rmv.id,
-                           role = NULL, saved = NULL) {
+  role = NULL, saved = NULL) {
   ns <- NS(id)
-
+  
   value <- if (checkTruth(saved)) {
     saved[saved$id == div.id, ]
   } else {
     NULL
   }
-
+  
   # set Project Information embedding tag
   .pi.embed <- if (!is.null(role)) {
     shinyjs::hidden
   } else {
     shiny::tagList
   }
-
+  
   tags$div(
     id = site.id,
     fluidRow(
       class = "inputBox",
-      # Form -----------------------------------------------------
+      # Form ----
       # column(11,
       tagList(
-        # * (ORCID) Personnel identification -----------------------------------------------------
+        # * (ORCID) Personnel identification ----
         fluidRow(
           class = "topInputRow",
           column(
@@ -245,7 +242,7 @@ PersonnelModUI <- function(id, div.id, site.id, rmv.id,
               4,
               if (is.null(role)) {
                 selectInput(
-                  ns("role"),
+                  NS(id, "role"),
                   c("creator", "PI (principal investigator)", "contact", "(other)"),
                   label = withRedStar("Role"),
                   selected = if (!is.null(value)) {
@@ -266,12 +263,12 @@ PersonnelModUI <- function(id, div.id, site.id, rmv.id,
               4,
               shinyjs::hidden(
                 div(
-                  id = ns("role-other"),
+                  id = NS(id, "role-other"),
                   textInput(
-                    ns("role-other"),
+                    NS(id, "role-other"),
                     label = "Title of the custom role",
                     value = if (!is.null(value) &&
-                      !value$role %in% c("creator", "PI (principal investigator)", "contact")) {
+                        !value$role %in% c("creator", "PI (principal investigator)", "contact")) {
                       value$role
                     } else {
                       ""
@@ -283,7 +280,7 @@ PersonnelModUI <- function(id, div.id, site.id, rmv.id,
             column(
               4,
               textInput(
-                ns("userId"),
+                NS(id, "userId"),
                 label = "ORCID",
                 value = if (!is.null(value)) value$userId else ""
               )
@@ -301,13 +298,13 @@ PersonnelModUI <- function(id, div.id, site.id, rmv.id,
             style = "padding-left: 0"
           )
         ), # end of fluidRow 1
-        # * Basic identity -----------------------------------------------------
+        # * Basic identity ----
         fluidRow(
           style = "padding:5px",
           column(
             4,
             textInput(
-              ns("givenName"),
+              NS(id, "givenName"),
               label = withRedStar("First name"),
               value = if (!is.null(value)) value$givenName else ""
             )
@@ -315,7 +312,7 @@ PersonnelModUI <- function(id, div.id, site.id, rmv.id,
           column(
             4,
             textInput(
-              ns("middleInitial"),
+              NS(id, "middleInitial"),
               label = "Middle initial",
               value = if (!is.null(value)) value$middleInitial else ""
             )
@@ -323,19 +320,19 @@ PersonnelModUI <- function(id, div.id, site.id, rmv.id,
           column(
             4,
             textInput(
-              ns("surName"),
+              NS(id, "surName"),
               label = withRedStar("Last name"),
               value = if (!is.null(value)) value$surName else ""
             )
           )
         ), # end of fluidRow 1
-        # * Contact -----------------------------------------------------
+        # * Contact ----
         fluidRow(
           style = "padding:5px",
           column(
             8,
             textInput(
-              ns("organizationName"),
+              NS(id, "organizationName"),
               label = withRedStar("Name of organization the person is associated with."),
               value = if (!is.null(value)) value$organizationName else ""
             )
@@ -343,13 +340,13 @@ PersonnelModUI <- function(id, div.id, site.id, rmv.id,
           column(
             4,
             textInput(
-              ns("electronicMailAddress"),
+              NS(id, "electronicMailAddress"),
               label = withRedStar("Email address"),
               value = if (!is.null(value)) value$electronicMailAddress else ""
             )
           )
         ), # end of fluidRow 2
-        # * Project information -----------------------------------------------------
+        # * Project information ----
         .pi.embed(
           div(
             style = "padding:5px",
@@ -358,7 +355,7 @@ PersonnelModUI <- function(id, div.id, site.id, rmv.id,
               column(
                 4,
                 textInput(
-                  ns("projectTitle"),
+                  NS(id, "projectTitle"),
                   label = "Project title for this dataset",
                   value = if (!is.null(value)) value$projectTitle else ""
                 )
@@ -366,7 +363,7 @@ PersonnelModUI <- function(id, div.id, site.id, rmv.id,
               column(
                 4,
                 textInput(
-                  ns("fundingAgency"),
+                  NS(id, "fundingAgency"),
                   label = "Entity funding the creation of this dataset",
                   value = if (!is.null(value)) value$fundingAgency else ""
                 )
@@ -374,7 +371,7 @@ PersonnelModUI <- function(id, div.id, site.id, rmv.id,
               column(
                 4,
                 textInput(
-                  ns("fundingNumber"),
+                  NS(id, "fundingNumber"),
                   label = "Number of the grant or award that supported creation of this dataset",
                   value = if (!is.null(value)) value$fundingNumber else ""
                 )
@@ -393,16 +390,16 @@ PersonnelModUI <- function(id, div.id, site.id, rmv.id,
 #' 
 #' @noRd
 PersonnelMod <- function(input, output, session, main.env,
-                         rv, rmv.id, site.id, ref, role = NULL, saved = NULL) {
+  rv, rmv.id, site.id, ref, role = NULL, saved = NULL) {
   ns <- session$ns
-
-  # Variable initialization -----------------------------------------------------
+  
+  # Variable initialization ----
   if (!is.null(saved)) {
     value <- saved[saved$id == ref, ]
   } else {
     value <- NULL
   }
-
+  
   local.rv <- reactiveValues(
     id = ref,
     # Basic Identity
@@ -421,46 +418,46 @@ PersonnelMod <- function(input, output, session, main.env,
     fundingAgency = if (!is.null(value)) value$fundingAgency else NA,
     fundingNumber = if (!is.null(value)) value$fundingNumber else NA
   )
-
-  # * Basic Identity -----------------------------------------------------
+  
+  # * Basic Identity ----
   name.pattern <- main.env$PATTERNS$name
-
+  
   observeEvent(input$givenName, {
     local.rv$givenName <- if (grepl(name.pattern, input$givenName)) {
       input$givenName
     }
   })
-
+  
   observeEvent(input$middleInitial, {
     local.rv$middleInitial <- input$middleInitial
   })
-
+  
   observeEvent(input$surName, {
     local.rv$surName <- if (grepl(name.pattern, input$surName)) {
       input$surName
     }
   })
-
-  # * Contact -----------------------------------------------------
+  
+  # * Contact ----
   mail.pattern <- main.env$PATTERNS$email
-
+  
   observeEvent(input$organizationName, {
     local.rv$organizationName <- input$organizationName
   })
-
+  
   observeEvent(input$electronicMailAddress, {
     local.rv$electronicMailAddress <- if (grepl(mail.pattern, input$electronicMailAddress)) {
       input$electronicMailAddress
     }
   })
-
-  # * (ORCID) Personnel identification -----------------------------------------------------
+  
+  # * (ORCID) Personnel identification ----
   orcid.pattern <- main.env$PATTERNS$ORCID
-
+  
   observeEvent(input$userId, {
     req(input$userId)
     local.rv$userId <- input$userId
-
+    
     if (grepl(orcid.pattern, input$userId)) {
       local.rv$userId <- stringr::str_extract(local.rv$userId, orcid.pattern)
       updateTextInput(
@@ -469,20 +466,20 @@ PersonnelMod <- function(input, output, session, main.env,
         value = local.rv$userId
       )
     }
-
+    
     orcid.connect <- try(
       rorcid::as.orcid(
         local.rv$userId #TODO ORCID auth % snake
       )
     )
-
+    
     if (
       grepl(orcid.pattern, input$userId) &&
         isTruthy(orcid.connect)
     ) {
       orcid <- local.rv$userId
       orcid.info <- list()
-
+      
       # names
       orcid.info$names <- rorcid::orcid_person(orcid)[[orcid]]$name
       if (isTruthy(unlist(orcid.info$names$`given-names`$value))) {
@@ -493,7 +490,7 @@ PersonnelMod <- function(input, output, session, main.env,
         local.rv$surName <- orcid.info$names$`family-name`$value
         updateTextInput(session, "surName", value = local.rv$surName)
       }
-
+      
       # organization
       orcid.info$employment <- rorcid::orcid_employments(orcid)[[orcid]]$`affiliation-group`$summaries[[1]]
       if (isTruthy(unlist(orcid.info$employment$`employment-summary.organization.name`))) {
@@ -501,20 +498,20 @@ PersonnelMod <- function(input, output, session, main.env,
         updateTextInput(session, "organizationName", value = local.rv$organizationName)
       }
       if (is.null(role) &&
-        isTruthy(unlist(orcid.info$employment$`employment-summary.role-title`))) {
+          isTruthy(unlist(orcid.info$employment$`employment-summary.role-title`))) {
         local.rv$role <- "(other)"
         updateTextInput(session, "role", value = local.rv$role)
         local.rv$`role-other` <- orcid.info$employment$`employment-summary.role-title`
         updateTextInput(session, "role-other", value = local.rv$`role-other`)
       }
-
+      
       # email
       orcid.info$email <- rorcid::orcid_email(orcid)[[orcid]]$email
       if (isTruthy(unlist(orcid.info$email$email))) {
         local.rv$electronicMailAddress <- orcid.info$email$email
         updateTextInput(session, "electronicMailAddress", value = local.rv$electronicMailAddress)
       }
-
+      
       # fundings
       if (local.rv$role == "PI (principal investigator)") {
         orcid.info$fundings <- rorcid::orcid_fundings(orcid)[[orcid]]$group$`funding-summary`[[1]]
@@ -533,14 +530,14 @@ PersonnelMod <- function(input, output, session, main.env,
       }
     } else {
       showNotification(
-        id = ns("invalid_userid"),
+        id = NS(id, "invalid_userid"),
         "Input 'userId' is not a valid ORCID.",
         type = "warning"
       )
     }
   })
-
-  # * Project information -----------------------------------------------------
+  
+  # * Project information ----
   if (is.null(role)) {
     observeEvent(
       {
@@ -569,19 +566,19 @@ PersonnelMod <- function(input, output, session, main.env,
       },
       ignoreInit = FALSE
     )
-
+    
     observeEvent(input$projectTitle, {
       if (input$role == "PI (principal investigator)") {
         local.rv$projectTitle <- input$projectTitle
       }
     })
-
+    
     observeEvent(input$fundingAgency, {
       if (input$role == "PI (principal investigator)") {
         local.rv$fundingAgency <- input$fundingAgency
       }
     })
-
+    
     observeEvent(input$fundingNumber, {
       if (input$role == "PI (principal investigator)") {
         local.rv$fundingNumber <- input$fundingNumber
@@ -593,13 +590,13 @@ PersonnelMod <- function(input, output, session, main.env,
     local.rv$fundingAgency <- ""
     local.rv$fundingNumber <- ""
   }
-
-  # Metadata save -----------------------------------------------------
+  
+  # Metadata save ----
   observe({
     req(
       !is.null(role) ||
         (any(grepl(rmv.id, names(input))) &&
-          input[[rmv.id]] < 1)
+            input[[rmv.id]] < 1)
     )
     personnel <- isolate(rv$Personnel)
     # Fetch correct index
@@ -609,26 +606,26 @@ PersonnelMod <- function(input, output, session, main.env,
     else {
       dim(personnel)[1] + 1
     }
-
+    
     # print values into rv at selected index
     .values <- printReactiveValues(local.rv)
     .values <- .values[colnames(personnel)]
     .values[which(!sapply(.values, isTruthy))] <- ""
     isolate(rv$Personnel[ind, ] <- .values)
   })
-
-  # Remove UI -----------------------------------------------------
+  
+  # Remove UI ----
   if (is.null(role)) {
     observeEvent(input$rmv.id, {
       # unload the RV
       ind <- match(ref, rv$Personnel$id)
       rv$Personnel <- rv$Personnel %>% slice(-ind)
-
+      
       # remove the UI
       removeUI(selector = paste0("#", site.id), immediate = TRUE)
     })
   }
-
-  # Output -----------------------------------------------------
+  
+  # Output ----
   return(rv)
 }

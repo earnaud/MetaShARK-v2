@@ -79,7 +79,10 @@
     reactiveValues(
       thresholds = reactiveValues(
         files.size.max = 500000
-      )
+      ),
+      steps = c("SelectDP", "Data Files", "Attributes", "Categorical Variables",
+        "Geographic Coverage", "Taxonomic Coverage", "Personnel", "Miscellaneous",
+        "Make EML")
     ), 
     envir = main.env
   )
@@ -152,23 +155,30 @@
     envir = main.env
   )
   
-  # EAL ====
-  
+  # EAL rv ====
   assign(
     "EAL", 
     reactiveValues(
-      history = "SelectDP",
-      navigate = 1,
-      current = c(name = "SelectDP", completed = FALSE),
-      iterator = 0
+      page = 1, # page number
+      history = character(), # all browsed pages names in steps
+      current = character(), # last of history
+      completed = FALSE,  # is current page completed?
+      tag.list = tagList(), # side HTML tags to display
+      .next = 0,
+      .prev = 0
     ), 
     envir = main.env
   )
   
-  # Patterns ====
-  
   assign(
-    "PATTERNS", 
+    "save.variable",
+    initReactive(main.env = main.env),
+    envir = main.env
+  )
+  
+  # Patterns ====
+  assign(
+    "PATTERNS",
     reactiveValues(
       # match one expression for latitude or longitude
       coordinates = "[+-]?[[:digit:]]+[.,]*[[:digit:]]*",

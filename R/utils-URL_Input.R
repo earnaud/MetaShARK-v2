@@ -13,10 +13,10 @@
 #' @import shiny
 URL_Input_UI <- function(id, label = "URL", width = "100%") {
   ns <- NS(id)
-
+  
   tagList(
-    textInput(ns("url"), label, placeholder = "https://github.com/earnaud/MetaShARK-v2"),
-    textOutput(ns("warnings"))
+    textInput(NS(id, "url"), label, placeholder = "https://github.com/earnaud/MetaShARK-v2"),
+    textOutput(NS(id, "warnings"))
   )
 }
 
@@ -26,25 +26,27 @@ URL_Input_UI <- function(id, label = "URL", width = "100%") {
 #'
 #' @import shiny
 #' @importFrom RCurl url.exists
-URL_Input <- function(input, output, session) {
-  # variable initialization
-  url <- reactiveVal(character())
-
-  # actions
-  observeEvent(input$url, {
-    is.url <- RCurl::url.exists(input$url)
-
-    output$warnings <- renderText({
-      validate(
-        need(is.url, "Invalid URL target.")
-      )
-      return(NULL)
+URL_Input <- function(id){
+  moduleServer(id, function(input, output, session) {
+    # variable initialization
+    url <- reactiveVal(character())
+    
+    # actions
+    observeEvent(input$url, {
+      is.url <- RCurl::url.exists(input$url)
+      
+      output$warnings <- renderText({
+        validate(
+          need(is.url, "Invalid URL target.")
+        )
+        return(NULL)
+      })
+      
+      url <- NA_character_
+      req(is.url)
+      url <- input$url
     })
-
-    url <- NA_character_
-    req(is.url)
-    url <- input$url
+    
+    return(url)
   })
-
-  return(url)
 }

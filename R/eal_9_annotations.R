@@ -6,7 +6,7 @@
 #'       useShinyjs(),
 #'       tags$div(
 #'         tags$br(),
-#'         actionButton(ns("addui"), "", icon("plus")),
+#'         actionButton(NS(id, "addui"), "", icon("plus")),
 #'         fluidRow(
 #'           column(11,
 #'             column(4, "Subject"),
@@ -15,8 +15,8 @@
 #'           ),
 #'           style = "background-color: white; text-align: center"
 #'         ),
-#'         uiOutput(ns("annotation_fields")),
-#'         tags$div(id = ns("inserthere")),
+#'         uiOutput(NS(id, "annotation_fields")),
+#'         tags$div(id = NS(id, "inserthere")),
 #'         tags$br(),
 #'         class = "inputBox wip"
 #'       ) # end of fluidPage
@@ -64,7 +64,7 @@
 #'       footer = tagList(
 #'         modalButton("Cancel"),
 #'         actionButton(
-#'           ns("insert"),
+#'           NS(id, "insert"),
 #'           "New annotation"
 #'         ) %>% disabled
 #'       )
@@ -95,19 +95,19 @@
 #' #' @import shiny
 #' insertAnnotInput <- function(id, rv, ns, main.env, value = NULL) {
 #'   
-#'   # initialize IDs -----------------------------------------------------
+#'   # initialize IDs ----
 #'   div_id <- id
 #'   site_id <- paste0("site_", id)
 #'   rmv_id <- paste0("rmv_", id)
 #'   
-#'   # Proper module server -----------------------------------------------------
+#'   # Proper module server ----
 #'   # insert new UI
 #'   newUI <- AnnotModUI(
 #'     ns(id), div_id, site_id, rmv_id, 
 #'     value = value
 #'   )
 #'   insertUI(
-#'     selector = paste0("#", ns("inserthere")),
+#'     selector = paste0("#", NS(id, "inserthere")),
 #'     ui = newUI
 #'   )
 #'   
@@ -119,7 +119,7 @@
 #'     value = value # set saved
 #'   )
 #'   
-#'   # Output -----------------------------------------------------
+#'   # Output ----
 #'   return(rv)
 #' }
 #' 
@@ -187,7 +187,7 @@
 #'   rv, rmv_id, site_id, ref, role = NULL, saved = NULL) {
 #'   ns <- session$ns
 #'   
-#'   # Variable initialization -----------------------------------------------------
+#'   # Variable initialization ----
 #'   if(!is.null(saved)){
 #'     value <- saved[saved$id == ref,]
 #'   } else {
@@ -225,7 +225,7 @@
 #'     local.rv <- ontoloGUI("object", local.rv)
 #'   })
 #'   
-#'   # Metadata save -----------------------------------------------------
+#'   # Metadata save ----
 #'   observe({
 #'     req(
 #'       !is.null(value) ||
@@ -259,6 +259,6 @@
 #'       removeUI(selector = paste0("#", site_id), immediate = TRUE)
 #'     })
 #'   
-#'   # Output -----------------------------------------------------
+#'   # Output ----
 #'   return(rv)
 #' }

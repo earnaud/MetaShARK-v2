@@ -29,7 +29,7 @@ GeoCovInputUI <- function(id, site.id, rmv.id, default = NULL) {
     id = site.id,
     fluidRow(
       column(2, "Description", style = "text-align: right"),
-      column(9, textInput(ns("site_description"), def.site, site.id)),
+      column(9, textInput(NS(id, "site_description"), def.site, site.id)),
       column(
         1,
         actionButton(
@@ -82,7 +82,7 @@ GeoCovInputUI <- function(id, site.id, rmv.id, default = NULL) {
 GeoCovInput <- function(input, output, session,
                         rv, rmv.id, site.id, ref) {
 
-  # Metadata acquisition -----------------------------------------------------
+  # Metadata acquisition ----
   local.rv <- reactiveValues(
     id = ref,
     geographicDescription = "",
@@ -121,7 +121,7 @@ GeoCovInput <- function(input, output, session,
     priority = 1
   )
 
-  # Metadata save -----------------------------------------------------
+  # Metadata save ----
   observeEvent(
     {
       input$site_description
@@ -145,7 +145,7 @@ GeoCovInput <- function(input, output, session,
     priority = 0
   )
 
-  # Remove UI -----------------------------------------------------
+  # Remove UI ----
   shinyjs::onclick(rmv.id, {
     # remove the UI
     removeUI(selector = paste0("#", site.id), immediate = TRUE)
@@ -156,7 +156,7 @@ GeoCovInput <- function(input, output, session,
     rv$id <- rv$id[-ind]
   })
 
-  # Output -----------------------------------------------------
+  # Output ----
   return(rv)
 }
 
@@ -167,12 +167,12 @@ GeoCovInput <- function(input, output, session,
 insertGeoCovInput <- function(id, rv, ns, default = NULL) {
   # !!! warning: rv = rv$custom here !!!
 
-  # initialize IDs -----------------------------------------------------
+  # initialize IDs ----
   div.id <- id
   site.id <- paste0("site_", div.id)
   rmv.id <- paste0("rmv_", div.id)
 
-  # Proper module server -----------------------------------------------------
+  # Proper module server ----
   # create the UI
   new.ui <- GeoCovInputUI(ns(div.id), site.id, rmv.id, default = default)
 
@@ -180,12 +180,9 @@ insertGeoCovInput <- function(id, rv, ns, default = NULL) {
   insertUI(selector = "#inserthere", ui = new.ui)
 
   # create the server
-  rv <- callModule(
-    GeoCovInput, div.id,
-    rv, rmv.id, site.id, id
-  )
+  rv <- GeoCovInput(div.id, rv, rmv.id, site.id, id)
 
-  # Output -----------------------------------------------------
+  # Output ----
   return(rv)
 }
 

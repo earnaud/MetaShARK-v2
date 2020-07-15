@@ -25,16 +25,16 @@ aboutUI <- function(id) {
     tags$p("The following people and parties have worked upstream of
       MetaShARK dev team to provide the fundamentals united in
       the present tool."),
-    uiOutput(ns("actors")),
+    uiOutput(NS(id, "actors")),
     # Informatics
     tags$h2("Computer material"),
     tags$p("The following references will lead the user to the source
       of tools and methods reused in MetaShARK."),
-    uiOutput(ns("informatics")),
+    uiOutput(NS(id, "informatics")),
     # Sci litt
     tags$h2("Literature"),
     tags$p("MetaShARK is based on the following papers and articles
       concerning mainly ecological metadata."),
-    uiOutput(ns("ecology"))
+    uiOutput(NS(id, "ecology"))
   )
 }

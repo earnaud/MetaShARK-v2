@@ -101,7 +101,7 @@ attributeInput <- function(input, output, session,
             value = .val
           )
           showNotification(
-            id = session$ns("mvc_update"),
+            id = session$NS(id, "mvc_update"),
             ui = HTML("<code>missingValueCode</code> fields are limited to a
               <b>single word.</b>"),
             duration = 3,

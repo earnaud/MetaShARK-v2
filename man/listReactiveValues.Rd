@@ -10,8 +10,10 @@ listReactiveValues(rv, lv = 0, name = "root")
 \item{rv}{reactiveValues to turn into list}
 
 \item{lv}{(verbose purposes)}
+
+\item{name}{root node name}
 }
 \description{
-Allows to turn a `reactiveValues`` object
-into a list. Uses recursive method.
+Allows to turn a `reactiveValues`` object into a list. Uses
+recursive method.
 }

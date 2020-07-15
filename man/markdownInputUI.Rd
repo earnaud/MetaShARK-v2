@@ -5,20 +5,16 @@
 \alias{markdownInput}
 \title{markdownInputUI}
 \usage{
-markdownInputUI(
-  inputId,
-  label = "Text",
-  icon = TRUE,
-  preview = FALSE,
-  value = ""
-)
+markdownInputUI(id, label = "Text", icon = TRUE, preview = FALSE, value = "")
 
-markdownInput(input, output, session, preview = FALSE)
+markdownInput(id, preview = FALSE)
 }
 \arguments{
-\item{inputId}{character. The input slot that will be used to access the value.}
+\item{id}{character. The input slot that will be used to access the value.}
 
 \item{label}{character. Display label for the control, or NULL for no label.}
+
+\item{icon}{character. An optional `icon()` to appear on the button.}
 
 \item{preview}{logical. Shall a preview panel appear? (right-sided, 50\% width)}
 

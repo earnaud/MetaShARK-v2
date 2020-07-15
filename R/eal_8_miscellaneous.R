@@ -3,7 +3,6 @@
 #' 
 #' @noRd
 MiscellaneousUI <- function(id, help.label = NULL, value = "") {
-  ns <- NS(id)
 
   fluidRow(
     # file selection
@@ -13,13 +12,13 @@ MiscellaneousUI <- function(id, help.label = NULL, value = "") {
       tags$br(),
       div(
         fileInput(
-          ns("file"),
+          NS(id, "file"),
           "",
           multiple = FALSE,
           buttonLabel = span("Load file", icon("file")),
         )
       ),
-      div(textOutput(ns("selected")), class = "ellipsis")
+      div(textOutput(NS(id, "selected")), class = "ellipsis")
     ),
     # Content edition
     column(
@@ -28,7 +27,7 @@ MiscellaneousUI <- function(id, help.label = NULL, value = "") {
         tags$b("Content"),
         help.label,
         markdownInputUI(
-          ns("content"),
+          NS(id, "content"),
           label = "",
           value = value,
           preview = FALSE
@@ -43,13 +42,13 @@ MiscellaneousUI <- function(id, help.label = NULL, value = "") {
 #' 
 #' @noRd
 Miscellaneous <- function(input, output, session, save.variable, rv) {
-  # Variable initialization -----------------------------------------------------
+  # Variable initialization ----
   ns <- session$ns
 
-  # Get content -----------------------------------------------------
-  rv$content <- callModule(markdownInput, "content", preview = FALSE)
+  # Get content ----
+  rv$content <- markdownInput("content", preview = FALSE)
 
-  # Get file -----------------------------------------------------
+  # Get file ----
   observeEvent(input$file,
     {
       req(input$file)
@@ -81,6 +80,6 @@ Miscellaneous <- function(input, output, session, save.variable, rv) {
     )
   })
 
-  # Output -----------------------------------------------------
+  # Output ----
   return(rv)
 }

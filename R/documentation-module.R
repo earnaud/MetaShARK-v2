@@ -21,7 +21,7 @@ docUI <- function(id) {
         5,
         wellPanel(
           shinyTree::shinyTree(
-            outputId = ns("tree"),
+            outputId = NS(id, "tree"),
             search = TRUE,
             theme = "proton"
           )
@@ -32,7 +32,7 @@ docUI <- function(id) {
         7,
         div(
           id = "docPanel",
-          uiOutput(ns("doc"))
+          uiOutput(NS(id, "doc"))
         )
       )
     )

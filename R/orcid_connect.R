@@ -2,7 +2,7 @@
 orcidUI <- function(id, globals) {
   ns <- NS(id)
   
-  uiOutput(ns("infos"))
+  uiOutput(NS(id, "infos"))
 }
 
 #' @import shiny
@@ -18,9 +18,9 @@ orcid <- function(input, output, session, main.env) {
     output$infos <- renderUI({
       if (isFALSE(.SETTINGS$logged)) {
         tagList(
-          textInput(ns("orcid"), "Write your ORCID here"),
+          textInput(NS(id, "orcid"), "Write your ORCID here"),
           actionButton(
-            ns("connect"),
+            NS(id, "connect"),
             "Connect with ORCID",
             icon = icon("sign-in-alt")
           )
@@ -35,7 +35,7 @@ orcid <- function(input, output, session, main.env) {
             ),
             column(6)
           ),
-          actionButton(ns("disconnect"), "Logout", icon = icon("sign-out-alt"))
+          actionButton(NS(id, "disconnect"), "Logout", icon = icon("sign-out-alt"))
         )
       }
     })

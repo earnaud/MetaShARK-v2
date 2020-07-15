@@ -18,7 +18,7 @@ settingsUI <- function(id, wip) {
           created on this instance of MetaShARK. By logging in, you will be able
           to write private data packages that will not appear on other users list.
           "),
-        orcidUI(ns("orcid")),
+        orcidUI(NS(id, "orcid")),
         # TODO POC ORCID
         class = "inputBox wip"
       )
@@ -28,14 +28,14 @@ settingsUI <- function(id, wip) {
       column(
         8,
         tags$h2("Metacat settings"),
-        textAreaInput(ns("metacat_token"),
+        textAreaInput(NS(id, "metacat_token"),
           "Authentication token",
           width = "120%"
         ),
-        checkboxInput(ns("test_metacat"), "Test MetaCat", value = TRUE),
-        actionButton(ns("metacat_save"), "Save"),
+        checkboxInput(NS(id, "test_metacat"), "Test MetaCat", value = TRUE),
+        actionButton(NS(id, "metacat_save"), "Save"),
         if (isTRUE(wip)) {
-          textOutput(ns("verbose_token"))
+          textOutput(NS(id, "verbose_token"))
         }
       ),
       column(
@@ -59,11 +59,11 @@ settingsUI <- function(id, wip) {
         column(
           8,
           textAreaInput(
-            ns("cedar_token"),
+            NS(id, "cedar_token"),
             "Authentication token",
             width = "120%"
           ),
-          actionButton(ns("cedar_save"), "Save")
+          actionButton(NS(id, "cedar_save"), "Save")
         ),
         column(
           4,
@@ -87,28 +87,30 @@ settingsUI <- function(id, wip) {
 #' @import shiny
 #' @importFrom shinyjs onclick
 #' @importFrom cedarr accessOntology
-settings <- function(input, output, session, main.env) {
-  # Sessionning ====
-  callModule(orcid, "orcid", main.env)
-  
-  # Metacat token ====
-  observeEvent(input$test_metacat, {
-    req(input$test_metacat)
-    main.env$SETTINGS$metacat.test <- input$test_metacat
-  })
-  
-  observeEvent(input$metacat_save, {
-    main.env$SETTINGS$metacat.token <- input$metacat_token
-    showNotification(id = "metacat_set", "Dataone token set.", type = "message")
-  })
-  
-  # CEDAR token ====
-  observeEvent({
-    input$cedar_token
-    input$cedar_save
-  }, {
-    req(input$cedar_token)
-    .SETTINGS$cedar.token <- input$cedar_token
-    main.env$SEMANTICS$ontologies <- cedarr::accessOntology(.SETTINGS$cedar.token)
+settings <- function(id, main.env){
+  moduleServer(id, function(input, output, session) {
+    # Sessionning ====
+    orcid("orcid", main.env)
+    
+    # Metacat token ====
+    observeEvent(input$test_metacat, {
+      req(input$test_metacat)
+      main.env$SETTINGS$metacat.test <- input$test_metacat
+    })
+    
+    observeEvent(input$metacat_save, {
+      main.env$SETTINGS$metacat.token <- input$metacat_token
+      showNotification(id = "metacat_set", "Dataone token set.", type = "message")
+    })
+    
+    # CEDAR token ====
+    observeEvent({
+      input$cedar_token
+      input$cedar_save
+    }, {
+      req(input$cedar_token)
+      .SETTINGS$cedar.token <- input$cedar_token
+      main.env$SEMANTICS$ontologies <- cedarr::accessOntology(.SETTINGS$cedar.token)
+    })
   })
 }

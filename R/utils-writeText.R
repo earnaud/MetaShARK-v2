@@ -9,7 +9,7 @@
 #'
 #' @export
 write.text <- function(x, file = ".", collapse = "\n") {
-  # Validity check -----------------------------------------------------
+  # Validity check ----
   if (missing(x)) {
     stop("Error: no text has been provided.")
   }
@@ -24,7 +24,7 @@ write.text <- function(x, file = ".", collapse = "\n") {
     warning("Length of 'file' > 1 : only the first element has been used.")
   }
 
-  # Process data -----------------------------------------------------
+  # Process data ----
   if (is.list(x)) {
     x <- unlist(x)
   }
@@ -32,7 +32,7 @@ write.text <- function(x, file = ".", collapse = "\n") {
     x <- paste(x, collapse = collapse)
   }
 
-  # Proper write -----------------------------------------------------
+  # Proper write ----
   fileConn <- file(file)
   writeLines(x, fileConn)
   close(fileConn)

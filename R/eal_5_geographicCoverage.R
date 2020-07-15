@@ -2,7 +2,7 @@
 #' @importFrom shinyjs hidden
 #' 
 #' @noRd
-GeoCovUI <- function(id, title, dev) {
+GeoCovUI <- function(id, main.env) {
   ns <- NS(id)
 
   return(
@@ -18,21 +18,21 @@ GeoCovUI <- function(id, title, dev) {
             and one or two others for latitude and longitude. Southern latitude
             and western longitude shall be noted with negative values."),
         bsCollapse(
-          id = ns("method"),
+          id = NS(id, "method"),
           bsCollapsePanel(
             title = "Use dataset's geographic variables",
             value = 1,
             tagList(
-              uiOutput(ns("site-ui")),
-              uiOutput(ns("latitude-ui")),
+              uiOutput(NS(id, "site-ui")),
+              uiOutput(NS(id, "latitude-ui")),
               div(
-                id = ns("latiWarn"),
-                textOutput(ns("latitude-warning"))
+                id = NS(id, "latiWarn"),
+                textOutput(NS(id, "latitude-warning"))
               ),
-              uiOutput(ns("longitude-ui")),
+              uiOutput(NS(id, "longitude-ui")),
               div(
-                id = ns("longWarn"),
-                textOutput(ns("longitude-warning"))
+                id = NS(id, "longWarn"),
+                textOutput(NS(id, "longitude-warning"))
               )
             )
           ),
@@ -42,13 +42,13 @@ GeoCovUI <- function(id, title, dev) {
             fluidRow(
               column(
                 2,
-                actionButton(ns("addui"), "", icon("plus")),
+                actionButton(NS(id, "addui"), "", icon("plus")),
               ),
               column(
                 10,
                 hidden(
                   tags$div(
-                    id = ns("slider_tips"),
+                    id = NS(id, "slider_tips"),
                     HTML("You can detail a more precise number by using the 
                       left/right (or down/up) arrows of your keyboard. Precision 
                       can be given at 0.01 &#176. Items can be removed by using the
@@ -75,20 +75,12 @@ GeoCovUI <- function(id, title, dev) {
 #' @importFrom shinyjs onclick show
 #' 
 #' @noRd
-GeoCov <- function(input, output, session, save.variable, main.env, NSB) {
+GeoCov <- function(id, main.env) {
+  moduleServer(id, function(input, output, session){
+    save.variable <- main.env$save.variable
   ns <- session$ns
   
-  if (main.env$DEV) {
-    shinyjs::onclick("dev",
-      {
-        req(main.env$EAL$navigate == 5)
-        browser()
-      },
-      asis = TRUE
-    )
-  }
-
-  # Variable initialization -----------------------------------------------------
+  # Variable initialization ----
 
   # Reactive Values
   rv <- reactiveValues(
@@ -136,7 +128,7 @@ GeoCov <- function(input, output, session, save.variable, main.env, NSB) {
     }
   }
 
-  # Pre-fill -----------------------------------------------------
+  # Pre-fill ----
   # * Set choices ====
   columns <- lapply(
     seq_along(save.variable$emlal$Attributes),
@@ -230,7 +222,7 @@ GeoCov <- function(input, output, session, save.variable, main.env, NSB) {
     label = "EAL5 init choices"
   )
 
-  # Input management -----------------------------------------------------
+  # Input management ----
   {
     # * Site description ----
     output$`site-ui` <- renderUI({
@@ -248,7 +240,7 @@ GeoCov <- function(input, output, session, save.variable, main.env, NSB) {
       }
       
       selectInput(
-        ns("site"),
+        NS(id, "site"),
         "Choose a column for sites:",
         c("None" = "", rv$columns$choices$sites),
         selected = .site.name
@@ -298,7 +290,7 @@ GeoCov <- function(input, output, session, save.variable, main.env, NSB) {
 
       # Update UI
       selectizeInput(
-        ns("latitude"),
+        NS(id, "latitude"),
         "Choose a column for latitude:",
         c("None" = "", rv$columns$choices$coords),
         selected = .lat.cols,
@@ -334,7 +326,7 @@ GeoCov <- function(input, output, session, save.variable, main.env, NSB) {
       label = "EAL5 get latitude"
     )
 
-    # * Longitude -----------------------------------------------------
+    # * Longitude ----
     output$`longitude-ui` <- renderUI({
       isolate({
         .lon.cols <- printReactiveValues(rv$columns$lon)
@@ -355,7 +347,7 @@ GeoCov <- function(input, output, session, save.variable, main.env, NSB) {
       
       # Update UI
       selectizeInput(
-        ns("longitude"),
+        NS(id, "longitude"),
         "Choose a column for longitude:",
         c("None" = "", rv$columns$choices$coords),
         selected = .lon.cols,
@@ -391,7 +383,7 @@ GeoCov <- function(input, output, session, save.variable, main.env, NSB) {
     )
   }
   
-  # Fill custom -----------------------------------------------------
+  # Fill custom ----
   # * Setup ----
   if (dim(rv$custom$coordinates)[1] > 0) {
     sapply(1:nrow(rv$custom$coordinates), function(ind) {
@@ -415,7 +407,7 @@ GeoCov <- function(input, output, session, save.variable, main.env, NSB) {
     )
   })
 
-  # Saves -----------------------------------------------------
+  # Saves ----
   observeEvent(
     {
       rv$columns$site$col
@@ -438,13 +430,17 @@ GeoCov <- function(input, output, session, save.variable, main.env, NSB) {
   )
 
   observe({
-    main.env$EAL$current[2] <- any(
+    main.env$EAL$completed <- any(
       isTRUE(rv$custom$complete),
       isTRUE(rv$columns$complete)
     )
   })
 
-  observeEvent(NSB$SAVE,
+  # observeEvent(NSB$SAVE,
+  shinyjs::onclick(
+    "fill-wizard-save",
+    asis = TRUE,
+    add = TRUE,
     {
       req(utils::tail(main.env$EAL$history, 1) == "Geographic Coverage")
 
@@ -461,23 +457,23 @@ GeoCov <- function(input, output, session, save.variable, main.env, NSB) {
     ignoreInit = TRUE
   )
 
-  # Process data -----------------------------------------------------
+  # Process data ----
   # * Previous ----
-  observeEvent(NSB$PREV,
+  observeEvent(EAL$.prev,
     {
-      req(main.env$EAL$current[1] == "Geographic Coverage")
+      req(main.env$EAL$current == "Geographic Coverage")
 
       if (!"Categorical Variables" %in% main.env$EAL$history) {
-        main.env$EAL$navigate <- main.env$EAL$navigate - 1
+        main.env$EAL$page <- main.env$EAL$page - 1
       }
     },
     ignoreInit = TRUE
   )
 
   # * Next ----
-  observeEvent(NSB$NEXT,
+  observeEvent(EAL$.next,
     {
-      req(main.env$EAL$current[1] == "Geographic Coverage")
+      req(main.env$EAL$current == "Geographic Coverage")
 
       # Create modal
       choices <- c(
@@ -492,7 +488,7 @@ GeoCov <- function(input, output, session, save.variable, main.env, NSB) {
         tagList(
           "You are getting ready to proceed. Please select one of the following:",
           radioButtons(
-            ns("method"),
+            NS(id, "method"),
             "Method for Geographic Coverage:",
             choices = choices
           )
@@ -500,7 +496,7 @@ GeoCov <- function(input, output, session, save.variable, main.env, NSB) {
         easyClose = FALSE,
         footer = tagList(
           modalButton("Cancel"),
-          actionButton(ns("confirm"), "Proceed")
+          actionButton(NS(id, "confirm"), "Proceed")
         )
       )
 
@@ -512,8 +508,8 @@ GeoCov <- function(input, output, session, save.variable, main.env, NSB) {
 
   observeEvent(input$confirm, {
     removeModal()
-    main.env$EAL$navigate <-  6
-    NSB$tagList <- tagList()
+    main.env$EAL$page <-  6
+    EAL$tag.list <- tagList()
 
     .method <- input$method
     
@@ -529,6 +525,7 @@ GeoCov <- function(input, output, session, save.variable, main.env, NSB) {
     )
   }, ignoreInit = TRUE)
 
-  # Output -----------------------------------------------------
+  # Output ----
   return(save.variable)
+})
 }

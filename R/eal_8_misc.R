@@ -3,20 +3,25 @@
 #' @importFrom data.table fread
 #' 
 #' @noRd
-MiscUI <- function(id, title, dev, save.variable) {
+MiscUI <- function(id, main.env) {
   ns <- NS(id)
-
-  keywords <- fread(
-    paste0(save.variable$emlal$SelectDP$dp.metadata.path, "/keywords.txt"),
-    data.table = FALSE, stringsAsFactors = FALSE
-  )
+  
+  .metadata.path <- isolate(main.env$save.variable$emlal$SelectDP$dp.metadata.path)
+  
+  if(file.exists(paste0(.metadata.path, "/keywords.txt")))
+    keywords <- data.table::fread(
+      paste0(.metadata.path, "/keywords.txt"),
+      data.table = FALSE, stringsAsFactors = FALSE
+    )
+  else
+    keywords <- ""
   if (checkTruth(keywords)) {
     kw <- keywords$keyword %>%
       strsplit(split = ",") %>%
       unlist %>%
       paste(collapse = ",")
   }
-
+  
   return(
     fluidPage(
       fluidRow(
@@ -28,33 +33,35 @@ MiscUI <- function(id, title, dev, save.variable) {
             </ul>
           "),
         bsCollapse(
-          id = ns("Miscs"),
-
-          # * Abstract -----------------------------------------------------
+          id = NS(id, "Miscs"),
+          
+          # * Abstract ----
           bsCollapsePanel(
             title = withRedStar("Abstract"),
             value = 1,
             MiscellaneousUI(
-              ns("abstract"),
-              value = readPlainText(
-                paste0(save.variable$emlal$SelectDP$dp.metadata.path, "/abstract.txt")
-              )
+              NS(id, "abstract"),
+              value = if(file.exists(paste0(.metadata.path, "/abstract.txt")))
+                readPlainText(
+                  paste0(.metadata.path, "/abstract.txt")
+                )
             )
           ),
-
-          # * Methods -----------------------------------------------------
+          
+          # * Methods ----
           bsCollapsePanel(
             title = withRedStar("Methods"),
             value = 2,
             MiscellaneousUI(
-              ns("methods"),
-              value = readPlainText(
-                paste0(save.variable$emlal$SelectDP$dp.metadata.path, "/methods.txt")
-              )
+              NS(id, "methods"),
+              value = if(file.exists(paste0(.metadata.path, "/methods.txt")))
+                readPlainText(
+                  paste0(.metadata.path, "/methods.txt")
+                )
             )
           ),
-
-          # * Keywords -----------------------------------------------------
+          
+          # * Keywords ----
           bsCollapsePanel(
             title = withRedStar("Keywords"),
             value = 3,
@@ -62,7 +69,7 @@ MiscUI <- function(id, title, dev, save.variable) {
               column(
                 6,
                 tagsinput::tagsTextInput(
-                  ns("keywords"),
+                  NS(id, "keywords"),
                   tags$p("List the keywords that best describe your dataset.
                     Type a 'tab' to separate each keyword."),
                   value = if (checkTruth(keywords)) keywords[, 1] else c()
@@ -75,12 +82,12 @@ MiscUI <- function(id, title, dev, save.variable) {
                     no control is made about thesaurus input field and this
                     can be invalided."),
                 tags$p("You may associate a thesaurus to each keyword."),
-                uiOutput(ns("thesaurus"))
+                uiOutput(NS(id, "thesaurus"))
               )
             )
           ),
-
-          # * Temporal coverage -----------------------------------------------------
+          
+          # * Temporal coverage ----
           bsCollapsePanel(
             title = "Temporal coverage",
             value = 4,
@@ -88,7 +95,7 @@ MiscUI <- function(id, title, dev, save.variable) {
               column(10,
                 offset = 1,
                 dateRangeInput(
-                  ns("temporal_coverage"),
+                  NS(id, "temporal_coverage"),
                   "Dates between which dataset's content was produced",
                   max = Sys.Date(),
                   autoclose = FALSE
@@ -96,19 +103,20 @@ MiscUI <- function(id, title, dev, save.variable) {
               )
             )
           ),
-
-          # * Additional Info -----------------------------------------------------
+          
+          # * Additional Info ----
           bsCollapsePanel(
             title = "Additional Info",
             value = 5,
             MiscellaneousUI(
-              ns("additional.information"),
+              NS(id, "additional.information"),
               help.label = tags$p(
                 "If you have additional information that doesn't fall under the scope of the abstract or methods (e.g. a list of research articles or theses derived from this dataset) about your dataset, you may share it here."
               ),
-              value = readPlainText(
-                paste0(save.variable$emlal$SelectDP$dp.metadata.path, "/additional_info.txt")
-              )
+              value = if(file.exists(paste0(.metadata.path, "/additional_info.txt")))
+                readPlainText(
+                  paste0(.metadata.path, "/additional_info.txt")
+                )
             )
           )
         )
@@ -123,176 +131,170 @@ MiscUI <- function(id, title, dev, save.variable) {
 #' @importFrom data.table fread
 #' 
 #' @noRd
-Misc <- function(input, output, session, save.variable, main.env, NSB) {
-  ns <- session$ns
-
-  if (main.env$DEV) {
-    shinyjs::onclick("dev",
-      {
-        req(main.env$EAL$navigate == 8)
-        browser()
-      },
-      asis = TRUE
+Misc <- function(id, main.env) {
+  moduleServer(id, function(input, output, session){
+    save.variable <- main.env$save.variable
+    ns <- session$ns
+    
+    # Variable initialization ----
+    kw <- fread(
+      paste0(save.variable$emlal$SelectDP$dp.metadata.path, "/keywords.txt"),
+      data.table = FALSE, stringsAsFactors = FALSE
     )
-  }
-
-  # Variable initialization -----------------------------------------------------
-  kw <- fread(
-    paste0(save.variable$emlal$SelectDP$dp.metadata.path, "/keywords.txt"),
-    data.table = FALSE, stringsAsFactors = FALSE
-  )
-
-  rv <- reactiveValues(
-    # Abstract
-    abstract = reactiveValues(
-      content = character(),
-      file = paste(
-        isolate(save.variable$emlal$SelectDP$dp.metadata.path),
-        "abstract.txt",
-        sep = "/"
-      )
-    ),
-    # Methods
-    methods = reactiveValues(
-      content = character(),
-      file = paste(
-        isolate(save.variable$emlal$SelectDP$dp.metadata.path),
-        "methods.txt",
-        sep = "/"
-      )
-    ),
-    # Keywords
-    keywords = reactiveValues(
-      keyword = kw$keyword,
-      keyword.thesaurus = kw$keyword.thesaurus
-    ),
-    # Temporal coverage
-    temporal.coverage = c(Sys.Date() - 1, Sys.Date()),
-    # Additional information
-    additional.information = reactiveValues(
-      content = character(),
-      file = paste(
-        isolate(save.variable$emlal$SelectDP$dp.metadata.path),
-        "additional_info.txt",
-        sep = "/"
+    
+    rv <- reactiveValues(
+      # Abstract
+      abstract = reactiveValues(
+        content = character(),
+        file = paste(
+          isolate(save.variable$emlal$SelectDP$dp.metadata.path),
+          "abstract.txt",
+          sep = "/"
+        )
+      ),
+      # Methods
+      methods = reactiveValues(
+        content = character(),
+        file = paste(
+          isolate(save.variable$emlal$SelectDP$dp.metadata.path),
+          "methods.txt",
+          sep = "/"
+        )
+      ),
+      # Keywords
+      keywords = reactiveValues(
+        keyword = kw$keyword,
+        keyword.thesaurus = kw$keyword.thesaurus
+      ),
+      # Temporal coverage
+      temporal.coverage = c(Sys.Date() - 1, Sys.Date()),
+      # Additional information
+      additional.information = reactiveValues(
+        content = character(),
+        file = paste(
+          isolate(save.variable$emlal$SelectDP$dp.metadata.path),
+          "additional_info.txt",
+          sep = "/"
+        )
       )
     )
-  )
-
-  # Fill -----------------------------------------------------
-  # * Abstract ====
-  rv$abstract <- callModule(
-    Miscellaneous,
-    "abstract",
-    save.variable,
-    rv = rv$abstract
-  )
-
-  # * Methods ====
-  rv$methods <- callModule(
-    Miscellaneous,
-    "methods",
-    save.variable,
-    rv = rv$methods
-  )
-
-  # * Keywords ====
-  observeEvent(input$keywords, {
-    req(input$keywords)
-
-    rv$keywords$keyword <- unique(input$keywords)
-
-    output$thesaurus <- renderUI({
+    
+    # Fill ----
+    # * Abstract ====
+    rv$abstract <- Miscellaneous(
+      "abstract",
+      save.variable,
+      rv = rv$abstract
+    )
+    
+    # * Methods ====
+    rv$methods <- Miscellaneous(
+      "methods",
+      save.variable,
+      rv = rv$methods
+    )
+    
+    # * Keywords ====
+    observeEvent(input$keywords, {
+      req(input$keywords)
+      
+      rv$keywords$keyword <- unique(input$keywords)
+      
+      output$thesaurus <- renderUI({
+        validate(
+          need(checkTruth(rv$keywords$keyword), "No keyword input")
+        )
+        tagList(
+          lapply(seq_along(rv$keywords$keyword), function(kid) {
+            keyword <- rv$keywords$keyword[kid]
+            .val <- rv$keywords$keyword.thesaurus[kid]
+            
+            textInput(
+              ns(paste0("thesaurus-for-", keyword)),
+              keyword,
+              value = if (isTruthy(.val)) .val else ""
+            )
+          })
+        )
+      })
+    })
+    
+    # NOTE observers are still active after being deleted
+    observe({
       validate(
-        need(checkTruth(rv$keywords$keyword), "No keyword input")
+        need(rv$keywords$keyword, "No keyword input")
       )
-      tagList(
-        lapply(seq_along(rv$keywords$keyword), function(kid) {
-          keyword <- rv$keywords$keyword[kid]
-          .val <- rv$keywords$keyword.thesaurus[kid]
-
-          textInput(
-            ns(paste0("thesaurus-for-", keyword)),
-            keyword,
-            value = if (isTruthy(.val)) .val else ""
-          )
-        })
+      sapply(seq_along(rv$keywords$keyword), function(kid) {
+        keyword <- rv$keywords$keyword[kid]
+        input_id <- paste0("thesaurus-for-", keyword)
+        .val <- if (isTruthy(input[[input_id]])) input[[input_id]] else ""
+        
+        rv$keywords$keyword.thesaurus[kid] <- .val
+      })
+    })
+    
+    # * Temporal coverage ====
+    if (!is.null(save.variable$emlal$Misc$temporal.coverage)) {
+      rv$temporal.coverage <- save.variable$emlal$Misc$temporal.coverage
+      updateDateRangeInput(
+        session,
+        "temporal.coverage",
+        start = rv$temporal.coverage[1],
+        end = rv$temporal.coverage[2]
+      )
+    }
+    observeEvent(input$temporal_coverage, {
+      rv$temporal.coverage <- input$temporal_coverage
+    })
+    
+    # * Additional information ====
+    rv$additional.information <- Miscellaneous(
+      "additional.information",
+      save.variable,
+      rv = rv$additional.information
+    )
+    
+    # Saves ----
+    observe({
+      main.env$EAL$completed <- all(
+        isTruthy(rv$abstract$content()) &&
+          isTruthy(rv$methods$content()) &&
+          isTruthy(rv$keywords$keyword) &&
+          isTruthy(rv$temporal.coverage)
       )
     })
-  })
-
-  # NOTE observers are still active after being deleted
-  observe({
-    validate(
-      need(rv$keywords$keyword, "No keyword input")
+    
+    # observeEvent(NSB$SAVE,
+    shinyjs::onclick(
+      "fill-wizard-save",
+      asis = TRUE,
+      add = TRUE,
+      {
+        req(main.env$EAL$current == "Miscellaneous")
+        
+        save.variable <- saveReactive(
+          save.variable = savevar,
+          rv = list(Misc = rv)
+        )
+      },
+      ignoreInit = TRUE
     )
-    sapply(seq_along(rv$keywords$keyword), function(kid) {
-      keyword <- rv$keywords$keyword[kid]
-      input_id <- paste0("thesaurus-for-", keyword)
-      .val <- if (isTruthy(input[[input_id]])) input[[input_id]] else ""
-
-      rv$keywords$keyword.thesaurus[kid] <- .val
-    })
-  })
-
-  # * Temporal coverage ====
-  if (!is.null(save.variable$emlal$Misc$temporal.coverage)) {
-    rv$temporal.coverage <- save.variable$emlal$Misc$temporal.coverage
-    updateDateRangeInput(
-      session,
-      "temporal.coverage",
-      start = rv$temporal.coverage[1],
-      end = rv$temporal.coverage[2]
+    
+    # Process data ----
+    observeEvent(EAL$.next,
+      {
+        req(main.env$EAL$current == "Miscellaneous")
+        
+        save.variable <- saveReactive(
+          save.variable = savevar,
+          rv = list(Misc = rv)
+        )
+      },
+      priority = 1,
+      ignoreInit = TRUE
     )
-  }
-  observeEvent(input$temporal_coverage, {
-    rv$temporal.coverage <- input$temporal_coverage
+    
+    # Output ----
+    return(save.variable)
   })
-
-  # * Additional information ====
-  rv$additional.information <- callModule(
-    Miscellaneous,
-    "additional.information",
-    save.variable,
-    rv = rv$additional.information
-  )
-
-  # Saves -----------------------------------------------------
-  observe({
-    main.env$EAL$current[2] <- all(
-      isTruthy(rv$abstract$content()) &&
-        isTruthy(rv$methods$content()) &&
-        isTruthy(rv$keywords$keyword) &&
-        isTruthy(rv$temporal.coverage)
-    )
-  })
-
-  observeEvent(NSB$SAVE,
-    {
-      req(main.env$EAL$current[1] == "Miscellaneous")
-
-      save.variable <- saveReactive(
-        save.variable = savevar,
-        rv = list(Misc = rv)
-      )
-    },
-    ignoreInit = TRUE
-  )
-
-  # Process data -----------------------------------------------------
-  observeEvent(NSB$NEXT,
-    {
-      req(main.env$EAL$current[1] == "Miscellaneous")
-
-      save.variable <- saveReactive(
-        save.variable = savevar,
-        rv = list(Misc = rv)
-      )
-    },
-    priority = 1,
-    ignoreInit = TRUE
-  )
-
-  # Output -----------------------------------------------------
-  return(save.variable)
 }

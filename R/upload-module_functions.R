@@ -28,7 +28,7 @@ uploadDP <- function(
   formats,
   use.doi = FALSE
 ) {
-  # Set variables -----------------------------------------------------
+  # Set variables ----
 
   message("Init")
 
@@ -38,7 +38,7 @@ uploadDP <- function(
     doi <- dataone::generateIdentifier(mn, "DOI")
   } # TODO check this feature
 
-  # # Write DP -----------------------------------------------------
+  # # Write DP ----
 
   # set data package
   dp <- methods::new("DataPackage")
@@ -90,13 +90,13 @@ uploadDP <- function(
     )
   }
 
-  # # Access rules -----------------------------------------------------
+  # # Access rules ----
 
   message("Access")
 
   accessRules <- NA # TODO allow customized access rules
 
-  # # Upload -----------------------------------------------------
+  # # Upload ----
 
   d1c <- dataone::D1Client(cn, mn)
 
@@ -130,15 +130,15 @@ describeWorkflowUI <- function(id, sources, targets) {
   ns <- NS(id)
 
   span(
-    id = ns("span"),
-    div(selectInput(ns("script"), "Source script", sources),
+    id = NS(id, "span"),
+    div(selectInput(NS(id, "script"), "Source script", sources),
       style = "display: inline-block; vertical-align: middle;"
     ),
     "describes",
-    div(selectInput(ns("data"), "Target data file", targets),
+    div(selectInput(NS(id, "data"), "Target data file", targets),
       style = "display: inline-block; vertical-align: middle;"
     ),
-    actionButton(ns("remove"), "", icon("minus"), class = "redButton"),
+    actionButton(NS(id, "remove"), "", icon("minus"), class = "redButton"),
     style = "display: inline-block;"
   )
 }
@@ -157,7 +157,7 @@ describeWorkflow <- function(input, output, session) {
   # Remove
   observeEvent(input$remove, {
     removeUI(
-      selector = paste0("#", ns("span"))
+      selector = paste0("#", NS(id, "span"))
     )
     rv <- NULL
   })

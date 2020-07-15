@@ -1,7 +1,7 @@
 #' @title listReactiveValues
 #'
-#' @description Allows to turn a `reactiveValues`` object
-#' into a list. Uses recursive method.
+#' @description Allows to turn a `reactiveValues`` object into a list. Uses
+#' recursive method.
 #'
 #' @param rv reactiveValues to turn into list
 #' @param lv (verbose purposes)
