@@ -36,7 +36,7 @@
         ),
         titleWidth = .menu.width
       ),
-      ## Menus -----------------------------------------------------
+      ## Menus ----
       dashboardSidebar(
         sidebarMenu(
           id = "side_menu",
@@ -74,7 +74,7 @@
         ),
         width = .menu.width
       ), # end sidebar
-      ## Content -----------------------------------------------------
+      ## Content ----
       dashboardBody(
         tags$script(HTML("$('body').addClass('fixed');")),
         tabItems(
@@ -84,7 +84,7 @@
           ),
           tabItem(
             tabName = "fill",
-            fillUI("fill", dev)
+            fillUI("fill", main.env)
           ),
           tabItem(
             tabName = "upload",
@@ -103,7 +103,7 @@
             settingsUI("settings", wip)
           )
         )
-      ) # end body
+      )
     ) # end dashboard
-  ) %>% shinycssloaders::withSpinner # end taglist
+  ) # end taglist
 }

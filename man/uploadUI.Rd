@@ -7,7 +7,7 @@
 \usage{
 uploadUI(id, main.env)
 
-upload(input, output, session, main.env)
+upload(id, main.env)
 }
 \arguments{
 \item{id}{shiny module id}

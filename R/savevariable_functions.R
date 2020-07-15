@@ -1,4 +1,3 @@
-# Manage save.variable variable -----------------------------------------------------
 #' @import shiny
 #' 
 #' @noRd
@@ -18,9 +17,9 @@ initReactive <- function(sub.list = NULL, save.variable = NULL, main.env) {
   # emlal reactivelist management
   if (is.null(sub.list) || sub.list == "emlal") {
     save.variable$emlal <- reactiveValues(
-      step = main.env$EAL$navigate,
+      step = isolate(main.env$EAL$page),
       quick = FALSE,
-      history = main.env$EAL$history,
+      history = isolate(main.env$EAL$history),
       SelectDP = reactiveValues(
         dp.name = NULL,
         dp.path = NULL,
@@ -77,19 +76,14 @@ initReactive <- function(sub.list = NULL, save.variable = NULL, main.env) {
   })
 }
 
-#' @describeIn initReactive
-#'
-#' @description save the `save.variable` variable at wanted location
-#'
-#' @return
-#' `save.variable` modified.
-#'
 #' @import shiny
 #' @importFrom jsonlite write_json serializeJSON
+#' 
+#' @noRd
 saveReactive <- function(
   save.variable,
   rv = NULL,
-  main.env = NULL
+  write = FALSE
 ) {
   withProgress({
     setProgress(1 / 3, "Module save")
@@ -113,7 +107,8 @@ saveReactive <- function(
           ),
           args = list(
             save.variable = savevar,
-            rv = rv[[1]]
+            rv = rv[[1]],
+            write = write
           )
         )
         
@@ -189,22 +184,34 @@ saveReactive <- function(
   return(save.variable)
 }
 
-#' @title readFilesText
-#'
-#' @param files files basename located in the same directory or,
-#' if prefix = NULL, list of full filenames to read
-#' @param prefix common file prefix for all file names
-#' specified in 'files'. By default, sep = "/"
-#'
-#' @importFrom readtext readtext
-readPlainText <- function(files, prefix = NULL, sep = "/", ...) {
-  if (is.null(prefix)) sep <- ""
-
-  readtext::readtext(
-    paste(
-      prefix,
-      files,
-      sep = sep
-    )
-  )$text
+#' @import shiny
+setSavevar <- function(content, save.variable, lv = 1, root = "root") {
+  
+  lapply(
+    names(content),
+    function(label) {
+      sub.content <- content[[label]]
+      type.content <- typeof(sub.content)
+      sub.save.variable <- savevar[[label]]
+      type.save.variable <- typeof(sub.savevar)
+      
+      if (is.reactivevalues(sub.save.variable)) {
+        if (!is.data.frame(sub.content) &&
+            is.list(sub.content)) {
+          x <- setSavevar(content[[label]], save.variable[[label]], lv = lv + 1, root = label)
+        }
+        else {
+          x <- sub.content
+        }
+      }
+      else {
+        x <- sub.content
+      }
+      
+      isolate(save.variable[[label]] <- x)
+      return(NULL)
+    }
+  )
+  
+  return(save.variable)
 }

@@ -3,7 +3,7 @@
 #' @description A shiny input module designed to allow the user to write markdown and render it as
 #' a HTML fix.
 #'
-#' @param inputId character. The input slot that will be used to access the value.
+#' @param id character. The input slot that will be used to access the value.
 #' @param label character. Display label for the control, or NULL for no label.
 #' @param icon 	character. An optional `icon()` to appear on the button.
 #' @param preview logical. Shall a preview panel appear? (right-sided, 50\% width)
@@ -27,15 +27,14 @@
 #' }
 #'
 #' shinyApp(ui, server)
-markdownInputUI <- function(inputId, label = "Text", icon = TRUE, preview = FALSE, value = "") {
-  ns <- NS(inputId)
+markdownInputUI <- function(id, label = "Text", icon = TRUE, preview = FALSE, value = "") {
   div(
     fluidRow(
       column(
         if (preview) 6 else 12,
         if (isFALSE(icon)) tags$b(label) else span(tags$b(label), "(", icon("markdown"), "supported)"),
         aceEditor(
-          ns("md"),
+          NS(id, "md"),
           value = value,
           mode = "markdown",
           showLineNumbers = FALSE,
@@ -46,7 +45,7 @@ markdownInputUI <- function(inputId, label = "Text", icon = TRUE, preview = FALS
         column(
           6,
           h3("Preview:"),
-          uiOutput(ns("preview"))
+          uiOutput(NS(id, "preview"))
         )
       }
     ),
@@ -59,16 +58,18 @@ markdownInputUI <- function(inputId, label = "Text", icon = TRUE, preview = FALS
 #'
 #' @import shiny
 #' @importFrom markdown markdownToHTML
-markdownInput <- function(input, output, session, preview = FALSE) {
-  rv <- reactive({
-    input$md
-  })
-
-  if (preview) {
-    output$preview <- renderUI({
-      HTML(markdownToHTML(file = NULL, text = rv()))
+markdownInput <- function(id, preview = FALSE){
+  moduleServer(id, function(input, output, session) {
+    rv <- reactive({
+      input$md
     })
-  }
-
-  return(rv)
+    
+    if (preview) {
+      output$preview <- renderUI({
+        HTML(markdownToHTML(file = NULL, text = rv()))
+      })
+    }
+    
+    return(rv)
+  })
 }

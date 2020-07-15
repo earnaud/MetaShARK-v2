@@ -7,7 +7,15 @@
 \usage{
 URL_Input_UI(id, label = "URL", width = "100\%")
 
-URL_Input(input, output, session)
+URL_Input(id)
+}
+\arguments{
+\item{id}{(character) shiny module inputId.}
+
+\item{label}{(character) display label for the control, or NULL for no label.}
+
+\item{width}{(character) the width of the input, e.g. '400px', or '100%'; see
+validateCssUnit().}
 }
 \value{
 (output of `callModule`) If input is a valid URL (regex-tested + curl-tested), returns input.

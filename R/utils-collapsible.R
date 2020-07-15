@@ -12,13 +12,13 @@
 #' @importFrom shinyjs useShinyjs hidden
 collapsibleUI <- function(id, label, .hidden = TRUE, ..., class = NULL) {
   ns <- NS(id)
-
-  content <- tags$div(id = ns("area"), tagList(...), class = class)
-
+  
+  content <- tags$div(id = NS(id, "area"), tagList(...), class = class)
+  
   tagList(
     shinyjs::useShinyjs(),
     actionLink(
-      ns("link"),
+      NS(id, "link"),
       label,
       icon = if (isTRUE(.hidden)) icon("chevron-right") else icon("chevron-down")
     ),
@@ -36,21 +36,23 @@ collapsibleUI <- function(id, label, .hidden = TRUE, ..., class = NULL) {
 #' @importFrom shinyjs toggle
 #' 
 #' @noRd
-collapsible <- function(input, output, session) {
-  observeEvent(input$link, {
-    shinyjs::toggle(
-      id = "area",
-      anim = TRUE,
-      animType = "slide",
-      time = 0.25
-    )
-
-    if (input$link %% 2 == 1) {
-      .tmp <- "chevron-down"
-    } else {
-      .tmp <- "chevron-right"
-    }
-
-    updateActionButton(session, "link", icon = icon(.tmp))
+collapsible <- function(id){
+  moduleServer(id, function(input, output, session) {
+    observeEvent(input$link, {
+      shinyjs::toggle(
+        id = "area",
+        anim = TRUE,
+        animType = "slide",
+        time = 0.25
+      )
+      
+      if (input$link %% 2 == 1) {
+        .tmp <- "chevron-down"
+      } else {
+        .tmp <- "chevron-right"
+      }
+      
+      updateActionButton(session, "link", icon = icon(.tmp))
+    })
   })
 }
