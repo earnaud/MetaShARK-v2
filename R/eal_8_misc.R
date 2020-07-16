@@ -210,7 +210,7 @@ Misc <- function(id, main.env) {
             .val <- rv$keywords$keyword.thesaurus[kid]
             
             textInput(
-              ns(paste0("thesaurus-for-", keyword)),
+              NS(id, paste0("thesaurus-for-", keyword)),
               keyword,
               value = if (isTruthy(.val)) .val else ""
             )

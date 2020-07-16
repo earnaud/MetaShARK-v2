@@ -3,8 +3,6 @@
 #' 
 #' @noRd
 TaxCovUI <- function(id, main.env) {
-  ns <- NS(id)
-  
   return(
     fluidPage(
       fluidRow(
@@ -33,7 +31,6 @@ TaxCovUI <- function(id, main.env) {
 TaxCov <-function(id, main.env) {
   moduleServer(id, function(input, output, session){
     save.variable <- main.env$save.variable
-    ns <- session$ns
     
     # Variable Initialization ----
     rv <- reactiveValues(

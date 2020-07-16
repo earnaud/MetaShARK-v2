@@ -6,25 +6,23 @@
 #' @importFrom shinycssloaders withSpinner
 #'
 #' @noRd
-.app_ui <- function() {
-  
+appUI <- function() {
   # get app arguments
-  .app.args <- golem::get_golem_options()
-  dev <- .app.args$dev
-  main.env <- .app.args$main.env
-  wip <- .app.args$wip
+  main.env <- getShinyOption("main.env")
+  dev <- main.env$dev
+  wip <- main.env$wip
 
   # prepare variable
   .menu.width <- "250px"
 
-  # action
-  tagList(
+  # ui
+  fluidPage(
     includeCSS(system.file("app/www/styles.css", package = "MetaShARK")),
     shinyjs::useShinyjs(),
     # List the first level UI elements here
-    dashboardPage(
+    shinydashboard::dashboardPage(
       title = "MetaShARK",
-      dashboardHeader(
+      shinydashboard::dashboardHeader(
         tags$li(
           class = "dropdown", 
           actionLink("settings", "", icon("gear"))
@@ -37,26 +35,26 @@
         titleWidth = .menu.width
       ),
       ## Menus ----
-      dashboardSidebar(
-        sidebarMenu(
+      shinydashboard::dashboardSidebar(
+        shinydashboard::sidebarMenu(
           id = "side_menu",
-          menuItem("Welcome",
+          shinydashboard::menuItem("Welcome",
             tabName = "welcome",
             icon = icon("home")
           ),
-          menuItem("Fill in EML",
+          shinydashboard::menuItem("Fill in EML",
             tabName = "fill",
             icon = icon("file-import")
           ),
-          menuItem("Upload EML",
+          shinydashboard::menuItem("Upload EML",
             tabName = "upload",
             icon = icon("file-export")
           ),
-          menuItem("EML Documentation",
+          shinydashboard::menuItem("EML Documentation",
             tabName = "documentation",
             icon = icon("glasses")
           ),
-          menuItem("About MetaShARK",
+          shinydashboard::menuItem("About MetaShARK",
             tabName = "about",
             icon = icon("beer")
           ),
@@ -66,44 +64,41 @@
               icon = icon("gear")
             )
           ),
-          if (isolate(main.env$dev)) {
-            actionButton(
-              "dev", "DEV CHECK"
-            )
-          }
+          if (isolate(main.env$dev))
+            actionButton("dev", "DEV CHECK")
         ),
         width = .menu.width
       ), # end sidebar
       ## Content ----
-      dashboardBody(
+      shinydashboard::dashboardBody(
         tags$script(HTML("$('body').addClass('fixed');")),
-        tabItems(
-          tabItem(
+        shinydashboard::tabItems(
+          shinydashboard::tabItem(
             tabName = "welcome",
             welcomeUI("welcome", wip=wip)
           ),
-          tabItem(
+          shinydashboard::tabItem(
             tabName = "fill",
             fillUI("fill", main.env)
           ),
-          tabItem(
+          shinydashboard::tabItem(
             tabName = "upload",
             uploadUI("upload", main.env)
           ),
-          tabItem(
+          shinydashboard::tabItem(
             tabName = "documentation",
             docUI("documentation")
           ),
-          tabItem(
+          shinydashboard::tabItem(
             tabName = "about",
             aboutUI("about")
           ),
-          tabItem(
+          shinydashboard::tabItem(
             tabName = "settings",
-            settingsUI("settings", wip)
+            settingsUI("settings", wip=wip)
           )
         )
       )
     ) # end dashboard
-  ) # end taglist
+  ) # end fluidPage
 }

@@ -36,7 +36,6 @@ fill <- function(id, main.env){
     steps <- isolate(main.env$VALUES$steps)
     
     # Wizard  ====
-    
     # pages change
     pagesServer(NS(id, "wizard"), steps)
     
@@ -50,9 +49,10 @@ fill <- function(id, main.env){
     Personnel("Personnel", main.env)
     Misc("Misc", main.env)
     MakeEML("MakeEML", main.env)
+  message(NS(id, "machin"))
     
-    # Navigation ----
     observeEvent(.EAL$page, {
+      # * Navigation ====
       # set EAL variables
       if(identical(.EAL$history, character())){
         .EAL$history <- main.env$VALUES$steps[1:.EAL$page]
@@ -100,11 +100,11 @@ fill <- function(id, main.env){
       
       updateTabsetPanel(session, "wizard", selected = steps[to])
       
-      # Modules helper ----
-      NSB$help <- modalDialog(
+      # * Helps ====
+      EAL$help <- modalDialog(
         title = paste0(.EAL$current, " - Help"),
         switch(.EAL$page,
-          # SelectDP
+          # ** SelectDP ====
           tagList(
             tags$p("This module allows you to manage your", tags$strong("data packages"), ".
             A data package (aka DP) is a collection of a dataset and its associated metadata
@@ -126,7 +126,7 @@ fill <- function(id, main.env){
             fields in further steps. You still will be able to edit them at your 
             convenience.")
           ),
-          # Data Files
+          # ** Data Files ====
           tagList(
             tags$p("This module allows you to load data files from the dataset you want to
             describe. Once uploaded, you can set:"),
@@ -141,7 +141,7 @@ fill <- function(id, main.env){
             tags$p("Recommended size per file is around 1 Gb. Such files and heavier ones might slow down the
             app.")
           ),
-          # Attributes
+          # ** Attributes  ====
           tagList(
             tags$p("This module allows you to describe precisely each attribute of each file. Some of these metadata
             are guessed from the data files. Such fields are annoted with a star (*).
@@ -180,12 +180,12 @@ fill <- function(id, main.env){
               tags$li(tags$i("Unit description:"), "some additional notes about the unit, how to compute it.")
             )
           ),
-          # Catvars
+          # ** Catvars ====
           tagList(
             tags$p("This module allows you to detail the categorical variables (class \"categorical\" in Attributes).
             For each variable, you will be able to detail each of its value by a short description.")
           ),
-          # Geocov
+          # ** Geocov ====
           tagList(
             tags$p("This module allows you to define the geographic area in which the data have been produced. 
             You have the choice between two methods to define geographic coverage:"),
@@ -204,14 +204,14 @@ fill <- function(id, main.env){
               )
             )
           ),
-          # Taxcov
+          # ** Taxcov ====
           tagList(
             tags$p("This module allows you to define the taxonomical coverage of the study. You will be asked to 
             select columns among your files containing the species name. Also, let the app know if the taxonomic
             coverage shall be written with scientific, common or both names. At last, select at least one taxonomic
             authority among the ones suggested."),
           ),
-          # Personnel
+          # ** Personnel ====
           tagList(
             tags$p("This module allows you to get a full list of the people who contributed to the creation of 
             this dataset. The recommended best practice is to", tags$b("use the ORCID"), "of a person. With 
@@ -227,7 +227,7 @@ fill <- function(id, main.env){
               tags$li("Custom: as the list of roles is not exhaustive, feel free to add any role you consider important.")
             )
           ),
-          # Misc
+          # ** Misc ====
           tagList(
             tags$p("This module allows you to define the last details of your data package. Note that you can write
             some of these metadata using the markdown syntax. Here are brief descriptions of the fields:"),
@@ -245,7 +245,7 @@ fill <- function(id, main.env){
               from GBIF-EML).")
             )
           ),
-          # Make EML
+          # ** Make EML ====
           tagList(
             tags$p("Here we are (well done) ! This is the final step to write EML. Just click the button and let the magic happen. If an 
             error occurs, this will be displayed to the screen. In this case, do not hesitate to get in touch with the dev team."),

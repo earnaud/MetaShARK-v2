@@ -3,8 +3,6 @@
 #' 
 #' @noRd
 DataFilesUI <- function(id, main.env) {
-  ns <- NS(id)
-  
   return(
     fluidPage(
       tags$b("Disclaimers:"),
@@ -147,7 +145,7 @@ DataFiles <- function(id, main.env) {
             df$name,
             function(label) {
               # Variable initialization
-              id <- match(label, df$name)
+              .id <- match(label, df$name)
               xls.warning <- if (grepl("xlsx?$", label)) {
                 tags$div(
                   "Only the first sheet of Excel files will be read.",
@@ -159,7 +157,7 @@ DataFiles <- function(id, main.env) {
               
               # Output
               collapsibleUI(
-                id = ns(id),
+                id = NS(id, .id),
                 label = label,
                 hidden = FALSE,
                 class = "inputBox",
@@ -168,7 +166,7 @@ DataFiles <- function(id, main.env) {
                     column(
                       6,
                       textInput(
-                        ns(paste0(id, "-dataName")),
+                        NS(id, paste0(.id, "-dataName")),
                         "Data table name",
                         value = label
                       )
@@ -176,7 +174,7 @@ DataFiles <- function(id, main.env) {
                     column(
                       6,
                       URL_Input_UI(
-                        ns(paste0(id, "-dataURL")),
+                        NS(id, paste0(.id, "-dataURL")),
                         label = "Data remote location"
                       )
                     ),
@@ -186,7 +184,7 @@ DataFiles <- function(id, main.env) {
                     column(
                       12,
                       textAreaInput(
-                        ns(paste0(id, "-dataDesc")),
+                        NS(id, paste0(.id, "-dataDesc")),
                         "Data Table Description",
                         value = paste("Content of", label),
                         width = "100%"
@@ -209,9 +207,9 @@ DataFiles <- function(id, main.env) {
           any(grepl("dataURL", names(input))) ||
           any(grepl("dataDesc", names(input)))
       )
-      sapply(rv$data.files$name, function(id) {
-        collapsible(id)
-        ind <- match(id, rv$data.files$name)
+      sapply(rv$data.files$name, function(.id) {
+        collapsible(.id)
+        ind <- match(.id, rv$data.files$name)
         
         # Data name
         observeEvent(input[[paste0(ind, "-dataName")]],
@@ -266,7 +264,7 @@ DataFiles <- function(id, main.env) {
         tags$p(
           utils::object.size(files.size),
           if (files.size >= files.size.max) {
-            paste("Max. recommended:", utils::object.size(files.size.max))
+            paste("Max. recommended:", utils:::format.object_size(files.size.max))
           } else {
             NULL
           },
