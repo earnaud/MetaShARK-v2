@@ -18,24 +18,10 @@
   # Environment setup ====
   main.env <- new.env()
   
-  assign(
-    "dev",
-    isTRUE(args$dev),
-    main.env
-  )
-  assign(
-    "wip",
-    isTRUE(args$wip),
-    main.env
-  )
-  assign(
-    "reactlog",
-    isTRUE(args$reactlog),
-    main.env
-  )
+  assign("dev", args$dev, main.env)
+  assign("wip", args$wip, main.env)
   
-  
-  # Paths====
+  # Paths ====
   wwwPaths <- system.file("resources", package = "MetaShARK") %>%
     paste(., dir(.), sep = "/") %>%
     as.list
@@ -50,11 +36,7 @@
   dir.create(isolate(PATHS$eal.dp), recursive = TRUE, showWarnings = FALSE)
   dir.create(isolate(PATHS$eal.tmp), recursive = TRUE, showWarnings = FALSE)
   
-  assign(
-    "PATHS", 
-    PATHS, 
-    envir = main.env
-  )
+  assign("PATHS", PATHS, envir = main.env)
   
   # Sessionning ====
   if (isTRUE(file.exists(isolate(PATHS$eal.dp.index)))) {
@@ -70,15 +52,9 @@
     )
     data.table::fwrite(DP.LIST, isolate(PATHS$eal.dp.index), sep = "\t")
   }
-  assign(
-    "DP.LIST",
-    DP.LIST,
-    envir = main.env
-  )
-  makeReactiveBinding(
-    "DP.LIST", 
-    env = main.env
-  )
+  
+  assign("DP.LIST", DP.LIST, envir = main.env)
+  makeReactiveBinding("DP.LIST", env = main.env)
   
   # Values ====
   assign(
@@ -148,7 +124,6 @@
   )
   
   # Settings ====
-  
   assign(
     "SETTINGS", 
     reactiveValues(
@@ -178,11 +153,7 @@
     envir = main.env
   )
   
-  assign(
-    "save.variable",
-    initReactive(main.env = main.env),
-    envir = main.env
-  )
+  assign("save.variable", initReactive(main.env = main.env), envir = main.env)
   
   # Patterns ====
   assign(
@@ -198,9 +169,9 @@
   )
   
   # output ====
-  shinyOptions(main.env = main.env)
-  shinyOptions(shiny.reactlog = main.env$reactlog)
+  assign("main.env", main.env, .GlobalEnv)
+  shinyOptions(shiny.reactlog = args$reactlog)
   addResourcePath("media", system.file("media/", package = "MetaShARK"))
-  # return(main.env)
+  
   return(NULL)
 }

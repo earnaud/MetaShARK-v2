@@ -1,16 +1,16 @@
 #' @import shiny
 #' @importFrom shinydashboard updateTabItems
-#' @importFrom golem get_golem_options
 #' @importFrom shinyjs onclick
 #'
 #' @noRd
 appServer <- function(input, output, session) {
-  message("server")
+message("* server")
   # get variables
-  main.env <- getShinyOption("main.env")
+  main.env <- get("main.env", .GlobalEnv)
 
   if (main.env$dev) {
-    shinyjs::onclick("dev",
+    shinyjs::onclick(
+      "dev",
       {
         browser()
       },
