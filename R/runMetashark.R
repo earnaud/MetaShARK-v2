@@ -29,7 +29,6 @@
 #'
 #' @export
 #' @import shiny
-#' @importFrom golem with_golem_options
 runMetashark <- function(...) {
   args <- list(...)
   args$dev <- isTRUE(args$dev)
@@ -37,13 +36,7 @@ runMetashark <- function(...) {
   args$reactlog <- if(is.null(args$reactlog)) TRUE else isTRUE(args$reactlog)
   
   .globalScript(args = args)
+  on.exit(rm(main.env, envir=.GlobalEnv))
   
-  .app <- shinyApp(
-    ui = appUI,
-    server = appServer
-  )
-  
-  browser()
-  
-  runApp(.app)
+  runApp(shinyApp(ui = appUI, server = appServer))
 }

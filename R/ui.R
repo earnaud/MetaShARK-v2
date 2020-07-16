@@ -1,4 +1,3 @@
-#' @importFrom golem get_golem_options
 #' @import shiny
 #' @importFrom shinydashboard dashboardPage dashboardHeader dashboardSidebar 
 #' sidebarMenu menuItem dashboardBody tabItems tabItem
@@ -8,10 +7,8 @@
 #' @noRd
 appUI <- function() {
   # get app arguments
-  main.env <- getShinyOption("main.env")
-  dev <- main.env$dev
-  wip <- main.env$wip
-
+  main.env <- get("main.env", .GlobalEnv)
+  
   # prepare variable
   .menu.width <- "250px"
 
@@ -75,7 +72,7 @@ appUI <- function() {
         shinydashboard::tabItems(
           shinydashboard::tabItem(
             tabName = "welcome",
-            welcomeUI("welcome", wip=wip)
+            welcomeUI("welcome", wip=main.env$wip)
           ),
           shinydashboard::tabItem(
             tabName = "fill",
@@ -95,7 +92,7 @@ appUI <- function() {
           ),
           shinydashboard::tabItem(
             tabName = "settings",
-            settingsUI("settings", wip=wip)
+            settingsUI("settings", wip=main.env$wip)
           )
         )
       )
