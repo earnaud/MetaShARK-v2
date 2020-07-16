@@ -48,7 +48,6 @@ CatVarsUI <- function(id, main.env) {
 CatVars <- function(id, main.env) {
   moduleServer(id, function(input, output, session){
     save.variable <- main.env$save.variable
-    ns <- session$ns
     
     # variables initialization ----
     rv <- reactiveValues(
@@ -113,7 +112,7 @@ CatVars <- function(id, main.env) {
                 )
                 
                 textAreaInput(
-                  ns(input.id),
+                  NS(id, input.id),
                   cod,
                   value = rv[[file.name]]$CatVars %>%
                     dplyr::filter(attributeName == attribute, code == cod) %>%

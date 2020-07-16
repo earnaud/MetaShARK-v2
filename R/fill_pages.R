@@ -61,6 +61,7 @@ pagesUI <- function(id, parent.id, main.env){
             saveButton(id),
             if (i != 2) prevTabButton(id, i),
             if (i != .nb) nextTabButton(id, i),
+            uiOutput(NS(id,"tag.list")),
             tags$hr(),
             actionButton(NS(id, "help"), "Help", icon("question-circle"))
           )
@@ -80,7 +81,7 @@ pagesUI <- function(id, parent.id, main.env){
 
 #' @noRd
 #' 
-#' utility function for pages
+#' @import shiny
 changePage <- function(from, to) {
   observeEvent(input[[paste(from, to, sep = "_")]], {
     EAL$page <- EAL$page + to - from
@@ -101,9 +102,12 @@ pagesServer <- function(id, steps) {
     
     ids <- seq_along(steps)
     lapply(ids[-1], function(i) onQuit(i)) # modules
-    lapply(ids[-1], function(i) onSave(i)) # modules
+    # lapply(ids[-1], function(i) onSave(i)) # modules -- managed into modules
     lapply(ids[-1], function(i) changePage(i, i-1)) # observers
     lapply(ids[-length(steps)], function(i) changePage(i, i+1)) # observers
+    
+    # * Side UI ====
+    output$tag.list <- renderUI(EAL$tag.list)
     
     # * Chain ====
     # output$chain <- renderUI({
@@ -189,6 +193,10 @@ pagesServer <- function(id, steps) {
     #         EAL$.prev <- EAL$.prev + 1
     #     })
     #   })
+    # * Helps ====
+    observeEvent(input$help, {
+      showModal(EAL$help)
+    })
   })
 }
 
@@ -300,17 +308,17 @@ saveButton <- function(id) {
 #'
 #' @import shiny
 #' @importFrom shinyjs onclick disable enable
-onSave <- function(id,  main.env){
-  moduleServer(id, function(input, output, session) {
-    observeEvent(input$save,
-      {
-        req(input$save)
-        NSB$SAVE <- NSB$SAVE + 1
-      },
-      label = "NSB save"
-    )
-  })
-}
+# onSave <- function(id,  main.env){
+#   moduleServer(id, function(input, output, session) {
+#     observeEvent(input$save,
+#       {
+#         req(input$save)
+#         NSB$SAVE <- NSB$SAVE + 1
+#       },
+#       label = "NSB save"
+#     )
+#   })
+# }
 
 # * Previous ====
 

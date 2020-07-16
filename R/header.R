@@ -1,12 +1,3 @@
-#' @description Misc preparations commands
-#'
-#' @noRd
-.headerScript <- function() {
-  rm(list = ls())
-  options(shiny.reactlog = TRUE)
-  addResourcePath("media", system.file("media/", package = "MetaShARK"))
-}
-
 #' @importFrom fs path_home
 #' @importFrom dataone listFormats CNode
 #' @import shiny
@@ -17,16 +8,32 @@
 #' @importFrom jsonlite serializeJSON unserializeJSON read_json write_json
 #'
 #' @noRd
-.globalScript <- function(dev = FALSE) {
+.globalScript <- function(
+  args = list(
+    dev = FALSE, 
+    wip = FALSE
+  )
+) {
   
   # Environment setup ====
   main.env <- new.env()
   
   assign(
     "dev",
-    is.logical(dev) && !is.null(dev),
+    isTRUE(args$dev),
     main.env
   )
+  assign(
+    "wip",
+    isTRUE(args$wip),
+    main.env
+  )
+  assign(
+    "reactlog",
+    isTRUE(args$reactlog),
+    main.env
+  )
+  
   
   # Paths====
   wwwPaths <- system.file("resources", package = "MetaShARK") %>%
@@ -164,6 +171,7 @@
       current = character(), # last of history
       completed = FALSE,  # is current page completed?
       tag.list = tagList(), # side HTML tags to display
+      help = character(),
       .next = 0,
       .prev = 0
     ), 
@@ -190,5 +198,9 @@
   )
   
   # output ====
-  return(main.env)
+  shinyOptions(main.env = main.env)
+  shinyOptions(shiny.reactlog = main.env$reactlog)
+  addResourcePath("media", system.file("media/", package = "MetaShARK"))
+  # return(main.env)
+  return(NULL)
 }

@@ -298,7 +298,7 @@ Attributes <- function(id, main.env) {
                           
                           # GUI
                           attributeInputUI(
-                            ns(inputId),
+                            NS(id, inputId),
                             colname,
                             saved.value,
                             main.env$FORMATS,
@@ -311,7 +311,7 @@ Attributes <- function(id, main.env) {
                         # Preview ====
                         h4("Preview:"),
                         tableOutput(
-                          ns(paste0(
+                          NS(id, paste0(
                             "preview-", 
                             colnames(rv$current.preview)[row.index]
                           ))
@@ -320,7 +320,7 @@ Attributes <- function(id, main.env) {
                         # Annotate ====
                         # tags$div(
                         #   annotateUI(
-                        #     ns(paste(
+                        #     NS(id, paste(
                         #       "annotate",
                         #       isolate(rv$current.file),
                         #       row.index,

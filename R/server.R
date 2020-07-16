@@ -4,14 +4,10 @@
 #' @importFrom shinyjs onclick
 #'
 #' @noRd
-.app_server <- function(input, output, session) {
-
-  # get app arguments
-  app.args <- golem::get_golem_options()
-  main.env <- app.args$main.env
-
-  # initialize global variables
-  save.variable <- NULL
+appServer <- function(input, output, session) {
+  message("server")
+  # get variables
+  main.env <- getShinyOption("main.env")
 
   if (main.env$dev) {
     shinyjs::onclick("dev",
@@ -28,11 +24,10 @@
     updateTabItems(session, "side_menu", "settings")
   })
 
-  settings("settings", main.env)
-
   ## modules called ----
   fill("fill", main.env)
   upload("upload", main.env)
   documentation("documentation")
   about("about")
+  settings("settings", main.env)
 }

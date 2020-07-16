@@ -4,13 +4,14 @@
 \alias{runMetashark}
 \title{Run MetaShARK}
 \usage{
-runMetaShark(...)
+runMetashark(...)
 }
 \arguments{
 \item{...}{options to pass to the application, ignored if missing or mistyped.
 \describe{
-  \item{wip}{logical. Shows WIP parts of the app.}
-  \item{dev}{logical. Add development elements in the GUI.}
+  \item{wip}{logical. Shows WIP parts of the app. (default to FALSE)}
+  \item{dev}{logical. Add development elements in the GUI. (default to FALSE)}
+  \item{reactlog}{logical. Use reactlog? (default to TRUE)}
 }}
 }
 \description{
@@ -25,6 +26,7 @@ precise description of input datasets.
 \examples{
 # run this to launch MetaShARK
 runMetashark()
+
 }
 \author{
 Elie Arnaud <elie.arnaud@mnhn.fr>
