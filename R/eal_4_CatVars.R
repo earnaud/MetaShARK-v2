@@ -55,15 +55,16 @@ CatVars <- function(id, full.id, main.env) {
     # )
 
     main.env$pageLoad(4, {
-      . <- isolate(main.env$save.variable$SelectDP$dp.metadata.path)
-      req(.)
+      # read metadata folder path
+      .md.path <- isolate(main.env$save.variable$SelectDP$dp.metadata.path)
+      req(checkTruth(.md.path))
       main.env$local.rv$catvar.files <- list.files(
-        .,
+        .md.path,
         pattern = "catvar",
         full.names = TRUE
       )
       # update current file
-      req(main.env$local.rv$catvar.files)
+      req(checkTruth(main.env$local.rv$catvar.files))
       main.env$local.rv$current.index <- as.numeric(checkTruth(main.env$local.rv$catvar.files))
       main.env$local.rv$current.file <- basename(main.env$local.rv$catvar.files[main.env$local.rv$current.index])
     })
@@ -74,10 +75,10 @@ CatVars <- function(id, full.id, main.env) {
 
       sapply(main.env$local.rv$catvar.files, function(file.path) {
         file.name <- basename(file.path)
-        main.env$local.main.env$local.rv[[file.name]] <- reactiveValues()
+        main.env$local.rv[[file.name]] <- reactiveValues()
 
         # * Init data frame ====
-        main.env$local.main.env$local.rv[[file.name]]$CatVars <- fread(
+        main.env$local.rv[[file.name]]$CatVars <- fread(
           file.path,
           data.table = FALSE, stringsAsFactors = FALSE,
           na.strings = "NA"
@@ -92,14 +93,14 @@ CatVars <- function(id, full.id, main.env) {
 
         # * Write UI ====
         .content <- lapply(
-          unique(main.env$local.main.env$local.rv[[file.name]]$CatVars$attributeName),
+          unique(main.env$local.rv[[file.name]]$CatVars$attributeName),
           function(attribute) {
             # get codes aka values for `attribute` in catvar_*.txt
-            codes <- main.env$local.main.env$local.rv[[file.name]]$CatVars %>%
+            codes <- main.env$local.rv[[file.name]]$CatVars %>%
               dplyr::filter(attributeName == attribute) %>%
               dplyr::select(code)
 
-            bsCollapsePanel(
+            shinyBS::bsCollapsePanel(
               title = attribute,
               # value = attribute,
               ... = tagList(
@@ -130,7 +131,7 @@ CatVars <- function(id, full.id, main.env) {
         ) # end of "tagapply" -- collapse boxes
 
         main.env$local.rv[[file.name]]$UI <- do.call(
-          bsCollapse,
+          shinyBS::bsCollapse,
           c(
             .content,
             id = file.name,
@@ -226,7 +227,7 @@ CatVars <- function(id, full.id, main.env) {
     observeEvent(main.env$local.rv$current.file,
       {
         req(main.env$local.rv$current.file)
-        sapply(main.env$local.main.env$local.rv[[main.env$local.rv$current.file]]$obs, function(obs) {
+        sapply(main.env$local.rv[[main.env$local.rv$current.file]]$obs, function(obs) {
           obs$resume()
         })
       },
@@ -238,7 +239,7 @@ CatVars <- function(id, full.id, main.env) {
       req(main.env$local.rv$catvar.files)
       main.env$EAL$completed <- all(
         sapply(basename(main.env$local.rv$catvar.files), function(file.name) {
-          all(sapply(main.env$local.main.env$local.rv[[file.name]]$CatVars$definition, isTruthy))
+          all(sapply(main.env$local.rv[[file.name]]$CatVars$definition, isTruthy))
         })
       )
     })

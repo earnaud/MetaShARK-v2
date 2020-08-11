@@ -138,6 +138,7 @@ Attributes <- function(id, full.id, main.env) {
 
     # Set a bunch of local variables when loading this page
     main.env$pageLoad(3, {
+      req(main.env$save.variable$DataFiles)
       # Path to data files
       main.env$local.rv$data.filepath <- main.env$save.variable$DataFiles$datapath
       main.env$local.rv$current.file <- as.numeric(checkTruth(main.env$local.rv$data.filepath))

@@ -160,7 +160,7 @@ setSaveVariable <- function(content, save.variable, lv = 1, root = "root") {
 # Local save variable ====
 setLocalRV <- function(main.env){
   
-  browser(expr = main.env$EAL$page == 3)
+  browser()
   
   main.env$local.rv <- switch(
     main.env$EAL$current,
@@ -270,42 +270,56 @@ setLocalRV <- function(main.env){
       )
     ),
     # Misc ----
-    "Miscellaneous" = reactiveValues(
-      # Abstract
-      abstract = reactiveValues(
-        content = character(),
-        file = paste(
-          isolate(main.env$save.variable$SelectDP$dp.metadata.path),
-          "abstract.txt",
-          sep = "/"
+    "Miscellaneous" = {
+      if (checkTruth(isolate(main.env$save.variable$SelectDP$dp.metadata.path))) {
+        kw <- fread(
+          paste0(isolate(main.env$save.variable$SelectDP$dp.metadata.path), "/keywords.txt"),
+          data.table = FALSE, stringsAsFactors = FALSE
         )
-      ),
-      # Methods
-      methods = reactiveValues(
-        content = character(),
-        file = paste(
-          isolate(main.env$save.variable$SelectDP$dp.metadata.path),
-          "methods.txt",
-          sep = "/"
+      } else {
+        kw <- data.frame(
+          keyword = character(),
+          keyword.thesaurus = character()
         )
-      ),
-      # Keywords
-      keywords = reactiveValues(
-        keyword = kw$keyword,
-        keyword.thesaurus = kw$keyword.thesaurus
-      ),
-      # Temporal coverage
-      temporal.coverage = c(Sys.Date() - 1, Sys.Date()),
-      # Additional information
-      additional.information = reactiveValues(
-        content = character(),
-        file = paste(
-          isolate(main.env$save.variable$SelectDP$dp.metadata.path),
-          "additional_info.txt",
-          sep = "/"
+      }
+      
+      reactiveValues(
+        # Abstract
+        abstract = reactiveValues(
+          content = character(),
+          file = paste(
+            isolate(main.env$save.variable$SelectDP$dp.metadata.path),
+            "abstract.txt",
+            sep = "/"
+          )
+        ),
+        # Methods
+        methods = reactiveValues(
+          content = character(),
+          file = paste(
+            isolate(main.env$save.variable$SelectDP$dp.metadata.path),
+            "methods.txt",
+            sep = "/"
+          )
+        ),
+        # Keywords
+        keywords = reactiveValues(
+          keyword = kw$keyword,
+          keyword.thesaurus = kw$keyword.thesaurus
+        ),
+        # Temporal coverage
+        temporal.coverage = c(Sys.Date() - 1, Sys.Date()),
+        # Additional information
+        additional.information = reactiveValues(
+          content = character(),
+          file = paste(
+            isolate(main.env$save.variable$SelectDP$dp.metadata.path),
+            "additional_info.txt",
+            sep = "/"
+          )
         )
       )
-    )
+    }
     # (End) ----
   )
   
