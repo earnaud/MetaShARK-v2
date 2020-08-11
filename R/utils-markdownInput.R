@@ -32,8 +32,12 @@ markdownInputUI <- function(id, label = "Text", icon = TRUE, preview = FALSE, va
     fluidRow(
       column(
         if (preview) 6 else 12,
-        if (isFALSE(icon)) tags$b(label) else span(tags$b(label), "(", icon("markdown"), "supported)"),
-        aceEditor(
+        if (isFALSE(icon)) {
+          tags$b(label)
+        } else {
+          span(tags$b(label), "(", icon("markdown"), "supported)")
+        },
+        shinyAce::aceEditor(
           NS(id, "md"),
           value = value,
           mode = "markdown",
@@ -58,18 +62,18 @@ markdownInputUI <- function(id, label = "Text", icon = TRUE, preview = FALSE, va
 #'
 #' @import shiny
 #' @importFrom markdown markdownToHTML
-markdownInput <- function(id, preview = FALSE){
+markdownInput <- function(id, preview = FALSE) {
   moduleServer(id, function(input, output, session) {
     rv <- reactive({
       input$md
     })
-    
+
     if (preview) {
       output$preview <- renderUI({
-        HTML(markdownToHTML(file = NULL, text = rv()))
+        HTML(markdown::markdownToHTML(file = NULL, text = rv()))
       })
     }
-    
+
     return(rv)
   })
 }

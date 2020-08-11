@@ -8,7 +8,7 @@
 #' @importFrom readtext readtext
 readPlainText <- function(files, prefix = NULL, sep = "/", ...) {
   if (is.null(prefix)) sep <- ""
-  
+
   readtext::readtext(
     paste(
       prefix,

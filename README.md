@@ -3,6 +3,11 @@
 
 <img src="./inst/media/logo.png" alt="" width="50%">
 
+**DISCLAIMER: MetaShARK uses temporary files for upload purposes and template
+files for the writing of EML. Thus, installing it in locale will write files on
+dedicated parts of your system (temp dir in HOME and a directory called "dataPackagesOutput"
+in HOME).**
+
 **Stable Server address:** http://openstack-192-168-100-47.genouest.org/  ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance`
 
 <!-- ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`  -->

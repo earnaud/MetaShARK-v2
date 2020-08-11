@@ -1,9 +1,8 @@
 #' @import shiny
 #' @importFrom shinyFiles shinyFilesButton
-#' 
+#'
 #' @noRd
 MiscellaneousUI <- function(id, help.label = NULL, value = "") {
-  
   fluidRow(
     # file selection
     column(
@@ -26,12 +25,12 @@ MiscellaneousUI <- function(id, help.label = NULL, value = "") {
       tagList(
         tags$b("Content"),
         help.label,
-        markdownInputUI(
-          NS(id, "content"),
-          label = "",
-          value = value,
-          preview = FALSE
-        )
+        # markdownInputUI(
+        #   NS(id, "content"),
+        #   label = "",
+        #   value = value,
+        #   preview = FALSE
+        # )
       )
     )
   ) # end of fluidRow
@@ -39,45 +38,45 @@ MiscellaneousUI <- function(id, help.label = NULL, value = "") {
 
 #' @import shiny
 #' @importFrom shinyAce updateAceEditor
-#' 
+#'
 #' @noRd
-Miscellaneous <- function(id){
-  moduleServer(id, function(id, input, output, session, save.variable, rv) {
+Miscellaneous <- function(id, save.variable, rv) {
+  moduleServer(id, function(input, output, session) {
     # Get content ----
-    rv$content <- markdownInput("content", preview = FALSE)
-    
+    # rv[[id]]$content <- markdownInput("content", preview = FALSE)
+
     # Get file ----
     observeEvent(input$file,
       {
         req(input$file)
-        rv$file <- input$file$datapath
+        rv[[id]]$file <- input$file$datapath
       },
       priority = 1
     )
-    
-    observeEvent(input$file,
-      {
-        req(
-          isTruthy(input$file) ||
-            isTruthy(names(input))
-        )
-        updateAceEditor(
-          session,
-          "content-md",
-          value = readPlainText(rv$file)
-        )
-      },
-      priority = 0
-    )
-    
-    # UI Verbose
+
+    # observeEvent(input$file,
+    #   {
+    #     req(
+    #       isTruthy(input$file) ||
+    #         isTruthy(names(input))
+    #     )
+    #     shinyAce::updateAceEditor(
+    #       session,
+    #       "content-md",
+    #       value = readPlainText(rv$file)
+    #     )
+    #   },
+    #   priority = 0
+    # )
+
+    # Verbose file selection
     output$selected <- renderText({
       paste(
-        basename(rv$file),
-        "\n(in:", dirname(rv$file), ")"
+        basename(rv[[id]]$file),
+        "\n(in:", dirname(rv[[id]]$file), ")"
       )
     })
-    
+
     # Output ----
     return(rv)
   })
