@@ -13,7 +13,7 @@
 #'
 #' @importFrom gdata read.xls
 readDataTable <- function(file, data.table = FALSE, dev = FALSE, ...) {
-  if (missing(file)) {
+  if (missing(file) || length(file) == 0) {
     stop("Provide a file for this function.")
   }
 

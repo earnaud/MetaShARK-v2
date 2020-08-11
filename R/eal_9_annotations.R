@@ -1,6 +1,6 @@
 #' annotationsUI <- function(id) {
 #'   ns <- NS(id)
-#' 
+#'
 #'   return(
 #'     tagList(
 #'       useShinyjs(),
@@ -23,12 +23,12 @@
 #'     )
 #'   ) # end of return
 #' }
-#' 
+#'
 #' #' @importFrom cedarr search
 #' #' @importFrom shinyjs disabled enable disable
 #' annotations <- function(input, output, session, save.variable, main.env) {
 #'   ns <- session$ns
-#' 
+#'
 #'   # Initialize variables ----
 #'   rv <- reactiveValues(
 #'     annotations = data.frame(
@@ -42,7 +42,7 @@
 #'       object.uri = character()
 #'     ),
 #'     file = paste(
-#'       save.variable$emlal$SelectDP$dp.metadata.path,
+#'       save.variable$SelectDP$dp.metadata.path,
 #'       "annotations.txt",
 #'       collapse = "/"
 #'     )
@@ -51,7 +51,7 @@
 #'     rv$annotations <- fread(rv$file)
 #'   else
 #'     fwrite(rv$annotations, rv$file)
-#'   
+#'
 #'   # Set UI ----
 #'   # Default terms
 #'   # Custom terms
@@ -59,7 +59,7 @@
 #'     onInsertUI <- modalDialog(
 #'       title = "Select an element to annotate",
 #'       ... = tagList(
-#'         
+#'
 #'       ),
 #'       footer = tagList(
 #'         modalButton("Cancel"),
@@ -69,9 +69,9 @@
 #'         ) %>% disabled
 #'       )
 #'     )
-#'     
-#'     
-#'     
+#'
+#'
+#'
 #'     insertAnnot(
 #'       as.character(id),
 #'       rv,
@@ -79,38 +79,38 @@
 #'       main.env
 #'     )
 #'   })
-#'   
+#'
 #'   # Process data ----
-#'   
+#'
 #'   # Output ----
 #'   return(save.variable)
 #' }
-#' 
+#'
 #' #' @title insertPersonnelInput
 #' #'
 #' #' @description helper function to insert PersonnelMod* functions. Calling this from
 #' #' a shiny server will insert PersonnelModUI and create its server part. Provided with
 #' #' features to delete them.
-#' #' 
+#' #'
 #' #' @import shiny
 #' insertAnnotInput <- function(id, rv, ns, main.env, value = NULL) {
-#'   
+#'
 #'   # initialize IDs ----
 #'   div_id <- id
 #'   site_id <- paste0("site_", id)
 #'   rmv_id <- paste0("rmv_", id)
-#'   
+#'
 #'   # Proper module server ----
 #'   # insert new UI
 #'   newUI <- AnnotModUI(
-#'     ns(id), div_id, site_id, rmv_id, 
+#'     ns(id), div_id, site_id, rmv_id,
 #'     value = value
 #'   )
 #'   insertUI(
 #'     selector = paste0("#", NS(id, "inserthere")),
 #'     ui = newUI
 #'   )
-#'   
+#'
 #'   # create associated server
 #'   rv <- callModule(
 #'     AnnotMod, id, # module args
@@ -118,11 +118,11 @@
 #'     rmv_id, site_id, div_id, # renderUI ids
 #'     value = value # set saved
 #'   )
-#'   
+#'
 #'   # Output ----
 #'   return(rv)
 #' }
-#' 
+#'
 #' #' @title AnnotModUI
 #' #'
 #' #' @description module to document EML annotation
@@ -130,13 +130,13 @@
 #' #' @importFrom shinyBS bsTooltip
 #' AnnotModUI <- function(id, div_id, site_id, rmv_id, value = NULL) {
 #'   ns <- NS(id)
-#'   
+#'
 #'   value <- if(checkTruth(value)){
 #'     value[value$id == div_id,]
 #'   } else {
 #'     rep(NA, 3)
 #'   }
-#'   
+#'
 #'   tags$div(
 #'     id = site_id,
 #'     fluidRow(
@@ -175,7 +175,7 @@
 #'     )
 #'   )
 #' }
-#' 
+#'
 #' #' @title AnnotMod
 #' #'
 #' #' @describeIn AnnotModUI
@@ -186,14 +186,14 @@
 #' AnnotMod <- function(input, output, session, main.env,
 #'   rv, rmv_id, site_id, ref, role = NULL, saved = NULL) {
 #'   ns <- session$ns
-#'   
+#'
 #'   # Variable initialization ----
 #'   if(!is.null(saved)){
 #'     value <- saved[saved$id == ref,]
 #'   } else {
 #'     value <- NULL
 #'   }
-#'   
+#'
 #'   local.rv <- reactiveValues(
 #'     ref = ref,
 #'     id = if(!is.null(value)) value$id
@@ -213,7 +213,7 @@
 #'     object.uri = if(!is.null(value)) value$object.uri
 #'       else character()
 #'   )
-#'   
+#'
 #'   # Display ontology access ====
 #'   onclick(paste0("subject_", id), {
 #'     local.rv <- ontoloGUI("subject", local.rv)
@@ -224,7 +224,7 @@
 #'   onclick(paste0("object_", id), {
 #'     local.rv <- ontoloGUI("object", local.rv)
 #'   })
-#'   
+#'
 #'   # Metadata save ----
 #'   observe({
 #'     req(
@@ -240,25 +240,25 @@
 #'     else {
 #'       dim(personnel)[1] + 1
 #'     }
-#'     
+#'
 #'     # print values into rv at selected index
 #'     localValues <- printReactiveValues(local.rv)
 #'     localValues <- localValues[colnames(personnel)]
 #'     localValues[which(!sapply(localValues, isTruthy))] <- ""
 #'     isolate(rv$Personnel[ind,] <- localValues)
 #'   })
-#'   
+#'
 #'   # Remove UI====
 #'   if(is.null(role))
 #'     onclick(rmv_id, {
 #'       # unload the RV
 #'       ind <- match(ref, rv$Personnel$id)
 #'       rv$Personnel <- rv$Personnel %>% slice(-ind)
-#'       
+#'
 #'       # remove the UI
 #'       removeUI(selector = paste0("#", site_id), immediate = TRUE)
 #'     })
-#'   
+#'
 #'   # Output ----
 #'   return(rv)
 #' }

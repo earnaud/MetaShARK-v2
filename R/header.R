@@ -9,84 +9,91 @@
 #'
 #' @noRd
 .globalScript <- function(
-  args = list(
-    dev = FALSE, 
-    wip = FALSE
-  )
-) {
-  
+                          args = list(
+                            dev = FALSE,
+                            wip = FALSE
+                          )) {
+
   # Environment setup ====
   main.env <- new.env()
-  
+
   assign("dev", args$dev, main.env)
   assign("wip", args$wip, main.env)
-  
+
   # Paths ====
   wwwPaths <- system.file("resources", package = "MetaShARK") %>%
     paste(., dir(.), sep = "/") %>%
-    as.list
+    as.list()
   names(wwwPaths) <- basename(unlist(wwwPaths))
   PATHS <- reactiveValues(
     home = "~",
     eal.dp = paste0("~/dataPackagesOutput/emlAssemblyLine/"),
     eal.dp.index = paste0("~/dataPackagesOutput/emlAssemblyLine/index.txt"),
-    eal.tmp = paste0("~/EMLAL_tmp/"),
+    eal.tmp = tempdir(),
     resources = wwwPaths
   )
   dir.create(isolate(PATHS$eal.dp), recursive = TRUE, showWarnings = FALSE)
   dir.create(isolate(PATHS$eal.tmp), recursive = TRUE, showWarnings = FALSE)
-  
+
   assign("PATHS", PATHS, envir = main.env)
-  
+
   # Sessionning ====
-  if (isTRUE(file.exists(isolate(PATHS$eal.dp.index)))) {
-    DP.LIST <- data.table::fread(isolate(PATHS$eal.dp.index), sep = "\t")
-  }
-  else {
-    DP.LIST <- data.frame(
-      creator.orcid = character(),
-      name = character(),
-      title = character(),
-      path = character(),
-      stringsAsFactors = FALSE
-    )
-    data.table::fwrite(DP.LIST, isolate(PATHS$eal.dp.index), sep = "\t")
-  }
-  
-  assign("DP.LIST", DP.LIST, envir = main.env)
-  makeReactiveBinding("DP.LIST", env = main.env)
-  
+  # if (isTRUE(file.exists(isolate(PATHS$eal.dp.index)))) {
+  #   DP.LIST <- data.table::fread(isolate(PATHS$eal.dp.index), sep = "\t")
+  # }
+  # else {
+  #   DP.LIST <- data.frame(
+  #     creator.orcid = character(),
+  #     name = character(),
+  #     title = character(),
+  #     path = character(),
+  #     stringsAsFactors = FALSE
+  #   )
+  # }
+  # 
+  # # Curate DP.LIST versus actual list
+  # DP.LIST$path <- DP.LIST$path %>% gsub("//+", "/", .)
+  # .actual.index <- dir(
+  #   isolate(main.env$PATHS$eal.dp),
+  #   pattern = "_emldp$",
+  #   full.names = TRUE
+  # ) %>% gsub("//+", "/", .)
+  # DP.LIST <- dplyr::filter(DP.LIST, path %in% .actual.index)
+  # 
+  # data.table::fwrite(DP.LIST, isolate(PATHS$eal.dp.index), sep = "\t")
+  # 
+  # assign("DP.LIST", DP.LIST, envir = main.env)
+  # makeReactiveBinding("DP.LIST", env = main.env)
+
   # Values ====
   assign(
-    "VALUES", 
+    "VALUES",
     reactiveValues(
       thresholds = reactiveValues(
         files.size.max = 500000
       ),
-      steps = c("SelectDP", "Data Files", "Attributes", "Categorical Variables",
-        "Geographic Coverage", "Taxonomic Coverage", "Personnel", "Miscellaneous",
-        "Make EML")
-    ), 
+      steps = c(
+        "SelectDP", 
+        "Data Files",
+        "Attributes", 
+        "Categorical Variables",
+        "Geographic Coverage", 
+        "Taxonomic Coverage", 
+        "Personnel", 
+        "Miscellaneous",
+        "Make EML"
+      )
+    ),
     envir = main.env
   )
-  
+
   # Formats ====
   # DataONE nodes
-  .DATAONE.LIST <- try(listFormats(dataone::CNode()))
-  if (class(.DATAONE.LIST) == "try-error") {
-    .DATAONE.LIST <- data.table::fread(wwwPaths$dataoneCNodesList.txt)
-  } else {
-    data.table::fwrite(.DATAONE.LIST, wwwPaths$dataoneCNodesList.txt)
-  }
-  
+  .DATAONE.LIST <- data.table::fread(wwwPaths$dataoneCNodesList.txt)
+
   # Taxa authorities
-  .TAXA.AUTHORITIES <- try(taxonomyCleanr::view_taxa_authorities())
-  if (class(.TAXA.AUTHORITIES) == "try-error") {
-    .TAXA.AUTHORITIES <- data.table::fread(wwwPaths$taxaAuthorities.txt)
-  } else {
-    data.table::fwrite(.TAXA.AUTHORITIES, wwwPaths$taxaAuthorities.txt)
-  }
-  
+  .TAXA.AUTHORITIES <- data.table::fread(wwwPaths$taxaAuthorities.txt)
+
   # Unit types
   .all.units <- EML::get_unitList()
   .units <- "custom"
@@ -97,9 +104,9 @@
   }))
   .all.units <- .units
   names(.all.units) <- .names
-  
+
   assign(
-    "FORMATS", 
+    "FORMATS",
     reactiveValues(
       dates = c(
         "YYYY",
@@ -122,10 +129,10 @@
     ),
     envir = main.env
   )
-  
+
   # Settings ====
   assign(
-    "SETTINGS", 
+    "SETTINGS",
     reactiveValues(
       logged = FALSE,
       user = "public",
@@ -133,28 +140,55 @@
       cedar.token = character(),
       metacat.token = character(),
       metacat.test = FALSE
-    ), 
+    ),
     envir = main.env
   )
-  
+
   # EAL rv ====
   assign(
-    "EAL", 
+    "EAL",
     reactiveValues(
       page = 1, # page number
-      history = character(), # all browsed pages names in steps
-      current = character(), # last of history
-      completed = FALSE,  # is current page completed?
+      history = isolate(main.env$VALUES$steps[1]), # all browsed pages names in steps
+      current = isolate(main.env$VALUES$steps[1]), # last of history
+      completed = FALSE, # is current page completed?
       tag.list = tagList(), # side HTML tags to display
       help = character(),
       .next = 0,
       .prev = 0
-    ), 
+    ),
     envir = main.env
   )
+
+  assign(
+    "save.variable",
+    initReactive(main.env = main.env),
+    envir = main.env
+  )
+
+  # Local rv ====
+  assign(
+    "local.rv",
+    reactiveValues(),
+    envir = main.env
+  )  
   
-  assign("save.variable", initReactive(main.env = main.env), envir = main.env)
-  
+  assign(
+    "pageLoad",
+    function(page.invoked, expr) {
+      page.reached <- isolate(main.env$EAL$page)
+      observeEvent(
+        main.env$EAL$page,
+        handlerExpr = c(
+          expression(req(page.reached == page.invoked)),
+          expr
+        ),
+        label = paste("RV loader page", page.invoked)
+      )
+    },
+    envir = main.env
+  )
+
   # Patterns ====
   assign(
     "PATTERNS",
@@ -167,11 +201,11 @@
     ),
     envir = main.env
   )
-  
+
   # output ====
   assign("main.env", main.env, .GlobalEnv)
   shinyOptions(shiny.reactlog = args$reactlog)
   addResourcePath("media", system.file("media/", package = "MetaShARK"))
-  
+
   return(NULL)
 }

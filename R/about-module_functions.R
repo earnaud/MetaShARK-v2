@@ -10,7 +10,7 @@
 #' @importFrom utils capture.output
 renderBibliography <- function(bib) {
   .bib <- RefManageR::ReadBib(bib)
-  RefManageR::NoCite(bib, "*")
+  RefManageR::NoCite(.bib, "*")
 
   renderUI(
     withProgress(message = "Loading bibtex ...", value = 0, {

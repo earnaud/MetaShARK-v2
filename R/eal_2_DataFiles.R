@@ -1,6 +1,6 @@
 #' @import shiny
 #' @importFrom shinyFiles shinyFilesButton
-#' 
+#'
 #' @noRd
 DataFilesUI <- function(id, main.env) {
   return(
@@ -35,74 +35,70 @@ DataFilesUI <- function(id, main.env) {
 #' @importFrom shinyFiles getVolumes shinyFileChoose parseFilePaths
 #' @importFrom shinyjs onclick enable disable
 #' @importFrom EMLassemblyline template_table_attributes
-#' 
+#'
 #' @noRd
-DataFiles <- function(id, main.env) {
-  moduleServer(id, function(input, output, session){
-    save.variable <- main.env$save.variable
-    ns <- session$ns
-    
+DataFiles <- function(id, full.id, main.env) {
+  moduleServer(id, function(input, output, session) {
+    main.env$save.variable <- main.env$save.variable
+
     # Variable initialization ----
-    rv <- reactiveValues(
-      data.files = data.frame(stringsAsFactors = FALSE)
-    )
-    
-    if (checkTruth(save.variable$emlal$DataFiles)) { # from create button in SelectDP
-      .ind <- which(file.exists(save.variable$emlal$DataFiles$datapath))
-      .col <- which(names(save.variable$emlal$DataFiles) != "metadatapath")
-      rv$data.files <- save.variable$emlal$DataFiles[.ind, .col]
-    }
-    
-    # Data file upload ----
+
+    # Data file upload ====
     # * Add data files ----
     observeEvent(input$add_data_files,
       {
         # validity checks
         req(input$add_data_files)
-        
+
         # retrieve data files info
-        loaded.files <- input$add_data_files
-        
+        .loaded.files <- input$add_data_files
+
         req(checkTruth(loaded.files))
-        
+
         # remove spaces
-        loaded.files$name <- gsub(" ", "_", loaded.files$name)
-        
+        .loaded.files$name <- gsub(" ", "_", .loaded.files$name)
+
         # add URL, description and table name columns
-        loaded.files$url <- rep("", dim(loaded.files)[1])
-        loaded.files$description <- rep("", dim(loaded.files)[1])
-        loaded.files$table.name <- rep("", dim(loaded.files)[1])
-        
+        .loaded.files$url <- rep("", dim(.loaded.files)[1])
+        .loaded.files$description <- rep("", dim(.loaded.files)[1])
+        .loaded.files$table.name <- rep("", dim(.loaded.files)[1])
+
         # bind into input
-        if (isFALSE(checkTruth(rv$data.files) && all(dim(rv$data.files) > 0))) {
-          rv$data.files <- loaded.files
+        if (isFALSE(
+          checkTruth(main.env$local.rv$data.files) && 
+          all(dim(main.env$local.rv$data.files) > 0)
+        )) {
+          main.env$local.rv$data.files <- .loaded.files
         } else {
-          sapply(loaded.files$name, function(filename){
+          sapply(.loaded.files$name, function(filename) {
             if (fs::is_dir(filename)) {
               showNotification(
                 paste(filename, "is a folder."),
                 type = "warning"
               )
             } else
-              if (!filename %in% rv$data.files$name) {
-                rv$data.files <- unique(rbind(
-                  rv$data.files,
-                  loaded.files[loaded.files$name == filename, ]
-                ))
-              }
+            if (!filename %in% main.env$local.rv$data.files$name) {
+              main.env$local.rv$data.files <- unique(rbind(
+                main.env$local.rv$data.files,
+                .loaded.files[.loaded.files$name == filename, ]
+              ))
+            }
           })
         }
-        
-        # copies on the server
+
+        # copies to the server
         withProgress(
           {
             file.copy(
-              rv$data.files$datapath,
-              paste0(main.env$PATHS$eal.tmp, rv$data.files$name)
+              main.env$local.rv$data.files$datapath,
+              paste0(main.env$PATHS$eal.tmp, main.env$local.rv$data.files$name)
             )
             incProgress(0.8)
-            
-            rv$data.files$datapath <- paste0(main.env$PATHS$eal.tmp, rv$data.files$name)
+
+            main.env$local.rv$data.files$datapath <- paste0(
+              main.env$PATHS$eal.tmp, 
+              main.env$local.rv$data.files$name
+            )
             incProgress(0.2)
           },
           message = "Downloading data files"
@@ -111,26 +107,26 @@ DataFiles <- function(id, main.env) {
       ignoreInit = TRUE,
       label = "EAL2: add files"
     )
-    
+
     # * Remove data files ----
     observeEvent(input$remove_data_files,
       {
         # validity check
         req(input$select_data_files)
-        
+
         # actions
-        rv$data.files <- rv$data.files[
-          !(rv$data.files$name %in% input$select_data_files),
-          ]
+        main.env$local.rv$data.files <- main.env$local.rv$data.files[
+          !(main.env$local.rv$data.files$name %in% input$select_data_files),
+        ]
       },
       label = "EAL2: remove files"
     )
-    
+
     # Display data files ----
     # * UI ----
-    observeEvent(rv$data.files, {
-      df <- isolate(rv$data.files)
-      
+    observeEvent(main.env$local.rv$data.files, {
+      df <- isolate(main.env$local.rv$data.files)
+
       output$data_files <- renderUI({
         validate(
           need(
@@ -138,8 +134,9 @@ DataFiles <- function(id, main.env) {
             "Select files to describe."
           )
         )
-        
-        checkboxGroupInput(NS(id, "select_data_files"),
+
+        checkboxGroupInput(
+          NS(full.id, "select_data_files"),
           "Select files to delete (all files here will be kept otherwise)",
           choiceNames = lapply(
             df$name,
@@ -154,7 +151,7 @@ DataFiles <- function(id, main.env) {
               } else {
                 NULL
               }
-              
+
               # Output
               collapsibleUI(
                 id = NS(id, .id),
@@ -199,7 +196,7 @@ DataFiles <- function(id, main.env) {
         )
       })
     })
-    
+
     # * Server ----
     observeEvent(names(input), {
       req(
@@ -207,15 +204,15 @@ DataFiles <- function(id, main.env) {
           any(grepl("dataURL", names(input))) ||
           any(grepl("dataDesc", names(input)))
       )
-      sapply(rv$data.files$name, function(.id) {
+      sapply(main.env$local.rv$data.files$name, function(.id) {
         collapsible(.id)
-        ind <- match(.id, rv$data.files$name)
-        
+        ind <- match(.id, main.env$local.rv$data.files$name)
+
         # Data name
         observeEvent(input[[paste0(ind, "-dataName")]],
           {
             isolate(
-              rv$data.files[ind, "table.name"] <- input[[paste0(ind, "-dataName")]]
+              main.env$local.rv$data.files[ind, "table.name"] <- input[[paste0(ind, "-dataName")]]
             )
           },
           ignoreInit = FALSE
@@ -224,7 +221,7 @@ DataFiles <- function(id, main.env) {
         observeEvent(input[[paste0(ind, "-dataURL")]],
           {
             isolate(
-              rv$data.files[ind, "url"] <- URL_Input(paste0(ind, "-dataURL"))
+              main.env$local.rv$data.files[ind, "url"] <- URL_Input(paste0(ind, "-dataURL"))
             )
           },
           ignoreInit = FALSE
@@ -233,24 +230,24 @@ DataFiles <- function(id, main.env) {
         observeEvent(input[[paste0(ind, "-dataDesc")]],
           {
             isolate(
-              rv$data.files[ind, "description"] <- input[[paste0(ind, "-dataDesc")]]
+              main.env$local.rv$data.files[ind, "description"] <- input[[paste0(ind, "-dataDesc")]]
             )
           },
           ignoreInit = FALSE
         )
       })
     })
-    
+
     # Warnings: data size
-    observeEvent(rv$data.files, {
-      req(checkTruth(rv$data.files))
-      files.size <- if (checkTruth(rv$data.files$size)) {
-        sum(rv$data.files$size)
+    observeEvent(main.env$local.rv$data.files, {
+      req(checkTruth(main.env$local.rv$data.files))
+      files.size <- if (checkTruth(main.env$local.rv$data.files$size)) {
+        sum(main.env$local.rv$data.files$size)
       } else {
         0
       }
       files.size.max <- main.env$VALUES$thresholds$files.size.max
-      
+
       style <- if (files.size < 0.9 * files.size.max) {
         "color: green;"
       } else if (files.size >= 0.9 * files.size.max && files.size < files.size.max) {
@@ -258,8 +255,8 @@ DataFiles <- function(id, main.env) {
       } else {
         "color: red"
       }
-      
-      EAL$tag.list <- tagList(
+
+      main.env$EAL$tag.list <- tagList(
         "Files size:",
         tags$p(
           utils::object.size(files.size),
@@ -272,55 +269,48 @@ DataFiles <- function(id, main.env) {
         )
       )
     })
-    
+
     # Saves ----
     observe({
-      main.env$EAL$completed <- checkTruth(rv$data.files) &&
-        all(dim(rv$data.files) > 0)
+      main.env$EAL$completed <- checkTruth(main.env$local.rv$data.files) &&
+        all(dim(main.env$local.rv$data.files) > 0)
     })
-    
-    # observeEvent(NSB$SAVE,
+
     shinyjs::onclick(
       "fill-wizard-save",
       asis = TRUE,
       add = TRUE,
       {
         req(main.env$EAL$current == "Data Files")
-        req(isTruthy(rv$data.files$name))
-        
-        save.variable <- saveReactive(
-          save.variable = savevar,
-          rv = list(DataFiles = rv)
-        )
-      },
-      label = "Save_DataFiles",
-      ignoreInit = TRUE
+        req(isTruthy(main.env$local.rv$data.files$name))
+
+        saveReactive(main.env)
+        #   save.variable = main.env$save.variable,
+        #   content = list(DataFiles = main.env$local.rv)
+        # )
+      }
     )
-    
+
     # Process files ----
-    observeEvent(EAL$.next,
-      {
-        req(main.env$EAL$current == "Data Files")
-        # Save
-        save.variable <- saveReactive(
-          save.variable,
-          rv = list(DataFiles = rv)
+    observeEvent(main.env$EAL$.next, {
+      req(main.env$EAL$current == "Data Files")
+      # Save
+      saveReactive(main.env)
+      #   save.variable = main.env$save.variable,
+      #   content = list(DataFiles = main.env$local.rv)
+      # )
+      
+      # EMLAL templating function
+      try(
+        EMLassemblyline::template_table_attributes(
+          path = isolate(main.env$save.variable$SelectDP$dp.metadata.path),
+          data.path = isolate(main.env$save.variable$SelectDP$dp.data.path),
+          data.table = isolate(main.env$save.variable$DataFiles$name)
         )
-        
-        # EMLAL templating function
-        try(
-          EMLassemblyline::template_table_attributes(
-            path = save.variable$emlal$SelectDP$dp.metadata.path,
-            data.path = save.variable$emlal$SelectDP$dp.data.path,
-            data.table = save.variable$emlal$DataFiles$name
-          )
-        )
-      },
-      priority = 1,
-      ignoreInit = TRUE
+      )
+    },
+    priority = 1,
+    ignoreInit = TRUE
     )
-    
-    # Output ----
-    return(save.variable)
   })
 }

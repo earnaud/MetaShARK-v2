@@ -3,11 +3,11 @@
 #' @description UI part of the Attributes module. Fill in the attributes of the data package
 #'
 #' @import shiny
-#' 
+#'
 #' @noRd
 AttributesUI <- function(id, main.env) {
   ns <- NS(id)
-  
+
   return(
     fluidPage(
       tagList(
@@ -44,8 +44,7 @@ AttributesUI <- function(id, main.env) {
       fluidRow(
         column(
           12,
-          uiOutput(NS(id, "edit_attributes")) %>% 
-            shinycssloaders::withSpinner(color = "#599cd4")
+          uiOutput(NS(id, "edit_attributes"))
         )
       ),
       # Custom Units
@@ -62,204 +61,226 @@ AttributesUI <- function(id, main.env) {
 #' @importFrom shinyjs hide show enable disable onclick
 #' @importFrom EMLassemblyline template_categorical_variables template_geographic_coverage
 #' @importFrom shinyBS bsCollapse bsCollapsePanel updateCollapse
-#' 
+#'
 #' @noRd
-Attributes <- function(id, main.env) {
-  moduleServer(id, function(input, output, session){
-    save.variable <- main.env$save.variable
-    ns <- session$ns
-    
-    if (main.env$DEV || isTRUE(save.variable$emlal$quick)) {
+Attributes <- function(id, full.id, main.env) {
+  moduleServer(id, function(input, output, session) {
+    main.env$save.variable <- isolate(main.env$save.variable)
+
+    if (isTRUE(main.env$dev) || isTRUE(main.env$save.variable$quick)) {
       .fill <- function(rv = rv) {
-        lapply(seq(rv$tables), function(ind) {
-          .table <- rv$tables[[ind]]
+        lapply(seq(main.env$local.rv$tables), function(ind) {
+          .table <- main.env$local.rv$tables[[ind]]
           sapply(colnames(.table), function(col) {
             # Set values
             if (col == "attributeDefinition") {
-              rv$tables[[ind]][[col]] <- paste("Description for", rv$tables[[ind]][["attributeName"]])
+              main.env$local.rv$tables[[ind]][[col]] <- paste("Description for", main.env$local.rv$tables[[ind]][["attributeName"]])
             }
             if (col %in% c("missingValueCodeExplanation", "missingValueCode")) {
-              rv$tables[[ind]][[col]] <- rep("LoremIpsum", dim(.table)[1])
+              main.env$local.rv$tables[[ind]][[col]] <- rep("LoremIpsum", dim(.table)[1])
             }
             if (col == "dateTimeFormatString") {
-              .dat.row <- which(rv$tables[[ind]]$class == "Date")
-              rv$tables[[ind]][[col]] <- rep("", dim(.table)[1])
-              if(isTruthy(.dat.row))
-                rv$tables[[ind]][.dat.row, col] <- rep(main.env$FORMATS$dates[3], length(.dat.row))
+              .dat.row <- which(main.env$local.rv$tables[[ind]]$class == "Date")
+              main.env$local.rv$tables[[ind]][[col]] <- rep("", dim(.table)[1])
+              if (isTruthy(.dat.row)) {
+                main.env$local.rv$tables[[ind]][.dat.row, col] <- rep(main.env$FORMATS$dates[3], length(.dat.row))
+              }
             }
             if (col == "unit") {
-              .uni.row <- which(rv$tables[[ind]]$class == "numeric")
-              rv$tables[[ind]][[col]] <- rep("", dim(.table)[1])
-              if(isTruthy(.uni.row))
-                rv$tables[[ind]][.uni.row, col] <- rep(main.env$FORMATS$dates[2], length(.uni.row))
+              .uni.row <- which(main.env$local.rv$tables[[ind]]$class == "numeric")
+              main.env$local.rv$tables[[ind]][[col]] <- rep("", dim(.table)[1])
+              if (isTruthy(.uni.row)) {
+                main.env$local.rv$tables[[ind]][.uni.row, col] <- rep(main.env$FORMATS$dates[2], length(.uni.row))
+              }
             }
-            
+
             # Update values
-            if (ind == rv$current.file) {
-              sapply(1:dim(rv$tables[[ind]])[1], function(item) {
+            if (ind == main.env$local.rv$current.file) {
+              sapply(1:dim(main.env$local.rv$tables[[ind]])[1], function(item) {
                 inputId <- paste(ind, item, col, sep = "-")
                 if (inputId %in% names(input)) {
                   if (col %in% c("unit", "dateTimeFormatString")) {
-                    updateSelectInput(session, inputId, selected = rv$tables[[ind]][item, col])
+                    updateSelectInput(session, inputId, selected = main.env$local.rv$tables[[ind]][item, col])
                   }
                   if (col %in% c("attributeDefinition", "missingValueCode", "missingValueCodeExplanation")) {
-                    updateTextAreaInput(session, inputId, value = rv$tables[[ind]][item, col])
+                    updateTextAreaInput(session, inputId, value = main.env$local.rv$tables[[ind]][item, col])
                   }
                 }
               })
             }
           }) # end of sapply
-          
+
           # Update current table
-          if (ind == rv$current.file) {
-            rv$current.table <- rv$tables[[ind]]
+          if (ind == main.env$local.rv$current.file) {
+            main.env$local.rv$current.table <- main.env$local.rv$tables[[ind]]
           }
         }) # end of lapply
         return(rv)
       } # end of .fill
     }
-    
+
     # variable initialization ----
-    rv <- reactiveValues(
-      data.filepath = save.variable$emlal$DataFiles$datapath,
-      filepath = save.variable$emlal$DataFiles$metadatapath,
-      filenames = basename(save.variable$emlal$DataFiles$metadatapath),
-      current.file = 1,
-      tables = NULL,
-      current.table = NULL,
-      current.preview = NULL,
-      cu.table = data.frame(stringsAsFactors = FALSE),
-      cu.values = rep(NA, 5),
-      modal.on = FALSE,
-      unit.id = character(),
-      units.list = character(),
-      annotations = reactiveValues(
-        values = data.frame(stringsAsFactors = FALSE),
-        count = 0
-      )
+    # rv <- reactiveValues(
+    #   current.file = 0,
+    #   tables = NULL,
+    #   current.table = NULL,
+    #   current.preview = NULL,
+    #   cu.table = data.frame(stringsAsFactors = FALSE),
+    #   cu.values = rep(NA, 5),
+    #   modal.on = FALSE,
+    #   unit.id = character(),
+    #   units.list = isolate(main.env$FORMATS$units),
+    #   annotations = reactiveValues(
+    #     values = data.frame(stringsAsFactors = FALSE),
+    #     count = 0
+    #   )
+    # )
+
+    # Set a bunch of local variables when loading this page
+    main.env$pageLoad(3, {
+      # Path to data files
+      main.env$local.rv$data.filepath <- main.env$save.variable$DataFiles$datapath
+      main.env$local.rv$current.file <- as.numeric(checkTruth(main.env$local.rv$data.filepath))
+
+      # Path to metadata templates
+      main.env$local.rv$filepath <- main.env$save.variable$DataFiles$metadatapath
+      if (checkTruth(main.env$local.rv$filepath)) {
+        main.env$local.rv$filenames <- basename(main.env$local.rv$filepath)
+        main.env$local.rv$tables <- lapply(
+          main.env$local.rv$filepath, readDataTable,
+          data.table = FALSE, stringsAsFactors = FALSE
+        )
+        main.env$local.rv$current.table <- main.env$local.rv$tables[[main.env$local.rv$current.file]]
+      }
+
+      # Path to metadata directory
+      if (checkTruth(main.env$save.variable$SelectDP$dp.metadata.path)) {
+        main.env$local.rv$cu.table <- readDataTable(
+          dir(
+            isolate(main.env$save.variable$SelectDP$dp.metadata.path),
+            pattern = "ustom",
+            full.names = TRUE
+          ),
+          stringsAsFactors = FALSE
+        )
+      }
+    })
+
+    # if (checkTruth(main.env$save.variable$Attributes$annotations)) {
+    #   rv$annotations$values <- isolate(main.env$save.variable$Attributes$annotations)
+    #   rv$annotations$count <- nrow(rv$annotations$values)
+    # }
+    # else {
+    #   rv$annotations$values <- data.frame(
+    #     id = character(),
+    #     element = character(),
+    #     context = character(),
+    #     subject = character(),
+    #     predicate_label = character(),
+    #     predicate_uri = character(),
+    #     object_label = character(),
+    #     object_uri = character(),
+    #     stringsAsFactors = FALSE
+    #   )
+    # }
+
+    observeEvent(main.env$save.variable$quick,
+      {
+        # Selected quick selection and not gone further
+        if (isTRUE(main.env$save.variable$quick) &&
+          length(main.env$save.variable$EAL$history) < 4) {
+          main.env$local.rv <- .fill(main.env$local.rv)
+        }
+      },
+      once = TRUE
     )
-    rv$tables <- lapply(
-      rv$filepath, readDataTable,
-      data.table = FALSE, stringsAsFactors = FALSE
-    )
-    rv$current.table <- rv$tables[[rv$current.file]]
-    rv$cu.table <- readDataTable(
-      dir(
-        save.variable$emlal$SelectDP$dp.metadata.path,
-        pattern = "ustom",
-        full.names = TRUE
-      ),
-      stringsAsFactors = FALSE,
-    )
-    rv$units.list <- main.env$FORMATS$units
-    if (checkTruth(save.variable$emlal$Attributes$annotations)) {
-      rv$annotations$values <- save.variable$emlal$Attributes$annotations
-      rv$annotations$count <- nrow(rv$annotations$values)
-    }
-    else {
-      rv$annotations$values <- data.frame(
-        id = character(),
-        element = character(),
-        context = character(),
-        subject = character(),
-        predicate_label = character(),
-        predicate_uri = character(),
-        object_label = character(),
-        object_uri = character(),
-        stringsAsFactors = FALSE
-      )
-    }
-    
-    if (isTRUE(save.variable$emlal$quick)) {
-      rv <- .fill(rv)
-    }
-    
+
+    # Update unit list with customs
     observe(
       {
-        . <- rv$current.table # trigger
-        
+        .tab <- isolate(main.env$local.rv$current.table) # trigger
+        req(.tab)
         .tmp <- unique(c(
-          unlist(lapply(seq_along(rv$tables), function(t) {
-            .tab <- if (t == rv$current.file) {
-              rv$current.table
+          unlist(lapply(seq_along(main.env$local.rv$tables), function(t) {
+            if (t == main.env$local.rv$current.file) {
+              return(.tab$unit)
             } else {
-              rv$tables[[t]]
+              return(main.env$local.rv$tables[[t]]$unit)
             }
-            .tab$unit
           })),
           main.env$FORMATS$units
         ))
-        rv$units.list <- .tmp[.tmp != ""]
+        main.env$local.rv$units.list <- .tmp[.tmp != ""]
       },
       label = "EAL3: unit list"
     )
-    
+
     # Reactive triggers
     curt <- makeReactiveTrigger()
-    
+
     # List of observers
     obs <- reactiveValues()
-    
+
     # Navigation buttons ----
     onclick("file_prev", {
-      req(rv$current.file > 1)
+      req(main.env$local.rv$current.file > 1)
       # Save
-      if (!is.null(rv$current.table)) {
-        rv$tables[[rv$current.file]] <- rv$current.table
+      if (!is.null(main.env$local.rv$current.table)) {
+        main.env$local.rv$tables[[main.env$local.rv$current.file]] <- main.env$local.rv$current.table
       }
       # Change file
-      rv$current.file <- rv$current.file - 1
+      main.env$local.rv$current.file <- main.env$local.rv$current.file - 1
     })
-    
+
     onclick("file_next", {
-      req(rv$current.file < length(rv$filenames))
+      req(main.env$local.rv$current.file < length(main.env$local.rv$filenames))
       # Save
-      if (!is.null(rv$current.table)) {
-        rv$tables[[rv$current.file]] <- rv$current.table
+      if (!is.null(main.env$local.rv$current.table)) {
+        main.env$local.rv$tables[[main.env$local.rv$current.file]] <- main.env$local.rv$current.table
       }
       # Change file
-      rv$current.file <- rv$current.file + 1
+      main.env$local.rv$current.file <- main.env$local.rv$current.file + 1
     })
-    
+
     # update table
-    observeEvent(rv$current.file,
+    observeEvent(main.env$local.rv$current.file,
       {
-        req(rv$current.file > 0)
-        rv$current.table <- rv$tables[[rv$current.file]]
-        rv$current.table[is.na(rv$current.table)] <- ""
-        rv$current.preview <- readDataTable(
-          rv$data.filepath[rv$current.file],
+        req(main.env$local.rv$current.file > 0)
+        main.env$local.rv$current.table <- main.env$local.rv$tables[[main.env$local.rv$current.file]]
+        main.env$local.rv$current.table[is.na(main.env$local.rv$current.table)] <- ""
+        main.env$local.rv$current.preview <- readDataTable(
+          main.env$local.rv$data.filepath[main.env$local.rv$current.file],
           stringsAsFactors = FALSE,
           nrows = 5
         )
       },
       priority = 1
     )
-    
+
     # display
     output$current_file <- renderUI(
       tags$div(
-        rv$filenames[rv$current.file],
+        main.env$local.rv$filenames[main.env$local.rv$current.file],
         class = "ellipsis",
         style = paste0(
           "display: inline-block;
-        font-size:14pt;
-        text-align:center;
-        width:100%;
-        background: linear-gradient(90deg, #3c8dbc ",
-          round(100 * rv$current.file / length(rv$filenames)),
+          font-size:14pt;
+          text-align:center;
+          width:100%;
+          background: linear-gradient(90deg, #3c8dbc ",
+          round(100 * main.env$local.rv$current.file / length(main.env$local.rv$filenames)),
           "%, white ",
-          round(100 * rv$current.file / length(rv$filenames)),
+          round(100 * main.env$local.rv$current.file / length(main.env$local.rv$filenames)),
           "%);"
         )
       )
     )
-    
+
     # * UI ----
-    observeEvent(rv$current.file, {
-      req(checkTruth(rv$current.table))
-      .current.table <- isolate(rv$current.table)
-      
+    observeEvent(main.env$local.rv$current.file, {
+      req(checkTruth(main.env$local.rv$current.table))
+      .current.table <- main.env$local.rv$current.table
+
       output$edit_attributes <- renderUI({
         # validity check
         validate(
@@ -269,7 +290,7 @@ Attributes <- function(id, main.env) {
             "No valid attributes table."
           )
         )
-        
+
         ui <- do.call(
           bsCollapse,
           args = c(
@@ -279,7 +300,7 @@ Attributes <- function(id, main.env) {
               function(row.index, fields) {
                 # prepare variables
                 attribute.row <- .current.table[row.index, ]
-                
+
                 return(
                   bsCollapsePanel(
                     title = attribute.row[fields[1]],
@@ -291,11 +312,11 @@ Attributes <- function(id, main.env) {
                           # prepare var
                           saved.value <- .current.table[row.index, colname]
                           inputId <- paste(
-                            isolate(rv$current.file),
+                            isolate(main.env$local.rv$current.file),
                             row.index,
                             sep = "-"
                           )
-                          
+
                           # GUI
                           attributeInputUI(
                             NS(id, inputId),
@@ -312,8 +333,8 @@ Attributes <- function(id, main.env) {
                         h4("Preview:"),
                         tableOutput(
                           NS(id, paste0(
-                            "preview-", 
-                            colnames(rv$current.preview)[row.index]
+                            "preview-",
+                            colnames(main.env$local.rv$current.preview)[row.index]
                           ))
                         ),
                         tags$hr(),
@@ -341,27 +362,27 @@ Attributes <- function(id, main.env) {
         return(ui)
       })
     }) # end of observeEvent
-    
+
     # * Server ----
-    observeEvent(rv$current.file, {
-      req(checkTruth(rv$current.table))
-      
+    observeEvent(main.env$local.rv$current.file, {
+      req(checkTruth(main.env$local.rv$current.table))
+
       sapply(
-        seq(dim(rv$current.table)[1]),
-        fields = colnames(rv$current.table)[-1], # not Attribute Name
+        seq(dim(main.env$local.rv$current.table)[1]),
+        fields = colnames(main.env$local.rv$current.table)[-1], # not Attribute Name
         function(row.index, fields) {
-          
+
           # TODO Update style: to correct
           #   updateCollapse(
           #     session = session,
           #     NS(id, "collapse"),
           #     style = filled
           #   )
-          
+
           # Preview ====
-          preview.column <- colnames(rv$current.preview)[row.index]
-          output[[paste0("preview-", preview.column)]] <- renderTable(rv$current.preview[[preview.column]])
-          
+          preview.column <- colnames(main.env$local.rv$current.preview)[row.index]
+          output[[paste0("preview-", preview.column)]] <- renderTable(main.env$local.rv$current.preview[[preview.column]])
+
           # Annotate ====
           # annotateId <- paste(
           #   "annotate",
@@ -369,20 +390,20 @@ Attributes <- function(id, main.env) {
           #   row.index,
           #   sep = "-"
           # )
-          # 
+          #
           # .tmp <- callModule(
           #   annotate, annotateId,
           #   save.variable, main.env, rv, row.index
           # )
-          
+
           # Input ====
           lapply(fields, function(colname) {
             inputId <- paste(
-              isolate(rv$current.file),
+              isolate(main.env$local.rv$current.file),
               row.index,
               sep = "-"
             )
-            
+
             obs <- attributeInput(
               inputId,
               rv,
@@ -395,41 +416,43 @@ Attributes <- function(id, main.env) {
         } # end of *in situ* function
       ) # end of sapply : row.index
     }) # end of observeEvent
-    
+
     # Custom units ----
     observe({
       curt$depend()
-      .current.table <- isolate(rv$current.table)
-      modal.on <- isolate(rv$modal.on)
+      .current.table <- main.env$local.rv$current.table
+      modal.on <- isolate(main.env$local.rv$modal.on)
+
+      req(isTruthy(.current.table))
       req(any(.current.table$unit == "custom"))
-      
-      rv$unit.id <- c(
-        rv$current.file,
+
+      main.env$local.rv$unit.id <- c(
+        main.env$local.rv$current.file,
         which(.current.table$unit == "custom"),
         "unit"
       )
-      
-      row <- rv$unit.id[2]
+
+      row <- main.env$local.rv$unit.id[2]
       class <- .current.table[row, "class"]
-      
+
       if (class == "numeric" &&
-          modal.on == FALSE) {
-        rv$cu.values <- rv$cu.table %>%
+        modal.on == FALSE) {
+        main.env$local.rv$cu.values <- main.env$local.rv$cu.table %>%
           dplyr::filter(grepl(class, id))
-        if (any(dim(rv$cu.values) == 0)) {
-          rv$cu.values <- rep(NA, 5)
+        if (any(dim(main.env$local.rv$cu.values) == 0)) {
+          main.env$local.rv$cu.values <- rep(NA, 5)
         }
-        
-        showModal(CU_Modal(rv$cu.values, cu.table = rv$cu.table))
-        
-        rv$modal.on <- TRUE
-        
+
+        showModal(CU_Modal(main.env$local.rv$cu.values, cu.table = main.env$local.rv$cu.table))
+
+        main.env$local.rv$modal.on <- TRUE
+
         isolate({
-          rv$current.table[row, "unit"] <- ""
+          main.env$local.rv$current.table[row, "unit"] <- ""
         })
       }
     })
-    
+
     CU_Modal <- function(values = rep(NA, 5), cu.table = NULL) {
       modalDialog(
         title = "Custom Unit",
@@ -481,55 +504,55 @@ Attributes <- function(id, main.env) {
         )
       )
     }
-    
+
     # * CU server ----
     # Cancel
     onclick("modal_cancel", {
-      req(isTRUE(rv$modal.on))
-      
+      req(isTRUE(main.env$local.rv$modal.on))
+
       # Close modal
-      rv$modal.on <- FALSE
+      main.env$local.rv$modal.on <- FALSE
       removeModal()
-      
+
       isolate({
         updateSelectInput(
           session,
-          paste(rv$unit.id, collapse = "-"),
+          paste(main.env$local.rv$unit.id, collapse = "-"),
           selected = main.env$FORMATS$units[2]
         )
       })
-      rv$unit.id <- character() # reset to default
+      main.env$local.rv$unit.id <- character() # reset to default
     })
-    
+
     # Submit button en/disable
     observe({
-      req(isTRUE(rv$modal.on))
-      
+      req(isTRUE(main.env$local.rv$modal.on))
+
       # type a new one
-      if (!input$modal_id %in% rv$cu.table$id &&
-          input$modal_id != "custom" &&
-          isTruthy(input$modal_id) &&
-          isTruthy(input$modal_unitType) &&
-          isTruthy(input$modal_parentSI) &&
-          isTruthy(input$modal_multiplier) &&
-          isTruthy(input$modal_description)) {
+      if (!input$modal_id %in% main.env$local.rv$cu.table$id &&
+        input$modal_id != "custom" &&
+        isTruthy(input$modal_id) &&
+        isTruthy(input$modal_unitType) &&
+        isTruthy(input$modal_parentSI) &&
+        isTruthy(input$modal_multiplier) &&
+        isTruthy(input$modal_description)) {
         shinyjs::enable("modal_submit")
       } else {
         shinyjs::disable("modal_submit")
       }
     })
-    
+
     # Submit
     observeEvent(input$modal_submit,
       {
-        req(isTRUE(rv$modal.on))
-        
+        req(isTRUE(main.env$local.rv$modal.on))
+
         # Close modal
         removeModal()
-        rv$modal.on <- FALSE
-        
+        main.env$local.rv$modal.on <- FALSE
+
         isolate({
-          rv$cu.values <- c(
+          main.env$local.rv$cu.values <- c(
             input$modal_id,
             input$modal_unitType,
             input$modal_parentSI,
@@ -537,58 +560,58 @@ Attributes <- function(id, main.env) {
             input$modal_description
           )
         })
-        
+
         # Update CU values
-        if (rv$cu.values[1] %in% rv$cu.table$id) {
-          rv$cu.table <- rv$cu.table %>%
-            dplyr::filter(id = rv$cu.values[1]) %>%
-            base::replace(values = rv$cu.values)
+        if (main.env$local.rv$cu.values[1] %in% main.env$local.rv$cu.table$id) {
+          main.env$local.rv$cu.table <- main.env$local.rv$cu.table %>%
+            dplyr::filter(id = main.env$local.rv$cu.values[1]) %>%
+            base::replace(values = main.env$local.rv$cu.values)
         } # Add CU values
         else {
-          names(rv$cu.values) <- colnames(rv$cu.table)
-          rv$cu.table[dim(rv$cu.table)[1] + 1,] <- rv$cu.values
+          names(main.env$local.rv$cu.values) <- colnames(main.env$local.rv$cu.table)
+          main.env$local.rv$cu.table[dim(main.env$local.rv$cu.table)[1] + 1, ] <- main.env$local.rv$cu.values
         }
         # update input UI
-        rv$units.list <- unique(c(
-          rv$cu.values["id"],
-          rv$units.list
+        main.env$local.rv$units.list <- unique(c(
+          main.env$local.rv$cu.values["id"],
+          main.env$local.rv$units.list
         ))
         isolate({
           updateSelectInput(
             session,
-            paste(rv$unit.id, collapse = "-"),
-            choices = rv$units.list,
-            selected = rv$cu.values["id"]
+            paste(main.env$local.rv$unit.id, collapse = "-"),
+            choices = main.env$local.rv$units.list,
+            selected = main.env$local.rv$cu.values["id"]
           )
         })
-        
-        row <- rv$unit.id[2]
-        rv$current.table[row, "unit"] <- rv$cu.values["id"]
+
+        row <- main.env$local.rv$unit.id[2]
+        main.env$local.rv$current.table[row, "unit"] <- main.env$local.rv$cu.values["id"]
       },
       priority = 1
     )
-    
+
     output$CUUI <- renderTable({
       validate(
-        need(isTruthy(unlist(rv$cu.table)), "No custom units registered")
+        need(isTruthy(unlist(main.env$local.rv$cu.table)), "No custom units registered")
       )
-      return(rv$cu.table)
+      main.env$local.rv$cu.table
     })
-    
+
     # Saves ----
     # observeEvent(rv$tables, {
     observe(
       {
         main.env$EAL$completed <- FALSE
         req(
-          length(rv$tables) != 0 &&
-            !any(sapply(rv$tables, identical, y = data.frame()))
+          length(main.env$local.rv$tables) != 0 &&
+            !any(sapply(main.env$local.rv$tables, identical, y = data.frame()))
         )
-        
+
         main.env$EAL$completed <- all(
           unlist(
             lapply(
-              rv$tables,
+              main.env$local.rv$tables,
               function(table) {
                 isTruthy(table) &&
                   all(sapply(table$attributeName, isTruthy)) &&
@@ -603,7 +626,7 @@ Attributes <- function(id, main.env) {
       },
       priority = -1
     )
-    
+
     # observeEvent(NSB$SAVE,
     shinyjs::onclick(
       "fill-wizard-save",
@@ -611,81 +634,79 @@ Attributes <- function(id, main.env) {
       add = TRUE,
       {
         req(utils::tail(main.env$EAL$history, 1) == "Attributes")
-        
-        save.variable <- saveReactive(
-          save.variable = savevar,
-          rv = list(Attributes = rv)
-        )
-      },
-      label = "Save_Attributes",
-      ignoreInit = TRUE
+
+        saveReactive(main.env)
+        #   save.variable = main.env$save.variable,
+        #   rv = list(Attributes = rv)
+        # )
+      }
     )
-    
+
     # en/disable buttons
-    observeEvent(rv$current.file, {
+    observeEvent(main.env$local.rv$current.file, {
       req(
         isTruthy(names(input)) &&
-          isTruthy(names(rv$current.file))
+          isTruthy(names(main.env$local.rv$current.file))
       )
-      
-      if (rv$current.file == 1) {
+
+      if (main.env$local.rv$current.file == 1) {
         shinyjs::disable("file_prev")
       } else {
         shinyjs::enable("file_prev")
       }
-      if (rv$current.file == length(rv$filenames)) {
+      if (main.env$local.rv$current.file == length(main.env$local.rv$filenames)) {
         shinyjs::disable("file_next")
       } else {
         shinyjs::enable("file_next")
       }
     })
-    
+
     # Process data ----
-    observeEvent(EAL$.next,
+    observeEvent(main.env$EAL$.next,
       {
         req(main.env$EAL$current == "Attributes")
-        
+
         withProgress({
           setProgress(0.5, "Saving metadata")
-          
-          save.variable <- saveReactive(
-            save.variable = savevar,
-            rv = list(Attributes = rv)
-          )
-          
+
+          saveReactive(main.env)
+          #   save.variable = main.env$save.variable,
+          #   rv = list(Attributes = rv)
+          # )
+
           # for each attribute data frame
           setProgress(0.8, "Resolving catvar templates")
           .do.template.catvars <- sapply(
-            seq_along(rv$filenames),
+            seq_along(main.env$local.rv$filenames),
             function(cur_ind) {
-              
+
               # check for direction: CustomUnits or CatVars
-              return(isTRUE("categorical" %in% rv$tables[[cur_ind]][, "class"]))
+              return(isTRUE("categorical" %in% main.env$local.rv$tables[[cur_ind]][, "class"]))
             }
           ) %>%
             unlist() %>%
             any()
-          
+
           # EMLAL: template new fields if needed
           if (isTRUE(.do.template.catvars)) {
             try(
               EMLassemblyline::template_categorical_variables(
-                path = save.variable$emlal$SelectDP$dp.metadata.path,
-                data.path = save.variable$emlal$SelectDP$dp.data.path
+                path = main.env$save.variable$SelectDP$dp.metadata.path,
+                data.path = main.env$save.variable$SelectDP$dp.data.path
               )
             )
           }
-          
+
           setProgress(0.9, "Templating geographic coverage")
           try(
             EMLassemblyline::template_geographic_coverage(
-              path = save.variable$emlal$SelectDP$dp.metadata.path,
-              data.path = save.variable$emlal$SelectDP$dp.data.path,
+              path = main.env$save.variable$SelectDP$dp.metadata.path,
+              data.path = main.env$save.variable$SelectDP$dp.data.path,
               empty = TRUE,
               write.file = TRUE
             )
           )
-          
+
           if (isFALSE(.do.template.catvars)) {
             isolate(main.env$EAL$page <- main.env$EAL$page + 1)
           }
@@ -695,8 +716,5 @@ Attributes <- function(id, main.env) {
       priority = 1,
       ignoreInit = TRUE
     )
-    
-    # Output ----
-    return(save.variable)
   })
 }

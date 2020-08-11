@@ -1,10 +1,10 @@
 #' @import shiny
 #' @importFrom shinyjs hidden disabled
-#' 
+#'
 #' @noRd
 MakeEMLUI <- function(id, main.env) {
   ns <- NS(id)
-  
+
   return(
     fluidPage(
       fluidRow(
@@ -57,28 +57,27 @@ MakeEMLUI <- function(id, main.env) {
 #' @importFrom shinyjs show enable onclick
 #' @importFrom EMLassemblyline make_eml template_arguments
 #' @importFrom emldown render_eml
-#' 
+#'
 #' @noRd
-MakeEML <- function(id, main.env) {
-  moduleServer(id, function(input, output, session){
-    save.variable <- main.env$save.variable
-    ns <- session$ns
-    
+MakeEML <- function(id, full.id, main.env) {
+  moduleServer(id, function(input, output, session) {
+    main.env$save.variable <- main.env$save.variable
+
     # Variable initialization ----
     out.file <- paste0(
-      save.variable$emlal$SelectDP$dp.path,
+      isolate(main.env$save.variable$SelectDP$dp.path),
       "/emldown/emldown.html"
     )
-    
+
     # Make eml ----
     observeEvent(input$make_eml, {
       shinyjs::hide("bug_report")
       req(input$make_eml)
       withProgress(
         {
-          . <- save.variable$emlal
+          . <- main.env$save.variable
           fileName <- .$SelectDP$dp_title
-          
+
           x <- try(
             EMLassemblyline::template_arguments(
               path = .$SelectDP$dp_metadata_path,
@@ -86,14 +85,14 @@ MakeEML <- function(id, main.env) {
               data.table = dir(.$SelectDP$dp_data_path)
             )
           )
-          
+
           if (class(x) == "try-error") {
             out <- x
             out[1] <- paste("Upon templating arguments:", x)
             incProgress(0.9)
           } else {
             incProgress(0.3)
-            
+
             x$path <- .$SelectDP$dp_metadata_path
             x$data.path <- .$SelectDP$dp_data_path
             x$eml.path <- .$SelectDP$dp_eml_path
@@ -111,13 +110,13 @@ MakeEML <- function(id, main.env) {
             # TODO user id (orcid?)
             x$user.id <- "UserID"
             x$write.file <- TRUE
-            
+
             # Yet written in the files then used in make_eml
             x$geographic.coordinates <- NULL
             x$geographic.description <- NULL
-            
+
             incProgress(0.2)
-            
+
             .test <- 0
             out <- try(
               do.call(
@@ -134,14 +133,14 @@ MakeEML <- function(id, main.env) {
         message = "Writing EML ...",
         value = 0.1
       )
-      
+
       valid.eml <- EML::eml_validate(
         dir(
-          save.variable$emlal$SelectDP$dp.eml.path,
+          main.env$save.variable$SelectDP$dp.eml.path,
           full.names = TRUE
         )
       )
-      
+
       output$warnings <- renderText({
         disable("publish")
         disable("emldown")
@@ -159,20 +158,20 @@ MakeEML <- function(id, main.env) {
         shinyjs::enable("emldown")
         return(NULL)
       })
-      
+
       if (class(out) == "try-error" ||
-          isFALSE(valid.eml)) {
+        isFALSE(valid.eml)) {
         shinyjs::show("bug_report")
         showNotification("EML invalid", type = "error", duration = NULL)
       } else {
         shinyjs::hide("bug_report")
         showNotification("EML written.", type = "message")
-        
+
         # emldown
         eml.file <- dir(
-          save.variable$emlal$SelectDP$dp.eml.path,
+          main.env$save.variable$SelectDP$dp.eml.path,
           full.names = TRUE,
-          pattern = save.variable$emlal$SelectDP$dp.title
+          pattern = main.env$save.variable$SelectDP$dp.title
         )
         dir.create(dirname(out.file), recursive = TRUE)
         old.wd <- getwd()
@@ -189,16 +188,16 @@ MakeEML <- function(id, main.env) {
         }
       }
     })
-    
+
     observeEvent(input$bug_report, {
       utils::browseURL("https://github.com/earnaud/MetaShARK-v2/issues/26")
     })
-    
+
     # emldown ----
     output$download_emldown <- downloadHandler(
       filename = function() {
         paste(
-          save.variable$emlal$SelectDP$dp.name,
+          main.env$save.variable$SelectDP$dp.name,
           "_emldown.zip"
         )
       },
@@ -212,8 +211,5 @@ MakeEML <- function(id, main.env) {
         )
       }
     )
-    
-    # Output ----
-    return(save.variable)
   })
 }

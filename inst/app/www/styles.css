@@ -53,8 +53,7 @@ textarea {
 .inputBox {
 	border: 1px solid lightgrey;
 	border-radius: 10px;
-	margin: 5px;
-	padding: 0;
+	padding: 5px;
 }
 
 .topInputRow {

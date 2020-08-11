@@ -19,6 +19,8 @@
 #' which is designed to help its user as much as possible for filling ecological
 #' metadata. It uses the EML standard (cf. NCEAS work) to allow a full and
 #' precise description of input datasets.
+#' 
+#' For server setup, see [this git](https://github.com/earnaud/MetaShARK_docker).
 #'
 #' @author
 #' Elie Arnaud <elie.arnaud@mnhn.fr>
@@ -26,17 +28,20 @@
 #' @examples
 #' # run this to launch MetaShARK
 #' runMetashark()
-#'
+#' 
 #' @export
 #' @import shiny
 runMetashark <- function(...) {
+  invisible(require("shinyBS"))
+  options(shiny.reactlog = TRUE)
+
   args <- list(...)
   args$dev <- isTRUE(args$dev)
   args$wip <- isTRUE(args$wip)
-  args$reactlog <- if(is.null(args$reactlog)) TRUE else isTRUE(args$reactlog)
-  
+  args$reactlog <- if (is.null(args$reactlog)) TRUE else isTRUE(args$reactlog)
+
   .globalScript(args = args)
-  on.exit(rm(main.env, envir=.GlobalEnv))
-  
+  on.exit(rm(main.env, envir = .GlobalEnv))
+
   runApp(shinyApp(ui = appUI, server = appServer))
 }

@@ -20,5 +20,4 @@ Adds a red star at the end of the text
 }
 \examples{
 withRedStar("Enter your name here")
-
 }

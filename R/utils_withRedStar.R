@@ -11,7 +11,6 @@
 #'
 #' @examples
 #' withRedStar("Enter your name here")
-#' 
 #' @import shiny
 withRedStar <- function(text) {
   tags$span(

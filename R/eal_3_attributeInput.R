@@ -1,7 +1,7 @@
 #' @import shiny
 attributeInputUI <- function(id, colname, value, formats, rv) {
   ns <- NS(id)
-  
+
   ui <- switch(colname,
     attributeDefinition = textAreaInput(
       NS(id, colname),
@@ -52,21 +52,20 @@ attributeInputUI <- function(id, colname, value, formats, rv) {
     ),
     NULL
   ) # end of switch
-  
+
   return(ui)
 }
 
 #' @import shiny
 #' @importFrom shinyjs show hide
-attributeInput <- function(id, rv, row.index, colname, obs, curt){
+attributeInput <- function(id, rv, row.index, colname, obs, curt) {
   moduleServer(id, function(input, output, session) {
-    
     obs[[NS(id, colname)]] <- observeEvent(input[[colname]],
       {
         req(input[[colname]])
-        
+
         .val <- input[[colname]]
-        
+
         # Class ====
         if (colname == "class") {
           # Date
@@ -78,7 +77,7 @@ attributeInput <- function(id, rv, row.index, colname, obs, curt){
             isolate(rv$current.table[row.index, "dateTimeFormatString"] <- "")
             shinyjs::hide(date.id)
           }
-          
+
           # Unit
           unit.id <- "unit"
           if (input[[colname]] == "numeric") {
@@ -93,7 +92,7 @@ attributeInput <- function(id, rv, row.index, colname, obs, curt){
         if (colname == "missingValueCode") { # input: missing Value code
           if (grepl(".+ +.*", input[[colname]])) {
             .val <- strsplit(gsub("^ +", "", .val), split = " ")[[1]][1]
-            
+
             updateTextInput(
               session,
               colname,
@@ -112,10 +111,10 @@ attributeInput <- function(id, rv, row.index, colname, obs, curt){
         if (grepl("unit", NS(id, colname))) {
           # Trigger CU
           if (input[[colname]] == "custom" &&
-              isFALSE(rv$modal.on)) {
+            isFALSE(rv$modal.on)) {
             curt$trigger()
           }
-          
+
           if (isFALSE(input[[colname]] %in% rv$units.list)) {
             .cu <- rv$current.table[row.index, colname]
             if (.cu %in% rv$cu.table$id) {
@@ -124,21 +123,22 @@ attributeInput <- function(id, rv, row.index, colname, obs, curt){
             }
           }
         }
-        
+
         # Set values ====
-        if(
-          (colname == "unit" && 
-              rv$current.table[row.index, "class"] != "numeric") ||
-            (colname == "dateTimeFormatString" && 
-                rv$current.table[row.index, "class"] != "Date")
-        )
+        if (
+          (colname == "unit" &&
+            rv$current.table[row.index, "class"] != "numeric") ||
+            (colname == "dateTimeFormatString" &&
+              rv$current.table[row.index, "class"] != "Date")
+        ) {
           .val <- ""
+        }
         rv$current.table[row.index, colname] <- .val
         rv$tables[[rv$current.file]] <- rv$current.table
       },
       label = NS(id, colname)
     )
-    
+
     # Output ----
     return(obs)
   })
