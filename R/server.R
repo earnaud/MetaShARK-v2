@@ -53,6 +53,7 @@ appServer <- function(input, output, session) {
   # })
 
   ## modules called ----
+  message("server")
   fill("fill", main.env)
   upload("upload", main.env)
   documentation("documentation")

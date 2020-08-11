@@ -37,26 +37,26 @@ Personnel <- function(id, full.id, main.env) {
     main.env$save.variable <- main.env$save.variable
 
     # Variable initialization ----
-    rv <- reactiveValues(
-      Personnel = data.frame(
-        id = numeric(),
-        # Basic Identity
-        givenName = character(),
-        middleInitial = character(),
-        surName = character(),
-        # Contact
-        organizationName = character(),
-        electronicMailAddress = character(),
-        # Personnel information
-        userId = character(),
-        role = character(),
-        # Project information
-        projectTitle = character(),
-        fundingAgency = character(),
-        fundingNumber = character(),
-        stringsAsFactors = FALSE
-      )
-    )
+    # rv <- reactiveValues(
+    #   Personnel = data.frame(
+    #     id = numeric(),
+    #     # Basic Identity
+    #     givenName = character(),
+    #     middleInitial = character(),
+    #     surName = character(),
+    #     # Contact
+    #     organizationName = character(),
+    #     electronicMailAddress = character(),
+    #     # Personnel information
+    #     userId = character(),
+    #     role = character(),
+    #     # Project information
+    #     projectTitle = character(),
+    #     fundingAgency = character(),
+    #     fundingNumber = character(),
+    #     stringsAsFactors = FALSE
+    #   )
+    # )
 
     main.env$pageLoad(7, {
       if (checkTruth(main.env$save.variable$SelectDP$dp.metadata.path)) {
@@ -97,18 +97,18 @@ Personnel <- function(id, full.id, main.env) {
             return()
           })
         } else { # New
-          rv <- insertPersonnelInput(
+          main.env$local.rv <- insertPersonnelInput(
             "creator",
-            rv,
+            main.env$local.rv,
             ns,
             main.env,
             role = "creator",
             saved = saved.table
           )
 
-          rv <- insertPersonnelInput(
+          main.env$local.rv <- insertPersonnelInput(
             "contact",
-            rv,
+            main.env$local.rv,
             ns,
             main.env,
             role = "contact",
@@ -124,9 +124,9 @@ Personnel <- function(id, full.id, main.env) {
       while (as.character(id) %in% main.env$local.rv$Personnel$id) {
         id <- id + 1
       }
-      rv <- insertPersonnelInput(
+      main.env$local.rv <- insertPersonnelInput(
         as.character(id),
-        rv,
+        main.env$local.rv,
         ns,
         main.env
       )

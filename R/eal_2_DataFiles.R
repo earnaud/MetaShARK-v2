@@ -42,7 +42,8 @@ DataFiles <- function(id, full.id, main.env) {
     main.env$save.variable <- main.env$save.variable
 
     # Variable initialization ----
-
+    browser()
+    
     # Data file upload ====
     # * Add data files ----
     observeEvent(input$add_data_files,

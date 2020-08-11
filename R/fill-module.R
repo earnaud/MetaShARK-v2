@@ -172,6 +172,7 @@ fill <- function(id, main.env) {
       # } # trigger
       main.env$EAL$completed <- FALSE
       main.env$EAL$tag.list <- tagList()
+      message("fill")
       main.env$local.rv <- setLocalRV(main.env)
       
       # Edition changed path -> remove excedent history

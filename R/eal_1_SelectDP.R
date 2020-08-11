@@ -176,7 +176,7 @@ SelectDP <- function(id, full.id, main.env) {
     #   },
     #   label = "EAL1: build dp list"
     # )
-
+    # 
     # Save updated index
     # observeEvent(main.env$DP.LIST, {
     #   data.table::fwrite(
@@ -187,8 +187,34 @@ SelectDP <- function(id, full.id, main.env) {
     # })
 
     # Render DP list ====
-    observeEvent(main.env$local.rv$dp.list, {
-      output$dp_list <- renderUI({
+    # update packages
+    reactivePoll(
+      intervalMillis = 10000,
+      session = session,
+      checkFunc = function(){
+        identical(
+          list.files(
+            main.env$PATHS$eal.dp,
+            pattern = "_emldp$",
+            full.names = FALSE
+          ),
+          main.env$local.rv$SelectDP$dp.list
+        )
+      },
+      valueFunc = function(){
+        list.files(
+          main.env$PATHS$eal.dp,
+          pattern = "_emldp$",
+          full.names = FALSE
+        )
+        showNotification(
+          "Refreshed contents"
+        )
+      }
+    )
+    
+    # UI output
+    output$dp_list <- renderUI({
         validate(
           need(
             isTruthy(main.env$local.rv$dp.list),
@@ -225,7 +251,6 @@ SelectDP <- function(id, full.id, main.env) {
           )
         )
       })
-    })
 
     # Manage DP download ----
     output$dp_download <- downloadHandler(

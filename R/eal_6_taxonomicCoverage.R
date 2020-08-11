@@ -33,13 +33,13 @@ TaxCov <- function(id, full.id, main.env) {
     main.env$save.variable <- main.env$save.variable
 
     # Variable Initialization ----
-    rv <- reactiveValues(
-      taxa.table = character(),
-      taxa.col = character(),
-      taxa.name.type = character(),
-      taxa.authority = character(),
-      complete = FALSE
-    )
+    # rv <- reactiveValues(
+    #   taxa.table = character(),
+    #   taxa.col = character(),
+    #   taxa.name.type = character(),
+    #   taxa.authority = character(),
+    #   complete = FALSE
+    # )
 
     main.env$pageLoad(6, {
       if (all(sapply(printReactiveValues(main.env$save.variable$TaxCov), checkTruth))) {

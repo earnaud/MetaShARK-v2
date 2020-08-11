@@ -140,61 +140,59 @@ Misc <- function(id, full.id, main.env) {
     main.env$save.variable <- main.env$save.variable
 
     # Variable initialization ----
-    if (checkTruth(isolate(main.env$save.variable$SelectDP$dp.metadata.path))) {
-      kw <- fread(
-        paste0(isolate(main.env$save.variable$SelectDP$dp.metadata.path), "/keywords.txt"),
-        data.table = FALSE, stringsAsFactors = FALSE
-      )
-    } else {
-      kw <- data.frame(
-        keyword = character(),
-        keyword.thesaurus = character()
-      )
-    }
+    
 
-    rv <- reactiveValues(
-      # Abstract
-      abstract = reactiveValues(
-        content = character(),
-        file = paste(
-          isolate(main.env$save.variable$SelectDP$dp.metadata.path),
-          "abstract.txt",
-          sep = "/"
-        )
-      ),
-      # Methods
-      methods = reactiveValues(
-        content = character(),
-        file = paste(
-          isolate(main.env$save.variable$SelectDP$dp.metadata.path),
-          "methods.txt",
-          sep = "/"
-        )
-      ),
-      # Keywords
-      keywords = reactiveValues(
-        keyword = kw$keyword,
-        keyword.thesaurus = kw$keyword.thesaurus
-      ),
-      # Temporal coverage
-      temporal.coverage = c(Sys.Date() - 1, Sys.Date()),
-      # Additional information
-      additional.information = reactiveValues(
-        content = character(),
-        file = paste(
-          isolate(main.env$save.variable$SelectDP$dp.metadata.path),
-          "additional_info.txt",
-          sep = "/"
-        )
-      )
-    )
+    # rv <- reactiveValues(
+    #   # Abstract
+    #   abstract = reactiveValues(
+    #     content = character(),
+    #     file = paste(
+    #       isolate(main.env$save.variable$SelectDP$dp.metadata.path),
+    #       "abstract.txt",
+    #       sep = "/"
+    #     )
+    #   ),
+    #   # Methods
+    #   methods = reactiveValues(
+    #     content = character(),
+    #     file = paste(
+    #       isolate(main.env$save.variable$SelectDP$dp.metadata.path),
+    #       "methods.txt",
+    #       sep = "/"
+    #     )
+    #   ),
+    #   # Keywords
+    #   keywords = reactiveValues(
+    #     keyword = kw$keyword,
+    #     keyword.thesaurus = kw$keyword.thesaurus
+    #   ),
+    #   # Temporal coverage
+    #   temporal.coverage = c(Sys.Date() - 1, Sys.Date()),
+    #   # Additional information
+    #   additional.information = reactiveValues(
+    #     content = character(),
+    #     file = paste(
+    #       isolate(main.env$save.variable$SelectDP$dp.metadata.path),
+    #       "additional_info.txt",
+    #       sep = "/"
+    #     )
+    #   )
+    # )
 
     # Fill ----
     # * Abstract ====
-    main.env$local.rv$abstract <- Miscellaneous("abstract", main.env$save.variable, rv = rv)
+    main.env$local.rv$abstract <- Miscellaneous(
+      "abstract", 
+      main.env$save.variable,
+      rv = main.env$local.rv
+    )
 
     # * Methods ====
-    main.env$local.rv$methods <- Miscellaneous("methods", main.env$save.variable, rv = rv)
+    main.env$local.rv$methods <- Miscellaneous(
+      "methods",
+      main.env$save.variable, 
+      rv = main.env$local.rv
+    )
 
     # * Keywords ====
     observeEvent(input$keywords, {
@@ -255,7 +253,7 @@ Misc <- function(id, full.id, main.env) {
     main.env$local.rv$additional.information <- Miscellaneous(
       "additional.information",
       main.env$save.variable,
-      rv = rv
+      rv = main.env$local.rv
     )
 
     # Saves ----
