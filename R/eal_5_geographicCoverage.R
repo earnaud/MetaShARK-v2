@@ -437,6 +437,8 @@ GeoCov <- function(id, full.id, main.env) {
     )
 
     observe({
+      req(main.env$EAL$page == 5)
+      
       main.env$EAL$completed <- any(
         isTRUE(main.env$local.rv$custom$complete),
         isTRUE(main.env$local.rv$columns$complete)
@@ -444,20 +446,20 @@ GeoCov <- function(id, full.id, main.env) {
     })
 
     # observeEvent(NSB$SAVE,
-    shinyjs::onclick(
-      "fill-wizard-save",
-      asis = TRUE,
-      add = TRUE,
-      {
-        req(utils::tail(main.env$EAL$history, 1) == "Geographic Coverage")
-        
-        saveReactive(main.env)
-        #   main.env$save.variable,
-        #   content = list(GeoCov = main.env$local.rv)
-        # )
-      }
-      # , ignoreInit = TRUE
-    )
+    # shinyjs::onclick(
+    #   "fill-wizard-save",
+    #   asis = TRUE,
+    #   add = TRUE,
+    #   {
+    #     req(utils::tail(main.env$EAL$history, 1) == "Geographic Coverage")
+    #     
+    #     saveReactive(main.env)
+    #     #   main.env$save.variable,
+    #     #   content = list(GeoCov = main.env$local.rv)
+    #     # )
+    #   }
+    #   # , ignoreInit = TRUE
+    # )
 
     # Process data ----
     # * Previous ----

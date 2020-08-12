@@ -112,107 +112,37 @@ SelectDP <- function(id, full.id, main.env) {
     collapsible("usage")
 
     # variable initialization ----
-    # update list of DP at selected location
-    # observeEvent(
-    #   {
-    #     main.env$PATHS$eal.dp
-    #     main.env$SETTINGS$logged
-    #   },
-    #   {
-    #     # 1. Build full DP list
-    #     # .dp.path <- gsub(
-    #     #   "/+",
-    #     #   "/",
-    #     #   list.files(
-    #     #     main.env$PATHS$eal.dp,
-    #     #     pattern = "_emldp$",
-    #     #     full.names = TRUE
-    #     #   )
-    #     # )
-    #     # dp.list <- basename(.dp.path)
-    # 
-    #     # 2. Index non-indexed DP
-    #     # Note for local version: shall check for index (create it if not exists)
-    #     # if (length(.dp.list) > nrow(main.env$DP.LIST)) {
-    #     #   sapply(.dp.list, function(dp) {
-    #     #     if (!dp %in% main.env$DP.LIST$name) {
-    #     #       main.env$DP.LIST <- rbind(
-    #     #         main.env$DP.LIST,
-    #     #         data.frame(
-    #     #           creator.orcid = main.env$SETTINGS$user,
-    #     #           name = dp,
-    #     #           title = dp,
-    #     #           path = gsub("/+", "/", .dp.path[which(.dp.list == dp)]),
-    #     #           stringsAsFactors = FALSE
-    #     #         )
-    #     #       )
-    #     #     }
-    #     #   })
-    #     # }
-    # 
-    #     # 3. Reduce list by property
-    #     # - gather public and user's list = retrieve non-public, non-user DP
-    #     # .out <- main.env$DP.LIST %>%
-    #     #   dplyr::filter(creator.orcid == "public") %>%
-    #     #   dplyr::select(name) %>%
-    #     #   lapply(paste, "(public)") %>%
-    #     #   unlist()
-    #     # if (isTRUE(main.env$SETTINGS$logged)) {
-    #     #   .out <- c(
-    #     #     .out,
-    #     #     main.env$DP.LIST %>%
-    #     #       dplyr::filter(creator.orcid == main.env$SETTINGS$user) %>%
-    #     #       dplyr::select(name) %>%
-    #     #       lapply(paste, "(public)") %>%
-    #     #       unlist()
-    #     #   )
-    #     # }
-    # 
-    #     # if (length(.out) != 0) {
-    #     #   main.env$local.rv$dp.list <- sub("_emldp", "", .out) %>% unname()
-    #     # } else {
-    #     #   main.env$local.rv$dp.list <- NULL
-    #     # }
-    #   },
-    #   label = "EAL1: build dp list"
-    # )
-    # 
-    # Save updated index
-    # observeEvent(main.env$DP.LIST, {
-    #   data.table::fwrite(
-    #     main.env$DP.LIST,
-    #     isolate(main.env$PATHS$eal.dp.index),
-    #     sep = "\t"
-    #   )
-    # })
-
-    # Render DP list ====
-    # update packages
-    reactivePoll(
+    main.env$pageLoad(1, {
+      browser()
+      main.env$local.rv$dp.name <- reactive(input$dp_name)
+      main.env$local.rv$dp.title <- reactive(input$dp_title)
+      main.env$local.rv$dp.license <- reactive(input$license)
+    })
+    
+    # update packages every 10 seconds
+    .dp.list <- reactivePoll(
       intervalMillis = 10000,
       session = session,
       checkFunc = function(){
         identical(
-          list.files(
-            main.env$PATHS$eal.dp,
-            pattern = "_emldp$",
-            full.names = FALSE
-          ),
-          main.env$local.rv$SelectDP$dp.list
+          listDP(main.env),
+          main.env$local.rv$dp.list
         )
       },
       valueFunc = function(){
-        list.files(
-          main.env$PATHS$eal.dp,
-          pattern = "_emldp$",
-          full.names = FALSE
-        )
         showNotification(
-          "Refreshed contents"
+          "Refreshed list of DP"
         )
+        listDP(main.env)
       }
     )
     
+    observeEvent(.dp.list, {
+      req(main.env$EAL$page == 1)
+      main.env$local.rv$dp.list <- .dp.list()
+    })
+    
+    # Render DP list ====
     # UI output
     output$dp_list <- renderUI({
         validate(
@@ -299,10 +229,8 @@ SelectDP <- function(id, full.id, main.env) {
     )
 
     # DP create ----
-    # check name input
-    main.env$local.rv$valid.name <- FALSE
+    # Show 'create' button if name is valid
     output$dp_create <- renderUI({
-      main.env$local.rv$valid.name <- FALSE
       validate(
         need(
           nchar(input$dp_name) > 3,
@@ -333,7 +261,6 @@ SelectDP <- function(id, full.id, main.env) {
           ))
         )
       )
-      main.env$local.rv$valid.name <- TRUE
       return(actionButton(NS(full.id, "dp_create"), "Create"))
     })
 
@@ -349,24 +276,13 @@ SelectDP <- function(id, full.id, main.env) {
       label = "EAL1: quick"
     )
 
-    main.env$local.rv$dp.name <- reactive(input$dp_name)
-    main.env$local.rv$dp.title <- reactive(input$dp_title)
-    main.env$local.rv$dp.license <- reactive(input$license)
-
     # DP management - on clicks ----
     # * Create DP ----
-    onclick("dp_create", {
+    shinyjs::onclick("dp_create", {
       req(input$dp_create)
+      browser()
       req(main.env$local.rv$dp.name())
-      req(main.env$local.rv$valid.name)
 
-      # variable operation - legibility purpose
-      # dp <- main.env$local.rv$dp.name()
-      
-      # title <- main.env$local.rv$dp.title()
-      # license <- main.env$local.rv$dp.license()
-      # quick <- input$quick
-      
       # verbose
       withProgress(
         {
@@ -377,34 +293,12 @@ SelectDP <- function(id, full.id, main.env) {
             main.env
           )
           saveReactive(main.env)
-          #   save.variable = main.env$save.variable,
-          #   content = list(
-          #     SelectDP = list(
-          #       dp = dp,
-          #       path = path,
-          #       title = title,
-          #       license = license,
-          #       quick = quick
-          #     )
-          #   )
-          # )
           incProgress(0.2)
           
           dir.create(
             main.env$save.variable$SelectDP$dp.path,
             recursive = TRUE
           )
-          # add DP to index
-          # main.env$DP.LIST <- rbind(
-          #   main.env$DP.LIST,
-          #   data.frame(
-          #     creator.orcid = main.env$SETTINGS$user,
-          #     name = dp,
-          #     title = title,
-          #     path = path,
-          #     stringsAsFactors = FALSE
-          #   )
-          # )
           incProgress(0.2)
 
           # EAL template import
@@ -415,6 +309,7 @@ SelectDP <- function(id, full.id, main.env) {
             )
           )
           incProgress(0.2)
+          
           x <- try(
             EMLassemblyline::template_core_metadata(
               main.env$save.variable$SelectDP$dp.metadata.path,
@@ -430,11 +325,9 @@ SelectDP <- function(id, full.id, main.env) {
             )
             main.env$EAL$page <- main.env$EAL$page + 1
             main.env$EAL$.load <- main.env$EAL$.load + 1
-            incProgress(0.2)
           } else {
             unlink(path, recursive = TRUE)
             main.env$save.variable <- initReactive(main.env = main.env$EAL)
-            incProgress(0.2)
             showNotification(
               x,
               type = "error",
@@ -442,11 +335,11 @@ SelectDP <- function(id, full.id, main.env) {
               duration = NULL
             )
           }
+          incProgress(0.2)
         },
         message = paste(
           "Creating:", 
-          paste0(main.env$local.rv$dp.name(), "_emldp"),
-          "\n",
+          main.env$local.rv$dp.name(),
           sep = ""
         )
       )
@@ -493,7 +386,7 @@ SelectDP <- function(id, full.id, main.env) {
                CatVars = "Categorical Variables",
                GeoCov = "Geographic Coverage",
                TaxCov = "Taxonomic Coverage",
-               h
+               h # unchanged
         )
       }) %>% unname()
       # - quick mode
@@ -581,7 +474,6 @@ SelectDP <- function(id, full.id, main.env) {
     })
 
     # If deletion is confirmed
-    # shinyjs::onclick("delete_confirm", {
     observeEvent(input$delete_confirm, {
       # variable operation - legibility purpose
       dp <- gsub(" \\(public\\)", "", input$dp_list)

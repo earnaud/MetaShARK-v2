@@ -181,14 +181,14 @@ Misc <- function(id, full.id, main.env) {
 
     # Fill ----
     # * Abstract ====
-    main.env$local.rv$abstract <- Miscellaneous(
+    Miscellaneous(
       "abstract", 
       main.env$save.variable,
       rv = main.env$local.rv
     )
 
     # * Methods ====
-    main.env$local.rv$methods <- Miscellaneous(
+    Miscellaneous(
       "methods",
       main.env$save.variable, 
       rv = main.env$local.rv
@@ -250,7 +250,7 @@ Misc <- function(id, full.id, main.env) {
     })
 
     # * Additional information ====
-    main.env$local.rv$additional.information <- Miscellaneous(
+    Miscellaneous(
       "additional.information",
       main.env$save.variable,
       rv = main.env$local.rv
@@ -258,6 +258,8 @@ Misc <- function(id, full.id, main.env) {
 
     # Saves ----
     observe({
+      req(main.env$EAL$page == 8)
+      
       main.env$EAL$completed <- all(
         isTruthy(main.env$local.rv$abstract$content) &&
           isTruthy(main.env$local.rv$methods$content) &&
@@ -267,20 +269,20 @@ Misc <- function(id, full.id, main.env) {
     })
 
     # observeEvent(NSB$SAVE,
-    shinyjs::onclick(
-      "fill-wizard-save",
-      asis = TRUE,
-      add = TRUE,
-      {
-        req(main.env$EAL$current == "Miscellaneous")
-        
-        saveReactive(main.env)
-        #   save.variable = main.env$save.variable,
-        #   rv = list(Misc = rv)
-        # )
-      }
-      # , ignoreInit = TRUE
-    )
+    # shinyjs::onclick(
+    #   "fill-wizard-save",
+    #   asis = TRUE,
+    #   add = TRUE,
+    #   {
+    #     req(main.env$EAL$current == "Miscellaneous")
+    #     
+    #     saveReactive(main.env)
+    #     #   save.variable = main.env$save.variable,
+    #     #   rv = list(Misc = rv)
+    #     # )
+    #   }
+    #   # , ignoreInit = TRUE
+    # )
 
     # Process data ----
     observeEvent(main.env$EAL$.next,

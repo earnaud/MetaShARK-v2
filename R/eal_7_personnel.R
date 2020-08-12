@@ -134,6 +134,8 @@ Personnel <- function(id, full.id, main.env) {
 
     # Saves ----
     observe({
+      req(main.env$EAL$page == 7)
+      
       main.env$EAL$completed <- all(
         # Personnel
         isTruthy(main.env$local.rv$Personnel$givenName) &&
@@ -145,21 +147,21 @@ Personnel <- function(id, full.id, main.env) {
     })
 
     # observeEvent(NSB$SAVE,
-    shinyjs::onclick(
-      "fill-wizard-save",
-      asis = TRUE,
-      add = TRUE,
-      {
-        req(main.env$EAL$current == "Personnel")
-
-        # save
-        saveReactive(main.env)
-        #   save.variable = main.env$save.variable,
-        #   rv = list(Personnel = rv)
-        # )
-      }
-      # , ignoreInit = TRUE
-    )
+    # shinyjs::onclick(
+    #   "fill-wizard-save",
+    #   asis = TRUE,
+    #   add = TRUE,
+    #   {
+    #     req(main.env$EAL$current == "Personnel")
+    # 
+    #     # save
+    #     saveReactive(main.env)
+    #     #   save.variable = main.env$save.variable,
+    #     #   rv = list(Personnel = rv)
+    #     # )
+    #   }
+    #   # , ignoreInit = TRUE
+    # )
 
     # Process data ----
     observeEvent(main.env$EAL$.next,

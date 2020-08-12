@@ -42,7 +42,6 @@ DataFiles <- function(id, full.id, main.env) {
     main.env$save.variable <- main.env$save.variable
 
     # Variable initialization ----
-    browser()
     
     # Data file upload ====
     # * Add data files ----
@@ -273,24 +272,25 @@ DataFiles <- function(id, full.id, main.env) {
 
     # Saves ----
     observe({
+      req(main.env$EAL$page == 2)
       main.env$EAL$completed <- checkTruth(main.env$local.rv$data.files) &&
         all(dim(main.env$local.rv$data.files) > 0)
     })
 
-    shinyjs::onclick(
-      "fill-wizard-save",
-      asis = TRUE,
-      add = TRUE,
-      {
-        req(main.env$EAL$current == "Data Files")
-        req(isTruthy(main.env$local.rv$data.files$name))
-
-        saveReactive(main.env)
-        #   save.variable = main.env$save.variable,
-        #   content = list(DataFiles = main.env$local.rv)
-        # )
-      }
-    )
+    # shinyjs::onclick(
+    #   "fill-wizard-save",
+    #   asis = TRUE,
+    #   add = TRUE,
+    #   {
+    #     req(main.env$EAL$current == "Data Files")
+    #     req(isTruthy(main.env$local.rv$data.files$name))
+    # 
+    #     saveReactive(main.env)
+    #     #   save.variable = main.env$save.variable,
+    #     #   content = list(DataFiles = main.env$local.rv)
+    #     # )
+    #   }
+    # )
 
     # Process files ----
     observeEvent(main.env$EAL$.next, {

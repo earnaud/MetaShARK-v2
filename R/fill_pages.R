@@ -84,7 +84,8 @@ pagesServer <- function(id, main.env) {
     
     changePage <- function(from, to, input, main.env) {
       observeEvent(input[[paste(from, to, sep = "_")]], {
-        main.env$EAL$page <- main.env$EAL$page + to - from
+        if(isFALSE(main.env$EAL$page %in% 5:6)) # geocov & taxcov modals
+          main.env$EAL$page <- main.env$EAL$page + to - from
         if (to > from) {
           main.env$EAL$.next <- main.env$EAL$.next + 1
         }

@@ -160,23 +160,17 @@ setSaveVariable <- function(content, save.variable, lv = 1, root = "root") {
 # Local save variable ====
 setLocalRV <- function(main.env){
   
-  browser()
-  
   main.env$local.rv <- switch(
-    main.env$EAL$current,
+    main.env$EAL$page,
     # SelectDP ----
-    "SelectDP" = reactiveValues(
+    reactiveValues(
       dp.name = character(),
       dp.title = character(),
-      dp.list = list.files(
-        main.env$PATHS$eal.dp,
-        pattern = "_emldp$",
-        full.names = FALSE
-      ),
+      dp.list = listDP(main.env),
       dp.license = NULL
     ),
     # DataFiles ----
-    "Data Files" = reactiveValues(
+    reactiveValues(
       data.files = if (checkTruth(main.env$save.variable$DataFiles)) { # from create button in SelectDP
         .ind <- which(file.exists(main.env$save.variable$DataFiles$datapath))
         .col <- which(names(main.env$save.variable$DataFiles) != "metadatapath")
@@ -186,7 +180,7 @@ setLocalRV <- function(main.env){
         data.frame(stringsAsFactors = FALSE)
     ),
     # Attributes ----
-    "Attributes" = reactiveValues(
+    reactiveValues(
       current.file = 0,
       tables = NULL,
       current.table = NULL,
@@ -202,11 +196,11 @@ setLocalRV <- function(main.env){
       )
     ),
     # CatVars ----
-    "Categorical Variables" = reactiveValues(
+    reactiveValues(
       current.index = 0
     ),
     # GeoCov ----
-    "Geographic Coverage" = reactiveValues(
+    reactiveValues(
       columns = reactiveValues(
         choices = reactiveValues(
           files = "all",
@@ -241,7 +235,7 @@ setLocalRV <- function(main.env){
       )
     ),
     # TaxCov ----
-    "Taxonomic Coverage" = reactiveValues(
+    reactiveValues(
       taxa.table = character(),
       taxa.col = character(),
       taxa.name.type = character(),
@@ -249,7 +243,7 @@ setLocalRV <- function(main.env){
       complete = FALSE
     ),
     # Personnel ----
-    "Personnel" = reactiveValues(
+    reactiveValues(
       Personnel = data.frame(
         id = numeric(),
         # Basic Identity
@@ -270,7 +264,8 @@ setLocalRV <- function(main.env){
       )
     ),
     # Misc ----
-    "Miscellaneous" = {
+    {
+      # Get keywords
       if (checkTruth(isolate(main.env$save.variable$SelectDP$dp.metadata.path))) {
         kw <- fread(
           paste0(isolate(main.env$save.variable$SelectDP$dp.metadata.path), "/keywords.txt"),
@@ -282,7 +277,7 @@ setLocalRV <- function(main.env){
           keyword.thesaurus = character()
         )
       }
-      
+      # Define reactiveValues
       reactiveValues(
         # Abstract
         abstract = reactiveValues(
@@ -323,5 +318,5 @@ setLocalRV <- function(main.env){
     # (End) ----
   )
   
-  return(main.env)
+  return(main.env$local.rv)
 }
