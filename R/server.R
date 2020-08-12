@@ -53,7 +53,6 @@ appServer <- function(input, output, session) {
   # })
 
   ## modules called ----
-  message("server")
   fill("fill", main.env)
   upload("upload", main.env)
   documentation("documentation")
@@ -63,4 +62,13 @@ appServer <- function(input, output, session) {
   # Hide the loading message when the rest of the server function has executed
   shinyjs::hide(id = "loading-content", anim = TRUE, animType = "fade")
   shinyjs::show("app-content")
+}
+
+#' @noRd
+listDP <- function(main.env) {
+  list.files(
+    main.env$PATHS$eal.dp,
+    pattern = "_emldp$",
+    full.names = FALSE
+  ) %>% gsub(pattern = "_emldp$", replacement = "")
 }

@@ -601,47 +601,46 @@ Attributes <- function(id, full.id, main.env) {
 
     # Saves ----
     # observeEvent(rv$tables, {
-    observe(
-      {
-        main.env$EAL$completed <- FALSE
-        req(
-          length(main.env$local.rv$tables) != 0 &&
-            !any(sapply(main.env$local.rv$tables, identical, y = data.frame()))
-        )
-
-        main.env$EAL$completed <- all(
-          unlist(
-            lapply(
-              main.env$local.rv$tables,
-              function(table) {
-                isTruthy(table) &&
-                  all(sapply(table$attributeName, isTruthy)) &&
-                  all(sapply(table$attributeDefinition, isTruthy)) &&
-                  all(sapply(table$class, isTruthy)) &&
-                  !any(grepl("!Add.*here!", table$unit)) &&
-                  !any(grepl("!Add.*here!", table$dateTimeFormatString))
-              }
-            ) # lapply
-          ) # unlist
-        ) # all
-      },
-      priority = -1
-    )
+    observe({
+      req(main.env$EAL$page == 3)
+      
+      main.env$EAL$completed <- FALSE
+      req(
+        length(main.env$local.rv$tables) != 0 &&
+          !any(sapply(main.env$local.rv$tables, identical, y = data.frame()))
+      )
+      
+      main.env$EAL$completed <- all(
+        unlist(
+          lapply(
+            main.env$local.rv$tables,
+            function(table) {
+              isTruthy(table) &&
+                all(sapply(table$attributeName, isTruthy)) &&
+                all(sapply(table$attributeDefinition, isTruthy)) &&
+                all(sapply(table$class, isTruthy)) &&
+                !any(grepl("!Add.*here!", table$unit)) &&
+                !any(grepl("!Add.*here!", table$dateTimeFormatString))
+            }
+          ) # lapply
+        ) # unlist
+      ) # all
+    })
 
     # observeEvent(NSB$SAVE,
-    shinyjs::onclick(
-      "fill-wizard-save",
-      asis = TRUE,
-      add = TRUE,
-      {
-        req(utils::tail(main.env$EAL$history, 1) == "Attributes")
-
-        saveReactive(main.env)
-        #   save.variable = main.env$save.variable,
-        #   rv = list(Attributes = rv)
-        # )
-      }
-    )
+    # shinyjs::onclick(
+    #   "fill-wizard-save",
+    #   asis = TRUE,
+    #   add = TRUE,
+    #   {
+    #     req(utils::tail(main.env$EAL$history, 1) == "Attributes")
+    # 
+    #     saveReactive(main.env)
+    #     #   save.variable = main.env$save.variable,
+    #     #   rv = list(Attributes = rv)
+    #     # )
+    #   }
+    # )
 
     # en/disable buttons
     observeEvent(main.env$local.rv$current.file, {

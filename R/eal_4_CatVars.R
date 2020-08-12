@@ -236,28 +236,30 @@ CatVars <- function(id, full.id, main.env) {
 
     # Saves ----
     observe({
+      req(main.env$EAL$page == 4)
       req(main.env$local.rv$catvar.files)
+      
       main.env$EAL$completed <- all(
         sapply(basename(main.env$local.rv$catvar.files), function(file.name) {
-          all(sapply(main.env$local.rv[[file.name]]$CatVars$definition, isTruthy))
+          all(sapply(main.env$local.rv[[file.name]]$CatVars$definition, checkTruth))
         })
       )
     })
 
     # observeEvent(NSB$SAVE,
-    shinyjs::onclick(
-      "fill-wizard-save",
-      asis = TRUE,
-      add = TRUE,
-      {
-        req(utils::tail(main.env$EAL$history, 1) == "Categorical Variables")
-        
-        saveReactive(main.env)
-        #   save.variable = main.env$save.variable,
-        #   rv = list(CatVars = rv)
-        # )
-      }
-    )
+    # shinyjs::onclick(
+    #   "fill-wizard-save",
+    #   asis = TRUE,
+    #   add = TRUE,
+    #   {
+    #     req(utils::tail(main.env$EAL$history, 1) == "Categorical Variables")
+    #     
+    #     saveReactive(main.env)
+    #     #   save.variable = main.env$save.variable,
+    #     #   rv = list(CatVars = rv)
+    #     # )
+    #   }
+    # )
 
     # Process data ----
     observeEvent(main.env$EAL$.next,

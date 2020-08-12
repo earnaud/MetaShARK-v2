@@ -237,23 +237,23 @@ TaxCov <- function(id, full.id, main.env) {
 
 
     # observeEvent(NSB$SAVE,
-    shinyjs::onclick(
-      "fill-wizard-save",
-      asis = TRUE,
-      add = TRUE,
-      {
-        req(utils::tail(main.env$EAL$history, 1) == "Taxonomic Coverage")
-        
-        saveReactive(main.env)
-        #   save.variable = main.env$save.variable,
-        #   rv = list(TaxCov = rv)
-        # )
-      }
-      # , ignoreInit = TRUE
-    )
+    # shinyjs::onclick(
+    #   "fill-wizard-save",
+    #   asis = TRUE,
+    #   add = TRUE,
+    #   {
+    #     req(utils::tail(main.env$EAL$history, 1) == "Taxonomic Coverage")
+    #     
+    #     saveReactive(main.env)
+    #     #   save.variable = main.env$save.variable,
+    #     #   rv = list(TaxCov = rv)
+    #     # )
+    #   }
+    #   # , ignoreInit = TRUE
+    # )
 
     # Process data ----
-    observeEvent(main.env$EAL$.next,
+    observeEvent(main.env$EAL$.next, 
       {
         req(main.env$EAL$current == "Taxonomic Coverage")
 
