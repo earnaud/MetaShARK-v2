@@ -42,6 +42,7 @@ fillUI <- function(id, main.env) {
           # uiOutput(NS(id, "chain")),
           style = "display: inline-flex; width: 100%"
         ),
+        hr(),
         # * Pages ----
         pagesUI(
           NS(id, "wizard"),
@@ -80,20 +81,23 @@ fill <- function(id, main.env) {
     
     # Wizard  ====
     # pages change
-    pagesServer(NS(id, "wizard"), main.env)
+    pagesServer("wizard", main.env)
     
     # modules content
-    SelectDP("SelectDP", full.id = NS(id, "SelectDP"), main.env)
-    DataFiles("DataFiles", full.id = NS(id, "DataFiles"), main.env)
-    Attributes("Attributes", full.id = NS(id, "Attributes"), main.env)
-    CatVars("CatVars", full.id = NS(id, "CatVars"), main.env)
-    GeoCov("GeoCov", full.id = NS(id, "GeoCov"), main.env)
-    TaxCov("TaxCov", full.id = NS(id, "TaxCov"), main.env)
-    Personnel("Personnel", full.id = NS(id, "Personnel"), main.env)
-    Misc("Misc", full.id = NS(id, "Misc"), main.env)
-    MakeEML("MakeEML", full.id = NS(id, "MakeEML"), main.env)
+    sapply(seq_along(isolate(main.env$VALUES$steps)), function(i){
+      .id <- isolate(main.env$VALUES$steps)[i]
+      .to.call <- switch(i, "SelectDP", "DataFiles", "Attributes",
+        "CatVars", "GeoCov", "TaxCov", "Personnel", "Misc", "MakeEML")
+      do.call(
+        what = .to.call,
+        args = list(
+          id =  .id,
+          full.id = NS(id, .id),
+          main.env = main.env
+        )
+      )
+    })
     
-    # * Wizard components server ----
     # * Quit ----
     {
       # show modal on 'quit' button clicked
@@ -167,10 +171,6 @@ fill <- function(id, main.env) {
         main.env$PATHS$eal.tmp <- tempdir()
       }
       
-      # if (isFALSE(main.env$EAL$completed)) {
-      #   main.env$EAL$completed <- TRUE
-      # } # trigger
-      main.env$EAL$completed <- FALSE
       main.env$EAL$tag.list <- tagList()
       main.env$local.rv <- setLocalRV(main.env)
       

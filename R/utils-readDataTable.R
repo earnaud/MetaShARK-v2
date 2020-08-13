@@ -12,17 +12,15 @@
 #' @param ... additional arguments to read.table.
 #'
 #' @importFrom gdata read.xls
-readDataTable <- function(file, data.table = FALSE, dev = FALSE, ...) {
+readDataTable <- function(file, data.table = FALSE, ...) {
   if (missing(file) || length(file) == 0) {
     stop("Provide a file for this function.")
   }
 
-  if (isTRUE(dev)) browser()
-
   if (grepl("xlsx?$", file)) {
     df <- gdata::read.xls(file, ...)
   } else {
-    df <- fread(file, data.table = data.table, ...)
+    df <- data.table::fread(file, data.table = data.table, ...)
   }
 
   return(df)

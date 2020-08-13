@@ -183,7 +183,8 @@
           expression(req(page.reached == page.invoked)),
           expr
         ),
-        label = paste("RV loader page", page.invoked)
+        label = paste("RV loader page", page.invoked),
+        priority = -1
       )
     },
     envir = main.env

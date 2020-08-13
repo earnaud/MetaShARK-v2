@@ -13,44 +13,34 @@ appServer <- function(input, output, session) {
     envir = main.env
   )
 
-  if (main.env$dev) {
-    shinyjs::onclick(
-      "dev",
-      {
-        if (main.env$current.tab() != "fill") {
-          browser()
-        }
-      },
-      asis = TRUE
-    )
-  }
+  if (main.env$dev)
+    observeEvent(input$dev, {
+      if (main.env$current.tab() != "fill")
+        browser()
+    })
 
   # Update values ====
-  # DataONE nodes
-  .DATAONE.LIST <- try(dataone::listFormats(dataone::CNode()))
-  if (class(.DATAONE.LIST) != "try-error") {
-    isolate(main.env$dataone.list <- .DATAONE.LIST)
-    data.table::fwrite(
-      .DATAONE.LIST,
-      isolate(main.env$PATHS$resources$dataoneCNodesList.txt)
-    )
-  }
-
-  # Taxa authorities
-  .TAXA.AUTHORITIES <- try(taxonomyCleanr::view_taxa_authorities())
-  if (class(.TAXA.AUTHORITIES) != "try-error") {
-    isolate(main.env$taxa.authorities <- .TAXA.AUTHORITIES)
-    data.table::fwrite(
-      .TAXA.AUTHORITIES,
-      isolate(main.env$PATHS$resources$taxaAuthorities.txt)
-    )
-  }
-
-  # Head bar server ----
-  # Options
-  # observeEvent(input$settings, {
-  #   shinydashboard::updateTabItems(session, "side_menu", "settings")
-  # })
+  invisible({
+    # DataONE nodes
+    .DATAONE.LIST <- try(dataone::listFormats(dataone::CNode()))
+    if (class(.DATAONE.LIST) != "try-error") {
+      isolate(main.env$dataone.list <- .DATAONE.LIST)
+      data.table::fwrite(
+        .DATAONE.LIST,
+        isolate(main.env$PATHS$resources$dataoneCNodesList.txt)
+      )
+    }
+  
+    # Taxa authorities
+    .TAXA.AUTHORITIES <- try(taxonomyCleanr::view_taxa_authorities())
+    if (class(.TAXA.AUTHORITIES) != "try-error") {
+      isolate(main.env$taxa.authorities <- .TAXA.AUTHORITIES)
+      data.table::fwrite(
+        .TAXA.AUTHORITIES,
+        isolate(main.env$PATHS$resources$taxaAuthorities.txt)
+      )
+    }
+  })
 
   ## modules called ----
   fill("fill", main.env)

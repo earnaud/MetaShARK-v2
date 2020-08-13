@@ -75,47 +75,10 @@ GeoCovUI <- function(id, main.env) {
 #' @noRd
 GeoCov <- function(id, full.id, main.env) {
   moduleServer(id, function(input, output, session) {
-    main.env$save.variable <- main.env$save.variable
-
     # Variable initialization ----
-
-    # Reactive Values
-    # rv <- reactiveValues(
-    #   columns = reactiveValues(
-    #     choices = reactiveValues(
-    #       files = "all",
-    #       sites = NA_character_,
-    #       coords = NA_character_
-    #     ),
-    #     site = reactiveValues(
-    #       col = character(),
-    #       file = character()
-    #     ),
-    #     lat = reactiveValues(
-    #       col = character(),
-    #       file = character()
-    #     ),
-    #     lon = reactiveValues(
-    #       col = character(),
-    #       file = character()
-    #     ),
-    #     complete = FALSE
-    #   ),
-    #   custom = reactiveValues(
-    #     id = numeric(),
-    #     coordinates = data.frame(
-    #       geographicDescription = character(),
-    #       northBoundingCoordinate = numeric(),
-    #       southBoundingCoordinate = numeric(),
-    #       eastBoundingCoordinate = numeric(),
-    #       westBoundingCoordinate = numeric(),
-    #       stringsAsFactors = FALSE
-    #     ),
-    #     complete = FALSE
-    #   )
-    # )
-
-    main.env$pageLoad(5, {
+    observeEvent(main.env$EAL$page, {
+      req(main.env$EAL$page == 5)
+      
       req(isTruthy(main.env$save.variable$GeoCov) &&
         isTruthy(names(main.env$save.variable$GeoCov)))
       . <- isolate(main.env$save.variable$GeoCov)
@@ -125,7 +88,9 @@ GeoCov <- function(id, full.id, main.env) {
       if (names(.) == "custom") {
         main.env$local.rv$custom <- .$custom
       }
-    })
+    },
+    label = "EAL5: set values"
+    )
 
     # Pre-fill ----
     # * Set choices ====
@@ -202,7 +167,8 @@ GeoCov <- function(id, full.id, main.env) {
           main.env$local.rv$custom$coordinates <- saved_table
         }
       }
-    })
+    },
+    label = "EAL5: read saved values")
 
     # * File ----
     observeEvent(
@@ -271,7 +237,7 @@ GeoCov <- function(id, full.id, main.env) {
           main.env$local.rv$columns$site$file <- main.env$local.rv$columns$choices$file <- .tmp[2]
         },
         ignoreInit = TRUE,
-        label = "EAL5 get site"
+        label = "EAL5: get site"
       )
 
       # * Latitude ----
@@ -328,7 +294,7 @@ GeoCov <- function(id, full.id, main.env) {
         ignoreInit = TRUE,
         priority = 1,
         ignoreNULL = FALSE,
-        label = "EAL5 get latitude"
+        label = "EAL5: get latitude"
       )
 
       # * Longitude ----
@@ -384,7 +350,7 @@ GeoCov <- function(id, full.id, main.env) {
         ignoreInit = TRUE,
         priority = 1,
         ignoreNULL = FALSE,
-        label = "EAL5 get longitude"
+        label = "EAL5: get longitude"
       )
     }
 
@@ -402,7 +368,8 @@ GeoCov <- function(id, full.id, main.env) {
           )
         })
       }
-    })
+    },
+    label = "EAL5: set custom")
 
     # * Manage input ----
     observeEvent(input$addui, {
@@ -412,7 +379,8 @@ GeoCov <- function(id, full.id, main.env) {
         main.env$local.rv$custom,
         ns
       )
-    })
+    },
+    label = "EAL5: get custom")
 
     # Saves ----
     observeEvent(
@@ -426,6 +394,7 @@ GeoCov <- function(id, full.id, main.env) {
           isTruthy(main.env$local.rv$columns$lat$col) &&
           isTruthy(main.env$local.rv$columns$lon$col)
       },
+      label = "EAL5: set column completed",
       ignoreNULL = FALSE
     )
 
@@ -433,6 +402,7 @@ GeoCov <- function(id, full.id, main.env) {
       {
         main.env$local.rv$custom$complete <- checkTruth(main.env$local.rv$custom$coordinates)
       },
+      label = "EAL5: set custom completed",
       ignoreNULL = FALSE
     )
 
@@ -443,23 +413,8 @@ GeoCov <- function(id, full.id, main.env) {
         isTRUE(main.env$local.rv$custom$complete),
         isTRUE(main.env$local.rv$columns$complete)
       )
-    })
-
-    # observeEvent(NSB$SAVE,
-    # shinyjs::onclick(
-    #   "fill-wizard-save",
-    #   asis = TRUE,
-    #   add = TRUE,
-    #   {
-    #     req(utils::tail(main.env$EAL$history, 1) == "Geographic Coverage")
-    #     
-    #     saveReactive(main.env)
-    #     #   main.env$save.variable,
-    #     #   content = list(GeoCov = main.env$local.rv)
-    #     # )
-    #   }
-    #   # , ignoreInit = TRUE
-    # )
+    },
+    label = "EAL5: set completed")
 
     # Process data ----
     # * Previous ----
@@ -471,6 +426,7 @@ GeoCov <- function(id, full.id, main.env) {
           main.env$EAL$page <- main.env$EAL$page - 1
         }
       },
+      label = "EAL5: process back",
       ignoreInit = TRUE
     )
 
@@ -506,6 +462,7 @@ GeoCov <- function(id, full.id, main.env) {
 
         showModal(nextTabModal)
       },
+      label = "EAL5: process data",
       priority = 1,
       ignoreInit = TRUE
     )
@@ -531,6 +488,7 @@ GeoCov <- function(id, full.id, main.env) {
         #   main.env = main.env
         # )
       },
+      label = "EAL5: confirm process data",
       ignoreInit = TRUE
     )
   })

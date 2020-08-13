@@ -83,7 +83,7 @@ saveReactive <- function(main.env) {
   withProgress({
     setProgress(1 / 3, "Module save")
     
-    # Write provided content
+    # Save local variable content ----
     main.env$save.variable <- do.call(
       switch(main.env$EAL$current,
              "SelectDP" = .saveSelectDP,
@@ -102,13 +102,16 @@ saveReactive <- function(main.env) {
     
     setProgress(2 / 3, "Global save")
     
-    # Save JSON
+    # Save JSON ----
+    # Get + create path
     path <- main.env$save.variable$SelectDP$dp.path
+    if(!dir.exists(path))
+      dir.create(path)
+    # Get + write file
     filename <- main.env$save.variable$SelectDP$dp.name
     location <- paste0(path, "/", filename, ".json")
-    if (file.exists(location)) {
+    if (file.exists(location))
       file.remove(location)
-    }
     jsonlite::write_json(
       jsonlite::serializeJSON(
         listReactiveValues(main.env$save.variable)
@@ -121,7 +124,7 @@ saveReactive <- function(main.env) {
   
   showNotification(
     paste("Saved:", main.env$EAL$current, "."),
-    duration = 1.5,
+    duration = 2.5,
     type = "message"
   )
 }

@@ -11,16 +11,34 @@ DataFilesUI <- function(id, main.env) {
         tags$li("Selecting a file will immediately upload it: beware of heavy files (> 5 Mb)."),
         class = "disclaimer"
       ),
-      tags$div(
-        tagList(
-          fileInput(
-            NS(id, "add_data_files"),
-            "Select data file(s) from your dataset",
-            buttonLabel = span("Load files", icon("plus-circle")),
-            multiple = TRUE
+      fluidRow(
+        column(6,
+          div(
+            fileInput(
+              NS(id, "add_data_files"),
+              "Select data file(s) from your dataset",
+              buttonLabel = span("Load files", icon("plus-circle")),
+              multiple = TRUE,
+              width = "100%"
+            ),
+            style = "display: inline-block; vertical-align: top;"
           )
         ),
-        style = "display: inline-block; vertical-align: top;"
+        column(6,
+          if(main.env$wip){
+            wipRow(
+              URL_Input_UI(
+                NS(id, "url_files"),
+                "Select data file(s) from an URL"
+              ),
+              actionButton(
+                NS(id,"add_url_files"),
+                label = "Get",
+                icon = icon("download")
+              )
+            )
+          }
+        )
       ),
       uiOutput(NS(id, "data_files")),
       actionButton(NS(id, "remove_data_files"), "Remove",
@@ -39,8 +57,6 @@ DataFilesUI <- function(id, main.env) {
 #' @noRd
 DataFiles <- function(id, full.id, main.env) {
   moduleServer(id, function(input, output, session) {
-    main.env$save.variable <- main.env$save.variable
-
     # Variable initialization ----
     
     # Data file upload ====
@@ -48,52 +64,53 @@ DataFiles <- function(id, full.id, main.env) {
     observeEvent(input$add_data_files,
       {
         # validity checks
-        req(input$add_data_files)
-
-        # retrieve data files info
-        .loaded.files <- input$add_data_files
-
-        req(checkTruth(loaded.files))
-
-        # remove spaces
-        .loaded.files$name <- gsub(" ", "_", .loaded.files$name)
-
-        # add URL, description and table name columns
-        .loaded.files$url <- rep("", dim(.loaded.files)[1])
-        .loaded.files$description <- rep("", dim(.loaded.files)[1])
-        .loaded.files$table.name <- rep("", dim(.loaded.files)[1])
-
-        # bind into input
-        if (isFALSE(
-          checkTruth(main.env$local.rv$data.files) && 
-          all(dim(main.env$local.rv$data.files) > 0)
-        )) {
-          main.env$local.rv$data.files <- .loaded.files
-        } else {
-          sapply(.loaded.files$name, function(filename) {
-            if (fs::is_dir(filename)) {
-              showNotification(
-                paste(filename, "is a folder."),
-                type = "warning"
-              )
-            } else
-            if (!filename %in% main.env$local.rv$data.files$name) {
-              main.env$local.rv$data.files <- unique(rbind(
-                main.env$local.rv$data.files,
-                .loaded.files[.loaded.files$name == filename, ]
-              ))
-            }
-          })
-        }
-
-        # copies to the server
+        req(checkTruth(input$add_data_files))
         withProgress(
           {
+            # retrieve data files info
+            .loaded.files <- input$add_data_files
+            incProgress(0.2)
+            
+            # remove spaces
+            .loaded.files$name <- gsub(" ", "_", .loaded.files$name)
+            # add URL, description and table name columns
+            .loaded.files$url <- rep("", dim(.loaded.files)[1])
+            .loaded.files$description <- rep("", dim(.loaded.files)[1])
+            .loaded.files$table.name <- rep("", dim(.loaded.files)[1])
+            incProgress(0.2)
+            
+            # bind into input
+            # empty variable
+            if (isFALSE(
+              checkTruth(main.env$local.rv$data.files) && 
+              all(dim(main.env$local.rv$data.files) > 0)
+            )) {
+              main.env$local.rv$data.files <- .loaded.files
+            } else { # non-empty variable
+              sapply(.loaded.files$name, function(filename) {
+                if (fs::is_dir(filename)) {
+                  showNotification(
+                    paste(filename, "is a folder."),
+                    type = "warning"
+                  )
+                } else {
+                  if (!filename %in% main.env$local.rv$data.files$name) {
+                    main.env$local.rv$data.files <- unique(rbind(
+                      main.env$local.rv$data.files,
+                      .loaded.files[.loaded.files$name == filename, ]
+                    ))
+                  }
+                }
+              })
+            }
+            incProgress(0.2)
+            
+            # copies to the server
             file.copy(
               main.env$local.rv$data.files$datapath,
               paste0(main.env$PATHS$eal.tmp, main.env$local.rv$data.files$name)
             )
-            incProgress(0.8)
+            incProgress(0.2)
 
             main.env$local.rv$data.files$datapath <- paste0(
               main.env$PATHS$eal.tmp, 
@@ -124,17 +141,17 @@ DataFiles <- function(id, full.id, main.env) {
 
     # Display data files ----
     # * UI ----
-    observeEvent(main.env$local.rv$data.files, {
-      df <- isolate(main.env$local.rv$data.files)
-
-      output$data_files <- renderUI({
+    output$data_files <- renderUI({
         validate(
           need(
-            !any(dim(df) == 0) && !is.null(df),
+            !is.null(main.env$local.rv$data.files) &&
+              !any(dim(main.env$local.rv$data.files) == 0) &&
+              !is.null(main.env$local.rv$data.files),
             "Select files to describe."
           )
         )
-
+        
+        df <- main.env$local.rv$data.files
         checkboxGroupInput(
           NS(full.id, "select_data_files"),
           "Select files to delete (all files here will be kept otherwise)",
@@ -143,20 +160,16 @@ DataFiles <- function(id, full.id, main.env) {
             function(label) {
               # Variable initialization
               .id <- match(label, df$name)
-              xls.warning <- if (grepl("xlsx?$", label)) {
-                tags$div(
-                  "Only the first sheet of Excel files will be read.",
-                  style = "color: red"
-                )
-              } else {
+              xls.warning <- if (grepl("xlsx?$", label))
+                helpText("Only the first sheet of Excel files will be read.")
+              else
                 NULL
-              }
-
+              
               # Output
               collapsibleUI(
                 id = NS(id, .id),
                 label = label,
-                hidden = FALSE,
+                .hidden = FALSE,
                 class = "inputBox",
                 tagList(
                   fluidRow(
@@ -195,8 +208,7 @@ DataFiles <- function(id, full.id, main.env) {
           choiceValues = df$name
         )
       })
-    })
-
+    
     # * Server ----
     observeEvent(names(input), {
       req(
@@ -236,9 +248,11 @@ DataFiles <- function(id, full.id, main.env) {
           ignoreInit = FALSE
         )
       })
-    })
+    }, 
+    label = "EAL2: set servers"
+    )
 
-    # Warnings: data size
+    # * Data size ----
     observeEvent(main.env$local.rv$data.files, {
       req(checkTruth(main.env$local.rv$data.files))
       files.size <- if (checkTruth(main.env$local.rv$data.files$size)) {
@@ -268,50 +282,42 @@ DataFiles <- function(id, full.id, main.env) {
           style = style
         )
       )
-    })
+    },
+    label = "EAL2: data files size"
+    )
 
     # Saves ----
     observe({
       req(main.env$EAL$page == 2)
+      invalidateLater(1000)
       main.env$EAL$completed <- checkTruth(main.env$local.rv$data.files) &&
         all(dim(main.env$local.rv$data.files) > 0)
-    })
+    },
+    label = "EAL2: set completed"
+    )
 
-    # shinyjs::onclick(
-    #   "fill-wizard-save",
-    #   asis = TRUE,
-    #   add = TRUE,
-    #   {
-    #     req(main.env$EAL$current == "Data Files")
-    #     req(isTruthy(main.env$local.rv$data.files$name))
-    # 
-    #     saveReactive(main.env)
-    #     #   save.variable = main.env$save.variable,
-    #     #   content = list(DataFiles = main.env$local.rv)
-    #     # )
-    #   }
-    # )
-
-    # Process files ----
+    # Process data ----
     observeEvent(main.env$EAL$.next, {
       req(main.env$EAL$current == "Data Files")
       # Save
       saveReactive(main.env)
-      #   save.variable = main.env$save.variable,
-      #   content = list(DataFiles = main.env$local.rv)
-      # )
       
       # EMLAL templating function
-      try(
+      x <- try(
         EMLassemblyline::template_table_attributes(
           path = isolate(main.env$save.variable$SelectDP$dp.metadata.path),
           data.path = isolate(main.env$save.variable$SelectDP$dp.data.path),
           data.table = isolate(main.env$save.variable$DataFiles$name)
         )
       )
+      if(class(x) == "try-error") {
+        main.env$EAL$page <- main.env$EAL$page - 1
+        browser()
+      }
     },
     priority = 1,
-    ignoreInit = TRUE
+    ignoreInit = TRUE,
+    label = "EAL2: process data"
     )
   })
 }

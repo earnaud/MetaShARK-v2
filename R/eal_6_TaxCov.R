@@ -30,25 +30,18 @@ TaxCovUI <- function(id, main.env) {
 #' @noRd
 TaxCov <- function(id, full.id, main.env) {
   moduleServer(id, function(input, output, session) {
-    main.env$save.variable <- main.env$save.variable
-
     # Variable Initialization ----
-    # rv <- reactiveValues(
-    #   taxa.table = character(),
-    #   taxa.col = character(),
-    #   taxa.name.type = character(),
-    #   taxa.authority = character(),
-    #   complete = FALSE
-    # )
-
-    main.env$pageLoad(6, {
+    observeEvent(main.env$EAL$page, {
+      req(main.env$EAL$page == 6)
+      
       if (all(sapply(printReactiveValues(main.env$save.variable$TaxCov), checkTruth))) {
         main.env$local.rv$taxa.table <- main.env$save.variable$TaxCov$taxa.table
         main.env$local.rv$taxa.col <- main.env$save.variable$TaxCov$taxa.col
         main.env$local.rv$taxa.name.type <- main.env$save.variable$TaxCov$taxa.authority
         main.env$local.rv$taxa.authority <- main.env$save.variable$TaxCov$taxa.authority
       }
-    })
+    },
+    label = "EAL6: set value")
 
     # Set UI ====
 
@@ -185,6 +178,7 @@ TaxCov <- function(id, full.id, main.env) {
           main.env$save.variable$TaxCov$taxa.table <- main.env$local.rv$taxa.table
         })
       },
+      label = "EAL6: input taxa table",
       priority = -1
     )
 
@@ -196,7 +190,9 @@ TaxCov <- function(id, full.id, main.env) {
       isolate({
         main.env$save.variable$TaxCov$taxa.col <- main.env$local.rv$taxa.col
       })
-    })
+    },
+    label = "EAL6: input taxa column"
+    )
 
     # * Taxa type ====
     observeEvent(input$taxa.name.type, {
@@ -209,7 +205,9 @@ TaxCov <- function(id, full.id, main.env) {
         main.env$local.rv$taxa.name.type <- "both"
       }
       main.env$save.variable$TaxCov$taxa.name.type <- main.env$local.rv$taxa.name.type
-    })
+    },
+    label = "EAL6: input taxa name type"
+    )
 
     # * Taxa authority ====
     observeEvent(input$taxa.authority, {
@@ -220,37 +218,22 @@ TaxCov <- function(id, full.id, main.env) {
         dplyr::select(id) %>%
         unlist()
       main.env$save.variable$TaxCov$taxa.authority <- main.env$local.rv$taxa.authority
-    })
+    },
+    label = "EAL6: input taxa authority"
+    )
 
     # Saves ----
-    main.env$EAL$completed <- TRUE
     observe({
       req(main.env$EAL$current == "Taxonomic Coverage")
 
-      main.env$local.rv$complete <- all(
+      main.env$EAL$completed <- all(
         length(main.env$local.rv$taxa.table) > 0 &&
           length(main.env$local.rv$taxa.col) > 0 &&
           length(main.env$local.rv$taxa.name.type) > 0 &&
           length(main.env$local.rv$taxa.authority) > 0
       )
-    })
-
-
-    # observeEvent(NSB$SAVE,
-    # shinyjs::onclick(
-    #   "fill-wizard-save",
-    #   asis = TRUE,
-    #   add = TRUE,
-    #   {
-    #     req(utils::tail(main.env$EAL$history, 1) == "Taxonomic Coverage")
-    #     
-    #     saveReactive(main.env)
-    #     #   save.variable = main.env$save.variable,
-    #     #   rv = list(TaxCov = rv)
-    #     # )
-    #   }
-    #   # , ignoreInit = TRUE
-    # )
+    },
+    label = "EAL6: set completed")
 
     # Process data ----
     observeEvent(main.env$EAL$.next, 
@@ -258,7 +241,7 @@ TaxCov <- function(id, full.id, main.env) {
         req(main.env$EAL$current == "Taxonomic Coverage")
 
         choices <- c(
-          "Yes - Taxonomic coverage will be written as file" = if (main.env$local.rv$complete) 1 else NULL,
+          "Yes - Taxonomic coverage will be written as file" = if (main.env$EAL$completed) 1 else NULL,
           "No - Taxonomic coverage will be left blank" = 0
         )
 
@@ -280,6 +263,7 @@ TaxCov <- function(id, full.id, main.env) {
 
         showModal(nextTabModal)
       },
+      label = "EAL6: process data",
       ignoreInit = TRUE
     )
 
@@ -317,6 +301,8 @@ TaxCov <- function(id, full.id, main.env) {
           type = "message"
         )
       }
-    })
+    },
+    label = "EAL6: confirm process data"
+    )
   })
 }

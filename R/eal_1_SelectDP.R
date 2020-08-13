@@ -3,8 +3,6 @@
 #'
 #' @noRd
 SelectDPUI <- function(id, main.env) {
-  ns <- NS(id)
-
   # UI output
   return(
     fluidPage(
@@ -112,12 +110,15 @@ SelectDP <- function(id, full.id, main.env) {
     collapsible("usage")
 
     # variable initialization ----
-    main.env$pageLoad(1, {
-      browser()
+    observeEvent(main.env$EAL$page, {
+      req(main.env$EAL$page == 1)
+      
       main.env$local.rv$dp.name <- reactive(input$dp_name)
       main.env$local.rv$dp.title <- reactive(input$dp_title)
       main.env$local.rv$dp.license <- reactive(input$license)
-    })
+    },
+    label = "EAL1: set DP"
+    )
     
     # update packages every 10 seconds
     .dp.list <- reactivePoll(
@@ -140,7 +141,9 @@ SelectDP <- function(id, full.id, main.env) {
     observeEvent(.dp.list, {
       req(main.env$EAL$page == 1)
       main.env$local.rv$dp.list <- .dp.list()
-    })
+    },
+    label = "EAL 1: dp list"
+    )
     
     # Render DP list ====
     # UI output
@@ -280,7 +283,6 @@ SelectDP <- function(id, full.id, main.env) {
     # * Create DP ----
     shinyjs::onclick("dp_create", {
       req(input$dp_create)
-      browser()
       req(main.env$local.rv$dp.name())
 
       # verbose
@@ -292,7 +294,7 @@ SelectDP <- function(id, full.id, main.env) {
             main.env$save.variable,
             main.env
           )
-          saveReactive(main.env)
+          saveReactive(main.env); browser()
           incProgress(0.2)
           
           dir.create(
@@ -355,7 +357,7 @@ SelectDP <- function(id, full.id, main.env) {
 
       # verbose
       showNotification(
-        paste("Loading:", path, "\n", sep = ""),
+        paste("Loading:", dp),
         type = "message"
       )
 
@@ -367,7 +369,7 @@ SelectDP <- function(id, full.id, main.env) {
       # save.variable adaptations
       # TODO remove this later
       # - creator
-      if(isFALSE("creator" %in% names(.tmp) && isTruthy(!tmp$creator)))
+      if(isFALSE("creator" %in% names(.tmp) && isTruthy(.tmp$creator)))
         main.env$save.variable$creator <- if(isTRUE(main.env$SETTINGS$logged))
           main.env$SETTINGS$user
         else
@@ -443,9 +445,15 @@ SelectDP <- function(id, full.id, main.env) {
       }
 
       # resume at saved page
-      main.env$EAL$page <- main.env$save.variable$step
+      if(main.env$save.variable$step == 1){
+        main.env$EAL$page <- main.env$save.variable$step+1
+        main.env$EAL$history <- main.env$VALUES$steps[1:main.env$EAL$page]
+      }
+      else{
+        main.env$EAL$page <- main.env$save.variable$step
+        main.env$EAL$history <- main.env$save.variable$history
+      }
       main.env$EAL$.load <- main.env$EAL$.load + 1
-      main.env$EAL$history <- main.env$save.variable$history
       shinyjs::enable("dp_load")
     })
 
@@ -471,7 +479,9 @@ SelectDP <- function(id, full.id, main.env) {
           ) # end footer
         ) # end modalDialog
       ) # end showModal
-    })
+    },
+    label = "EAL1: delete DP"
+    )
 
     # If deletion is confirmed
     observeEvent(input$delete_confirm, {
@@ -491,6 +501,8 @@ SelectDP <- function(id, full.id, main.env) {
       ]
       # main.env$DP.LIST <- main.env$DP.LIST[!grepl(dp, main.env$DP.LIST$name)]
       removeModal()
-    })
+    },
+    label = "EAL1: confirm delete DP"
+    )
   })
 }

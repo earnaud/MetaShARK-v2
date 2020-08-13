@@ -47,14 +47,10 @@ CatVarsUI <- function(id, main.env) {
 #' @noRd
 CatVars <- function(id, full.id, main.env) {
   moduleServer(id, function(input, output, session) {
-    main.env$save.variable <- main.env$save.variable
-
     # variables initialization ----
-    # rv <- reactiveValues(
-    #   current.index = 0
-    # )
-
-    main.env$pageLoad(4, {
+    observeEvent(main.env$EAL$page, {
+      req(main.env$EAL$page == 4)
+      
       # read metadata folder path
       .md.path <- isolate(main.env$save.variable$SelectDP$dp.metadata.path)
       req(checkTruth(.md.path))
@@ -67,7 +63,9 @@ CatVars <- function(id, full.id, main.env) {
       req(checkTruth(main.env$local.rv$catvar.files))
       main.env$local.rv$current.index <- as.numeric(checkTruth(main.env$local.rv$catvar.files))
       main.env$local.rv$current.file <- basename(main.env$local.rv$catvar.files[main.env$local.rv$current.index])
-    })
+    },
+    label = "EAL4: set local var"
+    )
 
     # Set each reactivevalues per file
     observeEvent(main.env$local.rv$catvar.files, {
@@ -162,7 +160,9 @@ CatVars <- function(id, full.id, main.env) {
           }
         )
       })
-    })
+    }, 
+    label = "EAL4: set rv per file"
+    )
 
     # Navigation buttons ----
     # Previous file
@@ -172,7 +172,9 @@ CatVars <- function(id, full.id, main.env) {
       if (main.env$local.rv$current.index > 1) {
         main.env$local.rv$current.index <- main.env$local.rv$current.index - 1
       }
-    })
+    },
+    label = "EAL4: previous file"
+    )
 
     # Next file
     observeEvent(input$file_next, {
@@ -181,7 +183,9 @@ CatVars <- function(id, full.id, main.env) {
       if (main.env$local.rv$current.index < length(main.env$local.rv$catvar.files)) {
         main.env$local.rv$current.index <- main.env$local.rv$current.index + 1
       }
-    })
+    },
+    label = "EAL4: next file"
+    )
 
     # Current file
     output$current_file <- renderUI({
@@ -211,7 +215,6 @@ CatVars <- function(id, full.id, main.env) {
     }) # end of renderUI
 
     # Set Server ----
-
     # Suspend observers
     observeEvent(main.env$local.rv$current.index,
       {
@@ -220,6 +223,7 @@ CatVars <- function(id, full.id, main.env) {
           obs$suspend()
         })
       },
+      label = "EAL4: suspend observers",
       priority = 2
     )
 
@@ -231,6 +235,7 @@ CatVars <- function(id, full.id, main.env) {
           obs$resume()
         })
       },
+      label = "EAL4: run observers",
       priority = 0
     )
 
@@ -244,22 +249,9 @@ CatVars <- function(id, full.id, main.env) {
           all(sapply(main.env$local.rv[[file.name]]$CatVars$definition, checkTruth))
         })
       )
-    })
-
-    # observeEvent(NSB$SAVE,
-    # shinyjs::onclick(
-    #   "fill-wizard-save",
-    #   asis = TRUE,
-    #   add = TRUE,
-    #   {
-    #     req(utils::tail(main.env$EAL$history, 1) == "Categorical Variables")
-    #     
-    #     saveReactive(main.env)
-    #     #   save.variable = main.env$save.variable,
-    #     #   rv = list(CatVars = rv)
-    #     # )
-    #   }
-    # )
+    },
+    label = "EAL4: continuous save"
+    )
 
     # Process data ----
     observeEvent(main.env$EAL$.next,
@@ -267,10 +259,8 @@ CatVars <- function(id, full.id, main.env) {
         req(main.env$EAL$current == "Categorical Variables")
         
         saveReactive(main.env)
-        #   save.variable = main.env$save.variable,
-        #   rv = list(CatVars = rv)
-        # )
       },
+      label = "EAL4: process data^",
       priority = 1,
       ignoreInit = TRUE
     )

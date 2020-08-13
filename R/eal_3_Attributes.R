@@ -65,8 +65,7 @@ AttributesUI <- function(id, main.env) {
 #' @noRd
 Attributes <- function(id, full.id, main.env) {
   moduleServer(id, function(input, output, session) {
-    main.env$save.variable <- isolate(main.env$save.variable)
-
+    # Quick ----
     if (isTRUE(main.env$dev) || isTRUE(main.env$save.variable$quick)) {
       .fill <- function(rv = rv) {
         lapply(seq(main.env$local.rv$tables), function(ind) {
@@ -120,24 +119,11 @@ Attributes <- function(id, full.id, main.env) {
     }
 
     # variable initialization ----
-    # rv <- reactiveValues(
-    #   current.file = 0,
-    #   tables = NULL,
-    #   current.table = NULL,
-    #   current.preview = NULL,
-    #   cu.table = data.frame(stringsAsFactors = FALSE),
-    #   cu.values = rep(NA, 5),
-    #   modal.on = FALSE,
-    #   unit.id = character(),
-    #   units.list = isolate(main.env$FORMATS$units),
-    #   annotations = reactiveValues(
-    #     values = data.frame(stringsAsFactors = FALSE),
-    #     count = 0
-    #   )
-    # )
 
     # Set a bunch of local variables when loading this page
-    main.env$pageLoad(3, {
+    observeEvent(main.env$EAL$page, {
+      req(main.env$EAL$page == 3)
+      
       req(main.env$save.variable$DataFiles)
       # Path to data files
       main.env$local.rv$data.filepath <- main.env$save.variable$DataFiles$datapath
@@ -148,7 +134,8 @@ Attributes <- function(id, full.id, main.env) {
       if (checkTruth(main.env$local.rv$filepath)) {
         main.env$local.rv$filenames <- basename(main.env$local.rv$filepath)
         main.env$local.rv$tables <- lapply(
-          main.env$local.rv$filepath, readDataTable,
+          main.env$local.rv$filepath,
+          readDataTable,
           data.table = FALSE, stringsAsFactors = FALSE
         )
         main.env$local.rv$current.table <- main.env$local.rv$tables[[main.env$local.rv$current.file]]
@@ -165,7 +152,9 @@ Attributes <- function(id, full.id, main.env) {
           stringsAsFactors = FALSE
         )
       }
-    })
+    },
+    label = "EAL3: set values"
+    )
 
     # if (checkTruth(main.env$save.variable$Attributes$annotations)) {
     #   rv$annotations$values <- isolate(main.env$save.variable$Attributes$annotations)
@@ -223,7 +212,7 @@ Attributes <- function(id, full.id, main.env) {
     obs <- reactiveValues()
 
     # Navigation buttons ----
-    onclick("file_prev", {
+    shinyjs::onclick("file_prev", {
       req(main.env$local.rv$current.file > 1)
       # Save
       if (!is.null(main.env$local.rv$current.table)) {
@@ -233,7 +222,7 @@ Attributes <- function(id, full.id, main.env) {
       main.env$local.rv$current.file <- main.env$local.rv$current.file - 1
     })
 
-    onclick("file_next", {
+    shinyjs::onclick("file_next", {
       req(main.env$local.rv$current.file < length(main.env$local.rv$filenames))
       # Save
       if (!is.null(main.env$local.rv$current.table)) {
@@ -255,6 +244,7 @@ Attributes <- function(id, full.id, main.env) {
           nrows = 5
         )
       },
+      label = "EAL3: update table",
       priority = 1
     )
 
@@ -362,7 +352,9 @@ Attributes <- function(id, full.id, main.env) {
         )
         return(ui)
       })
-    }) # end of observeEvent
+    },
+    label = "EAL3: set UI"
+    ) # end of observeEvent
 
     # * Server ----
     observeEvent(main.env$local.rv$current.file, {
@@ -416,7 +408,9 @@ Attributes <- function(id, full.id, main.env) {
           }) # end of lapply colname
         } # end of *in situ* function
       ) # end of sapply : row.index
-    }) # end of observeEvent
+    },
+    label = "EAL3: set server"
+    ) # end of observeEvent
 
     # Custom units ----
     observe({
@@ -452,7 +446,9 @@ Attributes <- function(id, full.id, main.env) {
           main.env$local.rv$current.table[row, "unit"] <- ""
         })
       }
-    })
+    },
+    label = "EAL3: observe CU"
+    )
 
     CU_Modal <- function(values = rep(NA, 5), cu.table = NULL) {
       modalDialog(
@@ -541,54 +537,55 @@ Attributes <- function(id, full.id, main.env) {
       } else {
         shinyjs::disable("modal_submit")
       }
-    })
+    },
+    label = "EAL3: set CU server")
 
     # Submit
-    observeEvent(input$modal_submit,
-      {
-        req(isTRUE(main.env$local.rv$modal.on))
-
-        # Close modal
-        removeModal()
-        main.env$local.rv$modal.on <- FALSE
-
-        isolate({
-          main.env$local.rv$cu.values <- c(
-            input$modal_id,
-            input$modal_unitType,
-            input$modal_parentSI,
-            input$modal_multiplier,
-            input$modal_description
-          )
-        })
-
-        # Update CU values
-        if (main.env$local.rv$cu.values[1] %in% main.env$local.rv$cu.table$id) {
-          main.env$local.rv$cu.table <- main.env$local.rv$cu.table %>%
-            dplyr::filter(id = main.env$local.rv$cu.values[1]) %>%
-            base::replace(values = main.env$local.rv$cu.values)
-        } # Add CU values
-        else {
-          names(main.env$local.rv$cu.values) <- colnames(main.env$local.rv$cu.table)
-          main.env$local.rv$cu.table[dim(main.env$local.rv$cu.table)[1] + 1, ] <- main.env$local.rv$cu.values
-        }
-        # update input UI
-        main.env$local.rv$units.list <- unique(c(
-          main.env$local.rv$cu.values["id"],
-          main.env$local.rv$units.list
-        ))
-        isolate({
-          updateSelectInput(
-            session,
-            paste(main.env$local.rv$unit.id, collapse = "-"),
-            choices = main.env$local.rv$units.list,
-            selected = main.env$local.rv$cu.values["id"]
-          )
-        })
-
-        row <- main.env$local.rv$unit.id[2]
-        main.env$local.rv$current.table[row, "unit"] <- main.env$local.rv$cu.values["id"]
-      },
+    observeEvent(input$modal_submit, {
+      req(isTRUE(main.env$local.rv$modal.on))
+      
+      # Close modal
+      removeModal()
+      main.env$local.rv$modal.on <- FALSE
+      
+      isolate({
+        main.env$local.rv$cu.values <- c(
+          input$modal_id,
+          input$modal_unitType,
+          input$modal_parentSI,
+          input$modal_multiplier,
+          input$modal_description
+        )
+      })
+      
+      # Update CU values
+      if (main.env$local.rv$cu.values[1] %in% main.env$local.rv$cu.table$id) {
+        main.env$local.rv$cu.table <- main.env$local.rv$cu.table %>%
+          dplyr::filter(id = main.env$local.rv$cu.values[1]) %>%
+          base::replace(values = main.env$local.rv$cu.values)
+      } # Add CU values
+      else {
+        names(main.env$local.rv$cu.values) <- colnames(main.env$local.rv$cu.table)
+        main.env$local.rv$cu.table[dim(main.env$local.rv$cu.table)[1] + 1, ] <- main.env$local.rv$cu.values
+      }
+      # update input UI
+      main.env$local.rv$units.list <- unique(c(
+        main.env$local.rv$cu.values["id"],
+        main.env$local.rv$units.list
+      ))
+      isolate({
+        updateSelectInput(
+          session,
+          paste(main.env$local.rv$unit.id, collapse = "-"),
+          choices = main.env$local.rv$units.list,
+          selected = main.env$local.rv$cu.values["id"]
+        )
+      })
+      
+      row <- main.env$local.rv$unit.id[2]
+      main.env$local.rv$current.table[row, "unit"] <- main.env$local.rv$cu.values["id"]
+    },
+      label = "EAL3: submit CU",
       priority = 1
     )
 
@@ -625,22 +622,9 @@ Attributes <- function(id, full.id, main.env) {
           ) # lapply
         ) # unlist
       ) # all
-    })
-
-    # observeEvent(NSB$SAVE,
-    # shinyjs::onclick(
-    #   "fill-wizard-save",
-    #   asis = TRUE,
-    #   add = TRUE,
-    #   {
-    #     req(utils::tail(main.env$EAL$history, 1) == "Attributes")
-    # 
-    #     saveReactive(main.env)
-    #     #   save.variable = main.env$save.variable,
-    #     #   rv = list(Attributes = rv)
-    #     # )
-    #   }
-    # )
+    }, 
+    label = "EAL3: continuous save"
+    )
 
     # en/disable buttons
     observeEvent(main.env$local.rv$current.file, {
@@ -659,7 +643,9 @@ Attributes <- function(id, full.id, main.env) {
       } else {
         shinyjs::enable("file_next")
       }
-    })
+    },
+    label = "EAL3: en/disable buttons"
+    )
 
     # Process data ----
     observeEvent(main.env$EAL$.next,
@@ -670,12 +656,9 @@ Attributes <- function(id, full.id, main.env) {
           setProgress(0.5, "Saving metadata")
 
           saveReactive(main.env)
-          #   save.variable = main.env$save.variable,
-          #   rv = list(Attributes = rv)
-          # )
 
           # for each attribute data frame
-          setProgress(0.8, "Resolving catvar templates")
+          setProgress(0.8, "Importing catvar templates")
           .do.template.catvars <- sapply(
             seq_along(main.env$local.rv$filenames),
             function(cur_ind) {
@@ -713,6 +696,7 @@ Attributes <- function(id, full.id, main.env) {
           incProgress(0.1)
         })
       },
+      label = "EAL3: process data",
       priority = 1,
       ignoreInit = TRUE
     )
