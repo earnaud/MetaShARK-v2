@@ -53,15 +53,14 @@ pagesUI <- function(id, parent.id, main.env) {
             main.env = main.env
           )
         ),
-        navTagList = if (i > 1) {
+        navTagList = if (i > 1)
           tagList(
             if (i != 2) prevTabButton(id, i),
             if (i != .nb) nextTabButton(id, i),
-            uiOutput(NS(i, "tag_list"))
+            uiOutput(NS(id, paste0(page, "-tag_list")))
           )
-        } else {
+        else
           NULL
-        }
       )
     },
     main.env = main.env
@@ -118,8 +117,9 @@ pagesServer <- function(id, main.env) {
     })
     
     # * Side UI ====
-    lapply(ids, function(i) {
-      output[[NS(i, "tag_list")]] <- renderUI(main.env$EAL$tag.list)
+    sapply(seq_along(isolate(main.env$EAL$page)), function(i) {
+      page <- isolate(main.env$VALUES$steps)[i]
+      output[[paste0(page, "-tag_list")]] <- renderUI(main.env$EAL$tag.list)
     })
     
     # * Chain ====

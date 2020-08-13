@@ -61,14 +61,18 @@ MakeEMLUI <- function(id, main.env) {
 #' @noRd
 MakeEML <- function(id, full.id, main.env) {
   moduleServer(id, function(input, output, session) {
-    main.env$save.variable <- main.env$save.variable
-
     # Variable initialization ----
-    out.file <- paste0(
-      isolate(main.env$save.variable$SelectDP$dp.path),
-      "/emldown/emldown.html"
+    observeEvent(main.env$EAL$page, {
+      req(main.env$EAL$page == 9)
+      
+      out.file <- paste0(
+        isolate(main.env$save.variable$SelectDP$dp.path),
+        "/emldown/emldown.html"
+      )
+    },
+    label = "EAL9: set values"
     )
-
+    
     # Make eml ----
     observeEvent(input$make_eml, {
       shinyjs::hide("bug_report")
@@ -187,11 +191,14 @@ MakeEML <- function(id, full.id, main.env) {
           showNotification("emldown generated", type = "message")
         }
       }
-    })
+    },
+    label = "EAL9: make eml"
+    )
 
     observeEvent(input$bug_report, {
       utils::browseURL("https://github.com/earnaud/MetaShARK-v2/issues/26")
-    })
+    },
+    label = "EAL9: bug report")
 
     # emldown ----
     output$download_emldown <- downloadHandler(

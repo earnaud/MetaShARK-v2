@@ -4,7 +4,7 @@
 \alias{readDataTable}
 \title{readDataTable}
 \usage{
-readDataTable(file, data.table = FALSE, dev = FALSE, ...)
+readDataTable(file, data.table = FALSE, ...)
 }
 \arguments{
 \item{file}{path to the data table file. For Excel files,

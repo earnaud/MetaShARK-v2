@@ -137,47 +137,7 @@ MiscUI <- function(id, main.env) {
 #' @noRd
 Misc <- function(id, full.id, main.env) {
   moduleServer(id, function(input, output, session) {
-    main.env$save.variable <- main.env$save.variable
-
     # Variable initialization ----
-    
-
-    # rv <- reactiveValues(
-    #   # Abstract
-    #   abstract = reactiveValues(
-    #     content = character(),
-    #     file = paste(
-    #       isolate(main.env$save.variable$SelectDP$dp.metadata.path),
-    #       "abstract.txt",
-    #       sep = "/"
-    #     )
-    #   ),
-    #   # Methods
-    #   methods = reactiveValues(
-    #     content = character(),
-    #     file = paste(
-    #       isolate(main.env$save.variable$SelectDP$dp.metadata.path),
-    #       "methods.txt",
-    #       sep = "/"
-    #     )
-    #   ),
-    #   # Keywords
-    #   keywords = reactiveValues(
-    #     keyword = kw$keyword,
-    #     keyword.thesaurus = kw$keyword.thesaurus
-    #   ),
-    #   # Temporal coverage
-    #   temporal.coverage = c(Sys.Date() - 1, Sys.Date()),
-    #   # Additional information
-    #   additional.information = reactiveValues(
-    #     content = character(),
-    #     file = paste(
-    #       isolate(main.env$save.variable$SelectDP$dp.metadata.path),
-    #       "additional_info.txt",
-    #       sep = "/"
-    #     )
-    #   )
-    # )
 
     # Fill ----
     # * Abstract ====
@@ -219,7 +179,9 @@ Misc <- function(id, full.id, main.env) {
           })
         )
       })
-    })
+    },
+    label = "EAL8: input keywords"
+    )
 
     # NOTE observers are still active after being deleted
     observe({
@@ -233,7 +195,9 @@ Misc <- function(id, full.id, main.env) {
 
         main.env$local.rv$keywords$keyword.thesaurus[kid] <- .val
       })
-    })
+    },
+    label = "EAL8: more keywords"
+    )
 
     # * Temporal coverage ====
     if (!is.null(isolate(main.env$save.variable$Misc$temporal.coverage))) {
@@ -247,7 +211,9 @@ Misc <- function(id, full.id, main.env) {
     }
     observeEvent(input$temporal_coverage, {
       main.env$local.rv$temporal.coverage <- input$temporal_coverage
-    })
+    },
+    label = "EAL8: input temporal coverage"
+    )
 
     # * Additional information ====
     Miscellaneous(
@@ -266,23 +232,9 @@ Misc <- function(id, full.id, main.env) {
           isTruthy(main.env$local.rv$keywords$keyword) &&
           isTruthy(main.env$local.rv$temporal.coverage)
       )
-    })
-
-    # observeEvent(NSB$SAVE,
-    # shinyjs::onclick(
-    #   "fill-wizard-save",
-    #   asis = TRUE,
-    #   add = TRUE,
-    #   {
-    #     req(main.env$EAL$current == "Miscellaneous")
-    #     
-    #     saveReactive(main.env)
-    #     #   save.variable = main.env$save.variable,
-    #     #   rv = list(Misc = rv)
-    #     # )
-    #   }
-    #   # , ignoreInit = TRUE
-    # )
+    },
+    label = "EAL8: saves"
+    )
 
     # Process data ----
     observeEvent(main.env$EAL$.next,
@@ -290,10 +242,8 @@ Misc <- function(id, full.id, main.env) {
         req(main.env$EAL$current == "Miscellaneous")
         
         saveReactive(main.env)
-        #   save.variable = main.env$save.variable,
-        #   rv = list(Misc = rv)
-        # )
       },
+      label = "EAL8: process data",
       priority = 1,
       ignoreInit = TRUE
     )

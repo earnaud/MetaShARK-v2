@@ -34,31 +34,10 @@ PersonnelUI <- function(id, main.env) {
 #' @noRd
 Personnel <- function(id, full.id, main.env) {
   moduleServer(id, function(input, output, session) {
-    main.env$save.variable <- main.env$save.variable
-
     # Variable initialization ----
-    # rv <- reactiveValues(
-    #   Personnel = data.frame(
-    #     id = numeric(),
-    #     # Basic Identity
-    #     givenName = character(),
-    #     middleInitial = character(),
-    #     surName = character(),
-    #     # Contact
-    #     organizationName = character(),
-    #     electronicMailAddress = character(),
-    #     # Personnel information
-    #     userId = character(),
-    #     role = character(),
-    #     # Project information
-    #     projectTitle = character(),
-    #     fundingAgency = character(),
-    #     fundingNumber = character(),
-    #     stringsAsFactors = FALSE
-    #   )
-    # )
-
-    main.env$pageLoad(7, {
+    observeEvent(main.env$EAL$page, {
+      req(main.env$EAL$page == 7)
+      
       if (checkTruth(main.env$save.variable$SelectDP$dp.metadata.path)) {
         personnel.file <- dir(
           main.env$save.variable$SelectDP$dp.metadata.path,
@@ -116,7 +95,9 @@ Personnel <- function(id, full.id, main.env) {
           )
         }
       }
-    })
+    },
+    label = "EAL7: set value"
+    )
 
     # Fill Personnel ----
     observeEvent(input$addui, {
@@ -130,7 +111,8 @@ Personnel <- function(id, full.id, main.env) {
         ns,
         main.env
       )
-    })
+    },
+    label = "EAL7: add personnel UI")
 
     # Saves ----
     observe({
@@ -144,24 +126,8 @@ Personnel <- function(id, full.id, main.env) {
           isTruthy(main.env$local.rv$Personnel$electronicMailAddress) &&
           all(c("creator", "contact") %in% main.env$local.rv$Personnel$role)
       )
-    })
-
-    # observeEvent(NSB$SAVE,
-    # shinyjs::onclick(
-    #   "fill-wizard-save",
-    #   asis = TRUE,
-    #   add = TRUE,
-    #   {
-    #     req(main.env$EAL$current == "Personnel")
-    # 
-    #     # save
-    #     saveReactive(main.env)
-    #     #   save.variable = main.env$save.variable,
-    #     #   rv = list(Personnel = rv)
-    #     # )
-    #   }
-    #   # , ignoreInit = TRUE
-    # )
+    },
+    label = "EAL7: continuous save")
 
     # Process data ----
     observeEvent(main.env$EAL$.next,
@@ -174,6 +140,7 @@ Personnel <- function(id, full.id, main.env) {
         #   rv = list(Personnel = rv)
         # )
       },
+      label = "EAL7: process data",
       priority = 1,
       ignoreInit = TRUE
     )
