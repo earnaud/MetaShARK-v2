@@ -35,10 +35,11 @@ PersonnelUI <- function(id, main.env) {
 Personnel <- function(id, full.id, main.env) {
   moduleServer(id, function(input, output, session) {
     # Variable initialization ----
-    observeEvent(main.env$EAL$page, {
+    observe({
       req(main.env$EAL$page == 7)
+      main.env$EAL$page.load$depend()
       
-      if (checkTruth(main.env$save.variable$SelectDP$dp.metadata.path)) {
+      if (isContentTruthy(main.env$save.variable$SelectDP$dp.metadata.path)) {
         personnel.file <- dir(
           main.env$save.variable$SelectDP$dp.metadata.path,
           pattern = "ersonnel",
@@ -57,7 +58,7 @@ Personnel <- function(id, full.id, main.env) {
         }
         saved.table[is.na(saved.table)] <- ""
 
-        if (checkTruth(saved.table)) {
+        if (isContentTruthy(saved.table)) {
           saved.table$id <- c(
             saved.table$role[1:2],
             seq_along(saved.table$givenName)[-(1:2)]
@@ -132,7 +133,7 @@ Personnel <- function(id, full.id, main.env) {
     # Process data ----
     observeEvent(main.env$EAL$.next,
       {
-        req(checkTruth(main.env$local.rv$Personnel))
+        req(isContentTruthy(main.env$local.rv$Personnel))
         req(main.env$EAL$current == "Personnel")
         
         saveReactive(main.env)

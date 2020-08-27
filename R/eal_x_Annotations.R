@@ -131,7 +131,7 @@
 #' AnnotModUI <- function(id, div_id, site_id, rmv_id, value = NULL) {
 #'   ns <- NS(id)
 #'
-#'   value <- if(checkTruth(value)){
+#'   value <- if(isContentTruthy(value)){
 #'     value[value$id == div_id,]
 #'   } else {
 #'     rep(NA, 3)

@@ -76,8 +76,9 @@ GeoCovUI <- function(id, main.env) {
 GeoCov <- function(id, full.id, main.env) {
   moduleServer(id, function(input, output, session) {
     # Variable initialization ----
-    observeEvent(main.env$EAL$page, {
+    observe({
       req(main.env$EAL$page == 5)
+      main.env$EAL$page.load$depend()
       
       req(isTruthy(main.env$save.variable$GeoCov) &&
         isTruthy(names(main.env$save.variable$GeoCov)))
@@ -400,7 +401,7 @@ GeoCov <- function(id, full.id, main.env) {
 
     observeEvent(main.env$local.rv$custom$coordinates,
       {
-        main.env$local.rv$custom$complete <- checkTruth(main.env$local.rv$custom$coordinates)
+        main.env$local.rv$custom$complete <- isContentTruthy(main.env$local.rv$custom$coordinates)
       },
       label = "EAL5: set custom completed",
       ignoreNULL = FALSE

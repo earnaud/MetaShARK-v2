@@ -16,7 +16,7 @@ MiscUI <- function(id, main.env) {
   } else {
     keywords <- ""
   }
-  if (checkTruth(keywords)) {
+  if (isContentTruthy(keywords)) {
     kw <- keywords$keyword %>%
       strsplit(split = ",") %>%
       unlist() %>%
@@ -75,7 +75,7 @@ MiscUI <- function(id, main.env) {
                   NS(id, "keywords"),
                   tags$p("List the keywords that best describe your dataset.
                     Type a 'tab' to separate each keyword."),
-                  value = if (checkTruth(keywords)) keywords[, 1] else c()
+                  value = if (isContentTruthy(keywords)) keywords[, 1] else c()
                 )
               ),
               column(
@@ -164,7 +164,7 @@ Misc <- function(id, full.id, main.env) {
 
       output$thesaurus <- renderUI({
         validate(
-          need(checkTruth(main.env$local.rv$keywords$keyword), "No keyword input")
+          need(isContentTruthy(main.env$local.rv$keywords$keyword), "No keyword input")
         )
         tagList(
           lapply(seq_along(main.env$local.rv$keywords$keyword), function(kid) {

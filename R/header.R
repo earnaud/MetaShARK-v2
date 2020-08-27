@@ -97,13 +97,14 @@
   # Unit types
   .all.units <- EML::get_unitList()
   .units <- "custom"
-  .names <- "custom"
+  .names <- "custom/custom"
   invisible(apply(.all.units$units[c("unitType", "name")], 1, function(row) {
     .units <<- c(.units, row["name"])
+    if(row["unitType"] %in% c("", "NA") || is.na(row["unitType"])) 
+      row["unitType"] <- "unsorted"
     .names <<- c(.names, paste(row, collapse = "/"))
   }))
-  .all.units <- .units
-  names(.all.units) <- .names
+  names(.units) <- .names
 
   assign(
     "FORMATS",
@@ -113,7 +114,7 @@
         "YYYY-MM", "YYYY-MM-DD", "YYYY-DD-MM",
         "MM-YYYY", "DD-MM-YYYY", "MM-DD-YYYY"
       ),
-      units = .all.units,
+      units = .units,
       dataone.list = .DATAONE.LIST,
       taxa.authorities = .TAXA.AUTHORITIES
     ),
@@ -149,6 +150,7 @@
     "EAL",
     reactiveValues(
       page = 1, # page number
+      page.load = makeReactiveTrigger(),
       history = isolate(main.env$VALUES$steps[1]), # all browsed pages names in steps
       current = isolate(main.env$VALUES$steps[1]), # last of history
       completed = FALSE, # is current page completed?
@@ -173,23 +175,6 @@
     envir = main.env
   )  
   
-  assign(
-    "pageLoad",
-    function(page.invoked, expr) {
-      page.reached <- isolate(main.env$EAL$page)
-      observeEvent(
-        main.env$EAL$page,
-        handlerExpr = c(
-          expression(req(page.reached == page.invoked)),
-          expr
-        ),
-        label = paste("RV loader page", page.invoked),
-        priority = -1
-      )
-    },
-    envir = main.env
-  )
-
   # Patterns ====
   assign(
     "PATTERNS",

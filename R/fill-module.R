@@ -100,7 +100,7 @@ fill <- function(id, main.env) {
     
     # * Quit ----
     {
-      # show modal on 'quit' button clicked
+      # show modal.state 'quit' button clicked
       observeEvent(input$quit, {
         req(input$quit)
         showModal(
@@ -193,6 +193,7 @@ fill <- function(id, main.env) {
         shinyjs::hide("quit")
       }
       updateTabsetPanel(session, "wizard-wizard", selected = steps[main.env$EAL$page])
+      main.env$EAL$page.load$trigger()
       
       # * Helps ====
       {
@@ -353,12 +354,13 @@ fill <- function(id, main.env) {
         )
       }
     },
+    priority = 1,
     label = "EAL0 update"
     )
     
     observeEvent(input$help, {
       showModal(main.env$EAL$help)
     })
-    # End ====
+    # (End) ====
   })
 }

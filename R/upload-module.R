@@ -257,13 +257,13 @@ upload <- function(id, main.env) {
     })
     observeEvent(input$data, {
       .add <- input$data
-      req(checkTruth(.add))
+      req(isContentTruthy(.add))
       browser() # Update list instead of erasing
       rv$data <- rbind(rv$data, .add)
     })
     observeEvent(input$scripts, {
       .add <- input$scripts
-      req(checkTruth(.add))
+      req(isContentTruthy(.add))
       browser() # Update list instead of erasing
       rv$scr <- rbind(input$scripts, .add)
     })
@@ -307,17 +307,17 @@ upload <- function(id, main.env) {
     observeEvent(input$rmv,
       {
         .rmv <- input$`md-files`
-        if (checkTruth(.rmv)) {
+        if (isContentTruthy(.rmv)) {
           .ind <- match(.rmv, rv$md$name)
           rv$md <- rv$md[-.ind, ]
         }
         .rmv <- input$`data-files`
-        if (checkTruth(.rmv)) {
+        if (isContentTruthy(.rmv)) {
           .ind <- match(.rmv, rv$data$name)
           rv$data <- rv$data[-.ind, ]
         }
         .rmv <- input$`scr-files`
-        if (checkTruth(.rmv)) {
+        if (isContentTruthy(.rmv)) {
           .ind <- match(.rmv, rv$scr$name)
           rv$scr <- rv$scr[-.ind, ]
         }

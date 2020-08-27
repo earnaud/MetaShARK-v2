@@ -45,7 +45,7 @@
 
   # Format content
   .tmp <- isolate(content$data.files)
-  if (!checkTruth(.tmp)) {
+  if (!isContentTruthy(.tmp)) {
     .tmp <- data.frame(
       name = character(),
       size = character(),
@@ -111,7 +111,7 @@
   )
   
   # Write Custom units
-  if (checkTruth(content$CU_Table)) {
+  if (isContentTruthy(content$CU_Table)) {
     data.table::fwrite(
       content$CU_Table,
       paste0(.sv$SelectDP$dp.metadata.path, "/custom_units.txt")
@@ -125,27 +125,26 @@
 #'
 #' @importFrom data.table fwrite
 .saveCatVars <- function(main.env){
-  .sv <- main.env$save.variable
   content <- main.env$local.rv
   
-  sapply(rv$catvarFiles, function(file_path) {
+  sapply(content$catvarFiles, function(file_path) {
     file_name <- basename(file_path)
     
     # Save
-    .sv$CatVars[[file_name]] <- content[[file_name]]$CatVars
-    .tmp <- .sv$CatVars[[file_name]]$code == ""
-    .sv$CatVars[[file_name]]$code[.tmp] <- "NA"
+    main.env$save.variable$CatVars[[file_name]] <- content[[file_name]]$CatVars
+    .tmp <- main.env$save.variable$CatVars[[file_name]]$code == ""
+    main.env$save.variable$CatVars[[file_name]]$code[.tmp] <- "NA"
 
     # Overwrite
     file.remove(file_path)
     data.table::fwrite(
-      .sv$CatVars[[file_name]],
+      main.env$save.variable$CatVars[[file_name]],
       file_path,
       sep = "\t"
     )
   })
 
-  return(.sv)
+  return(main.env$save.variable)
 }
 
 #' @noRd

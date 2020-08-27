@@ -36,7 +36,7 @@ insertPersonnelInput <- function(id, rv, ns, main.env, role = NULL, saved = NULL
 #' @noRd
 PersonnelModUI <- function(id, div.id, site.id, rmv.id,
                            role = NULL, saved = NULL) {
-  value <- if (checkTruth(saved)) {
+  value <- if (isContentTruthy(saved)) {
     saved[saved$id == div.id, ]
   } else {
     NULL
