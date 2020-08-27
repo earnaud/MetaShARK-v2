@@ -13,6 +13,7 @@ appUI <- function() {
 
   tagList(
     shinyjs::useShinyjs(),
+    shinyFeedback::useShinyFeedback(),
     shinyjs::inlineCSS("
       #loading-content {
         position: absolute;
@@ -31,12 +32,6 @@ appUI <- function() {
         padding-top: 5px !important;
       }
     "),
-    # tags$link(
-    #   crossorigin="anonymous",
-    #   href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css",
-    #   integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T",
-    #   rel="stylesheet"
-    # ),
     htmltools::includeCSS(
       system.file("app/www/styles.css", package = "MetaShARK")
     ),
@@ -47,8 +42,8 @@ appUI <- function() {
       shinydashboardPlus::loadingState(),
       tags$img(
         src = "media/sea_shark.png",
-        width = "50%",
-        height = "25%"
+        width = "473px",
+        height = "235px"
       )
     ),
     shinyjs::hidden(

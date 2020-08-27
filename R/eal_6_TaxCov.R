@@ -31,10 +31,11 @@ TaxCovUI <- function(id, main.env) {
 TaxCov <- function(id, full.id, main.env) {
   moduleServer(id, function(input, output, session) {
     # Variable Initialization ----
-    observeEvent(main.env$EAL$page, {
+    observe({
       req(main.env$EAL$page == 6)
+      main.env$EAL$page.load$depend()
       
-      if (all(sapply(printReactiveValues(main.env$save.variable$TaxCov), checkTruth))) {
+      if (all(sapply(printReactiveValues(main.env$save.variable$TaxCov), isContentTruthy))) {
         main.env$local.rv$taxa.table <- main.env$save.variable$TaxCov$taxa.table
         main.env$local.rv$taxa.col <- main.env$save.variable$TaxCov$taxa.col
         main.env$local.rv$taxa.name.type <- main.env$save.variable$TaxCov$taxa.authority

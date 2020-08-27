@@ -64,7 +64,7 @@ DataFiles <- function(id, full.id, main.env) {
     observeEvent(input$add_data_files,
       {
         # validity checks
-        req(checkTruth(input$add_data_files))
+        req(isContentTruthy(input$add_data_files))
         withProgress(
           {
             # retrieve data files info
@@ -82,7 +82,7 @@ DataFiles <- function(id, full.id, main.env) {
             # bind into input
             # empty variable
             if (isFALSE(
-              checkTruth(main.env$local.rv$data.files) && 
+              isContentTruthy(main.env$local.rv$data.files) && 
               all(dim(main.env$local.rv$data.files) > 0)
             )) {
               main.env$local.rv$data.files <- .loaded.files
@@ -254,8 +254,8 @@ DataFiles <- function(id, full.id, main.env) {
 
     # * Data size ----
     observeEvent(main.env$local.rv$data.files, {
-      req(checkTruth(main.env$local.rv$data.files))
-      files.size <- if (checkTruth(main.env$local.rv$data.files$size)) {
+      req(isContentTruthy(main.env$local.rv$data.files))
+      files.size <- if (isContentTruthy(main.env$local.rv$data.files$size)) {
         sum(main.env$local.rv$data.files$size)
       } else {
         0
@@ -290,7 +290,7 @@ DataFiles <- function(id, full.id, main.env) {
     observe({
       req(main.env$EAL$page == 2)
       invalidateLater(1000)
-      main.env$EAL$completed <- checkTruth(main.env$local.rv$data.files) &&
+      main.env$EAL$completed <- isContentTruthy(main.env$local.rv$data.files) &&
         all(dim(main.env$local.rv$data.files) > 0)
     },
     label = "EAL2: set completed"

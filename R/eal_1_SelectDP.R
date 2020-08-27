@@ -75,6 +75,14 @@ SelectDPUI <- function(id, main.env) {
             "Dataset title",
             placeholder = "Any title is a title"
           ),
+          tags$p(
+            "Only use alphanumerics, or one of:",
+            HTML(paste(
+              tags$code('  '), tags$code('.'), tags$code(','), 
+              tags$code(':'), tags$code('_'), tags$code('-'),
+              sep = "&nbsp&nbsp"
+            ))
+          ),
           tags$div(
             id = "license-help",
             selectInput(
@@ -89,7 +97,10 @@ SelectDPUI <- function(id, main.env) {
                <b>CC-BY-4.0:</b> open source with authorship. <br>
                For more details, visit Creative Commons."),
           # DP creation
-          uiOutput(NS(id, "dp_create"))
+          # uiOutput(NS(id, "dp_create"))
+          shinyjs::disabled(
+            actionButton(NS(id, "dp_create"), "Create")
+          )
         ) # end column2
       ) # end fluidRow
     ) # end fluidPage
@@ -110,8 +121,9 @@ SelectDP <- function(id, full.id, main.env) {
     collapsible("usage")
 
     # variable initialization ----
-    observeEvent(main.env$EAL$page, {
+    observe({
       req(main.env$EAL$page == 1)
+      main.env$EAL$page.load$depend()
       
       main.env$local.rv$dp.name <- reactive(input$dp_name)
       main.env$local.rv$dp.title <- reactive(input$dp_title)
@@ -232,39 +244,55 @@ SelectDP <- function(id, full.id, main.env) {
     )
 
     # DP create ----
-    # Show 'create' button if name is valid
-    output$dp_create <- renderUI({
-      validate(
-        need(
-          nchar(input$dp_name) > 3,
-          "Please type a name with at least 3 characters."
-        ),
-        need(
-          grepl("^[[:alnum:]_-]+$", input$dp_name)
-          && nzchar(input$dp_name),
-          "Only authorized characters are alphanumeric, '_' (underscore) and '-' (hyphen)."
-        ),
-        need(
-          input$dp_name != ""
-          && !(input$dp_name %in% main.env$local.rv$dp.list),
-          "This name is already used: change either save directory or data package name."
-        ),
-        need(
-          input$dp_title != ""
-          && grepl("^[[:alnum:]\\ \\.,:_-]+$", input$dp_title),
-          "This title has invalid character: use alphanumerics, or one of:",
-          HTML(paste(
-            tags$code('  '),
-            tags$code('.'),
-            tags$code(','),
-            tags$code(':'),
-            tags$code('_'),
-            tags$code('-'),
-            sep = "&nbsp&nbsp"
-          ))
+    # * Check name ----
+    observeEvent(input$dp_name, {
+      shinyjs::disable("dp_create") # default
+      shinyFeedback::hideFeedback("dp_name")
+      
+      if(nchar(input$dp_name) <= 3) {
+        shinyFeedback::showFeedbackDanger(
+          "dp_name",
+          "Not enough characters."
         )
-      )
-      return(actionButton(NS(full.id, "dp_create"), "Create"))
+      } else if(isFALSE(grepl("^[[:alnum:]_-]+$", input$dp_name))) {
+          shinyFeedback::showFeedbackDanger(
+            "dp_name",
+            "Only use alphanumeric, '_' and '-' characters."
+          )
+      } else if(input$dp_name %in% main.env$local.rv$dp.list) {
+        shinyFeedback::showFeedbackDanger(
+          "dp_name",
+          "Already used."
+        )
+      } else {
+        shinyFeedback::showFeedbackSuccess("dp_name")
+        shinyjs::enable("dp_create")
+      }
+    })
+    
+    # * Check title ----
+    observeEvent(input$dp_title, {
+      shinyjs::disable("dp_create")
+      shinyFeedback::hideFeedback("dp_title")
+      
+      if(nchar(input$dp_title) <= 3) {
+        shinyFeedback::showFeedbackDanger(
+          "dp_title",
+          "Not enough characters."
+        )
+      } else if(isFALSE(
+        grepl("^[[:alnum:]\\ \\.,:_-]+$", input$dp_title)
+      )) {
+        shinyFeedback::showFeedbackDanger(
+          "dp_title",
+          "Invalid characters used."
+        )
+      } else {
+        shinyFeedback::showFeedbackSuccess(
+          "dp_title"
+        )
+        shinyjs::enable("dp_create")
+      }
     })
 
     observeEvent(input$quick,
@@ -410,7 +438,7 @@ SelectDP <- function(id, full.id, main.env) {
       )
 
       # * datafiles
-      if (checkTruth(main.env$save.variable$DataFiles)) {
+      if (isContentTruthy(main.env$save.variable$DataFiles)) {
         sapply(names(main.env$save.variable$DataFiles), function(col) {
           main.env$save.variable$DataFiles[, col] <- gsub(
             pattern = ".*/dataPackagesOutput/emlAssemblyLine/",
@@ -426,7 +454,7 @@ SelectDP <- function(id, full.id, main.env) {
       }
 
       # * misc
-      if (checkTruth(main.env$save.variable$Misc$abstract$file)) {
+      if (isContentTruthy(main.env$save.variable$Misc$abstract$file)) {
         main.env$save.variable$Misc$abstract <- gsub(
           ".*/dataPackagesOutput/emlAssemblyLine/",
           main.env$PATHS$eal.dp,

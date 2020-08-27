@@ -62,8 +62,9 @@ MakeEMLUI <- function(id, main.env) {
 MakeEML <- function(id, full.id, main.env) {
   moduleServer(id, function(input, output, session) {
     # Variable initialization ----
-    observeEvent(main.env$EAL$page, {
+    observe({
       req(main.env$EAL$page == 9)
+      main.env$EAL$page.load$depend()
       
       out.file <- paste0(
         isolate(main.env$save.variable$SelectDP$dp.path),

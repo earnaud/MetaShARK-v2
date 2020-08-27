@@ -48,20 +48,21 @@ CatVarsUI <- function(id, main.env) {
 CatVars <- function(id, full.id, main.env) {
   moduleServer(id, function(input, output, session) {
     # variables initialization ----
-    observeEvent(main.env$EAL$page, {
+    observe({
       req(main.env$EAL$page == 4)
+      main.env$EAL$page.load$depend()
       
       # read metadata folder path
       .md.path <- isolate(main.env$save.variable$SelectDP$dp.metadata.path)
-      req(checkTruth(.md.path))
+      req(isContentTruthy(.md.path))
       main.env$local.rv$catvar.files <- list.files(
         .md.path,
         pattern = "catvar",
         full.names = TRUE
       )
       # update current file
-      req(checkTruth(main.env$local.rv$catvar.files))
-      main.env$local.rv$current.index <- as.numeric(checkTruth(main.env$local.rv$catvar.files))
+      req(isContentTruthy(main.env$local.rv$catvar.files))
+      main.env$local.rv$current.index <- as.numeric(isContentTruthy(main.env$local.rv$catvar.files))
       main.env$local.rv$current.file <- basename(main.env$local.rv$catvar.files[main.env$local.rv$current.index])
     },
     label = "EAL4: set local var"
@@ -69,6 +70,7 @@ CatVars <- function(id, full.id, main.env) {
 
     # Set each reactivevalues per file
     observeEvent(main.env$local.rv$catvar.files, {
+      req(main.env$EAL$page == 4)
       req(isTruthy(main.env$local.rv$catvar.files))
 
       sapply(main.env$local.rv$catvar.files, function(file.path) {
@@ -167,6 +169,7 @@ CatVars <- function(id, full.id, main.env) {
     # Navigation buttons ----
     # Previous file
     observeEvent(input$file_prev, {
+      req(main.env$EAL$page == 4)
       req(main.env$local.rv$current.index, main.env$local.rv$catvar.files)
       main.env$save.variable$CatVars[[main.env$local.rv$current.file]] <- main.env$local.rv[[main.env$local.rv$current.file]]$CatVars
       if (main.env$local.rv$current.index > 1) {
@@ -178,6 +181,7 @@ CatVars <- function(id, full.id, main.env) {
 
     # Next file
     observeEvent(input$file_next, {
+      req(main.env$EAL$page == 4)
       req(main.env$local.rv$current.index, main.env$local.rv$catvar.files)
       main.env$save.variable$CatVars[[main.env$local.rv$current.file]] <- main.env$local.rv[[main.env$local.rv$current.file]]$CatVars
       if (main.env$local.rv$current.index < length(main.env$local.rv$catvar.files)) {
@@ -189,6 +193,7 @@ CatVars <- function(id, full.id, main.env) {
 
     # Current file
     output$current_file <- renderUI({
+      req(main.env$EAL$page == 4)
       tags$div(
         main.env$local.rv$current.file,
         class = "ellipsis",
@@ -208,6 +213,7 @@ CatVars <- function(id, full.id, main.env) {
 
     # Set UI ----
     output$edit_catvar <- renderUI({
+      req(main.env$EAL$page == 4)
       validate(
         need(main.env$local.rv[[main.env$local.rv$current.file]]$UI, "No UI set.")
       )
@@ -216,27 +222,27 @@ CatVars <- function(id, full.id, main.env) {
 
     # Set Server ----
     # Suspend observers
-    observeEvent(main.env$local.rv$current.index,
-      {
-        req(main.env$local.rv$current.file)
-        sapply(main.env$local.rv[[main.env$local.rv$current.file]]$obs, function(obs) {
-          obs$suspend()
-        })
-      },
+    observeEvent(main.env$local.rv$current.index, {
+      req(main.env$EAL$page == 4)
+      req(main.env$local.rv$current.file)
+      sapply(main.env$local.rv[[main.env$local.rv$current.file]]$obs, function(obs) {
+        obs$suspend()
+      })
+    },
       label = "EAL4: suspend observers",
       priority = 2
     )
 
     # Run observers
-    observeEvent(main.env$local.rv$current.file,
-      {
-        req(main.env$local.rv$current.file)
-        sapply(main.env$local.rv[[main.env$local.rv$current.file]]$obs, function(obs) {
-          obs$resume()
-        })
-      },
-      label = "EAL4: run observers",
-      priority = 0
+    observeEvent(main.env$local.rv$current.file, {
+      req(main.env$EAL$page == 4)
+      req(main.env$local.rv$current.file)
+      sapply(main.env$local.rv[[main.env$local.rv$current.file]]$obs, function(obs) {
+        obs$resume()
+      })
+    },
+    label = "EAL4: run observers",
+    priority = 0
     )
 
     # Saves ----
@@ -246,7 +252,7 @@ CatVars <- function(id, full.id, main.env) {
       
       main.env$EAL$completed <- all(
         sapply(basename(main.env$local.rv$catvar.files), function(file.name) {
-          all(sapply(main.env$local.rv[[file.name]]$CatVars$definition, checkTruth))
+          all(sapply(main.env$local.rv[[file.name]]$CatVars$definition, isContentTruthy))
         })
       )
     },
@@ -254,15 +260,14 @@ CatVars <- function(id, full.id, main.env) {
     )
 
     # Process data ----
-    observeEvent(main.env$EAL$.next,
-      {
-        req(main.env$EAL$current == "Categorical Variables")
-        
-        saveReactive(main.env)
-      },
-      label = "EAL4: process data^",
-      priority = 1,
-      ignoreInit = TRUE
+    observeEvent(main.env$EAL$.next, {
+      req(main.env$EAL$page == 4)
+      
+      saveReactive(main.env)
+    },
+    label = "EAL4: process data",
+    priority = 1,
+    ignoreInit = TRUE
     )
   })
 }
