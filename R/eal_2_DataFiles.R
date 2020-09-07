@@ -55,7 +55,7 @@ DataFilesUI <- function(id, main.env) {
 #' @importFrom EMLassemblyline template_table_attributes
 #'
 #' @noRd
-DataFiles <- function(id, full.id, main.env) {
+DataFiles <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
     # Variable initialization ----
     
@@ -153,7 +153,7 @@ DataFiles <- function(id, full.id, main.env) {
         
         df <- main.env$local.rv$data.files
         checkboxGroupInput(
-          NS(full.id, "select_data_files"),
+          session$ns("select_data_files"),
           "Select files to delete (all files here will be kept otherwise)",
           choiceNames = lapply(
             df$name,
@@ -296,28 +296,20 @@ DataFiles <- function(id, full.id, main.env) {
     label = "EAL2: set completed"
     )
 
-    # Process data ----
-    observeEvent(main.env$EAL$.next, {
-      req(main.env$EAL$current == "Data Files")
-      # Save
-      saveReactive(main.env)
-      
-      # EMLAL templating function
-      x <- try(
-        EMLassemblyline::template_table_attributes(
-          path = isolate(main.env$save.variable$SelectDP$dp.metadata.path),
-          data.path = isolate(main.env$save.variable$SelectDP$dp.data.path),
-          data.table = isolate(main.env$save.variable$DataFiles$name)
-        )
-      )
-      if(class(x) == "try-error") {
-        main.env$EAL$page <- main.env$EAL$page - 1
-        browser()
-      }
-    },
-    priority = 1,
-    ignoreInit = TRUE,
-    label = "EAL2: process data"
-    )
+    # Process data (deprecated)
+    # observeEvent(main.env$EAL$page, {
+    #   req(main.env$EAL$old.page == 2)
+    #   message(NS(id, "proceed"))
+    #   
+    # * Templating
+    #   x <- template(main.env, main.env$EAL$old.page)
+    #   if(class(x) == "try-error") {
+    #     isolate({main.env$EAL$page <- main.env$EAL$page - 1})
+    #   }
+    # },
+    # priority = -1,
+    # ignoreInit = TRUE,
+    # label = "EAL2: process data"
+    # )
   })
 }

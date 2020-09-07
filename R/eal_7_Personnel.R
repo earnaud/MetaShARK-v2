@@ -32,7 +32,7 @@ PersonnelUI <- function(id, main.env) {
 #' @importFrom data.table fwrite
 #'
 #' @noRd
-Personnel <- function(id, full.id, main.env) {
+Personnel <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
     # Variable initialization ----
     observe({
@@ -130,20 +130,16 @@ Personnel <- function(id, full.id, main.env) {
     },
     label = "EAL7: continuous save")
 
-    # Process data ----
-    observeEvent(main.env$EAL$.next,
-      {
-        req(isContentTruthy(main.env$local.rv$Personnel))
-        req(main.env$EAL$current == "Personnel")
-        
-        saveReactive(main.env)
-        #   save.variable = main.env$save.variable,
-        #   rv = list(Personnel = rv)
-        # )
-      },
-      label = "EAL7: process data",
-      priority = 1,
-      ignoreInit = TRUE
-    )
+    # Process data (deprecated)
+    # observeEvent(main.env$EAL$.next,
+    #   {
+    #     req(main.env$EAL$old.page == 7)
+    #     
+    #     saveReactive(main.env)
+    #   },
+    #   label = "EAL7: process data",
+    #   priority = 1,
+    #   ignoreInit = TRUE
+    # )
   })
 }

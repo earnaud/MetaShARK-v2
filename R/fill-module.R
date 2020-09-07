@@ -2,8 +2,6 @@
 #'
 #' @noRd
 fillUI <- function(id, main.env) {
-  ns <- NS(id)
-  
   tabsetPanel(
     id = NS(id, "tabs"),
     tabPanel(
@@ -92,7 +90,6 @@ fill <- function(id, main.env) {
         what = .to.call,
         args = list(
           id =  .id,
-          full.id = NS(id, .id),
           main.env = main.env
         )
       )
@@ -132,7 +129,7 @@ fill <- function(id, main.env) {
         req(input$save_quit)
         
         # Save work at this state
-        saveReactive(main.env$save.variable)
+        saveReactive(main.env, main.env$EAL$page)
       },
       label = "EAL save+quit",
       ignoreInit = TRUE
@@ -154,22 +151,28 @@ fill <- function(id, main.env) {
     } # quit management
     
     # * Save ----
-    observeEvent(input$save, {saveReactive(main.env)})
+    observeEvent(input$save, {
+      saveReactive(main.env, main.env$EAL$page)
+    })
     
     # Navigation ====
     observeEvent(main.env$EAL$page, {
+      # * Save  & Template ----
+      if(main.env$EAL$old.page > 1)
+        saveReactive(main.env, main.env$EAL$old.page)
+      if(main.env$EAL$page > main.env$EAL$old.page)
+        template(main.env, main.env$EAL$old.page)
+      
       # * set EAL variables ----
-      # reset state
-      if (main.env$EAL$current == "Data Files") {
+      # left Data Files
+      if (main.env$EAL$old.page == 2) 
         unlink(main.env$PATHS$eal.tmp)
-      }
+      # reached Data Files
+      if (main.env$EAL$page == 2)
+        main.env$PATHS$eal.tmp <- tempdir()
       
       # Properly change page
       main.env$EAL$current <- main.env$VALUES$steps[main.env$EAL$page]
-      
-      if (main.env$EAL$current == "Data Files") {
-        main.env$PATHS$eal.tmp <- tempdir()
-      }
       
       main.env$EAL$tag.list <- tagList()
       main.env$local.rv <- setLocalRV(main.env)
@@ -180,8 +183,8 @@ fill <- function(id, main.env) {
       }
       
       # Savevar modification
-      main.env$save.variable$step <- main.env$EAL$page
-      main.env$save.variable$history <- main.env$EAL$history
+      main.env$save.variable$step <- main.env$EAL$page # save current location
+      main.env$save.variable$history <- main.env$EAL$history # erase old save
       
       if(main.env$EAL$page > 1) {
         shinyjs::show("help")
@@ -354,8 +357,7 @@ fill <- function(id, main.env) {
         )
       }
     },
-    priority = 1,
-    label = "EAL0 update"
+    label = "EAL0: change page"
     )
     
     observeEvent(input$help, {

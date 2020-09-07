@@ -1,10 +1,89 @@
+# Columns ====
+
+#' @importFrom stringr str_extract_all
+#'
+#' @noRd
+extractCoordinates <- function(main.env, coord.cols, .pattern, files.data) {
+  # initialize variables
+  if (coord.cols == "lat") {
+    coord.cols <- listReactiveValues(main.env$local.rv$custom$columns$lat)
+    coord.tags <- c("N", "S")
+  }
+  else if (coord.cols == "lon") {
+    coord.cols <- listReactiveValues(main.env$local.rv$custom$columns$lon)
+    coord.tags <- c("E", "W")
+  }
+  
+  # Extract proper coordinates
+  coordinates <- files.data[[coord.cols["file"]]][[coord.cols["col"]]] %>% # uniformize decimal separators
+    sapply(., gsub, pattern = ",", replacement = ".")
+  coord.index <- which(grepl(.pattern, coordinates))
+  coordinates <- coordinates[coord.index] %>%
+    unname() %>%
+    as.numeric()
+  
+  if (!is.data.frame(coordinates)) {
+    coordinates <- data.frame(
+      coordinates,
+      stringsAsFactors = FALSE
+    )
+  }
+  
+  # Check for having only two columns
+  if (dim(coordinates)[2] > 2) {
+    coordinates <- coordinates[, 1:2]
+  }
+  if (dim(coordinates)[2] == 1) {
+    coordinates <- cbind(coordinates, coordinates)
+  }
+  
+  if (dim(coordinates)[2] <= 2 && dim(coordinates)[2] > 0) {
+    # assign West and East / North and South to columns
+    coordinates[
+      coordinates[, 1] <= coordinates[, 2],
+    ] <- rev(coordinates[
+      coordinates[, 1] <= coordinates[, 2],
+    ])
+    
+    colnames(coordinates) <- coord.tags
+    if (all(coordinates[, 1] <= coordinates[, 2])) {
+      colnames(coordinates) <- rev(coord.tags)
+    }
+  }
+  
+  return(
+    list(
+      coordinates = coordinates,
+      coord.index = coord.index
+    )
+  )
+}
+
+# Custom ====
+
+#' @importFrom dplyr bind_rows
+#' @import shiny
+#'
+#' @noRd
+insertGeoCovInput <- function(id, main.env, default = NULL) {
+  # create the UI
+  new.ui <- GeoCovInputUI(id, default = default)
+  # insert the UI
+  insertUI(selector = "#inserthere", ui = new.ui)
+  # create the server
+  .ref = strsplit(id, "-") %>% unlist %>% tail(1)
+  GeoCovInput(id, main.env, ref = .ref)
+}
+
 #' @import shiny
 #' @importFrom shinyjs hidden
 #'
 #' @noRd
-GeoCovInputUI <- function(id, site.id, rmv.id, default = NULL) {
-  div.id <- id
+GeoCovInputUI <- function(id, site.id, default = NULL) {
+  # Variable initialization
+  site.id <- NS(id, "site")
 
+  # Get default ====
   if (!is.null(default)) {
     default <- as.vector(default)
     def.site <- default["geographicDescription"]
@@ -23,15 +102,16 @@ GeoCovInputUI <- function(id, site.id, rmv.id, default = NULL) {
     def.lon <- c(-90, 90)
   }
 
+  # UI ====
   tags$div(
     id = site.id,
     fluidRow(
       column(2, "Description", style = "text-align: right"),
-      column(9, textInput(NS(id, "site_description"), def.site, site.id)),
+      column(9, textInput(NS(id, "site_description"), def.site)),
       column(
         1,
         actionButton(
-          NS(id, rmv.id),
+          NS(id, "remove"),
           "",
           icon("trash"),
           class = "danger"
@@ -42,7 +122,7 @@ GeoCovInputUI <- function(id, site.id, rmv.id, default = NULL) {
       column(
         6,
         sliderInput(
-          NS(id, paste0("lat_", site.id)),
+          NS(id, "latitude"),
           tags$h4("Latitude"),
           min = -90, max = 90,
           value = def.lat,
@@ -56,7 +136,7 @@ GeoCovInputUI <- function(id, site.id, rmv.id, default = NULL) {
       column(
         6,
         sliderInput(
-          NS(id, paste0("lon_", site.id)),
+          NS(id, "longitude"),
           tags$h4("Longitude"),
           min = -180, max = 180,
           value = def.lon,
@@ -77,10 +157,11 @@ GeoCovInputUI <- function(id, site.id, rmv.id, default = NULL) {
 #' @importFrom shinyjs onclick
 #'
 #' @noRd
-GeoCovInput <- function(id, rv, rmv.id, site.id, ref) {
+GeoCovInput <- function(id, main.env, ref) {
+  # main.env$local.rv$custom$, rmv.id, site.id to get from main.env & id
   moduleServer(id, function(input, output, session) {
 
-    # Metadata acquisition ----
+    # Metadata acquisition ====
     local.rv <- reactiveValues(
       id = ref,
       geographicDescription = "",
@@ -91,7 +172,7 @@ GeoCovInput <- function(id, rv, rmv.id, site.id, ref) {
     )
 
     # site description
-    observeEvent(input$site_description,
+    observeEvent(input$site_description, 
       {
         req(input$site_description)
         local.rv$geographicDescription <- input$site_description
@@ -100,21 +181,21 @@ GeoCovInput <- function(id, rv, rmv.id, site.id, ref) {
     )
 
     # latitude
-    observeEvent(input[[paste0("lat_", site.id)]],
+    observeEvent(input$latitude,
       {
-        req(input[[paste0("lat_", site.id)]])
-        local.rv$northBoundingCoordinate <- max(input[[paste0("lat_", site.id)]])
-        local.rv$southBoundingCoordinate <- min(input[[paste0("lat_", site.id)]])
+        req(input$latitude)
+        local.rv$northBoundingCoordinate <- max(input$latitude)
+        local.rv$southBoundingCoordinate <- min(input$latitude)
       },
       priority = 1
     )
 
     # longitude
-    observeEvent(input[[paste0("lon_", site.id)]],
+    observeEvent(input$longitude,
       {
-        req(input[[paste0("lon_", site.id)]])
-        local.rv$eastBoundingCoordinate <- max(input[[paste0("lon_", site.id)]])
-        local.rv$westBoundingCoordinate <- min(input[[paste0("lon_", site.id)]])
+        req(input$longitude)
+        local.rv$eastBoundingCoordinate <- max(input$longitude)
+        local.rv$westBoundingCoordinate <- min(input$longitude)
       },
       priority = 1
     )
@@ -123,131 +204,38 @@ GeoCovInput <- function(id, rv, rmv.id, site.id, ref) {
     observeEvent(
       {
         input$site_description
-        input[[paste0("lat_", site.id)]]
-        input[[paste0("lon_", site.id)]]
+        input$latitude
+        input$longitude
       },
       {
         # Fetch correct index
-        ind <- match(ref, rv$id)
+        ind <- match(ref, main.env$local.rv$custom$id)
         if (is.na(ind)) {
-          ind <- length(rv$id) + 1
+          ind <- length(main.env$local.rv$custom$id) + 1
         }
 
-        # print values into rv at selected index
-        .actual.values <- printReactiveValues(local.rv)
-        rv$id <- c(rv$id, .actual.values["id"])
+        # print values into main.env$local.rv$custom$ at selected index
+        .actual.values <- listReactiveValues(local.rv)
+        main.env$local.rv$custom$id <- c(main.env$local.rv$custom$id, .actual.values["id"])
         .actual.values <- .actual.values[names(.actual.values) != "id"]
-        rv$coordinates[ind, ] <- .actual.values[colnames(rv$coordinates)]
+        main.env$local.rv$custom$coordinates[ind, ] <- .actual.values[colnames(main.env$local.rv$custom$coordinates)]
       },
       ignoreInit = TRUE,
       priority = 0
     )
 
     # Remove UI ----
-    shinyjs::onclick(rmv.id, {
+    observeEvent(input$remove, {
       # remove the UI
-      removeUI(selector = paste0("#", site.id), immediate = TRUE)
+      removeUI(selector = paste0("#", NS(id, "site")), immediate = TRUE)
 
       # unload the UI
-      ind <- match(ref, rv$id)
-      rv$coordinates <- rv$coordinates[-ind, ]
-      rv$id <- rv$id[-ind]
-    })
-
-    # Output ----
-    return(rv)
+      ind <- match(ref, main.env$local.rv$custom$id)
+      main.env$local.rv$custom$coordinates <- main.env$local.rv$custom$coordinates[-ind, ]
+      main.env$local.rv$custom$id <- main.env$local.rv$custom$id[-ind]
+    },
+    ignoreInit = TRUE,
+    label = paste("EAL5", NS(id, "remove"))
+    )
   })
-}
-
-#' @importFrom dplyr bind_rows
-#' @import shiny
-#'
-#' @noRd
-insertGeoCovInput <- function(id, rv, ns, default = NULL) {
-  # !!! warning: rv = rv$custom here !!!
-
-  # initialize IDs ----
-  div.id <- id
-  site.id <- paste0("site_", div.id)
-  rmv.id <- paste0("rmv_", div.id)
-
-  # Proper module server ----
-  # create the UI
-  new.ui <- GeoCovInputUI(ns(div.id), site.id, rmv.id, default = default)
-
-  # insert the UI
-  insertUI(selector = "#inserthere", ui = new.ui)
-
-  # create the server
-  rv <- GeoCovInput(div.id, rv, rmv.id, site.id, id)
-
-  # Output ----
-  return(rv)
-}
-
-#' @importFrom stringr str_extract_all
-#'
-#' @noRd
-extractCoordinates <- function(
-                               rv,
-                               coord.cols,
-                               .pattern,
-                               files.data) {
-  # initialize variables
-  if (coord.cols == "lat") {
-    coord.cols <- printReactiveValues(rv$columns$lat)
-    coord.tags <- c("N", "S")
-  }
-  else if (coord.cols == "lon") {
-    coord.cols <- printReactiveValues(rv$columns$lon)
-    coord.tags <- c("E", "W")
-  }
-
-  # Extract proper coordinates
-  coordinates <- files.data[[coord.cols["file"]]][[coord.cols["col"]]] %>% # uniformize decimal separators
-    sapply(.,
-      gsub,
-      pattern = ",",
-      replacement = "."
-    )
-  coord.index <- which(grepl(.pattern, coordinates))
-  coordinates <- coordinates[coord.index] %>%
-    unname() %>%
-    as.numeric()
-
-  if (!is.data.frame(coordinates)) {
-    coordinates <- data.frame(
-      coordinates,
-      stringsAsFactors = FALSE
-    )
-  }
-
-  # Check for having only two columns
-  if (dim(coordinates)[2] > 2) {
-    coordinates <- coordinates[, 1:2]
-  }
-  if (dim(coordinates)[2] == 1) {
-    coordinates <- cbind(coordinates, coordinates)
-  }
-
-  if (dim(coordinates)[2] <= 2 && dim(coordinates)[2] > 0) {
-    # assign West and East / North and South to columns
-    coordinates[
-      coordinates[, 1] <= coordinates[, 2],
-    ] <- rev(coordinates[
-      coordinates[, 1] <= coordinates[, 2],
-    ])
-
-    colnames(coordinates) <- coord.tags
-    if (all(coordinates[, 1] <= coordinates[, 2])) {
-      colnames(coordinates) <- rev(coord.tags)
-    }
-  }
-
-  return(
-    list(
-      coordinates = coordinates,
-      coord.index = coord.index
-    )
-  )
 }

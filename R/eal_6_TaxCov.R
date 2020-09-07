@@ -28,7 +28,7 @@ TaxCovUI <- function(id, main.env) {
 #' @importFrom shinyjs onclick
 #'
 #' @noRd
-TaxCov <- function(id, full.id, main.env) {
+TaxCov <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
     # Variable Initialization ----
     observe({
@@ -57,7 +57,7 @@ TaxCov <- function(id, full.id, main.env) {
       })
 
       selectInput(
-        NS(full.id, "taxa.table"),
+        session$ns("taxa.table"),
         "Files containing taxonomic references",
         choices = data.files,
         selected = value,
@@ -84,7 +84,7 @@ TaxCov <- function(id, full.id, main.env) {
 
       .embed(
         selectInput(
-          NS(full.id, "taxa.col"),
+          session$ns("taxa.col"),
           "Columns from selected files",
           choices = choices,
           selected = value
@@ -104,7 +104,7 @@ TaxCov <- function(id, full.id, main.env) {
       })
 
       checkboxGroupInput(
-        NS(full.id, "taxa.name.type"),
+        session$ns("taxa.name.type"),
         "Select one or both taxonomic name notation",
         c("scientific", "common"),
         selected = value
@@ -124,7 +124,7 @@ TaxCov <- function(id, full.id, main.env) {
       })
 
       selectInput(
-        NS(full.id, "taxa.authority"),
+        session$ns("taxa.authority"),
         "Select taxonomic authority.ies",
         choices = choices,
         selected = value,
@@ -225,7 +225,7 @@ TaxCov <- function(id, full.id, main.env) {
 
     # Saves ----
     observe({
-      req(main.env$EAL$current == "Taxonomic Coverage")
+      req(main.env$EAL$page == 6)
 
       main.env$EAL$completed <- all(
         length(main.env$local.rv$taxa.table) > 0 &&
@@ -233,77 +233,79 @@ TaxCov <- function(id, full.id, main.env) {
           length(main.env$local.rv$taxa.name.type) > 0 &&
           length(main.env$local.rv$taxa.authority) > 0
       )
-    },
-    label = "EAL6: set completed")
-
-    # Process data ----
-    observeEvent(main.env$EAL$.next, 
-      {
-        req(main.env$EAL$current == "Taxonomic Coverage")
-
-        choices <- c(
-          "Yes - Taxonomic coverage will be written as file" = if (main.env$EAL$completed) 1 else NULL,
-          "No - Taxonomic coverage will be left blank" = 0
-        )
-
-        nextTabModal <- modalDialog(
-          title = "Proceed Taxonomic Coverage",
-          tagList(
-            "You are getting ready to proceed.",
-            radioButtons(
-              NS(id, "filled"),
-              "Is Taxonomic Coverage filled?",
-              choices = choices
-            )
-          ),
-          footer = tagList(
-            modalButton("Cancel"),
-            actionButton(NS(id, "confirm"), "Proceed")
-          )
-        )
-
-        showModal(nextTabModal)
-      },
-      label = "EAL6: process data",
-      ignoreInit = TRUE
-    )
-
-    observeEvent(input$confirm, {
-      removeModal()
-      main.env$EAL$page <- 7
-      main.env$EAL$tag.list <- tagList()
-
-      # Write files
-      if (input$filled == "1") {
-        saveReactive(main.env)
-        #   save.variable = main.env$save.variable,
-        #   rv = list(TaxCov = rv)
-        # )
-
-        # Template coverage
-        try(
-          template_taxonomic_coverage(
-            main.env$save.variable$SelectDP$dp.metadata.path,
-            main.env$save.variable$SelectDP$dp.data.path,
-            taxa.table = main.env$local.rv$taxa.table,
-            taxa.col = main.env$local.rv$taxa.col,
-            taxa.name.type = main.env$local.rv$taxa.name.type,
-            taxa.authority = main.env$local.rv$taxa.authority
-          )
-        )
-        showNotification(
-          "Taxonomic Coverage has been written.",
-          type = "message"
+      
+      if(isFALSE(main.env$EAL$completed)) {
+        main.env$EAL$tag.list <- tagList(
+          tags$b("Incomplete coverage !"),
+          tags$p("Going to next step will skip taxonomic coverage.")
         )
       }
-      else {
-        showNotification(
-          "Taxonomic Coverage has been skipped.",
-          type = "message"
-        )
-      }
+      else
+        main.env$EAL$tag.list <- tagList()
     },
-    label = "EAL6: confirm process data"
+    label = "EAL6: set completed"
     )
+
+    # Process data (deprecated)
+    # observeEvent(main.env$EAL$page,
+    #   {
+    #     req(main.env$EAL$old.page == 6)
+    #     message(NS(id, "proceed"))
+    # 
+    #     choices <- c(
+    #       "Yes - Taxonomic coverage will be written as file" = if (main.env$EAL$completed) 1 else NULL,
+    #       "No - Taxonomic coverage will be left blank" = 0
+    #     )
+    # 
+    #     nextTabModal <- modalDialog(
+    #       title = "Proceed Taxonomic Coverage",
+    #       tagList(
+    #         "You are getting ready to proceed.",
+    #         radioButtons(
+    #           NS(id, "filled"),
+    #           "Is Taxonomic Coverage filled?",
+    #           choices = choices
+    #         )
+    #       ),
+    #       footer = tagList(
+    #         modalButton("Cancel"),
+    #         actionButton(NS(id, "confirm"), "Proceed")
+    #       )
+    #     )
+    # 
+    #     showModal(nextTabModal)
+    #   },
+    #   priority = 1,
+    #   label = "EAL6: process data",
+    #   ignoreInit = TRUE
+    # )
+    # 
+    # observeEvent(input$confirm, {
+    #   removeModal()
+    #   main.env$EAL$old.page <- main.env$EAL$page
+    #   main.env$EAL$page <- 7
+    #   main.env$EAL$tag.list <- tagList()
+    # 
+    #   # Write files
+    #   if (input$filled == "1") {
+    #     # Save metadata
+    #     saveReactive(main.env)
+    # 
+    #     # Template coverage
+    #     x <- template(main.env, main.env$EAL$old.page)
+    #     showNotification(
+    #       "Taxonomic Coverage has been written.",
+    #       type = "message"
+    #     )
+    #   }
+    #   else {
+    #     showNotification(
+    #       "Taxonomic Coverage has been skipped.",
+    #       type = "message"
+    #     )
+    #   }
+    # },
+    # label = "EAL6: confirm process data"
+    # )
   })
 }

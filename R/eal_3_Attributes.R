@@ -10,6 +10,8 @@ AttributesUI <- function(id, main.env) {
 
   return(
     fluidPage(
+      tags$b("TEST:"),
+      textOutput(NS(id, "testCU")),
       tagList(
         "Even if EML Assembly Line automatically infers most
         of your data's metadata, some steps need you to check
@@ -44,9 +46,13 @@ AttributesUI <- function(id, main.env) {
         )
       ),
       # Custom Units ----
-      tags$hr(),
-      fluidRow(
-        tableOutput(NS(id, "CUUI"))
+      tags$div(
+        id = "custom_units",
+        tags$hr(),
+        tags$h4("Custom units"),
+        fluidRow(
+          tableOutput(NS(id, "CUUI"))
+        )
       )
     ) # end fluidPage
   ) # end return
@@ -59,10 +65,10 @@ AttributesUI <- function(id, main.env) {
 #' @importFrom shinyBS bsCollapse bsCollapsePanel updateCollapse
 #'
 #' @noRd
-Attributes <- function(id, full.id, main.env) {
+Attributes <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
     
-    # Variable initialization ----
+    # Variable initialization (deprecated)
     
     # Navigation buttons ====
     # Previous file
@@ -157,6 +163,7 @@ Attributes <- function(id, full.id, main.env) {
     })
 
     # Form ====
+    
     # * UI ----
     output$edit_attributes <- renderUI({
       req(main.env$EAL$page == 3)
@@ -183,8 +190,7 @@ Attributes <- function(id, full.id, main.env) {
             function(row.index){
               isolate({
                 attributeInputListUI(
-                  id = NS(
-                    full.id, # fill-Attributes
+                  id = session$ns(
                     paste(
                       current.file,
                       row.index,
@@ -232,26 +238,31 @@ Attributes <- function(id, full.id, main.env) {
     ) # end of observeEvent
 
     # Custom units ====
+    output$testCU <- renderText({
+      main.env$local.rv$custom.units$modal.state
+    })
     
-    # * Set CU Input ----
-    observe({
+    # * CU Input ----
+    observeEvent({
+      if(main.env$EAL$page == 3)
+        main.env$local.rv$custom.units$trigger()
+      else 
+        FALSE
+    }, {
+    # observe({
       req(main.env$EAL$page == 3)
-      req(main.env$local.rv$custom.units$modal.state == "closed")
-      main.env$local.rv$custom.units$trigger$depend()
+      req(main.env$local.rv$custom.units$modal.state == "open")
       
-      .current.table <- main.env$local.rv$md.tables[[main.env$local.rv$current$file]]
+      .file <- main.env$local.rv$current$file
+      .current.table <- main.env$local.rv$md.tables[[.file]]
       
-      req(isContentTruthy(.current.table) && any(.current.table$unit == "custom"))
+      req(isContentTruthy(.current.table) && 
+            any(.current.table$unit == "custom"))
       
-      # Check the user is defining a custom values for a numeric variable
-      .row <- which(main.env$local.rv$md.tables[[main.env$local.rv$current$file]]$unit == "custom")
+      .row <- which(.current.table$unit == "custom")
       
       # Save input id being modified
-      main.env$local.rv$custom.units$unit.id <- c(
-        main.env$local.rv$current$file,
-        .row,
-        "unit"
-      )
+      main.env$local.rv$custom.units$unit.id <- c(.file, .row, "unit")
       
       # Set values for custom units if existing
       main.env$local.rv$custom.units$values <- if(isContentTruthy(main.env$local.rv$custom.units$table))
@@ -260,34 +271,38 @@ Attributes <- function(id, full.id, main.env) {
       else
         rep(NA, 5)
       
-      # Set modal flag on
-      main.env$local.rv$custom.units$modal.state <- "open"
-        
       # Properly show modal 
       showModal(
         customUnitsUI(
-          NS(full.id, "customUnits"),
+          session$ns("customUnits"),
           values = main.env$local.rv$custom.units$values,
           cu.table = main.env$local.rv$custom.units$table
         )
       )
     },
+    priority = -1,
     label = "EAL3: observe CU"
     )
     
-    # * Set CU server ----
+    # * CU server ----
     customUnits(
       "customUnits",
       main.env = main.env
     )
     
     # * Post-input ----
-    observe({
+    observeEvent({
+      if(main.env$EAL$page == 3)
+        main.env$local.rv$custom.units$trigger()
+      else 
+        FALSE
+    }, {
+    # observe({
       req(main.env$EAL$page == 3)
       req(main.env$local.rv$custom.units$modal.state == "closing")
-      main.env$local.rv$custom.units$trigger$depend()
       
-      .current.table <- main.env$local.rv$md.tables[[main.env$local.rv$current$file]]
+      .file <- main.env$local.rv$current$file
+      .current.table <- main.env$local.rv$md.tables[[.file]]
       .row <- main.env$local.rv$custom.units$unit.id[2]
       
       # Cancelled
@@ -306,7 +321,18 @@ Attributes <- function(id, full.id, main.env) {
           selected = main.env$local.rv$custom.units$values["id"]
         )
       }
-    })
+      
+      # Toggle custom units table render
+      shinyjs::toggle(
+        id = "custom_units",
+        condition = isFALSE(isContentTruthy(main.env$local.rv$custom.units$table))
+      )
+      
+      main.env$local.rv$custom.units$modal.state <- "closed"
+    },
+    priority = -1,
+    label = "EAL3: post-fill CU"
+    )
     
     # Verbose
     output$CUUI <- renderTable({
@@ -318,10 +344,8 @@ Attributes <- function(id, full.id, main.env) {
           "No custom units registered"
         )
       )
-      tagList(
-        tags$h4("Custom Units"),
-        main.env$local.rv$custom.units$table
-      )
+      
+      main.env$local.rv$custom.units$table
     })
     
     # Saves ----
@@ -330,135 +354,66 @@ Attributes <- function(id, full.id, main.env) {
       
       invalidateLater(1000)
       
-      main.env$EAL$completed <- FALSE
       req(
         length(main.env$local.rv$md.tables) != 0 &&
           !any(sapply(main.env$local.rv$md.tables, identical, y = data.frame()))
       )
       
       # * Check completeness ----
-      main.env$EAL$completed <- all(unlist(
-        # lapply:file
-        lapply(names(main.env$local.rv$completed), function(file) {
-          # Variable initialization
-          .current <- main.env$local.rv$current$file == match(file, names(main.env$local.rv$completed))
-          if(.current) .styles <- list()
-          
-          # lapply:row
-          .file.state <- lapply(
-            names(main.env$local.rv$completed[[file]]), 
-            function(row) {
-              # lapply:att
-              .row.state <- lapply(
-                names(main.env$local.rv$completed[[file]][[row]]),
-                function(att) {
-                  .state <- isTRUE(main.env$local.rv$completed[[file]][[row]][[att]]())
-                  .input.id <- paste(
-                    match(file, names(main.env$local.rv$completed)), 
-                    match(row, names(main.env$local.rv$completed[[file]])), 
-                    att,
-                    sep = "-"
-                  )
-                  
-                  # * Feedback ----
-                  if(.current) {
-                    shinyFeedback::hideFeedback(.input.id)
-                    
-                    if(.state)
-                      shinyFeedback::showFeedbackSuccess(.input.id)
-                    else  
-                      shinyFeedback::showFeedbackDanger(.input.id)
-                  }
-                  
-                  # Output
-                  return(.state)
-                }) # end of lapply:att
-              
-              # Update collapse
-              if(.current) {
-                .styles[[row]] <<- ifelse(
-                  isContentTruthy(.row.state),
-                  "success",
-                  "danger"
-                )
-              } # end of check current file
-              
-              # Output
-              return(.row.state)
-            }) # end of lapply:row
-          
-          if(main.env$local.rv$current$file == match(file, names(main.env$local.rv$completed))) {
-            shinyBS::updateCollapse(
-              session,
-              "Attributes-collapse",
-              style = .styles
-            )
-            shinyBS::updateCollapse(
-              session,
-              "collapse",
-              style = .styles
-            )
-          }
-          
-          # Output
-          return(.file.state)
-        }) # end of lapply:file
-      ))
+      main.env$EAL$completed <- all(
+        unlist(
+          listReactiveValues(
+            main.env$local.rv$completed
+          )
+        )
+      )
     },
     priority = -5,
     label = "EAL3: check completed"
     )
 
-    # Process data ----
-    observeEvent(main.env$EAL$.next, {
-      req(main.env$EAL$page == 3)
-      
-      withProgress({
-        setProgress(0.5, "Saving metadata")
-        
-        saveReactive(main.env)
-        
-        # for each attribute data frame
-        setProgress(0.8, "Importing catvar templates")
-        .do.template.catvars <- sapply(
-          seq_along(main.env$local.rv$md.filenames),
-          function(cur_ind) {
-            # check for direction: CustomUnits or CatVars
-            return(isTRUE("categorical" %in% main.env$local.rv$md.tables[[cur_ind]][, "class"]))
-          }
-        ) %>%
-          unlist() %>%
-          any()
-        
-        # EMLAL: template new fields if needed
-        if (isTRUE(.do.template.catvars)) {
-          try(
-            EMLassemblyline::template_categorical_variables(
-              path = main.env$save.variable$SelectDP$dp.metadata.path,
-              data.path = main.env$save.variable$SelectDP$dp.data.path
-            )
-          )
-        }
-        
-        setProgress(0.9, "Templating geographic coverage")
-        try(
-          EMLassemblyline::template_geographic_coverage(
-            path = main.env$save.variable$SelectDP$dp.metadata.path,
-            data.path = main.env$save.variable$SelectDP$dp.data.path,
-            empty = TRUE,
-            write.file = TRUE
-          )
-        )
-        
-        if (isFALSE(.do.template.catvars)) {
-          isolate(main.env$EAL$page <- main.env$EAL$page + 1)
-        }
-        incProgress(0.1)
-      })
-    },
-      label = "EAL3: process data",
-      priority = 1,
-      ignoreInit = TRUE
-    )
+    # Process data (deprecated)
+    # observeEvent(main.env$EAL$page, {
+    #   req(main.env$EAL$old.page == 3)
+    #   
+    #   # * Templating
+    #   # for each attribute data frame
+    #   .do.template.catvars <- sapply(
+    #     seq_along(main.env$local.rv$md.filenames),
+    #     function(cur_ind) {
+    #       # check for direction: CustomUnits or CatVars
+    #       return(isTRUE("categorical" %in% main.env$local.rv$md.tables[[cur_ind]][, "class"]))
+    #     }
+    #   ) %>%
+    #     unlist() %>%
+    #     any()
+    #   
+    #   # EMLAL: template new fields if needed
+    #   if (isTRUE(.do.template.catvars)) {
+    #     try(
+    #       EMLassemblyline::template_categorical_variables(
+    #         path = main.env$save.variable$SelectDP$dp.metadata.path,
+    #         data.path = main.env$save.variable$SelectDP$dp.data.path
+    #       )
+    #     )
+    #   }
+    #   
+    #   try(
+    #     EMLassemblyline::template_geographic_coverage(
+    #       path = main.env$save.variable$SelectDP$dp.metadata.path,
+    #       data.path = main.env$save.variable$SelectDP$dp.data.path,
+    #       empty = TRUE,
+    #       write.file = TRUE
+    #     )
+    #   )
+    #   
+    #   if (isFALSE(.do.template.catvars)) {
+    #     isolate(main.env$EAL$page <- main.env$EAL$page + 1)
+    #   }
+    # },
+    # priority = -1,
+    # label = "EAL3: process data",
+    # ignoreInit = TRUE
+    # )
   })
 }

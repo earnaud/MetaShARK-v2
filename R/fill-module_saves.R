@@ -1,3 +1,64 @@
+#' @import shiny
+#' @importFrom jsonlite write_json serializeJSON
+#'
+#' @noRd
+saveReactive <- function(main.env, page) {
+  if(is.null(main.env$local.rv))
+    stop("No content provided.")
+  if(is.null(main.env$save.variable))
+    stop("No save variable provided")
+  
+  withProgress({
+    isolate({
+      setProgress(1 / 3, "Save metadata")
+      
+      # Save local variable content ----
+      main.env$save.variable <- do.call(
+        switch(page,
+          ".saveSelectDP",
+          ".saveDataFiles",
+          ".saveAttributes",
+          ".saveCatVars",
+          ".saveGeoCov",
+          ".saveTaxCov",
+          ".savePersonnel",
+          ".saveMisc"
+        ),
+        args = list(
+          main.env
+        )
+      )
+      
+      setProgress(2 / 3, "Write JSON")
+      
+      # Save JSON ----
+      # Get + create path
+      path <- main.env$save.variable$SelectDP$dp.path
+      if(!dir.exists(path))
+        dir.create(path)
+      # Get + write file
+      filename <- main.env$save.variable$SelectDP$dp.name
+      location <- paste0(path, "/", filename, ".json")
+      if (file.exists(location))
+        file.remove(location)
+      jsonlite::write_json(
+        jsonlite::serializeJSON(
+          listReactiveValues(main.env$save.variable)
+        ),
+        location
+      )
+      
+      incProgress(1 / 3)
+    })
+  })
+  
+  showNotification(
+    paste("Saved:", main.env$EAL$current, "."),
+    duration = 2.5,
+    type = "message"
+  )
+}
+
 #' @noRd
 .saveSelectDP <- function(main.env){
   .sv <- main.env$save.variable
@@ -41,18 +102,11 @@
 #' @noRd
 .saveDataFiles <- function(main.env){
   .sv <- main.env$save.variable
-  content <- main.env$local.rv
+  .tmp <- main.env$local.rv$data.files
 
   # Format content
-  .tmp <- isolate(content$data.files)
   if (!isContentTruthy(.tmp)) {
-    .tmp <- data.frame(
-      name = character(),
-      size = character(),
-      type = character(),
-      datapath = character(),
-      stringsAsFactors = FALSE
-    )
+    message("Invalid content at ")
   }
   else {
     # -- Get files data
@@ -82,7 +136,7 @@
   
   # Save
   .sv$DataFiles <- .tmp
-  content$data.files$datapath <- .tmp$datapath
+  main.env$local.rv$data.files$datapath <- .tmp$datapath
 
   return(.sv)
 }
@@ -96,7 +150,7 @@
   content <- main.env$local.rv
 
   # Save
-  .sv$Attributes <- content$tables
+  .sv$Attributes <- content$md.tables
   names(.sv$Attributes) <- .sv$DataFiles$name
   
   # Write attribute tables
@@ -127,19 +181,19 @@
 .saveCatVars <- function(main.env){
   content <- main.env$local.rv
   
-  sapply(content$catvarFiles, function(file_path) {
-    file_name <- basename(file_path)
+  sapply(content$catvarFiles, function(file.path) {
+    file.name <- basename(file.path)
     
     # Save
-    main.env$save.variable$CatVars[[file_name]] <- content[[file_name]]$CatVars
-    .tmp <- main.env$save.variable$CatVars[[file_name]]$code == ""
-    main.env$save.variable$CatVars[[file_name]]$code[.tmp] <- "NA"
+    main.env$save.variable$CatVars[[file.name]] <- content$cv.tables[[file.name]]
+    .tmp <- main.env$save.variable$CatVars[[file.name]]$code == ""
+    main.env$save.variable$CatVars[[file.name]]$code[.tmp] <- "NA"
 
     # Overwrite
-    file.remove(file_path)
+    file.remove(file.path)
     data.table::fwrite(
-      main.env$save.variable$CatVars[[file_name]],
-      file_path,
+      main.env$save.variable$CatVars[[file.name]],
+      file.path,
       sep = "\t"
     )
   })
@@ -284,6 +338,9 @@
 .savePersonnel <- function(main.env){
   .sv <- main.env$save.variable
   content <- main.env$local.rv
+  
+  if(isFALSE(isContentTruthy(content$Personnel)))
+    return(.sv)
   
   # Save
   .sv$Personnel <- content$Personnel

@@ -83,23 +83,21 @@ pagesServer <- function(id, main.env) {
     
     changePage <- function(from, to, input, main.env) {
       observeEvent(input[[paste(from, to, sep = "_")]], {
-        if(isFALSE(main.env$EAL$page %in% 5:6)) # geocov & taxcov modals
+        if(main.env$EAL$page != 5) { # geocov modal
+          main.env$EAL$old.page <- main.env$EAL$page
           main.env$EAL$page <- main.env$EAL$page + to - from
-        if (to > from) {
-          main.env$EAL$.next <- main.env$EAL$.next + 1
         }
-        if (from > to) {
-          main.env$EAL$.prev <- main.env$EAL$.prev + 1
-        }
-      })
+      },
+      label = paste("changePage", from, to)
+      )
     }
     
     completeToggle <- function(from, to, main.env) {
-      observeEvent(main.env$EAL$completed, {
-        if(isTRUE(main.env$EAL$completed))
-          enable(paste(from, to, sep = "_"))
-        else
-          disable(paste(from, to, sep = "_"))
+      observe({
+        shinyjs::toggleState(
+          paste(from, to, sep = "_"),
+          condition = isTRUE(main.env$EAL$completed)
+        )
       })
     }
     
@@ -117,8 +115,7 @@ pagesServer <- function(id, main.env) {
     })
     
     # * Side UI ====
-    sapply(seq_along(isolate(main.env$EAL$page)), function(i) {
-      page <- isolate(main.env$VALUES$steps)[i]
+    sapply(isolate(main.env$VALUES$steps), function(page) {
       output[[paste0(page, "-tag_list")]] <- renderUI(main.env$EAL$tag.list)
     })
     

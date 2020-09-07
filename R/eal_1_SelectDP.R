@@ -114,7 +114,7 @@ SelectDPUI <- function(id, main.env) {
 #' @importFrom jsonlite read_json unserializeJSON
 #'
 #' @noRd
-SelectDP <- function(id, full.id, main.env) {
+SelectDP <- function(id,main.env) {
   moduleServer(id, function(input, output, session) {
 
     # Help server
@@ -168,24 +168,24 @@ SelectDP <- function(id, full.id, main.env) {
         )
         tagList(
           radioButtons(
-            NS(full.id, "dp_list"),
+            session$ns("dp_list"),
             NULL,
             choiceNames = c("None selected", main.env$local.rv$dp.list),
             choiceValues = c("", gsub(" \\(.*\\)$", "", main.env$local.rv$dp.list))
           ),
           actionButton(
-            NS(full.id, "dp_load"),
+            session$ns("dp_load"),
             "Load",
             icon = icon("folder-open")
           ),
           actionButton(
-            NS(full.id, "dp_delete"),
+            session$ns("dp_delete"),
             "Delete",
             icon = icon("minus-circle"),
             class = "redButton"
           ),
           downloadButton(
-            NS(full.id, "dp_download"),
+            session$ns("dp_download"),
             label = "Download .zip",
             icon = icon("file-download")
           ),
@@ -322,7 +322,7 @@ SelectDP <- function(id, full.id, main.env) {
             main.env$save.variable,
             main.env
           )
-          saveReactive(main.env); browser()
+          saveReactive(main.env, main.env$EAL$old.page)
           incProgress(0.2)
           
           dir.create(
@@ -331,41 +331,8 @@ SelectDP <- function(id, full.id, main.env) {
           )
           incProgress(0.2)
 
-          # EAL template import
-          try(
-            EMLassemblyline::template_directories(
-              main.env$save.variable$SelectDP$dp.path,
-              main.env$save.variable$SelectDP$dp.name
-            )
-          )
-          incProgress(0.2)
-          
-          x <- try(
-            EMLassemblyline::template_core_metadata(
-              main.env$save.variable$SelectDP$dp.metadata.path,
-              main.env$local.rv$dp.license()
-            )
-          )
-          incProgress(0.2)
-
-          if (class(x) != "try-error") {
-            main.env$local.rv$dp.list <- c(
-              main.env$local.rv$dp.list, 
-              main.env$local.rv$dp.name()
-            )
-            main.env$EAL$page <- main.env$EAL$page + 1
-            main.env$EAL$.load <- main.env$EAL$.load + 1
-          } else {
-            unlink(path, recursive = TRUE)
-            main.env$save.variable <- initReactive(main.env = main.env$EAL)
-            showNotification(
-              x,
-              type = "error",
-              closeButton = TRUE,
-              duration = NULL
-            )
-          }
-          incProgress(0.2)
+          x <- template(main.env, main.env$EAL$page)
+          incProgress(0.6)
         },
         message = paste(
           "Creating:", 
@@ -379,6 +346,7 @@ SelectDP <- function(id, full.id, main.env) {
     shinyjs::onclick("dp_load", {
       req(input$dp_list)
       shinyjs::disable("dp_load")
+      
       # variable operation - legibility purpose
       dp <- input$dp_list
       path <- paste0(main.env$PATHS$eal.dp, dp, "_emldp")
@@ -389,23 +357,23 @@ SelectDP <- function(id, full.id, main.env) {
         type = "message"
       )
 
-      # actions
+      # read variables
       main.env$save.variable <- initReactive("emlal", main.env$save.variable, main.env)
 
       .tmp <- jsonlite::read_json(paste0(path, "/", dp, ".json"))[[1]] %>%
         jsonlite::unserializeJSON()
+      
       # save.variable adaptations
       # TODO remove this later
+      
+      # - emlal/metafin difference
+      if (identical(names(.tmp), c("metafin", "emlal")))
+        .tmp <- .tmp$emlal
+      
       # - creator
       if(isFALSE("creator" %in% names(.tmp) && isTruthy(.tmp$creator)))
-        main.env$save.variable$creator <- if(isTRUE(main.env$SETTINGS$logged))
-          main.env$SETTINGS$user
-        else
-          "public"
-      # - emlal/metafin difference
-      if (identical(names(.tmp), c("metafin", "emlal"))) {
-        .tmp <- .tmp$emlal
-      }
+        .tmp$creator <- main.env$SETTINGS$user
+      
       # - history
       .tmp$history <- sapply(.tmp$history, function(h) {
         switch(h,
@@ -419,9 +387,11 @@ SelectDP <- function(id, full.id, main.env) {
                h # unchanged
         )
       }) %>% unname()
-      # - quick mode
+      
+      # - check quick mode
       .tmp$quick <- isTRUE(.tmp$quick)
-      # Once prepared, properly set variable
+      
+      # Once prepared, properly merge tmp and save variables
       main.env$save.variable <- setSaveVariable(.tmp, main.env$save.variable)
 
       # Update paths from another file system
@@ -430,7 +400,7 @@ SelectDP <- function(id, full.id, main.env) {
         names(main.env$save.variable$SelectDP),
         function(.dp.item) {
           main.env$save.variable$SelectDP[[.dp.item]] <- gsub(
-            pattern = ".*/dataPackagesOutput/emlAssemblyLine/",
+            pattern = "^.*/dataPackagesOutput/emlAssemblyLine/",
             replacement = main.env$PATHS$eal.dp,
             main.env$save.variable$SelectDP[[.dp.item]]
           )
@@ -473,15 +443,15 @@ SelectDP <- function(id, full.id, main.env) {
       }
 
       # resume at saved page
-      if(main.env$save.variable$step == 1){
+      if(main.env$save.variable$step == 1){ # crashed on going to next
         main.env$EAL$page <- main.env$save.variable$step+1
         main.env$EAL$history <- main.env$VALUES$steps[1:main.env$EAL$page]
       }
-      else{
+      else{ # expected normal way
         main.env$EAL$page <- main.env$save.variable$step
         main.env$EAL$history <- main.env$save.variable$history
       }
-      main.env$EAL$.load <- main.env$EAL$.load + 1
+      
       shinyjs::enable("dp_load")
     })
 
@@ -501,7 +471,7 @@ SelectDP <- function(id, full.id, main.env) {
           footer = tagList(
             modalButton("No"),
             actionButton(
-              NS(full.id, "delete_confirm"), "Yes",
+              session$ns("delete_confirm"), "Yes",
               class = "redButton"
             )
           ) # end footer
