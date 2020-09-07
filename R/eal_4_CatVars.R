@@ -45,136 +45,18 @@ CatVarsUI <- function(id, main.env) {
 #' @importFrom shinyjs onclick
 #'
 #' @noRd
-CatVars <- function(id, full.id, main.env) {
+CatVars <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-    # variables initialization ----
-    observe({
-      req(main.env$EAL$page == 4)
-      main.env$EAL$page.load$depend()
-      
-      # read metadata folder path
-      .md.path <- isolate(main.env$save.variable$SelectDP$dp.metadata.path)
-      req(isContentTruthy(.md.path))
-      main.env$local.rv$catvar.files <- list.files(
-        .md.path,
-        pattern = "catvar",
-        full.names = TRUE
-      )
-      # update current file
-      req(isContentTruthy(main.env$local.rv$catvar.files))
-      main.env$local.rv$current.index <- as.numeric(isContentTruthy(main.env$local.rv$catvar.files))
-      main.env$local.rv$current.file <- basename(main.env$local.rv$catvar.files[main.env$local.rv$current.index])
-    },
-    label = "EAL4: set local var"
-    )
-
-    # Set each reactivevalues per file
-    observeEvent(main.env$local.rv$catvar.files, {
-      req(main.env$EAL$page == 4)
-      req(isTruthy(main.env$local.rv$catvar.files))
-
-      sapply(main.env$local.rv$catvar.files, function(file.path) {
-        file.name <- basename(file.path)
-        main.env$local.rv[[file.name]] <- reactiveValues()
-
-        # * Init data frame ====
-        main.env$local.rv[[file.name]]$CatVars <- fread(
-          file.path,
-          data.table = FALSE, stringsAsFactors = FALSE,
-          na.strings = "NA"
-        ) %>%
-          dplyr::mutate(
-            definition = if (definition == "NA" || is.na(definition)) {
-              paste("Value:", code, "for attribute:", attributeName)
-            } else {
-              definition
-            }
-          )
-
-        # * Write UI ====
-        .content <- lapply(
-          unique(main.env$local.rv[[file.name]]$CatVars$attributeName),
-          function(attribute) {
-            # get codes aka values for `attribute` in catvar_*.txt
-            codes <- main.env$local.rv[[file.name]]$CatVars %>%
-              dplyr::filter(attributeName == attribute) %>%
-              dplyr::select(code)
-
-            shinyBS::bsCollapsePanel(
-              title = attribute,
-              # value = attribute,
-              ... = tagList(
-                lapply(unlist(codes), function(cod) {
-                  if (is.na(cod)) {
-                    cod <- "NA"
-                  }
-
-                  input.id <- paste(
-                    attribute,
-                    cod %>%
-                      gsub("[ [:punct:]]", "", .),
-                    sep = "-"
-                  )
-
-                  textAreaInput(
-                    NS(id, input.id),
-                    cod,
-                    value = main.env$local.rv[[file.name]]$CatVars %>%
-                      dplyr::filter(attributeName == attribute, code == cod) %>%
-                      dplyr::select(definition) %>%
-                      unique()
-                  )
-                })
-              ) # end of "tagapply" -- text areas
-            ) # end of bsCollapsePanel
-          }
-        ) # end of "tagapply" -- collapse boxes
-
-        main.env$local.rv[[file.name]]$UI <- do.call(
-          shinyBS::bsCollapse,
-          c(
-            .content,
-            id = file.name,
-            multiple = FALSE
-          )
-        )
-
-        # * Write server ====
-        main.env$local.rv[[file.name]]$obs <- sapply(
-          seq(dim(main.env$local.rv[[file.name]]$CatVars)[1]),
-          function(row) {
-            input.id <- paste(
-              main.env$local.rv[[file.name]]$CatVars$attributeName[row],
-              main.env$local.rv[[file.name]]$CatVars$code[row] %>%
-                gsub("[ [:punct:]]", "", .),
-              sep = "-"
-            )
-
-            return(
-              observeEvent(input[[input.id]],
-                {
-                  req(input[[input.id]])
-                  main.env$local.rv[[file.name]]$CatVars[row, "definition"] <- input[[input.id]]
-                },
-                suspended = TRUE
-              )
-            )
-          }
-        )
-      })
-    }, 
-    label = "EAL4: set rv per file"
-    )
+    
+    # Variables initialization (deprecated)
 
     # Navigation buttons ----
     # Previous file
     observeEvent(input$file_prev, {
       req(main.env$EAL$page == 4)
-      req(main.env$local.rv$current.index, main.env$local.rv$catvar.files)
-      main.env$save.variable$CatVars[[main.env$local.rv$current.file]] <- main.env$local.rv[[main.env$local.rv$current.file]]$CatVars
-      if (main.env$local.rv$current.index > 1) {
-        main.env$local.rv$current.index <- main.env$local.rv$current.index - 1
-      }
+      req(main.env$local.rv$current$index > 1)
+      
+      main.env$local.rv$current$index <- main.env$local.rv$current$index - 1
     },
     label = "EAL4: previous file"
     )
@@ -182,92 +64,176 @@ CatVars <- function(id, full.id, main.env) {
     # Next file
     observeEvent(input$file_next, {
       req(main.env$EAL$page == 4)
-      req(main.env$local.rv$current.index, main.env$local.rv$catvar.files)
-      main.env$save.variable$CatVars[[main.env$local.rv$current.file]] <- main.env$local.rv[[main.env$local.rv$current.file]]$CatVars
-      if (main.env$local.rv$current.index < length(main.env$local.rv$catvar.files)) {
-        main.env$local.rv$current.index <- main.env$local.rv$current.index + 1
-      }
+      req(main.env$local.rv$current$index < length(main.env$local.rv$cv.files))
+      
+      main.env$local.rv$current$index <- main.env$local.rv$current$index + 1
     },
     label = "EAL4: next file"
     )
 
+    # En/disable buttons
+    observe({
+      req(main.env$EAL$page == 4)
+      
+      shinyjs::toggleState(
+        "file_prev", 
+        condition = main.env$local.rv$current$index > 1
+      )
+      shinyjs::toggleState(
+        "file_next",
+        condition = main.env$local.rv$current$index < length(main.env$local.rv$cv.files)
+      )
+    })
+    
+    # update table
+    observeEvent({
+      input$file_next
+      input$file_prev
+      main.env$EAL$page
+    }, {
+      req(main.env$EAL$page == 4)
+      req(main.env$local.rv$current$index > 0)
+      
+      # shortcut for read variable
+      main.env$local.rv$current$file <- basename(main.env$local.rv$cv.files[[main.env$local.rv$current$index]])
+      .file.name <- main.env$local.rv$current$file
+      
+      # Changes
+      # - remove NA from current table
+      .table <- main.env$local.rv$cv.tables[[.file.name]]
+      .table[is.na(.table)] <- ""
+      main.env$local.rv$cv.tables[[.file.name]] <- .table
+    },
+    ignoreNULL = FALSE,
+    label = "EAL4: update table",
+    priority = -1
+    )
+    
     # Current file
     output$current_file <- renderUI({
       req(main.env$EAL$page == 4)
       tags$div(
-        main.env$local.rv$current.file,
+        main.env$local.rv$current$file,
         class = "ellipsis",
         style = paste0(
           "display: inline-block;
-        font-size:14pt;
-        text-align:center;
-        width:100%;
-        background: linear-gradient(90deg, #3c8dbc ",
-          round(100 * main.env$local.rv$current.index / length(main.env$local.rv$catvar.files)),
+          font-size:14pt;
+          text-align:center;
+          width:100%;
+          background: linear-gradient(90deg, #3c8dbc ",
+          round(100 * main.env$local.rv$current$index / length(main.env$local.rv$cv.files)),
           "%, white ",
-          round(100 * main.env$local.rv$current.index / length(main.env$local.rv$catvar.files)),
+          round(100 * main.env$local.rv$current$index / length(main.env$local.rv$cv.files)),
           "%);"
         )
       )
     })
 
-    # Set UI ----
+    # Form ====
+    
+    # * UI ----
     output$edit_catvar <- renderUI({
       req(main.env$EAL$page == 4)
-      validate(
-        need(main.env$local.rv[[main.env$local.rv$current.file]]$UI, "No UI set.")
-      )
-      main.env$local.rv[[main.env$local.rv$current.file]]$UI
+
+      .current.file <- main.env$local.rv$current$file
+      isolate({
+        .current.table <- main.env$local.rv$cv.tables[[.current.file]]
+      })
+      
+      req(isContentTruthy(.current.table))
+      
+      do.call(
+        shinyBS::bsCollapse,
+        args = c(
+          ... = lapply(
+            unique(.current.table$attributeName),
+            function(attribute)
+              isolate({
+                CatVarsInputUI(session$ns(attribute), attribute, main.env)
+              })
+          ),
+          id = NS(id, "collapse")
+        ) # end of bsCollapse
+      ) # end do.call
     }) # end of renderUI
 
-    # Set Server ----
-    # Suspend observers
-    observeEvent(main.env$local.rv$current.index, {
+    # * Server ----
+    observeEvent({
+      input$file_next
+      input$file_prev
+      main.env$EAL$page
+    }, {
       req(main.env$EAL$page == 4)
-      req(main.env$local.rv$current.file)
-      sapply(main.env$local.rv[[main.env$local.rv$current.file]]$obs, function(obs) {
-        obs$suspend()
+      
+      # Shortcuts
+      .current.file <- main.env$local.rv$current$file
+      isolate({
+        .current.table <- main.env$local.rv$cv.tables[[.current.file]]
       })
+      
+      req(isContentTruthy(.current.table))
+      
+      lapply(
+        unique(.current.table$attributeName),
+        function(attribute){
+          CatVarsInput(attribute, attribute, main.env)
+        }
+      )
     },
-      label = "EAL4: suspend observers",
-      priority = 2
-    )
-
-    # Run observers
-    observeEvent(main.env$local.rv$current.file, {
-      req(main.env$EAL$page == 4)
-      req(main.env$local.rv$current.file)
-      sapply(main.env$local.rv[[main.env$local.rv$current.file]]$obs, function(obs) {
-        obs$resume()
-      })
-    },
-    label = "EAL4: run observers",
-    priority = 0
-    )
-
+    ignoreNULL = FALSE,
+    label = "EAL4: set server",
+    priority = -2
+    ) # end of observeEvent
+    
     # Saves ----
     observe({
       req(main.env$EAL$page == 4)
-      req(main.env$local.rv$catvar.files)
+      invalidateLater(1000)
+      req(isContentTruthy(main.env$local.rv$cv.files))
       
-      main.env$EAL$completed <- all(
-        sapply(basename(main.env$local.rv$catvar.files), function(file.name) {
-          all(sapply(main.env$local.rv[[file.name]]$CatVars$definition, isContentTruthy))
-        })
-      )
+      main.env$EAL$completed <- sapply(
+        seq(names(main.env$local.rv$cv.tables)),
+        function(.file.index) {
+          .file <- names(main.env$local.rv$cv.tables)[.file.index]
+          .table <- main.env$local.rv$cv.tables[[.file]]
+          sapply(seq(.table$definition), function(.row.index) {
+            # Check for a completed form
+            .valid <- isTruthy(.table[.row.index, "definition"])
+            
+            # Add feedback to input form
+            input.id <- paste0(
+              .table[1, "attributeName"],
+              "-", .table[1, "code"]
+            )
+            shinyFeedback::hideFeedback(input.id)
+
+            if(isTRUE(.valid))
+              shinyFeedback::showFeedbackSuccess(input.id)
+            else
+              shinyFeedback::showFeedbackDanger(
+                input.id,
+                text = "Invalid description provided."
+              )
+            
+            # Return
+            return(.valid)
+          })
+        }
+      ) %>% all
     },
     label = "EAL4: continuous save"
     )
 
-    # Process data ----
-    observeEvent(main.env$EAL$.next, {
-      req(main.env$EAL$page == 4)
-      
-      saveReactive(main.env)
-    },
-    label = "EAL4: process data",
-    priority = 1,
-    ignoreInit = TRUE
-    )
+    # Process data (deprecated)
+    # observeEvent(main.env$EAL$.next, {
+    #   message("Next")
+    #   req(main.env$EAL$old.page == 4)
+    #   
+    #   saveReactive(main.env, 4)
+    # },
+    # label = "EAL4: process data",
+    # priority = 1,
+    # ignoreInit = TRUE
+    # )
   })
 }

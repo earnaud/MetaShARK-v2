@@ -72,7 +72,7 @@ attributeInputList <- function(id, row.index, main.env) {
     # Toggle dates & units ====
     observe({
       main.env$local.rv$current$update.view$depend()
-      
+
       # Date
       shinyjs::toggle(
         "dateTimeFormatString",
@@ -83,7 +83,9 @@ attributeInputList <- function(id, row.index, main.env) {
         "unit",
         condition = input$class == "numeric"
       )
-    })
+    },
+    autoDestroy = FALSE
+    )
     
     # Preview ====
     output[[paste0("preview-", .row[1])]] <- renderTable(
@@ -156,6 +158,8 @@ attributeInputUI <- function(id, colname, value, formats, rv) {
 #' @import shiny
 #' @importFrom shinyjs show hide
 attributeInput <- function(input, id, colname, main.env, row.index) {
+  # NOTE known unusual syntax
+  
   # moduleServer(id, function(input, output, session) {
   observeEvent(input[[id]], {
     req(input[[id]])
@@ -190,22 +194,78 @@ attributeInput <- function(input, id, colname, main.env, row.index) {
     
     # Units ====
     if (id == "unit") {
-      req(input$class == "numeric")
+      req(input$class == "numeric" && .value != "NA")
       # Trigger CU edition if "custom" is selected
       if (.value == "custom" && 
-          main.env$local.rv$custom.units$modal.state == "closed") {
-        main.env$local.rv$custom.units$trigger$trigger()
+          main.env$local.rv$custom.units$modal.state == "closed"){
+        main.env$local.rv$custom.units$modal.state <- "open"
       }
       
       # Check back for custom units
-      lapply(main.env$local.rv$md.tables, function(table){
-        if(isFALSE(all(
-          main.env$local.rv$custom.units$table$id %in% table$unit
-        ))) {
-          .ind <- which(!main.env$local.rv$custom.units$table$id %in% table$unit)
-          main.env$local.rv$custom.units$table$id <- main.env$local.rv$custom.units$table$id[-ind,]
-        }
-      })
+      # - get all units columns from attributes table
+      .attribute.units <- lapply(main.env$local.rv$md.tables, function(.table){
+        .table$unit
+      }) %>% unlist %>% unique
+      # - check if custom units are not found among them
+      .notfoundcu <- isFALSE(main.env$local.rv$custom.units$table$id %in% .attribute.units)
+      if(any(.notfoundcu)) {
+        # - remove not found custom units
+        .ind <- which(.notfoundcu)
+        main.env$local.rv$custom.units$table$id <- main.env$local.rv$custom.units$table$id[-.ind,]
+      }
+    }
+    
+    # Completeness ====
+    .file <- main.env$local.rv$current$file
+    .file.name <- main.env$local.rv$md.filenames[.file]
+    .row <- .current.table[row.index, "attributeName"]
+    
+    main.env$local.rv$completed[[.file.name]][[.row]][[id]] <- switch(
+      id,
+      # attributeDefinition
+      attributeDefinition = isTruthy(input[[id]]),
+      # class
+      class = isTruthy(input[[id]]),
+      # dateTimeFormatString
+      dateTimeFormatString = {
+        if(main.env$local.rv$md.tables[[.file]][row.index, "class"] == "Date") 
+          isTruthy(input[[id]]) && isFALSE(grepl("^!.*!$", input[[id]]))
+        else
+          TRUE
+      },
+      # unit
+      unit = {
+        if(main.env$local.rv$md.tables[[.file]][row.index, "class"] == "numeric") 
+          isTruthy(input[[id]]) &&
+          input[[id]] != "custom" && input[[id]] != "NA" &&
+          isFALSE(grepl("^!.*!$", input[[id]]))
+        else
+          TRUE
+      },
+      TRUE
+    )
+    
+    # Feedback
+    shinyFeedback::hideFeedback(id)
+    
+    if(isTRUE(main.env$local.rv$completed[[.file.name]][[.row]][[id]]))
+      shinyFeedback::showFeedbackSuccess(id)
+    else {
+      if(id == "unit" && .value == "custom")
+        shinyFeedback::showFeedbackWarning(
+          id,
+          text = "describe the custom unit"
+        )
+      else if(id %in% c("attributeDefinition", "dateTimeFormatString", "unit"))
+        shinyFeedback::showFeedbackDanger(
+          id,
+          text = "invalid value provided"
+        )
+      else if(id == "missingValueCode")
+        shinyFeedback::showFeedbackWarning(
+          id, 
+          text = "blank code means 'no missing value'"
+        )
     }
     
     # Set values ====
@@ -214,7 +274,7 @@ attributeInput <- function(input, id, colname, main.env, row.index) {
       (id == "unit" && .current.table[row.index, "class"] != "numeric") ||
       (id == "dateTimeFormatString" && .current.table[row.index, "class"] != "Date")
     ) {
-      # If selected class does not match unit or date, set input to blank
+      # If selected class does not match unit or date, force set input to blank
       .value <- ""
     }
     
@@ -223,7 +283,8 @@ attributeInput <- function(input, id, colname, main.env, row.index) {
       main.env$local.rv$md.tables[[main.env$local.rv$current$file]] <- .current.table
     })
   },
-  label = id
+  label = id,
+  ignoreInit = FALSE
   )
 }
 
@@ -231,6 +292,7 @@ attributeInput <- function(input, id, colname, main.env, row.index) {
 setUnitList <- function(main.env) {
   # Flat list
   choices <- c(
+    "---/NA" = NA,
     {
       .tmp <- main.env$local.rv$custom.units$table$id
       if(isTruthy(.tmp))
@@ -314,7 +376,6 @@ customUnits <- function(id, main.env) {
       
       # Close modal
       main.env$local.rv$custom.units$modal.state <- "closing"
-      main.env$local.rv$custom.units$trigger$trigger()
       removeModal()
       
       # Set CU values
@@ -353,7 +414,6 @@ customUnits <- function(id, main.env) {
       # Close modal
       removeModal()
       main.env$local.rv$custom.units$modal.state <- "closing"
-      main.env$local.rv$custom.units$trigger$trigger()
       
       isolate({
         main.env$local.rv$custom.units$values <- c(

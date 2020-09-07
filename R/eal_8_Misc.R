@@ -135,7 +135,7 @@ MiscUI <- function(id, main.env) {
 #' @importFrom data.table fread
 #'
 #' @noRd
-Misc <- function(id, full.id, main.env) {
+Misc <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
     # Variable initialization ----
 
@@ -172,7 +172,7 @@ Misc <- function(id, full.id, main.env) {
             .val <- main.env$local.rv$keywords$keyword.thesaurus[kid]
 
             textInput(
-              NS(full.id, paste0("thesaurus-for-", keyword)),
+              session$ns(paste0("thesaurus-for-", keyword)),
               keyword,
               value = if (isTruthy(.val)) .val else ""
             )
@@ -236,16 +236,16 @@ Misc <- function(id, full.id, main.env) {
     label = "EAL8: saves"
     )
 
-    # Process data ----
-    observeEvent(main.env$EAL$.next,
-      {
-        req(main.env$EAL$current == "Miscellaneous")
-        
-        saveReactive(main.env)
-      },
-      label = "EAL8: process data",
-      priority = 1,
-      ignoreInit = TRUE
-    )
+    # Process data (deprecated)
+    # observeEvent(main.env$EAL$.next,
+    #   {
+    #     req(main.env$EAL$old.page == 8)
+    #     
+    #     saveReactive(main.env)
+    #   },
+    #   label = "EAL8: process data",
+    #   priority = 1,
+    #   ignoreInit = TRUE
+    # )
   })
 }

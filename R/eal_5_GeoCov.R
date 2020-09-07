@@ -6,59 +6,56 @@ GeoCovUI <- function(id, main.env) {
   return(
     fluidPage(
       fluidRow(
-        tags$p("You can fill in geographic coverage through two
-          methods: either  by chosing columns from your file, or 
-          using the custom input UI. If both are filled, the software 
-          will prefer to save the columns, but on proceeding to next
-          step, the choice will be yours."),
-        tags$p("Make sure all of your locations are stored in a
-            single file, under 3 to 5 columns: one for the site description
-            and one or two others for latitude and longitude. Southern latitude
-            and western longitude shall be noted with negative values."),
-        bsCollapse(
-          id = NS(id, "method"),
-          bsCollapsePanel(
-            title = "Use dataset's geographic variables",
-            value = 1,
-            tagList(
-              uiOutput(NS(id, "site-ui")),
-              uiOutput(NS(id, "latitude-ui")),
-              div(
-                id = NS(id, "latiWarn"),
-                textOutput(NS(id, "latitude-warning"))
-              ),
-              uiOutput(NS(id, "longitude-ui")),
-              div(
-                id = NS(id, "longWarn"),
-                textOutput(NS(id, "longitude-warning"))
-              )
+        tags$p("You can fill in geographic coverage through two methods: either 
+          by chosing variables from your files, or manually define it."),
+        fluidRow(
+          column(
+            6, tags$h5("Variable selection"),
+            tags$p("Prefer storing all of your locations in a single file, under
+              3 to 5 columns: one for the site description and one or two others
+              for latitude and longitude. Southern latitude and western longitude
+              shall be noted with negative values."
             )
           ),
-          bsCollapsePanel(
-            title = "Fill geographic template",
-            value = 2,
-            fluidRow(
-              column(
-                2,
-                actionButton(NS(id, "addui"), "", icon("plus")),
-              ),
-              column(
-                10,
-                hidden(
-                  tags$div(
-                    id = NS(id, "slider_tips"),
-                    HTML("You can detail a more precise number by using the 
-                      left/right (or down/up) arrows of your keyboard. Precision 
-                      can be given at 0.01 &#176. Items can be removed by using the
-                      Delete (&#9003) key."),
-                    style = "position: left"
-                  )
-                )
-              )
-            ),
-            tags$div(id = "inserthere")
-          ), # end BScollapse Panel 2
-          multiple = FALSE
+          column(
+            6, tags$h5("Manual geographic coverage"),
+            HTML("You can detail a more precise number by using the left/right
+              (or down/up) arrows of your keyboard. Precision can be given at
+              0.01 &#176.") # Items can be removed by using the &#9003 Delete key.")
+          )
+        ),
+        # Method ====
+        # - method choice itself
+        tags$span(
+          shinyWidgets::materialSwitch(
+            NS(id, "method"),
+            "Method",
+            inline = TRUE
+          ),
+          textOutput(
+            NS(id, "selected_method"),
+            inline = TRUE
+          )
+        ),
+        # Columns ====
+        tags$div(
+          id = NS(id, "columns_input"),
+          tagList(
+            # Site description
+            uiOutput(NS(id, "site")),
+            # Latitude
+            uiOutput(NS(id, "latitude")),
+            # Longitude
+            uiOutput(NS(id, "longitude"))
+          )
+        ),
+        # Custom ====
+        tags$div(
+          id = NS(id, "custom_input"),
+          fluidRow(
+            column(2, actionButton(NS(id, "addui"), "", icon("plus"))),
+            column(10, tags$div(id = "inserthere"))
+          )
         )
       )
     ) # end of fluidPage
@@ -73,315 +70,167 @@ GeoCovUI <- function(id, main.env) {
 #' @importFrom shinyjs onclick show
 #'
 #' @noRd
-GeoCov <- function(id, full.id, main.env) {
+GeoCov <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-    # Variable initialization ----
-    observe({
-      req(main.env$EAL$page == 5)
-      main.env$EAL$page.load$depend()
+    # Variable initialization (deprecated)
+
+    # Input management ====
+    # * Method selection ----
+    observeEvent(input$method, {
+      req(input$method)
       
-      req(isTruthy(main.env$save.variable$GeoCov) &&
-        isTruthy(names(main.env$save.variable$GeoCov)))
-      . <- isolate(main.env$save.variable$GeoCov)
-      if (names(.) == "columns") {
-        main.env$local.rv$columns <- .$columns
-      }
-      if (names(.) == "custom") {
-        main.env$local.rv$custom <- .$custom
+      main.env$local.rv$method = ifelse(
+        input$method,
+        "custom",
+        "columns"
+      )
+      
+      shinyjs::toggle(
+        "columns_input", 
+        condition = main.env$local.rv$method == "columns"
+      )
+      
+      shinyjs::toggle(
+        "custom_input", 
+        condition = main.env$local.rv$method == "custom"
+      )
+    })
+    
+    output$selected_method <- renderText({
+      main.env$local.rv$method
+    })
+    
+    # * Set inputs ----
+    # Site description
+    output$site <- renderUI({
+      req(main.env$EAL$page == 5)
+      req(isContentTruthy(main.env$local.rv$columns$choices$sites))
+      
+      # Site description
+      selectInput(
+        session$ns("site"),
+        "Choose a column for site descriptions",
+        choices = c("None" = "", main.env$local.rv$columns$choices$sites)
+      )
+    })
+    
+    # Latitude
+    output$latitude <- renderUI({
+      req(main.env$EAL$page == 5)
+      req(isContentTruthy(main.env$local.rv$columns$choices$coords))
+
+      selectizeInput(
+        session$ns("latitude"),
+        "Choose a column for latitude values",
+        choices = c("None" = "", main.env$local.rv$columns$choices$coords),
+        options = list(maxItems = 2)
+      )
+    })
+    
+    # Longitude
+    output$longitude <- renderUI({
+      req(main.env$EAL$page == 5)
+      req(isContentTruthy(main.env$local.rv$columns$choices$coords))
+      
+      selectizeInput(
+        session$ns("longitude"),
+        "Choose a column for longitude values",
+        choices = c("None" = "", main.env$local.rv$columns$choices$coords),
+        options = list(maxItems = 2)
+      )
+    })
+    
+    # * Get input ----
+    # Site description
+    observeEvent(input$site, {
+      req(main.env$EAL$page == 5)
+      
+      if (!isTruthy(input$site)) {
+        main.env$local.rv$columns$site$col <- ""
+        main.env$local.rv$columns$site$file <- ""
+      } else {
+        .tmp <- input$site %>%
+          strsplit(., "/", TRUE) %>%
+          unlist()
+        main.env$local.rv$columns$site$col <- .tmp[2]
+        main.env$local.rv$columns$site$file <- 
+          main.env$local.rv$columns$choices$file <- .tmp[1]
       }
     },
-    label = "EAL5: set values"
+    ignoreInit = TRUE,
+    ignoreNULL = FALSE,
+    label = "EAL5: get site"
     )
-
-    # Pre-fill ----
-    # * Set choices ====
-    observeEvent(main.env$save.variable$Attributes,
-      {
-        # Get columns
-        columns <- lapply(
-          seq_along(main.env$save.variable$Attributes),
-          function(n) {
-            .tmp <- paste(
-              main.env$save.variable$Attributes[[n]]$attributeName,
-              main.env$save.variable$DataFiles$name[n],
-              sep = "///"
-            )
-            names(.tmp) <- main.env$save.variable$Attributes[[n]]$attributeName
-            return(.tmp)
-          }
-        )
-        names(columns) <- main.env$save.variable$DataFiles$name
-
-        # Extract "coordinatable" columns
-        columns.coordinates <- lapply(
-          seq_along(main.env$save.variable$Attributes),
-          function(n) {
-            .ind <- which(main.env$save.variable$Attributes[[n]]$class == "numeric")
-
-            .tmp <- paste(
-              main.env$save.variable$Attributes[[n]]$attributeName[.ind],
-              main.env$save.variable$DataFiles$name[n],
-              sep = "///"
-            )
-            names(.tmp) <- main.env$save.variable$Attributes[[n]]$attributeName[.ind]
-            return(.tmp)
-          }
-        )
-        names(columns.coordinates) <- main.env$save.variable$DataFiles$name
-
-        .file <- main.env$local.rv$columns$choices$files
-
-        if (.file == "all" || length(.file) > 1) {
-          main.env$local.rv$columns$choices$sites <- columns
-          main.env$local.rv$columns$choices$coords <- columns.coordinates
-        }
-        else if (length(.file) == 1) {
-          main.env$local.rv$columns$choices$sites <- columns[.file]
-          main.env$local.rv$columns$choices$coords <- columns.coordinates[.file]
-        }
-      },
-      label = "EAL5 file selection"
-    )
-
-    # * Read saved values ----
-    observeEvent(main.env$save.variable$GeoCov, {
-      if (isTRUE(grepl("columns", names(main.env$save.variable$GeoCov)))) {
-        site.name <- main.env$save.variable$GeoCov$columns$site$col
-        lat.col <- main.env$save.variable$GeoCov$columns$lat$col
-        lon.col <- main.env$save.variable$GeoCov$columns$lon$col
-
-        if (any(grepl(site.name, columns))) {
-          main.env$local.rv$columns$site <- main.env$save.variable$GeoCov$columns$site
-        }
-        if (any(grepl(lat.col, columns.coordinates))) {
-          main.env$local.rv$columns$lat$col <- main.env$save.variable$GeoCov$columns$lat$col
-          main.env$local.rv$columns$lat$file <- main.env$save.variable$GeoCov$columns$lat$file
-        }
-        if (any(grepl(lon.col, columns.coordinates))) {
-          main.env$local.rv$columns$lon$col <- main.env$save.variable$GeoCov$columns$lon$col
-          main.env$local.rv$columns$lon$file <- main.env$save.variable$GeoCov$columns$lon$file
-        }
-      }
-      if (isTRUE(grepl("custom", names(main.env$save.variable$GeoCov)))) {
-        saved_table <- main.env$save.variable$GeoCov$custom$coordinates
-        if (all(dim(saved_table) != 0)) {
-          main.env$local.rv$custom$coordinates <- saved_table
-        }
+    
+    # Latitude
+    observeEvent(input$latitude, {
+      req(main.env$EAL$page == 5)
+      
+      if (!isTruthy(input$latitude)) {
+        main.env$local.rv$columns$lat$col <- ""
+        main.env$local.rv$columns$lat$file <- ""
+      } else {
+        .tmp <- input$latitude %>%
+          strsplit(., "/", TRUE) %>%
+          unlist()
+        main.env$local.rv$columns$lat$col <- .tmp[2]
+        main.env$local.rv$columns$lat$file <-
+          main.env$local.rv$columns$choices$file <- .tmp[1]
       }
     },
-    label = "EAL5: read saved values")
-
-    # * File ----
-    observeEvent(
-      {
-        main.env$local.rv$columns$site$file
-        main.env$local.rv$columns$lat$file
-        main.env$local.rv$columns$lon$file
-      },
-      {
-        .files <- c(main.env$local.rv$columns$site$file, main.env$local.rv$columns$lat$file, main.env$local.rv$columns$lon$file)
-
-        # validity check
-        if (isFALSE(all(sapply(.files, isTruthy)))) {
-          main.env$local.rv$columns$choices$files <- "all"
-        } else {
-          main.env$local.rv$columns$choices$file <- unique(.files[which(isTruthy(.files))])
-        }
-      },
-      ignoreInit = TRUE,
-      priority = 1,
-      ignoreNULL = FALSE,
-      label = "EAL5 init choices"
+    ignoreInit = TRUE,
+    priority = 1,
+    ignoreNULL = FALSE,
+    label = "EAL5: get latitude"
+    )
+    
+    # Longitude
+    observeEvent(input$longitude, {
+      req(main.env$EAL$page == 5)
+      
+      if (!isTruthy(input$longitude)) {
+        main.env$local.rv$columns$lon$col <- ""
+        main.env$local.rv$columns$lon$file <- ""
+      } else {
+        .tmp <- input$longitude %>%
+          strsplit(., "/", TRUE) %>%
+          unlist()
+        main.env$local.rv$columns$lon$col <- .tmp[2]
+        main.env$local.rv$columns$lon$file <-
+          main.env$local.rv$columns$choices$file <- .tmp[1]
+      }
+    },
+    ignoreInit = TRUE,
+    priority = 1,
+    ignoreNULL = FALSE,
+    label = "EAL5: get longitude"
     )
 
-    # Input management ----
-    {
-      # * Site description ----
-      output$`site-ui` <- renderUI({
-        # Set value
-        if (length(main.env$local.rv$columns$site$col) > 0) {
-          .site.name <- paste(
-            main.env$local.rv$columns$site$col,
-            main.env$local.rv$columns$site$file,
-            sep = "///"
-          )
-          names(.site.name) <- main.env$local.rv$columns$site$col
-        }
-        else {
-          .site.name <- c(None = "")
-        }
-
-        selectInput(
-          NS(full.id, "site"),
-          "Choose a column for sites:",
-          c("None" = "", main.env$local.rv$columns$choices$sites),
-          selected = .site.name
-        )
-      })
-
-      # Get input
-      observeEvent(input$site,
-        {
-          site.name <- input$site
-
-          if (!isTruthy(site.name)) {
-            main.env$local.rv$columns$site$col <- ""
-            main.env$local.rv$columns$site$file <- ""
-          }
-
-          req(isTruthy(site.name))
-
-          .tmp <- site.name %>%
-            strsplit(., "///", TRUE) %>%
-            unlist()
-          main.env$local.rv$columns$site$col <- .tmp[1]
-          main.env$local.rv$columns$site$file <- main.env$local.rv$columns$choices$file <- .tmp[2]
-        },
-        ignoreInit = TRUE,
-        label = "EAL5: get site"
-      )
-
-      # * Latitude ----
-      output$`latitude-ui` <- renderUI({
-        isolate({
-          .lat.cols <- printReactiveValues(main.env$local.rv$columns$lat)
-        })
-
-        # Init value
-        if (length(.lat.cols["col"]) > 0) {
-          .lat.cols <- paste(
-            .lat.cols["col"],
-            .lat.cols["file"],
-            sep = "///"
-          )
-          names(.lat.cols) <- .lat.cols["col"][1]
-        }
-        else {
-          .lat.cols <- c(None = "")
-        }
-
-        # Update UI
-        selectizeInput(
-          NS(full.id, "latitude"),
-          "Choose a column for latitude:",
-          c("None" = "", main.env$local.rv$columns$choices$coords),
-          selected = .lat.cols,
-          options = list(
-            maxItems = 2
-          )
-        )
-      })
-
-      # Get input
-      observeEvent(input$latitude,
-        {
-          latCols <- input$latitude
-
-          if (!isTruthy(latCols)) {
-            main.env$local.rv$columns$lat$col <- ""
-            main.env$local.rv$columns$lat$file <- ""
-          }
-
-          req(isTruthy(latCols))
-
-          .tmp <- latCols %>%
-            strsplit(., "///", TRUE) %>%
-            unlist()
-
-          main.env$local.rv$columns$lat$col <- .tmp[1]
-          main.env$local.rv$columns$lat$file <- .tmp[2]
-          main.env$local.rv$columns$choices$file <- .tmp[2]
-        },
-        ignoreInit = TRUE,
-        priority = 1,
-        ignoreNULL = FALSE,
-        label = "EAL5: get latitude"
-      )
-
-      # * Longitude ----
-      output$`longitude-ui` <- renderUI({
-        isolate({
-          .lon.cols <- printReactiveValues(main.env$local.rv$columns$lon)
-        })
-
-        # Init value
-        if (length(.lon.cols["col"]) > 0) {
-          .lon.cols <- paste(
-            .lon.cols["col"],
-            .lon.cols["file"],
-            sep = "///"
-          )
-          names(.lon.cols) <- .lon.cols["col"][1]
-        }
-        else {
-          .lon.cols <- c(None = "")
-        }
-
-        # Update UI
-        selectizeInput(
-          NS(id, "longitude"),
-          "Choose a column for longitude:",
-          c("None" = "", main.env$local.rv$columns$choices$coords),
-          selected = .lon.cols,
-          options = list(
-            maxItems = 2
-          )
-        )
-      })
-
-      # Get input
-      observeEvent(input$longitude,
-        {
-          .lon.cols <- input$longitude
-
-          if (!isTruthy(.lon.cols)) {
-            main.env$local.rv$columns$lon$col <- ""
-            main.env$local.rv$columns$lon$file <- ""
-          }
-
-          req(isTruthy(.lon.cols))
-
-          .tmp <- .lon.cols %>%
-            strsplit(., "///", TRUE) %>%
-            unlist()
-
-          main.env$local.rv$columns$lon$col <- .tmp[1]
-          main.env$local.rv$columns$lon$file <- main.env$local.rv$columns$choices$file <- .tmp[2]
-        },
-        ignoreInit = TRUE,
-        priority = 1,
-        ignoreNULL = FALSE,
-        label = "EAL5: get longitude"
-      )
-    }
-
-    # Fill custom ----
+    # Fill custom ====
     # * Setup ----
     observeEvent(main.env$local.rv$custom$coordinates, {
-      if (dim(main.env$local.rv$custom$coordinates)[1] > 0) {
-        sapply(1:nrow(main.env$local.rv$custom$coordinates), function(ind) {
-          id <- -ind
-          main.env$local.rv$custom <- insertGeoCovInput(
-            as.numeric(id), # from -n to -1
-            main.env$local.rv$custom,
-            ns,
-            default = main.env$local.rv$custom$coordinates[ind]
+      if (dim(main.env$local.rv$custom$coordinates)[1] > 0)
+        sapply(1:nrow(main.env$local.rv$custom$coordinates), function(.ind) {
+          insertGeoCovInput(
+            session$ns(as.numeric(-.ind)), # from -n to -1, NS-ed
+            main.env,
+            default = main.env$local.rv$custom$coordinates[.ind]
           )
         })
-      }
     },
-    label = "EAL5: set custom")
+    label = "EAL5: set custom"
+    )
 
     # * Manage input ----
     observeEvent(input$addui, {
-      show("slider_tips")
+      shinyjs::show("slider_tips")
       main.env$local.rv$custom <- insertGeoCovInput(
-        as.numeric(input$addui), # from 1 to n
-        main.env$local.rv$custom,
-        ns
+        session$ns(as.numeric(input$addui)), # from 1 to n, NS-ed
+        main.env
       )
     },
-    label = "EAL5: get custom")
+    label = "EAL5: get custom"
+    )
 
     # Saves ----
     observeEvent(
@@ -391,7 +240,8 @@ GeoCov <- function(id, full.id, main.env) {
         main.env$local.rv$columns$lon$col
       },
       {
-        main.env$local.rv$columns$complete <- isTruthy(main.env$local.rv$columns$site$col) &&
+        main.env$local.rv$columns$complete <- 
+          isTruthy(main.env$local.rv$columns$site$col) &&
           isTruthy(main.env$local.rv$columns$lat$col) &&
           isTruthy(main.env$local.rv$columns$lon$col)
       },
@@ -418,36 +268,33 @@ GeoCov <- function(id, full.id, main.env) {
     label = "EAL5: set completed")
 
     # Process data ----
-    # * Previous ----
-    observeEvent(main.env$EAL$.prev,
-      {
-        req(main.env$EAL$current == "Geographic Coverage")
-
+    observeEvent(main.env$EAL$page, {
+      req(main.env$EAL$old.page == 5)
+      
+      # * Previous ----
+      if(main.env$EAL$page < main.env$EAL$old.page) {
         if (!"Categorical Variables" %in% main.env$EAL$history) {
-          main.env$EAL$page <- main.env$EAL$page - 1
+          isolate({main.env$EAL$page <- main.env$EAL$page - 1})
         }
-      },
-      label = "EAL5: process back",
-      ignoreInit = TRUE
-    )
-
-    # * Next ----
-    observeEvent(main.env$EAL$.next,
-      {
-        req(main.env$EAL$current == "Geographic Coverage")
-
+      }
+      
+      # * Next ----
+      if(main.env$EAL$page > main.env$EAL$old.page) {
+        message(NS(id, "proceed"))
+        
         # Create modal
         choices <- c(
           "Columns selection" = if (main.env$local.rv$columns$complete) "columns" else NULL,
           "Custom edition" = if (main.env$local.rv$custom$complete) "custom" else NULL
         )
-
+        
         req(isTruthy(choices))
-
+        
         nextTabModal <- modalDialog(
           title = "Proceed Geographic Coverage",
           tagList(
-            "You are getting ready to proceed. Please select one of the following:",
+            "You are getting ready to proceed. 
+            Please confirm your method for templating geographic coverage:",
             radioButtons(
               NS(id, "method"),
               "Method for Geographic Coverage:",
@@ -460,17 +307,19 @@ GeoCov <- function(id, full.id, main.env) {
             actionButton(NS(id, "confirm"), "Proceed")
           )
         )
-
+        
         showModal(nextTabModal)
-      },
-      label = "EAL5: process data",
-      priority = 1,
-      ignoreInit = TRUE
+      }
+    },
+    priority = 1,
+    label = "EAL5: process back",
+    ignoreInit = TRUE
     )
 
     observeEvent(input$confirm,
       {
         removeModal()
+        main.env$EAL$old.page <- main.env$EAL$page
         main.env$EAL$page <- 6
         main.env$EAL$tag.list <- tagList()
 
@@ -483,11 +332,7 @@ GeoCov <- function(id, full.id, main.env) {
           main.env$local.rv$columns$complete <- FALSE
         }
         
-        saveReactive(main.env)
-        #   main.env$save.variable,
-        #   rv = list(GeoCov = rv),
-        #   main.env = main.env
-        # )
+        saveReactive(main.env, main.env$EAL$old.page)
       },
       label = "EAL5: confirm process data",
       ignoreInit = TRUE

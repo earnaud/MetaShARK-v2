@@ -59,7 +59,7 @@ MakeEMLUI <- function(id, main.env) {
 #' @importFrom emldown render_eml
 #'
 #' @noRd
-MakeEML <- function(id, full.id, main.env) {
+MakeEML <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
     # Variable initialization ----
     observe({
@@ -93,7 +93,7 @@ MakeEML <- function(id, full.id, main.env) {
 
           if (class(x) == "try-error") {
             out <- x
-            out[1] <- paste("Upon templating arguments:", x)
+            out[1] <- paste("Upon templating arguments: ", x)
             incProgress(0.9)
           } else {
             incProgress(0.3)
@@ -197,9 +197,10 @@ MakeEML <- function(id, full.id, main.env) {
     )
 
     observeEvent(input$bug_report, {
-      utils::browseURL("https://github.com/earnaud/MetaShARK-v2/issues/26")
+      utils::browseURL("https://github.com/earnaud/MetaShARK-v2/issues/")
     },
-    label = "EAL9: bug report")
+    label = "EAL9: bug report"
+    )
 
     # emldown ----
     output$download_emldown <- downloadHandler(

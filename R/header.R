@@ -73,13 +73,13 @@
         files.size.max = 500000
       ),
       steps = c(
-        "SelectDP", 
+        "SelectDP",
         "Data Files",
-        "Attributes", 
+        "Attributes",
         "Categorical Variables",
-        "Geographic Coverage", 
-        "Taxonomic Coverage", 
-        "Personnel", 
+        "Geographic Coverage",
+        "Taxonomic Coverage",
+        "Personnel",
         "Miscellaneous",
         "Make EML"
       )
@@ -149,15 +149,14 @@
   assign(
     "EAL",
     reactiveValues(
+      old.page = 0,
       page = 1, # page number
       page.load = makeReactiveTrigger(),
       history = isolate(main.env$VALUES$steps[1]), # all browsed pages names in steps
       current = isolate(main.env$VALUES$steps[1]), # last of history
       completed = FALSE, # is current page completed?
       tag.list = tagList(), # side HTML tags to display
-      help = character(),
-      .next = 0,
-      .prev = 0
+      help = character()
     ),
     envir = main.env
   )
@@ -183,7 +182,13 @@
       coordinates = "[+-]?[[:digit:]]+[.,]*[[:digit:]]*",
       name = "^[[:alpha:] \\'\\.\\-]+$",
       email = "^[^@]+@[^@]+\\.[[:alpha:]]",
-      ORCID = "\\d{4}-\\d{4}-\\d{4}-(\\d{4}|\\d{3}X)"
+      ORCID = "\\d{4}-\\d{4}-\\d{4}-(\\d{4}|\\d{3}X)",
+      dateRegex = reactiveValues(
+        DD = "^0?[1-9]$|^[12][0-9]$|^3[01]$",
+        MM = "^0?[1-9]$|^1[0-2]$",
+        YY = "^[0-9]{2}$",
+        YYYY = "^[12][0-9]{3}$"
+      )
     ),
     envir = main.env
   )
