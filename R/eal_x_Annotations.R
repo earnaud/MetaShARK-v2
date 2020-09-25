@@ -88,8 +88,8 @@
 #'
 #' #' @title insertPersonnelInput
 #' #'
-#' #' @description helper function to insert PersonnelMod* functions. Calling this from
-#' #' a shiny server will insert PersonnelModUI and create its server part. Provided with
+#' #' @description helper function to insert PersonnelInput* functions. Calling this from
+#' #' a shiny server will insert PersonnelInputUI and create its server part. Provided with
 #' #' features to delete them.
 #' #'
 #' #' @import shiny

@@ -8,5 +8,7 @@
 #'  are not supported.
 #'  @param ... additional argument valid for `grepl`.
 `%grep%` <- function(x, table, ...) {
-  isTRUE(any(grepl(x, table, ...)))
+  sapply(x, function(y){
+    isTRUE(any(grepl(y, table, ...)))
+  })
 }

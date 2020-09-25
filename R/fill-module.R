@@ -160,8 +160,8 @@ fill <- function(id, main.env) {
       # * Save  & Template ----
       if(main.env$EAL$old.page > 1)
         saveReactive(main.env, main.env$EAL$old.page)
-      if(main.env$EAL$page > main.env$EAL$old.page)
-        template(main.env, main.env$EAL$old.page)
+      # if(main.env$EAL$page > main.env$EAL$old.page)
+      #   template(main.env, main.env$EAL$old.page)
       
       # * set EAL variables ----
       # left Data Files
@@ -186,6 +186,7 @@ fill <- function(id, main.env) {
       main.env$save.variable$step <- main.env$EAL$page # save current location
       main.env$save.variable$history <- main.env$EAL$history # erase old save
       
+      # Display accessory UI elements
       if(main.env$EAL$page > 1) {
         shinyjs::show("help")
         shinyjs::show("save")
@@ -195,8 +196,9 @@ fill <- function(id, main.env) {
         shinyjs::hide("save")
         shinyjs::hide("quit")
       }
+      
+      # Go to required page
       updateTabsetPanel(session, "wizard-wizard", selected = steps[main.env$EAL$page])
-      main.env$EAL$page.load$trigger()
       
       # * Helps ====
       {
@@ -290,16 +292,23 @@ fill <- function(id, main.env) {
             You have the choice between two methods to define geographic coverage:"),
                    tags$ul(
                      tags$li(
-                       tags$h4("Columns description (recommended)"),
-                       tags$p("This method asks you to choose columns in one of your files. For latitude and longitude,
-                you can select either one or two columns. If a single column contains a pair of numbers, they
-                will be detected. Chosing single coordinates will be considered as single sites. Chosing pairs of
-                coordinates will be considered as sub-areas. For each coordinate, you can select a column 
-                containing description for each one.")
+                       tags$h4("Variable selection (recommended)"),
+                       tags$p("This method allows you to fetch interesting attributes for
+                        geographic coverage. Prefer storing all of your locations into a 
+                        single table or equally dimensioned tables, under 3 to 5 columns:
+                        one for the site description and one or two others for latitude 
+                        and longitude. For latitude and longitude, chosing a single 
+                        column will be interpreted as points, while chosing two will
+                        result in an area. Southern latitude and western longitude
+                        shall be noted with negative values.")
                      ),
                      tags$li(
-                       tags$h4("Custom description"),
-                       tags$p("With this, you will be able to define by hand each one of the sites covered by your data.")
+                       tags$h4("Manual geographic coverage"),
+                       tags$p("Chose this method if your dataset does not include data sites
+                        description and/or coordinates. You will be able to provide as many 
+                        sites as you wish, as single points or rectangle areas.You can detail 
+                        a more precise number by using the left/right (or down/up) arrows of
+                        your keyboard. Precision can be given at 0.01", HTML("&#176"), ".")
                      )
                    )
                  ),

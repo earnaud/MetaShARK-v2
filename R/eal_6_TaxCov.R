@@ -6,16 +6,9 @@ TaxCovUI <- function(id, main.env) {
   return(
     fluidPage(
       fluidRow(
-        column(
-          6,
-          uiOutput(NS(id, "taxa.table")),
-          uiOutput(NS(id, "taxa.col"))
-        ),
-        column(
-          6,
-          uiOutput(NS(id, "taxa.name.type")),
-          uiOutput(NS(id, "taxa.authority"))
-        )
+        column(4, uiOutput(NS(id, "taxa.table")) ), # uiOutput(NS(id, "taxa.col")) ),
+        column(4, uiOutput(NS(id, "taxa.name.type")) ),
+        column(4, uiOutput(NS(id, "taxa.authority")) )
       )
     ) # end of fluidPage
   ) # end of return
@@ -30,88 +23,94 @@ TaxCovUI <- function(id, main.env) {
 #' @noRd
 TaxCov <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-    # Variable Initialization ----
-    observe({
-      req(main.env$EAL$page == 6)
-      main.env$EAL$page.load$depend()
-      
-      if (all(sapply(printReactiveValues(main.env$save.variable$TaxCov), isContentTruthy))) {
-        main.env$local.rv$taxa.table <- main.env$save.variable$TaxCov$taxa.table
-        main.env$local.rv$taxa.col <- main.env$save.variable$TaxCov$taxa.col
-        main.env$local.rv$taxa.name.type <- main.env$save.variable$TaxCov$taxa.authority
-        main.env$local.rv$taxa.authority <- main.env$save.variable$TaxCov$taxa.authority
-      }
-    },
-    label = "EAL6: set value")
+    # Variable Initialization (deprecated)
 
     # Set UI ====
 
-    # * taxa.table ====
+    # * taxa.table ----
     output$taxa.table <- renderUI({
       isolate({
-        data.files <- basename(main.env$save.variable$DataFiles$datapath)
-        value <- main.env$local.rv$taxa.table
-        if (isFALSE(value %in% data.files)) {
-          value <- NULL
+        # Set choices for selectInput -- reuse & filter Attributes
+        .att <- main.env$save.variable$Attributes
+        .choice <- main.env$local.rv$.taxa.choices <- list()
+        sapply(names(.att), function(.file) {
+          # Set sites
+          .choice[[.file]] <<- .att[[.file]] %>% 
+            dplyr::filter(class %in% c("character", "categorical")) %>% 
+            dplyr::select(attributeName) %>%
+            unlist
+          .choice[[.file]] <<- paste(.file, .choice[[.file]], sep="/") %>%
+            setNames(nm = .choice[[.file]])
+        })
+        # Set value -- read from saved
+        .value <- if(isContentTruthy(main.env$save.variable$TaxCov)){
+          paste(
+            main.env$local.rv$taxa.table,
+            main.env$local.rv$taxa.col,
+            sep = "/"
+          ) %>% setNames(
+            nm = main.env$local.rv$taxa.table
+          )
         }
       })
 
+      # UI itself
       selectInput(
         session$ns("taxa.table"),
         "Files containing taxonomic references",
-        choices = data.files,
-        selected = value,
+        choices = .choice,
+        selected = .value,
         multiple = FALSE
       )
     })
 
-    # * taxa.col ====
-    output$taxa.col <- renderUI({
-      .ind <- match(main.env$local.rv$taxa.table, main.env$save.variable$DataFiles$name)
-      if (isTruthy(.ind)) {
-        choices <- isolate(main.env$save.variable$Attributes[[.ind]]$attributeName)
-        value <- isolate(main.env$local.rv$taxa.col)
-        if (isFALSE(value %in% choices)) {
-          value <- NULL
-        }
-        .embed <- tagList
-      }
-      else {
-        choices <- NULL
-        value <- NULL
-        .embed <- shinyjs::disabled
-      }
+    # # * taxa.col
+    # output$taxa.col <- renderUI({
+    #   .ind <- match(main.env$local.rv$taxa.table, main.env$save.variable$DataFiles$name)
+    #   if (isTruthy(.ind)) {
+    #     choices <- isolate(main.env$save.variable$Attributes[[.ind]]$attributeName)
+    #     value <- isolate(main.env$local.rv$taxa.col)
+    #     if (isFALSE(value %in% choices)) {
+    #       value <- NULL
+    #     }
+    #     .embed <- tagList
+    #   }
+    #   else {
+    #     choices <- NULL
+    #     value <- NULL
+    #     .embed <- shinyjs::disabled
+    #   }
+    # 
+    #   .embed(
+    #     selectInput(
+    #       session$ns("taxa.col"),
+    #       "Columns from selected files",
+    #       choices = choices,
+    #       selected = value
+    #     )
+    #   )
+    # })
 
-      .embed(
-        selectInput(
-          session$ns("taxa.col"),
-          "Columns from selected files",
-          choices = choices,
-          selected = value
-        )
-      )
-    })
-
-    # * taxa.name.type ====
+    # * taxa.name.type ----
     output$taxa.name.type <- renderUI({
       isolate({
-        value <- main.env$local.rv$taxa.name.type
-        if (isTRUE(value == "both")) {
-          value <- c("scientific", "common")
-        } else if (isFALSE(value %in% c("scientific", "common"))) {
-          value <- NULL
+        .value <- main.env$local.rv$taxa.name.type
+        if (isTRUE(.value == "both")) {
+          .value <- c("scientific", "common")
+        } else if (isFALSE(.value %in% c("scientific", "common"))) {
+          .value <- NULL
         }
       })
-
+      
       checkboxGroupInput(
         session$ns("taxa.name.type"),
         "Select one or both taxonomic name notation",
         c("scientific", "common"),
-        selected = value
+        selected = .value
       )
     })
 
-    # * taxa.authority ====
+    # * taxa.authority ----
     output$taxa.authority <- renderUI({
       isolate({
         taxa.authority <- main.env$FORMATS$taxa.authorities
@@ -132,109 +131,119 @@ TaxCov <- function(id, main.env) {
       )
     })
 
-    # Taxonomic coverage input ----
+    # Taxonomic coverage input ====
 
-    # * Taxa files ====
+    # * Taxa files ----
     observeEvent(input$taxa.table,
       {
         # invalid-selected/no value(s)
-        if (!isTruthy(input$taxa.table)) {
-          shinyjs::disable("taxa.col")
-
-          updateSelectizeInput(
-            session,
-            "taxa.col",
-            choices = list("(None selected)" = NULL)
-          )
-        }
+        # if (!isTruthy(input$taxa.table)) {
+        #   shinyjs::disable("taxa.col")
+        # 
+        #   updateSelectizeInput(
+        #     session,
+        #     "taxa.col",
+        #     choices = list("(None selected)" = NULL)
+        #   )
+        # }
         # valid-selected value(s)
-        else {
-          shinyjs::enable("taxa.col")
-
-          taxa.col.list <- lapply(input$taxa.table, function(file) {
-            all.files <- main.env$save.variable$DataFiles
-            file <- all.files[all.files$name == file, "datapath"]
-            df <- readDataTable(file, stringsAsFactors = FALSE)
-            return(colnames(df))
-          })
-          names(taxa.col.list) <- input$taxa.table
-
-          .update.var <- if (isTRUE(main.env$local.rv$taxa.col %in% taxa.col.list)) {
-            main.env$local.rv$taxa.col
-          } else {
-            NULL
-          }
-
-          updateSelectizeInput(
-            session,
-            "taxa.col",
-            choices = taxa.col.list,
-            selected = .update.var
-          )
-        }
+        # else {
+          # shinyjs::enable("taxa.col")
+          # 
+          # taxa.col.list <- lapply(input$taxa.table, function(file) {
+          #   all.files <- main.env$save.variable$DataFiles
+          #   file <- all.files[all.files$name == file, "datapath"]
+          #   df <- readDataTable(file, stringsAsFactors = FALSE)
+          #   return(colnames(df))
+          # })
+          # names(taxa.col.list) <- input$taxa.table
+# 
+#           .update.var <- if (isTRUE(main.env$local.rv$taxa.col %in% taxa.col.list)) {
+#             main.env$local.rv$taxa.col
+#           } else {
+#             NULL
+#           }
+# 
+#           updateSelectizeInput(
+#             session,
+#             "taxa.col",
+#             choices = taxa.col.list,
+#             selected = .update.var
+#           )
+        # }
 
         # save
-        main.env$local.rv$taxa.table <- list(input$taxa.table)
-        isolate({
-          main.env$save.variable$TaxCov$taxa.table <- main.env$local.rv$taxa.table
-        })
+        .tmp <- strsplit(input$taxa.table, split = "/", fixed = TRUE) %>%
+          unlist
+        main.env$local.rv$taxa.table <- .tmp[1]
+        main.env$local.rv$taxa.col <- .tmp[2]
+        # isolate({
+        #   main.env$save.variable$TaxCov$taxa.table <- main.env$local.rv$taxa.table
+        #   main.env$save.variable$TaxCov$taxa.table <- main.env$local.rv$taxa.table
+        # })
       },
       label = "EAL6: input taxa table",
       priority = -1
     )
 
-    # * Taxa columns to read ====
-    observeEvent(input$taxa.col, {
-      req(input$taxa.col)
+    # # * Taxa columns to read
+    # observeEvent(input$taxa.col, {
+    #   req(input$taxa.col)
+    # 
+    #   main.env$local.rv$taxa.col <- input$taxa.col
+    #   isolate({
+    #     main.env$save.variable$TaxCov$taxa.col <- main.env$local.rv$taxa.col
+    #   })
+    # },
+    # label = "EAL6: input taxa column"
+    # )
 
-      main.env$local.rv$taxa.col <- input$taxa.col
-      isolate({
-        main.env$save.variable$TaxCov$taxa.col <- main.env$local.rv$taxa.col
-      })
-    },
-    label = "EAL6: input taxa column"
-    )
-
-    # * Taxa type ====
+    # * Taxa type ----
     observeEvent(input$taxa.name.type, {
-      req(input$taxa.name.type)
-
-      main.env$local.rv$taxa.name.type <- input$taxa.name.type
-
-      if ("scientific" %in% main.env$local.rv$taxa.name.type &&
-        "common" %in% main.env$local.rv$taxa.name.type) {
-        main.env$local.rv$taxa.name.type <- "both"
-      }
-      main.env$save.variable$TaxCov$taxa.name.type <- main.env$local.rv$taxa.name.type
+      if(isTruthy(input$taxa.name.type)) {
+        main.env$local.rv$taxa.name.type <- input$taxa.name.type
+        
+        if ("scientific" %in% main.env$local.rv$taxa.name.type &&
+          "common" %in% main.env$local.rv$taxa.name.type) {
+          main.env$local.rv$taxa.name.type <- "both"
+        }
+      } else
+        main.env$local.rv$taxa.name.type <- character()
+      # main.env$save.variable$TaxCov$taxa.name.type <- main.env$local.rv$taxa.name.type
     },
+    ignoreNULL = FALSE,
     label = "EAL6: input taxa name type"
     )
 
-    # * Taxa authority ====
+    # * Taxa authority ----
     observeEvent(input$taxa.authority, {
-      req(input$taxa.authority)
-
-      main.env$local.rv$taxa.authority <- main.env$FORMATS$taxa.authorities %>%
-        dplyr::filter(authority %in% input$taxa.authority) %>%
-        dplyr::select(id) %>%
-        unlist()
-      main.env$save.variable$TaxCov$taxa.authority <- main.env$local.rv$taxa.authority
+      if(isTruthy(input$taxa.authority))
+        main.env$local.rv$taxa.authority <- main.env$FORMATS$taxa.authorities %>%
+          dplyr::filter(authority %in% input$taxa.authority) %>%
+          dplyr::select(id) %>%
+          unlist()
+      else
+        main.env$local.rv$taxa.authority <- character()
+      # main.env$save.variable$TaxCov$taxa.authority <- main.env$local.rv$taxa.authority
     },
+    ignoreNULL = FALSE,
     label = "EAL6: input taxa authority"
     )
 
-    # Saves ----
+    # Saves ====
     observe({
       req(main.env$EAL$page == 6)
-
-      main.env$EAL$completed <- all(
+      invalidateLater(1000)
+      
+      main.env$EAL$completed <- TRUE
+      main.env$local.rv$complete <- all(
         length(main.env$local.rv$taxa.table) > 0 &&
           length(main.env$local.rv$taxa.col) > 0 &&
           length(main.env$local.rv$taxa.name.type) > 0 &&
           length(main.env$local.rv$taxa.authority) > 0
       )
       
-      if(isFALSE(main.env$EAL$completed)) {
+      if(isFALSE(main.env$local.rv$complete)) {
         main.env$EAL$tag.list <- tagList(
           tags$b("Incomplete coverage !"),
           tags$p("Going to next step will skip taxonomic coverage.")

@@ -7,36 +7,22 @@ GeoCovUI <- function(id, main.env) {
     fluidPage(
       fluidRow(
         tags$p("You can fill in geographic coverage through two methods: either 
-          by chosing variables from your files, or manually define it."),
-        fluidRow(
-          column(
-            6, tags$h5("Variable selection"),
-            tags$p("Prefer storing all of your locations in a single file, under
-              3 to 5 columns: one for the site description and one or two others
-              for latitude and longitude. Southern latitude and western longitude
-              shall be noted with negative values."
-            )
-          ),
-          column(
-            6, tags$h5("Manual geographic coverage"),
-            HTML("You can detail a more precise number by using the left/right
-              (or down/up) arrows of your keyboard. Precision can be given at
-              0.01 &#176.") # Items can be removed by using the &#9003 Delete key.")
-          )
-        ),
+          by chosing variables from your files, or manually define it. Mixed 
+          approach is not supported. Check the help above for more details.",
+          tags$b("Only WGS84 is currently supported.")),
         # Method ====
         # - method choice itself
         tags$span(
           shinyWidgets::materialSwitch(
             NS(id, "method"),
-            "Method",
+            tags$h5("Method"),
             inline = TRUE
           ),
           textOutput(
             NS(id, "selected_method"),
             inline = TRUE
           )
-        ),
+        ), # end of method
         # Columns ====
         tags$div(
           id = NS(id, "columns_input"),
@@ -48,15 +34,15 @@ GeoCovUI <- function(id, main.env) {
             # Longitude
             uiOutput(NS(id, "longitude"))
           )
-        ),
+        ), # end of columns
         # Custom ====
         tags$div(
           id = NS(id, "custom_input"),
           fluidRow(
-            column(2, actionButton(NS(id, "addui"), "", icon("plus"))),
-            column(10, tags$div(id = "inserthere"))
+            column(1, actionButton(NS(id, "addui"), "", icon("plus"))),
+            column(11, tags$div(id = "inserthere_eal5"))
           )
-        )
+        ) # end of custom
       )
     ) # end of fluidPage
   ) # end of return
@@ -73,17 +59,28 @@ GeoCovUI <- function(id, main.env) {
 GeoCov <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
     # Variable initialization (deprecated)
-
-    # Input management ====
-    # * Method selection ----
-    observeEvent(input$method, {
-      req(input$method)
+    observe({
+      req(main.env$EAL$page == 5)
+      main.env$EAL$page.load$depend()
+      req(main.env$local.rv$method)
       
-      main.env$local.rv$method = ifelse(
-        input$method,
-        "custom",
-        "columns"
+      shinyWidgets::updateMaterialSwitch(
+        session,
+        "method",
+        switch(
+          main.env$local.rv$method,
+          columns = FALSE,
+          custom = TRUE
+        )
       )
+    },
+    label = "EAL5 set method switch"
+    )
+
+    # Method selection ====
+    observeEvent(input$method, {
+      req(main.env$EAL$page == 5)
+      main.env$local.rv$method <- ifelse(input$method, "custom", "columns")
       
       shinyjs::toggle(
         "columns_input", 
@@ -96,10 +93,9 @@ GeoCov <- function(id, main.env) {
       )
     })
     
-    output$selected_method <- renderText({
-      main.env$local.rv$method
-    })
+    output$selected_method <- renderText(main.env$local.rv$method)
     
+    # Variables input ====
     # * Set inputs ----
     # Site description
     output$site <- renderUI({
@@ -110,7 +106,13 @@ GeoCov <- function(id, main.env) {
       selectInput(
         session$ns("site"),
         "Choose a column for site descriptions",
-        choices = c("None" = "", main.env$local.rv$columns$choices$sites)
+        choices = c("None" = "", main.env$local.rv$columns$choices$sites),
+        selected = if(main.env$save.variable$GeoCov %>% 
+                      listReactiveValues() %>%
+                      isContentTruthy())
+          main.env$local.rv$columns$choices$sites[[
+            main.env$local.rv$columns$site$file
+          ]][main.env$local.rv$columns$site$col]
       )
     })
     
@@ -123,6 +125,12 @@ GeoCov <- function(id, main.env) {
         session$ns("latitude"),
         "Choose a column for latitude values",
         choices = c("None" = "", main.env$local.rv$columns$choices$coords),
+        selected = if(main.env$save.variable$GeoCov %>% 
+                      listReactiveValues() %>%
+                      isContentTruthy())
+          main.env$local.rv$columns$choices$coords[[
+            main.env$local.rv$columns$lat$file
+          ]][main.env$local.rv$columns$lat$col],
         options = list(maxItems = 2)
       )
     })
@@ -136,6 +144,12 @@ GeoCov <- function(id, main.env) {
         session$ns("longitude"),
         "Choose a column for longitude values",
         choices = c("None" = "", main.env$local.rv$columns$choices$coords),
+        selected = if(main.env$save.variable$GeoCov %>% 
+                      listReactiveValues() %>%
+                      isContentTruthy())
+          main.env$local.rv$columns$choices$coords[[
+            main.env$local.rv$columns$lon$file
+          ]][main.env$local.rv$columns$lon$col],
         options = list(maxItems = 2)
       )
     })
@@ -208,23 +222,26 @@ GeoCov <- function(id, main.env) {
 
     # Fill custom ====
     # * Setup ----
-    observeEvent(main.env$local.rv$custom$coordinates, {
+    observeEvent(main.env$EAL$page, { # on load
+      req(main.env$EAL$old.page %in% c(0,3:4) && main.env$EAL$page == 5)
+      
       if (dim(main.env$local.rv$custom$coordinates)[1] > 0)
         sapply(1:nrow(main.env$local.rv$custom$coordinates), function(.ind) {
           insertGeoCovInput(
-            session$ns(as.numeric(-.ind)), # from -n to -1, NS-ed
+            session$ns(as.character(-.ind)), # from -n to -1, NS-ed
             main.env,
             default = main.env$local.rv$custom$coordinates[.ind]
           )
         })
     },
+    priority = -1,
     label = "EAL5: set custom"
     )
 
     # * Manage input ----
     observeEvent(input$addui, {
       shinyjs::show("slider_tips")
-      main.env$local.rv$custom <- insertGeoCovInput(
+      insertGeoCovInput(
         session$ns(as.numeric(input$addui)), # from 1 to n, NS-ed
         main.env
       )
@@ -232,110 +249,22 @@ GeoCov <- function(id, main.env) {
     label = "EAL5: get custom"
     )
 
-    # Saves ----
-    observeEvent(
-      {
-        main.env$local.rv$columns$site$col
-        main.env$local.rv$columns$lat$col
-        main.env$local.rv$columns$lon$col
-      },
-      {
-        main.env$local.rv$columns$complete <- 
-          isTruthy(main.env$local.rv$columns$site$col) &&
-          isTruthy(main.env$local.rv$columns$lat$col) &&
-          isTruthy(main.env$local.rv$columns$lon$col)
-      },
-      label = "EAL5: set column completed",
-      ignoreNULL = FALSE
-    )
-
-    observeEvent(main.env$local.rv$custom$coordinates,
-      {
-        main.env$local.rv$custom$complete <- isContentTruthy(main.env$local.rv$custom$coordinates)
-      },
-      label = "EAL5: set custom completed",
-      ignoreNULL = FALSE
-    )
-
+    # Saves ====
     observe({
       req(main.env$EAL$page == 5)
+      invalidateLater(1000)
+      req(main.env$local.rv$method %in% c("columns", "custom"))
       
-      main.env$EAL$completed <- any(
-        isTRUE(main.env$local.rv$custom$complete),
-        isTRUE(main.env$local.rv$columns$complete)
+      # Set full completeness according to selected method
+      main.env$EAL$completed <- switch(
+        main.env$local.rv$method,
+        columns = isTRUE(main.env$local.rv$columns$complete()),
+        custom = isTRUE(main.env$local.rv$custom$complete())
       )
     },
-    label = "EAL5: set completed")
-
-    # Process data ----
-    observeEvent(main.env$EAL$page, {
-      req(main.env$EAL$old.page == 5)
-      
-      # * Previous ----
-      if(main.env$EAL$page < main.env$EAL$old.page) {
-        if (!"Categorical Variables" %in% main.env$EAL$history) {
-          isolate({main.env$EAL$page <- main.env$EAL$page - 1})
-        }
-      }
-      
-      # * Next ----
-      if(main.env$EAL$page > main.env$EAL$old.page) {
-        message(NS(id, "proceed"))
-        
-        # Create modal
-        choices <- c(
-          "Columns selection" = if (main.env$local.rv$columns$complete) "columns" else NULL,
-          "Custom edition" = if (main.env$local.rv$custom$complete) "custom" else NULL
-        )
-        
-        req(isTruthy(choices))
-        
-        nextTabModal <- modalDialog(
-          title = "Proceed Geographic Coverage",
-          tagList(
-            "You are getting ready to proceed. 
-            Please confirm your method for templating geographic coverage:",
-            radioButtons(
-              NS(id, "method"),
-              "Method for Geographic Coverage:",
-              choices = choices
-            )
-          ),
-          easyClose = FALSE,
-          footer = tagList(
-            modalButton("Cancel"),
-            actionButton(NS(id, "confirm"), "Proceed")
-          )
-        )
-        
-        showModal(nextTabModal)
-      }
-    },
-    priority = 1,
-    label = "EAL5: process back",
-    ignoreInit = TRUE
+    label = "EAL5 module completed"
     )
 
-    observeEvent(input$confirm,
-      {
-        removeModal()
-        main.env$EAL$old.page <- main.env$EAL$page
-        main.env$EAL$page <- 6
-        main.env$EAL$tag.list <- tagList()
-
-        .method <- input$method
-
-        if (.method == "columns") {
-          main.env$local.rv$custom$complete <- FALSE
-        }
-        if (.method == "custom") {
-          main.env$local.rv$columns$complete <- FALSE
-        }
-        
-        saveReactive(main.env, main.env$EAL$old.page)
-      },
-      label = "EAL5: confirm process data",
-      ignoreInit = TRUE
-    )
-  })
+    # Process data (deprecated)
+  }) # end of server
 }

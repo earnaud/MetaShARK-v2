@@ -8,11 +8,7 @@
 #' @importFrom jsonlite serializeJSON unserializeJSON read_json write_json
 #'
 #' @noRd
-.globalScript <- function(
-                          args = list(
-                            dev = FALSE,
-                            wip = FALSE
-                          )) {
+.globalScript <- function(args = list(dev = FALSE, wip = FALSE)) {
 
   # Environment setup ====
   main.env <- new.env()

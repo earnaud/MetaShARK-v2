@@ -6,16 +6,16 @@
 extractCoordinates <- function(main.env, coord.cols, .pattern, files.data) {
   # initialize variables
   if (coord.cols == "lat") {
-    coord.cols <- listReactiveValues(main.env$local.rv$custom$columns$lat)
+    coord.cols <- main.env$local.rv$columns$lat
     coord.tags <- c("N", "S")
   }
   else if (coord.cols == "lon") {
-    coord.cols <- listReactiveValues(main.env$local.rv$custom$columns$lon)
+    coord.cols <- main.env$local.rv$columns$lon
     coord.tags <- c("E", "W")
   }
   
   # Extract proper coordinates
-  coordinates <- files.data[[coord.cols["file"]]][[coord.cols["col"]]] %>% # uniformize decimal separators
+  coordinates <- files.data[[coord.cols$file]][[coord.cols$col]] %>% # uniformize decimal separators
     sapply(., gsub, pattern = ",", replacement = ".")
   coord.index <- which(grepl(.pattern, coordinates))
   coordinates <- coordinates[coord.index] %>%
@@ -69,10 +69,9 @@ insertGeoCovInput <- function(id, main.env, default = NULL) {
   # create the UI
   new.ui <- GeoCovInputUI(id, default = default)
   # insert the UI
-  insertUI(selector = "#inserthere", ui = new.ui)
+  insertUI(selector = "#inserthere_eal5", ui = new.ui)
   # create the server
-  .ref = strsplit(id, "-") %>% unlist %>% tail(1)
-  GeoCovInput(id, main.env, ref = .ref)
+  GeoCovInput(unns(id), main.env)
 }
 
 #' @import shiny
@@ -106,8 +105,15 @@ GeoCovInputUI <- function(id, site.id, default = NULL) {
   tags$div(
     id = site.id,
     fluidRow(
-      column(2, "Description", style = "text-align: right"),
-      column(9, textInput(NS(id, "site_description"), def.site)),
+      column(
+        11,
+        shinyWidgets::textInputAddon(
+          NS(id, "site_description"), 
+          label = NULL,
+          addon = "Description",
+          value = def.site
+        )
+      ),
       column(
         1,
         actionButton(
@@ -127,10 +133,6 @@ GeoCovInputUI <- function(id, site.id, default = NULL) {
           min = -90, max = 90,
           value = def.lat,
           step = 0.01
-        ),
-        fluidRow(
-          column(2, "South", style = "text-align: left"),
-          column(2, "North", style = "text-align: right", offset = 8)
         )
       ),
       column(
@@ -141,12 +143,14 @@ GeoCovInputUI <- function(id, site.id, default = NULL) {
           min = -180, max = 180,
           value = def.lon,
           step = 0.01
-        ),
-        fluidRow(
-          column(2, "West", style = "text-align: left"),
-          column(2, "East", style = "text-align: right", offset = 8)
         )
       )
+    ),
+    fluidRow(
+      column(1, "South", style = "text-align: left"),
+      column(1, "North", style = "text-align: right", offset = 4),
+      column(1, "West", style = "text-align: left"),
+      column(1, "East", style = "text-align: right", offset = 4)
     ),
     class = "inputBox"
   )
@@ -157,10 +161,11 @@ GeoCovInputUI <- function(id, site.id, default = NULL) {
 #' @importFrom shinyjs onclick
 #'
 #' @noRd
-GeoCovInput <- function(id, main.env, ref) {
+GeoCovInput <- function(id, main.env) {
   # main.env$local.rv$custom$, rmv.id, site.id to get from main.env & id
   moduleServer(id, function(input, output, session) {
-
+    ref <- id
+    
     # Metadata acquisition ====
     local.rv <- reactiveValues(
       id = ref,
