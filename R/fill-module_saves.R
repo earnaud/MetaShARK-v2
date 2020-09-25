@@ -2,6 +2,7 @@
 #' @importFrom jsonlite write_json serializeJSON
 #'
 #' @noRd
+# Executed after chaging page
 saveReactive <- function(main.env, page) {
   if(is.null(main.env$local.rv))
     stop("No content provided.")
@@ -10,35 +11,34 @@ saveReactive <- function(main.env, page) {
   
   withProgress({
     isolate({
-      setProgress(1 / 3, "Save metadata")
-      
       # Save local variable content ----
-      main.env$save.variable <- do.call(
-        switch(page,
-          ".saveSelectDP",
-          ".saveDataFiles",
-          ".saveAttributes",
-          ".saveCatVars",
-          ".saveGeoCov",
-          ".saveTaxCov",
-          ".savePersonnel",
-          ".saveMisc"
-        ),
-        args = list(
-          main.env
+      setProgress(1 / 3, "Save metadata")
+      if(page != 9) {
+        main.env$save.variable <- do.call(
+          what = switch(page,
+                        ".saveSelectDP",
+                        ".saveDataFiles",
+                        ".saveAttributes",
+                        ".saveCatVars",
+                        ".saveGeoCov",
+                        ".saveTaxCov",
+                        ".savePersonnel",
+                        ".saveMisc"
+          ),
+          args = list(main.env)
         )
-      )
+      }
       
-      setProgress(2 / 3, "Write JSON")
+      # Template ----
+      template(main.env, page)
       
       # Save JSON ----
-      # Get + create path
+      setProgress(2 / 3, "Write JSON")
+      # set files + path
       path <- main.env$save.variable$SelectDP$dp.path
-      if(!dir.exists(path))
-        dir.create(path)
-      # Get + write file
       filename <- main.env$save.variable$SelectDP$dp.name
       location <- paste0(path, "/", filename, ".json")
+      # write files
       if (file.exists(location))
         file.remove(location)
       jsonlite::write_json(
@@ -61,10 +61,11 @@ saveReactive <- function(main.env, page) {
 
 #' @noRd
 .saveSelectDP <- function(main.env){
+  # Shortcuts
   .sv <- main.env$save.variable
   content <- main.env$local.rv
   
-  # Save
+  # Save content in sv
   .sv$SelectDP$dp.name <- content$dp.name()
   .sv$SelectDP$dp.path <- paste0(
     main.env$PATHS$eal.dp,
@@ -106,7 +107,7 @@ saveReactive <- function(main.env, page) {
 
   # Format content
   if (!isContentTruthy(.tmp)) {
-    message("Invalid content at ")
+    message("Invalid content")
   }
   else {
     # -- Get files data
@@ -148,7 +149,12 @@ saveReactive <- function(main.env, page) {
 .saveAttributes <- function(main.env){
   .sv <- main.env$save.variable
   content <- main.env$local.rv
-
+  
+  # Curates tables
+  sapply(names(main.env$local.rv$md.tables), function(table){
+    browser()
+  })
+  
   # Save
   .sv$Attributes <- content$md.tables
   names(.sv$Attributes) <- .sv$DataFiles$name
@@ -207,16 +213,10 @@ saveReactive <- function(main.env, page) {
 #' @import shiny
 .saveGeoCov <- function(main.env){
   .sv <- main.env$save.variable
-  content <- main.env$local.rv
+  main.env$local.rv <- main.env$local.rv
   
   # Initialize variables
-  .method <- if (isTRUE(content$columns$complete)) {
-    "columns"
-  } else if (isTRUE(content$custom$complete)) {
-    "custom"
-  } else {
-    ""
-  }
+  .method <- main.env$local.rv$method
 
   data.files <- .sv$DataFiles$datapath
   data.content <- lapply(data.files, readDataTable, stringsAsFactors = FALSE)
@@ -244,38 +244,40 @@ saveReactive <- function(main.env, page) {
 
   geocov <- NULL
   .sv$GeoCov <- reactiveValues() # reset
+  .sv$GeoCov$method <- .method
 
   # GeoCov written if .method filled
   if (.method == "columns") {
-    .sv$GeoCov$columns <- content$columns
+    .sv$GeoCov$columns <- main.env$local.rv$columns
 
     # Site
-    site <- printReactiveValues(content$columns$site)
+    site <- printReactiveValues(main.env$local.rv$columns$site)
     .geographicDescription <- .values$data.content[[site["file"]]][[site["col"]]]
 
     # extract queried
-    tmp <- extractCoordinates(
-      content,
+    .tmp <- extractCoordinates(
+      main.env,
       "lat",
       main.env$PATTERNS$coordinates,
       .values$data.content
     )
-    .northBoundingCoordinate <- tmp$coordinates$N
-    .southBoundingCoordinate <- tmp$coordinates$S
-    .latIndex <- tmp$coordIndex
+    .northBoundingCoordinate <- .tmp$coordinates$N
+    .southBoundingCoordinate <- .tmp$coordinates$S
+    .lat.index <- .tmp$coord.index
 
-    tmp <- extractCoordinates(
-      content,
+    .tmp <- extractCoordinates(
+      main.env,
       "lon",
       main.env$PATTERNS$coordinates,
       .values$data.content
     )
-    .eastBoundingCoordinate <- tmp$coordinates$E
-    .westBoundingCoordinate <- tmp$coordinates$W
-    .lonIndex <- tmp$coordIndex
+    .eastBoundingCoordinate <- .tmp$coordinates$E
+    .westBoundingCoordinate <- .tmp$coordinates$W
+    .lon.index <- .tmp$coord.index
 
+    # Get only lines fully completed
     .geographicDescription <- .geographicDescription[
-      .latIndex[which(.latIndex %in% .lonIndex)]
+      .lat.index[which(.lat.index %in% .lon.index)]
     ]
 
     # Final
@@ -290,16 +292,13 @@ saveReactive <- function(main.env, page) {
   } else if (.method == "custom") {
     # save
     .sv$GeoCov <- reactiveValues()
-    .sv$GeoCov$custom <- content$custom
+    .sv$GeoCov$custom <- main.env$local.rv$custom
 
     # fill
-    geocov <- content$custom$coordinates
+    geocov <- main.env$local.rv$custom$coordinates
   }
   # Write data
-  if (!is.null(geocov) &&
-    .method != "" &&
-    all(dim(geocov) > 0)
-  ) {
+  if (isContentTruthy(geocov))
     data.table::fwrite(
       geocov,
       paste(
@@ -309,10 +308,10 @@ saveReactive <- function(main.env, page) {
       ),
       sep = "\t"
     )
-  }
   
   # Output
-  return(.sv)
+  main.env$save.variable <- .sv
+  return(main.env$save.variable)
 }
 
 #' @noRd
@@ -328,8 +327,7 @@ saveReactive <- function(main.env, page) {
   .sv$TaxCov$taxa.name.type <- content$taxa.name.type
   .sv$TaxCov$taxa.authority <- content$taxa.authority
 
-  # Output
-  return(.sv)
+  main.env$save.variable <- .sv
 }
 
 #' @noRd
@@ -339,32 +337,45 @@ saveReactive <- function(main.env, page) {
   .sv <- main.env$save.variable
   content <- main.env$local.rv
   
-  if(isFALSE(isContentTruthy(content$Personnel)))
-    return(.sv)
+  if(isContentTruthy(content$Personnel)) {
+    # Save variable
+    .sv$Personnel <- content$Personnel
+    
+    # Write file
+    # prettify
+    cols <- c(
+      "givenName", "middleInitial", "surName",
+      "organizationName", "electronicMailAddress",
+      "userId", "role",
+      "projectTitle", "fundingAgency", "fundingNumber"
+    )
+    personnel <- content$Personnel[names(content$Personnel) %in% cols]
+    .personnel <- personnel[NULL,]
+    sapply(seq(nrow(personnel)), function(ind) {
+      row <- personnel[ind,]
+      
+      roles <- unlist(strsplit(row$role, ","))
+      lapply(seq(roles), function(ind) 
+        .personnel <<- rbind(
+          .personnel, 
+          row %>% mutate(role = roles[ind])
+        )
+      )
+    })
+    
+    # File template for personnel
+    data.table::fwrite(
+      .personnel,
+      paste0(
+        .sv$SelectDP$dp.metadata.path,
+        "/personnel.txt"
+      ),
+      sep = "\t"
+    )
+  }
   
-  # Save
-  .sv$Personnel <- content$Personnel
-
-  # prettify
-  cols <- c(
-    "givenName", "middleInitial", "surName",
-    "organizationName", "electronicMailAddress",
-    "userId", "role",
-    "projectTitle", "fundingAgency", "fundingNumber"
-  )
-  personnel <- content$Personnel[names(content$Personnel) %in% cols]
-
-  # File template for personnel
-  data.table::fwrite(
-    personnel,
-    paste0(
-      .sv$SelectDP$dp.metadata.path,
-      "/personnel.txt"
-    ),
-    sep = "\t"
-  )
-
-  return(.sv)
+  # Output
+  main.env$save.variable <- .sv
 }
 
 #' @noRd
@@ -375,25 +386,36 @@ saveReactive <- function(main.env, page) {
   .sv <- main.env$save.variable
   content <- main.env$local.rv
   
+  saveHTMLasMD <- function(.content) {
+    .tmp.file <- tempfile(fileext = ".html")
+    htmltools::save_html(html = htmltools::HTML(.content$content), .tmp.file)
+    rmarkdown::pandoc_convert(
+      .tmp.file,
+      from = "html",
+      to = "markdown_strict",
+      output = .content$file
+    )
+  }
+  
   # save
   .sv$Misc <- content
   
   # Fill template for abstract
-  write.text(
-    content$abstract$content(),
-    content$abstract$file
-  )
+  saveHTMLasMD(content$abstract)
   # Fill template for methods
-  write.text(
-    content$methods$content(),
-    content$methods$file
-  )
+  saveHTMLasMD(content$methods)
   # Fill template for keywords
-  data.table::fwrite(
+  .tmp <- lapply(unique(content$keywords$keyword.thesaurus), function(kwt) {
+    row.ind <- which(content$keywords$keyword.thesaurus == kwt)
+    
     data.frame(
-      keyword = content$keywords$keyword,
-      keywordThesaurus = content$keywords$keywordThesaurus
-    ),
+      keyword = strsplit(content$keywords$keyword[row.ind], ",") %>% unlist(),
+      keyword.thesaurus = kwt
+    )
+  })
+  .keywords <- bind_rows(.tmp)
+  data.table::fwrite(
+    .keywords,
     paste0(
       .sv$SelectDP$dp.metadata.path,
       "/keywords.txt"
@@ -401,10 +423,19 @@ saveReactive <- function(main.env, page) {
     sep = "\t"
   )
   # Fill template for additional information
-  write.text(
-    content$additional_information$content(),
-    content$additional_information$file
-  )
+  saveHTMLasMD(content$additional.information)
   
-  return(.sv)
+  # Remove non-md files
+  sapply(c("abstract", "methods", "additional.information"), function(x) {
+    file.remove(
+      dir(
+        main.env$save.variable$SelectDP$dp.metadata.path, 
+        full.names = TRUE,
+        pattern = paste0("^.*", x, ".*\\.[^md]$")
+      )
+    )
+  })
+  
+  # Output
+  main.env$save.variable <- .sv
 }

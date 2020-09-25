@@ -180,7 +180,7 @@ Attributes <- function(id, main.env) {
           "No valid table provided."
         )
       )
-      
+      message("renderui")
       # compute ui
       do.call(
         shinyBS::bsCollapse,
@@ -357,6 +357,29 @@ Attributes <- function(id, main.env) {
       req(
         length(main.env$local.rv$md.tables) != 0 &&
           !any(sapply(main.env$local.rv$md.tables, identical, y = data.frame()))
+      )
+      
+      # * Feedback ----
+      shinyBS::updateCollapse(
+        session,
+        "collapse",
+        style = lapply(
+          main.env$local.rv$md.filenames[main.env$local.rv$current$file],
+          function(filename) {
+            lapply(names(main.env$local.rv$completed[[filename]]), function(att){
+              ifelse(
+                main.env$local.rv$completed[[filename]][[att]] %>%
+                  listReactiveValues() %>%
+                  unlist() %>%
+                  all() %>%
+                  isTRUE(),
+                "success",
+                "warning"
+              )
+            }) %>%
+              setNames(nm = names(main.env$local.rv$completed[[filename]]))
+          }
+        ) %>% unlist(recursive = F)
       )
       
       # * Check completeness ----

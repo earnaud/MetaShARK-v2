@@ -13,6 +13,7 @@ write.text <- function(x, file = ".", collapse = "\n") {
   if (missing(x)) {
     stop("Error: no text has been provided.")
   }
+  browser()
   if (!is.character(x)) {
     stop("Error: 'x' is not a text.")
   }

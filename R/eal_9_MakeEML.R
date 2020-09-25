@@ -41,10 +41,12 @@ MakeEMLUI <- function(id, main.env) {
             6,
             tags$b("Generate a summary of your data package."),
             tags$i("(clicking on the below button will open a preview)"),
-            downloadButton(
-              NS(id, "download_emldown"),
-              "Download emldown",
-              width = "50%"
+            shinyjs::disabled(
+              downloadButton(
+                NS(id, "download_emldown"),
+                "Download emldown",
+                width = "50%"
+              )
             )
           ) # End of emldown
         )
@@ -81,13 +83,13 @@ MakeEML <- function(id, main.env) {
       withProgress(
         {
           . <- main.env$save.variable
-          fileName <- .$SelectDP$dp_title
+          fileName <- .$SelectDP$dp.title
 
           x <- try(
             EMLassemblyline::template_arguments(
-              path = .$SelectDP$dp_metadata_path,
-              data.path = .$SelectDP$dp_data_path,
-              data.table = dir(.$SelectDP$dp_data_path)
+              path = .$SelectDP$dp.metadata.path,
+              data.path = .$SelectDP$dp.data.path,
+              data.table = dir(.$SelectDP$dp.data.path)
             )
           )
 
@@ -98,23 +100,30 @@ MakeEML <- function(id, main.env) {
           } else {
             incProgress(0.3)
 
-            x$path <- .$SelectDP$dp_metadata_path
-            x$data.path <- .$SelectDP$dp_data_path
-            x$eml.path <- .$SelectDP$dp_eml_path
-            x$data.table <- dir(x$data.path)
-            x$data.table.name <- .$DataFiles$table_name
-            x$data.table.description <- .$DataFiles$description
-            x$dataset.title <- .$SelectDP$dp_title
+            x$path <- .$SelectDP$dp.metadata.path
+            x$data.path <- .$SelectDP$dp.data.path
+            x$eml.path <- .$SelectDP$dp.eml.path
+            x$dataset.title <- .$SelectDP$dp.title
+            x$temporal.coverage <- .$Misc$temporal.coverage
+            # IGNORED geographic.description
+            # IGNORED geographic.coordinates
             x$maintenance.description <- "Ongoing"
-            # TODO better package.id
-            x$package.id <- fileName
-            x$return.obj <- TRUE
-            x$temporal.coverage <- .$Misc$temporal_coverage
-            # TODO user domain (pndb?)
-            x$user.domain <- "UserDomain"
-            # TODO user id (orcid?)
-            x$user.id <- "UserID"
+            x$data.table <- dir(x$data.path)
+            x$data.table.name <- optional(.$DataFiles$table.name)
+            x$data.table.description <- optional(.$DataFiles$description)
+            # TODO data.table.quote.character
+            x$data.table.url <- optional(.$DataFiles$url)
+            # TODO other.entity
+            # TODO other.entity.name
+            # TODO other.entity.description
+            # TODO other.entity.url
+            # TODO provenance -- possible with DOIs ?
+            x$user.id <- optional(main.env$SETTINGS$user)
+            # TODO user domain -- PNDB ?
+            # x$user.domain <- "UserDomain"
+            # x$package.id is set as UUID (default)
             x$write.file <- TRUE
+            x$return.obj <- TRUE
 
             # Yet written in the files then used in make_eml
             x$geographic.coordinates <- NULL
@@ -126,7 +135,7 @@ MakeEML <- function(id, main.env) {
             out <- try(
               do.call(
                 EMLassemblyline::make_eml,
-                x[names(x) %in% names(formals(make_eml))]
+                x[names(x) %in% names(formals(EMLassemblyline::make_eml))]
               )
             )
             if (class(out) == "try-error") {
@@ -138,7 +147,7 @@ MakeEML <- function(id, main.env) {
         message = "Writing EML ...",
         value = 0.1
       )
-
+      browser()
       valid.eml <- EML::eml_validate(
         dir(
           main.env$save.variable$SelectDP$dp.eml.path,
@@ -147,8 +156,8 @@ MakeEML <- function(id, main.env) {
       )
 
       output$warnings <- renderText({
-        disable("publish")
-        disable("emldown")
+        shinyjs::disable("publish")
+        shinyjs::disable("emldown")
         validate(
           need(
             class(out) != "try-error",

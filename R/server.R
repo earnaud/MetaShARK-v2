@@ -22,7 +22,9 @@ appServer <- function(input, output, session) {
   # Update values ====
   invisible({
     # DataONE nodes
-    .DATAONE.LIST <- try(dataone::listFormats(dataone::CNode()))
+    .DATAONE.LIST <- if(!main.env$dev) 
+      try(dataone::listFormats(dataone::CNode())) else
+        try(silent = TRUE)
     if (class(.DATAONE.LIST) != "try-error") {
       isolate(main.env$dataone.list <- .DATAONE.LIST)
       data.table::fwrite(
@@ -32,7 +34,9 @@ appServer <- function(input, output, session) {
     }
   
     # Taxa authorities
-    .TAXA.AUTHORITIES <- try(taxonomyCleanr::view_taxa_authorities())
+    .TAXA.AUTHORITIES <- if(!main.env$dev) 
+      try(taxonomyCleanr::view_taxa_authorities()) else
+        try(silent = TRUE)
     if (class(.TAXA.AUTHORITIES) != "try-error") {
       isolate(main.env$taxa.authorities <- .TAXA.AUTHORITIES)
       data.table::fwrite(

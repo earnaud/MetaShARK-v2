@@ -272,7 +272,8 @@ attributeInput <- function(input, id, colname, main.env, row.index) {
     # Correct values
     if (
       (id == "unit" && .current.table[row.index, "class"] != "numeric") ||
-      (id == "dateTimeFormatString" && .current.table[row.index, "class"] != "Date")
+      (id == "dateTimeFormatString" && .current.table[row.index, "class"] != "Date") ||
+      (is.na(.value) || .value == "NA")
     ) {
       # If selected class does not match unit or date, force set input to blank
       .value <- ""

@@ -11,7 +11,7 @@ initReactive <- function(sub.list = NULL, save.variable = NULL, main.env) {
     stop("Attempt to initialize save.variable with inconsistent arguments")
   }
   
-  # re-creates a whole save.variable
+  # re-creates a whole empty save.variable
   if (is.null(sub.list)) {
     save.variable <- reactiveValues()
   }
@@ -37,9 +37,7 @@ initReactive <- function(sub.list = NULL, save.variable = NULL, main.env) {
         taxa.name.type = NULL,
         taxa.authority = NULL
       ),
-      Personnel = reactiveValues(
-        personnel = NULL
-      ),
+      Personnel = reactiveValues(),
       Misc = reactiveValues(
         abstract = reactiveValues(
           content = character(),
@@ -49,9 +47,10 @@ initReactive <- function(sub.list = NULL, save.variable = NULL, main.env) {
           content = character(),
           file = character()
         ),
-        keywords = reactiveValues(
+        keywords = data.frame(
           keyword = character(),
-          keyword.thesaurus = character()
+          keyword.thesaurus = character(),
+          keyword.set = character()
         ),
         temporal_coverage = NULL,
         additional.information = reactiveValues(
@@ -173,8 +172,7 @@ setLocalRV <- function(main.env){
         lon = reactiveValues(
           col = character(),
           file = character()
-        ),
-        complete = FALSE
+        )
       ),
       custom = reactiveValues(
         id = numeric(),
@@ -185,8 +183,7 @@ setLocalRV <- function(main.env){
           eastBoundingCoordinate = numeric(),
           westBoundingCoordinate = numeric(),
           stringsAsFactors = FALSE
-        ),
-        complete = FALSE
+        )
       )
     ),
     # * TaxCov ----
@@ -199,8 +196,10 @@ setLocalRV <- function(main.env){
     ),
     # * Personnel ----
     reactiveValues(
+      role.choices = list(Base = list("creator", "contact", "PI"), Other = list("Other")),
+      last.modified = 0,
       Personnel = data.frame(
-        id = numeric(),
+        # id = numeric(),
         # Basic Identity
         givenName = character(),
         middleInitial = character(),
@@ -221,17 +220,33 @@ setLocalRV <- function(main.env){
     # * Misc ----
     {
       # Get keywords
+      kw <- data.frame()
       if (isContentTruthy(isolate(main.env$save.variable$SelectDP$dp.metadata.path))) {
         kw <- fread(
           paste0(isolate(main.env$save.variable$SelectDP$dp.metadata.path), "/keywords.txt"),
           data.table = FALSE, stringsAsFactors = FALSE
         )
-      } else {
+        # Collapse --get by same thesaurus -- set the keyword set
+        if(isContentTruthy(kw))
+          kw <- data.frame(
+            keyword = sapply(unique(kw$keyword.thesaurus), function(kwt) {
+              paste(kw %>% dplyr::filter(keyword.thesaurus == kwt) %>% dplyr::select(keyword) %>% unlist(), collapse = ",")
+            }),
+            keyword.thesaurus = unique(kw$keyword.thesaurus),
+            keyword.set = paste0("_", seq(unique(kw$keyword.thesaurus))),
+            stringsAsFactors = FALSE,
+            row.names = c()
+          )
+      } 
+      if (!isContentTruthy(kw)) {
         kw <- data.frame(
           keyword = character(),
-          keyword.thesaurus = character()
+          keyword.thesaurus = character(),
+          keyword.set = character(),
+          stringsAsFactors = FALSE
         )
       }
+      
       # Define reactiveValues
       reactiveValues(
         # Abstract
@@ -239,7 +254,7 @@ setLocalRV <- function(main.env){
           content = character(),
           file = paste(
             isolate(main.env$save.variable$SelectDP$dp.metadata.path),
-            "abstract.txt",
+            "abstract.md",
             sep = "/"
           )
         ),
@@ -248,15 +263,12 @@ setLocalRV <- function(main.env){
           content = character(),
           file = paste(
             isolate(main.env$save.variable$SelectDP$dp.metadata.path),
-            "methods.txt",
+            "methods.md",
             sep = "/"
           )
         ),
         # Keywords
-        keywords = reactiveValues(
-          keyword = kw$keyword,
-          keyword.thesaurus = kw$keyword.thesaurus
-        ),
+        keywords = kw,
         # Temporal coverage
         temporal.coverage = c(Sys.Date() - 1, Sys.Date()),
         # Additional information
@@ -264,20 +276,25 @@ setLocalRV <- function(main.env){
           content = character(),
           file = paste(
             isolate(main.env$save.variable$SelectDP$dp.metadata.path),
-            "additional_info.txt",
+            "additional_info.md",
             sep = "/"
           )
         )
       )
+    },
+    # Make EML ----
+    # empty RV to be able at last to save the step
+    {
+      reactiveValues(empty = NULL)
     }
   )
   
   # Post-modifications ====
   # * Attributes ----
   if(main.env$EAL$page == 3) {
+    message("savevariable - 3")
     # Path to metadata templates
     if (isContentTruthy(main.env$save.variable$DataFiles$metadatapath)) {
-      
       # Set metadata
       main.env$local.rv$md.filenames <- basename(main.env$save.variable$DataFiles$metadatapath)
       main.env$local.rv$md.tables <- lapply(
@@ -285,6 +302,13 @@ setLocalRV <- function(main.env){
         readDataTable,
         data.table = FALSE, stringsAsFactors = FALSE
       )
+      
+      # Curates tables
+      sapply(main.env$local.rv$md.tables, function(table){
+        table[is.na(table)] <- ""
+        if(main.env$save.variable$quick || main.env$dev)
+          table$attributeDefinition <- paste("Description for:", table$attributeName)
+      })
       
       # Set custom units
       main.env$local.rv$custom.units$trigger <- reactive({
@@ -432,33 +456,131 @@ setLocalRV <- function(main.env){
     main.env$local.rv$columns$choices$coords <- .col
     
     # Read saved values
-    # * Columns
-    if (isTRUE(grepl("columns", names(main.env$save.variable$GeoCov)))) {
-      site.name <- main.env$save.variable$GeoCov$columns$site$col
-      lat.col <- main.env$save.variable$GeoCov$columns$lat$col
-      lon.col <- main.env$save.variable$GeoCov$columns$lon$col
-      
-      if (site.name %grep% main.env$local.rv$columns$choices$sites) {
-        main.env$local.rv$columns$site <- main.env$save.variable$GeoCov$columns$site
+    if(isContentTruthy(listReactiveValues(main.env$save.variable$GeoCov))) {
+      main.env$local.rv$method <- main.env$save.variable$GeoCov$method
+
+      # * Columns
+      if (main.env$local.rv$method == "columns") {
+        site.name <- main.env$save.variable$GeoCov$columns$site$col
+        lat.col <- main.env$save.variable$GeoCov$columns$lat$col
+        lon.col <- main.env$save.variable$GeoCov$columns$lon$col
+        
+        if (site.name %grep% main.env$local.rv$columns$choices$sites) {
+          main.env$local.rv$columns$site <- main.env$save.variable$GeoCov$columns$site
+        }
+        if (lat.col %grep% main.env$local.rv$columns$choices$coords) {
+          main.env$local.rv$columns$lat$col <- main.env$save.variable$GeoCov$columns$lat$col
+          main.env$local.rv$columns$lat$file <- main.env$save.variable$GeoCov$columns$lat$file
+        }
+        if (lon.col %grep% main.env$local.rv$columns$choices$coords) {
+          main.env$local.rv$columns$lon$col <- main.env$save.variable$GeoCov$columns$lon$col
+          main.env$local.rv$columns$lon$file <- main.env$save.variable$GeoCov$columns$lon$file
+        }
       }
-      if (lat.col %grep% columns.coordinates) {
-        main.env$local.rv$columns$lat$col <- main.env$save.variable$GeoCov$columns$lat$col
-        main.env$local.rv$columns$lat$file <- main.env$save.variable$GeoCov$columns$lat$file
-      }
-      if (lon.col %grep% columns.coordinates) {
-        main.env$local.rv$columns$lon$col <- main.env$save.variable$GeoCov$columns$lon$col
-        main.env$local.rv$columns$lon$file <- main.env$save.variable$GeoCov$columns$lon$file
+      # * Custom
+      if (main.env$local.rv$method == "custom") {
+        saved_table <- main.env$save.variable$GeoCov$custom$coordinates
+        if (isContentTruthy(saved_table)) 
+          main.env$local.rv$custom$coordinates <- saved_table
       }
     }
-    # * Custom
-    if ("custom" %grep% names(main.env$save.variable$GeoCov)) {
-      saved_table <- main.env$save.variable$GeoCov$custom$coordinates
-      if (isContentTruthy(saved_table)) 
-        main.env$local.rv$custom$coordinates <- saved_table
-    }
-  }
     
-  # (End) ----
+    # Set completeness
+    main.env$local.rv$columns$complete <- reactive(
+      isTruthy(main.env$local.rv$columns$site$col) &&
+      isTruthy(main.env$local.rv$columns$lat$col) &&
+      isTruthy(main.env$local.rv$columns$lon$col)
+    )
+    main.env$local.rv$custom$complete <-reactive(isContentTruthy(main.env$local.rv$custom$coordinates))
+  }
+  
+  # * TaxCov ----
+  if(main.env$EAL$page == 6) {
+    # File
+    if(isTruthy(main.env$save.variable$TaxCov$taxa.table) && 
+       main.env$save.variable$TaxCov$taxa.table %in%
+       names(main.env$save.variable$Attributes))
+      main.env$local.rv$taxa.table <- unlist(main.env$save.variable$TaxCov$taxa.table)
+    # Col
+    if(isTruthy(main.env$save.variable$TaxCov$taxa.col) &&
+       main.env$save.variable$TaxCov$taxa.col %in% 
+       main.env$save.variable$Attributes[[main.env$local.rv$taxa.table]]$attributeName)
+      main.env$local.rv$taxa.col <- main.env$save.variable$TaxCov$taxa.col
+    # Name type
+    if(isTruthy(main.env$save.variable$TaxCov$taxa.name.type) &&
+       main.env$save.variable$TaxCov$taxa.name.type %in% 
+       c("both", "scientific", "common"))
+      main.env$local.rv$taxa.name.type <- main.env$save.variable$TaxCov$taxa.name.type
+    # Authority
+    if(isTruthy(main.env$save.variable$TaxCov$taxa.authority))
+      main.env$local.rv$taxa.authority <- main.env$save.variable$TaxCov$taxa.authority
+  }
+  
+  # * Personnel ----
+  if(main.env$EAL$page == 7) {
+    # Read template
+    {
+      # personnel.file <- dir(
+      #   main.env$save.variable$SelectDP$dp.metadata.path,
+      #   pattern = "ersonnel",
+      #   full.names = TRUE
+      # )
+      # Here, do not read from file: format for 'role' is not the same
+      saved.table <- if (main.env$save.variable$Personnel %>%
+                         listReactiveValues() %>%
+                         isContentTruthy())
+          isolate(main.env$save.variable$Personnel) else
+            NULL
+      if(!is.null(saved.table)) {
+        # Remove NA
+        saved.table[is.na(saved.table)] <- ""
+        # Save
+        main.env$local.rv$Personnel <- saved.table
+      }
+    }
+    
+    # Add id column -- specific id foor pre-generated input
+    if(nrow(main.env$local.rv$Personnel) > 0) {
+      main.env$local.rv$Personnel$id <- paste0("_", seq(nrow(main.env$local.rv$Personnel)))
+    } else 
+      main.env$local.rv$Personnel$id <- character()
+    
+    # Add trigger inter-roleInputs
+    main.env$local.rv$trigger <- reactive({
+      req(main.env$EAL$page == 7)
+      main.env$local.rv$last.modified
+    })
+  }
+  
+  # * Misc ----
+  if (main.env$EAL$page == 8) {
+    readHTMLfromMD <- function(file) {
+      if(isFALSE(file.exists(file)))
+        return("<p></p>")
+      
+      .tmp.file <- tempfile(fileext = ".html")
+      rmarkdown::pandoc_convert(
+        file,
+        from = "markdown_strict",
+        to = "html",
+        output = .tmp.file
+      )
+      .out <- xml2::read_html(.tmp.file) %>% 
+        textutils::HTMLdecode()
+      .out <- ifelse(
+        grepl(pattern = "<body>.*</body>", .out),
+        gsub(".*<body>(.*)</body>.*", "\\1", .out),
+        gsub(".*", "", .out)
+      )
+      return(.out)
+    }
+    
+    sapply(c("abstract", "methods", "additional.information"), function(x) {
+      isolate({main.env$local.rv[[x]]$content <- readHTMLfromMD(main.env$local.rv[[x]]$file)})
+    })
+  }
+  
+  # (End) ====
   
   return(main.env$local.rv)
 }

@@ -8,7 +8,8 @@ DataFilesUI <- function(id, main.env) {
       tags$b("Disclaimers:"),
       tags$ul(
         tags$li("Until now, only table files are supported."),
-        tags$li("Selecting a file will immediately upload it: beware of heavy files (> 5 Mb)."),
+        tags$li("Selecting a file will immediately upload it (heavy files might 
+                be slow)."),
         class = "disclaimer"
       ),
       fluidRow(

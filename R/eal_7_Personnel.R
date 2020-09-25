@@ -5,24 +5,12 @@ PersonnelUI <- function(id, main.env) {
 
   return(
     fluidPage(
-      fluidRow(
-        column(
-          2,
-          actionButton(NS(id, "addui"), "", icon("plus"))
-        ),
-        column(
-          10,
-          HTML("
-              <p>Two roles are required to be filled: <b>creator and 
-              contact.</b></p>
-              <p>If a person serves more than one role, duplicate 
-              this persons information. Similarly if a role is shared 
-              among many people, duplicate these persons information.</p>
-              <p>Filling the <b>orcid</b> field will automatically 
-              fill the remaining fields.</p>")
-        )
+      tags$span(
+        actionButton(NS(id, "addui"), "", icon("plus")),
+        "At least one \"creator\" and \"contact\" are required. Filling the",
+        tags$b("ORCID"), "field shall automatically fill the remaining fields."
       ),
-      tags$div(id = NS(id, "inserthere"))
+      tags$div(id = "inserthere_eal7")
     ) # end of fluidPage
   ) # end of return
 }
@@ -34,112 +22,103 @@ PersonnelUI <- function(id, main.env) {
 #' @noRd
 Personnel <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-    # Variable initialization ----
-    observe({
-      req(main.env$EAL$page == 7)
-      main.env$EAL$page.load$depend()
+    # Variable initialization (deprecated)
+    observeEvent(main.env$EAL$page, { # on load
+      req(main.env$EAL$old.page %in% 3:4 && main.env$EAL$page == 5)
       
-      if (isContentTruthy(main.env$save.variable$SelectDP$dp.metadata.path)) {
-        personnel.file <- dir(
-          main.env$save.variable$SelectDP$dp.metadata.path,
-          pattern = "ersonnel",
-          full.names = TRUE
+    })
+
+    # Setup UI on load
+    observeEvent(main.env$EAL$page, { # on load
+      req(main.env$EAL$old.page %in% c(0,6) && main.env$EAL$page == 7)
+      if (isContentTruthy(main.env$local.rv$Personnel) && 
+          nrow(main.env$local.rv$Personnel) > 0) {
+        sapply(seq(nrow(main.env$local.rv$Personnel)), function(row.id) {
+          insertPersonnelInput(
+            session$ns(-row.id),
+            main.env
+          )
+        })
+      }
+    })
+    
+    # Fill Personnel ====
+    # * Setup ----
+    # Initial UI
+    observeEvent(main.env$EAL$page, {
+      req(main.env$EAL$page == 7)
+      req(nrow(main.env$local.rv$Personnel) > 0)
+      
+      sapply(seq(nrow(main.env$local.rv$Personnel)), function(ind) {
+        row <- main.env$local.rv$Personnel[ind,]
+        
+        insertPersonnelInput(
+          session$ns(row$id),
+          main.env
         )
-        saved.table <- if (isTruthy(personnel.file)) {
-          data.table::fread(
-            personnel.file,
-            data.table = FALSE,
-            stringsAsFactors = FALSE
-          )
-        } else if (isTruthy(unlist(main.env$save.variable$Personnel))) {
-          isolate(main.env$save.variable$Personnel)
-        } else {
-          NULL
-        }
-        saved.table[is.na(saved.table)] <- ""
-
-        if (isContentTruthy(saved.table)) {
-          saved.table$id <- c(
-            saved.table$role[1:2],
-            seq_along(saved.table$givenName)[-(1:2)]
-          )
-          isolate(main.env$local.rv$Personnel <- saved.table)
-
-          sapply(main.env$local.rv$Personnel$id, function(rvid) {
-            main.env$local.rv <- insertPersonnelInput(
-              rvid,
-              main.env$local.rv,
-              ns,
-              main.env,
-              role = if (rvid %in% c("creator", "contact")) rvid,
-              saved = saved.table
-            )
-            return()
-          })
-        } else { # New
-          main.env$local.rv <- insertPersonnelInput(
-            "creator",
-            main.env$local.rv,
-            ns,
-            main.env,
-            role = "creator",
-            saved = saved.table
-          )
-
-          main.env$local.rv <- insertPersonnelInput(
-            "contact",
-            main.env$local.rv,
-            ns,
-            main.env,
-            role = "contact",
-            saved = saved.table
-          )
-        }
-      }
-    },
-    label = "EAL7: set value"
-    )
-
-    # Fill Personnel ----
+      })
+    }, priority = -1)
+    
+    # User's additional UI
     observeEvent(input$addui, {
-      id <- dim(main.env$local.rv$Personnel[-c(1:2), ])[1] + 1
-      while (as.character(id) %in% main.env$local.rv$Personnel$id) {
-        id <- id + 1
-      }
-      main.env$local.rv <- insertPersonnelInput(
-        as.character(id),
-        main.env$local.rv,
-        ns,
+      insertPersonnelInput(
+        session$ns(as.character(input$addui)),
         main.env
-      )
+      ) 
     },
-    label = "EAL7: add personnel UI")
+    label = "EAL7 add personnel UI"
+    )
 
     # Saves ----
     observe({
       req(main.env$EAL$page == 7)
+      invalidateLater(1000)
       
+      # Roles
+      .roles <- if(isTruthy(main.env$local.rv$Personnel$role))
+        table(
+          .tmp <- main.env$local.rv$Personnel$role %>%
+            strsplit(., ",") %>%
+            unlist
+        ) else
+          c()
+      if(isFALSE("creator" %in% names(.roles))) 
+        .roles <- c(.roles, "creator" = 0)
+      if(isFALSE("contact" %in% names(.roles))) 
+        .roles <- c(.roles, "contact" = 0)
+
+      main.env$EAL$tag.list <- tagList(
+        tags$b("Roles"),
+        lapply(seq(.roles), function(role.index) {
+          .ui <- tags$div(
+            paste0(names(.roles)[role.index], ": ", .roles[role.index]),
+            style = if(names(.roles)[role.index] %in% c("creator", "contact") &&
+                       .roles[role.index] == 0)
+              "color: red"
+          )
+        })
+      )
+      
+      # Completeness
       main.env$EAL$completed <- all(
         # Personnel
-        isTruthy(main.env$local.rv$Personnel$givenName) &&
-          isTruthy(main.env$local.rv$Personnel$surName) &&
-          isTruthy(main.env$local.rv$Personnel$organizationName) &&
-          isTruthy(main.env$local.rv$Personnel$electronicMailAddress) &&
-          all(c("creator", "contact") %in% main.env$local.rv$Personnel$role)
+        all(
+          sapply(seq(nrow(main.env$local.rv$Personnel)), function(row.index){
+            row <- main.env$local.rv$Personnel[row.index,]
+            
+            main.env$PATTERNS$name %grep% row$givenName &&
+              main.env$PATTERNS$name %grep% row$surName &&
+              isTruthy(row$organizationName) &&
+              main.env$PATTERNS$email %grep% row$electronicMailAddress
+          })
+        ) &&
+        # Required roles
+          all(c("creator", "contact") %grep% main.env$local.rv$Personnel$role)
       )
     },
-    label = "EAL7: continuous save")
+    label = "EAL7 set completed"
+    )
 
     # Process data (deprecated)
-    # observeEvent(main.env$EAL$.next,
-    #   {
-    #     req(main.env$EAL$old.page == 7)
-    #     
-    #     saveReactive(main.env)
-    #   },
-    #   label = "EAL7: process data",
-    #   priority = 1,
-    #   ignoreInit = TRUE
-    # )
   })
 }

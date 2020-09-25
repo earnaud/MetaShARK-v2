@@ -126,7 +126,7 @@ appUI <- function() {
           ),
           ## Content ====
           body = shinydashboard::dashboardBody(
-            # tags$script(HTML("$('body').addClass('fixed');")),
+            tags$script(HTML("$('body').addClass('fixed');")),
             shinydashboard::tabItems(
               shinydashboard::tabItem(
                 tabName = "welcome",

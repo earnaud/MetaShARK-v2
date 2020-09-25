@@ -121,14 +121,14 @@ SelectDP <- function(id,main.env) {
     collapsible("usage")
 
     # variable initialization ----
-    observe({
+    observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page == 1)
-      main.env$EAL$page.load$depend()
       
       main.env$local.rv$dp.name <- reactive(input$dp_name)
       main.env$local.rv$dp.title <- reactive(input$dp_title)
       main.env$local.rv$dp.license <- reactive(input$license)
     },
+    priority = -1,
     label = "EAL1: set DP"
     )
     
@@ -313,33 +313,17 @@ SelectDP <- function(id,main.env) {
       req(input$dp_create)
       req(main.env$local.rv$dp.name())
 
-      # verbose
-      withProgress(
-        {
-          # save in empty dedicated variable
-          main.env$save.variable <- initReactive(
-            "emlal", 
-            main.env$save.variable,
-            main.env
-          )
-          saveReactive(main.env, main.env$EAL$old.page)
-          incProgress(0.2)
-          
-          dir.create(
-            main.env$save.variable$SelectDP$dp.path,
-            recursive = TRUE
-          )
-          incProgress(0.2)
-
-          x <- template(main.env, main.env$EAL$page)
-          incProgress(0.6)
-        },
-        message = paste(
-          "Creating:", 
-          main.env$local.rv$dp.name(),
-          sep = ""
-        )
+      # save in empty dedicated variable
+      main.env$save.variable <- initReactive(
+        "emlal", 
+        main.env$save.variable,
+        main.env
       )
+      # Next page triggered in this particular saveReactive
+      saveReactive(main.env, main.env$EAL$page) # page = 1
+      
+      # x <- template(main.env, main.env$EAL$page)
+      # incProgress(0.6)
     })
 
     # * Load DP ----
@@ -423,22 +407,22 @@ SelectDP <- function(id,main.env) {
         })
       }
 
-      # * misc
-      if (isContentTruthy(main.env$save.variable$Misc$abstract$file)) {
+      # * miscellaneous
+      if (isContentTruthy(main.env$save.variable$Misc$abstract)) {
         main.env$save.variable$Misc$abstract <- gsub(
           ".*/dataPackagesOutput/emlAssemblyLine/",
           main.env$PATHS$eal.dp,
-          main.env$save.variable$Misc$abstract$file
+          main.env$save.variable$Misc$abstract
         )
         main.env$save.variable$Misc$methods <- gsub(
           ".*/dataPackagesOutput/emlAssemblyLine/",
           main.env$PATHS$eal.dp,
-          main.env$save.variable$Misc$methods$file
+          main.env$save.variable$Misc$methods
         )
         main.env$save.variable$Misc$additional.information <- gsub(
           ".*/dataPackagesOutput/emlAssemblyLine/",
           main.env$PATHS$eal.dp,
-          main.env$save.variable$Misc$additional.information$file
+          main.env$save.variable$Misc$additional.information
         )
       }
 

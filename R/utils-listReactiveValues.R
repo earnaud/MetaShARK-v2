@@ -13,7 +13,8 @@ listReactiveValues <- function(rv, lv = 0, name = "root") {
     stop("No reactiveValues provided")
   }
   if (!is.reactivevalues(rv)) {
-    stop("Provided `rv` is not a reactiveValues")
+    message("Provided `rv` is not a reactiveValues")
+    return(rv)
   }
 
   # Check for children

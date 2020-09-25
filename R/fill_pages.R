@@ -83,10 +83,14 @@ pagesServer <- function(id, main.env) {
     
     changePage <- function(from, to, input, main.env) {
       observeEvent(input[[paste(from, to, sep = "_")]], {
-        if(main.env$EAL$page != 5) { # geocov modal
-          main.env$EAL$old.page <- main.env$EAL$page
-          main.env$EAL$page <- main.env$EAL$page + to - from
-        }
+        main.env$EAL$old.page <- main.env$EAL$page
+        main.env$EAL$page <- main.env$EAL$page + to - from
+        
+        # Case of previous at geographic coverage
+        if(main.env$EAL$old.page == 5 && 
+           main.env$EAL$page < main.env$EAL$old.page &&
+           isFALSE("Categorical Variables" %in% main.env$EAL$history))
+          isolate({main.env$EAL$page <- main.env$EAL$page - 1})
       },
       label = paste("changePage", from, to)
       )
