@@ -175,7 +175,7 @@ Misc <- function(id, main.env) {
     
     # * Temporal coverage ====
     if (!is.null(isolate(main.env$save.variable$Misc$temporal.coverage))) {
-      main.env$local.rv$temporal.coverage <- main.env$save.variable$Misc$temporal.coverage
+      main.env$local.rv$temporal.coverage <- isolate(main.env$save.variable$Misc$temporal.coverage)
       updateDateRangeInput(
         session,
         "temporal.coverage",

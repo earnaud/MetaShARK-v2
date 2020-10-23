@@ -10,6 +10,9 @@
 #' @noRd
 .globalScript <- function(args = list(dev = FALSE, wip = FALSE)) {
 
+  # Options setup ====
+  options(stringsAsFactors = FALSE)
+  
   # Environment setup ====
   main.env <- new.env()
 
@@ -70,14 +73,14 @@
       ),
       steps = c(
         "SelectDP",
-        "Data Files",
+        "Data_Files",
         "Attributes",
-        "Categorical Variables",
-        "Geographic Coverage",
-        "Taxonomic Coverage",
+        "Categorical_Variables",
+        "Geographic_Coverage",
+        "Taxonomic_Coverage",
         "Personnel",
         "Miscellaneous",
-        "Make EML"
+        "Make_EML"
       )
     ),
     envir = main.env

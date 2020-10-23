@@ -130,6 +130,12 @@ fill <- function(id, main.env) {
         
         # Save work at this state
         saveReactive(main.env, main.env$EAL$page)
+        
+        # Clean & reset variables
+        removeModal()
+        main.env$EAL$history <- "SelectDP"
+        main.env$EAL$old.page <- main.env$EAL$page
+        main.env$EAL$page <- 1
       },
       label = "EAL save+quit",
       ignoreInit = TRUE
@@ -139,10 +145,10 @@ fill <- function(id, main.env) {
       observeEvent(input$simple_quit, {
         req(input$quit)
         
-        removeModal()
-        
         # Clean & reset variables
+        removeModal()
         main.env$EAL$history <- "SelectDP"
+        main.env$EAL$old.page <- main.env$EAL$page
         main.env$EAL$page <- 1
       },
       label = "EAL quit",

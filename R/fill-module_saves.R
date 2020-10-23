@@ -30,7 +30,7 @@ saveReactive <- function(main.env, page) {
       }
       
       # Template ----
-      template(main.env, page)
+      MetaShARK::templateModules(main.env, page)
       
       # Save JSON ----
       setProgress(2 / 3, "Write JSON")
@@ -104,7 +104,8 @@ saveReactive <- function(main.env, page) {
 .saveDataFiles <- function(main.env){
   .sv <- main.env$save.variable
   .tmp <- main.env$local.rv$data.files
-
+  .tmp <- try(dplyr::select(.tmp, -id))
+  
   # Format content
   if (!isContentTruthy(.tmp)) {
     message("Invalid content")
@@ -137,7 +138,7 @@ saveReactive <- function(main.env, page) {
   
   # Save
   .sv$DataFiles <- .tmp
-  main.env$local.rv$data.files$datapath <- .tmp$datapath
+  try(main.env$local.rv$data.files$datapath <- .tmp$datapath)
 
   return(.sv)
 }
@@ -150,22 +151,20 @@ saveReactive <- function(main.env, page) {
   .sv <- main.env$save.variable
   content <- main.env$local.rv
   
-  # Curates tables
-  sapply(names(main.env$local.rv$md.tables), function(table){
-    browser()
-  })
-  
   # Save
   .sv$Attributes <- content$md.tables
   names(.sv$Attributes) <- .sv$DataFiles$name
   
   # Write attribute tables
   sapply(
-    seq_along(content$filenames),
-    function(cur_ind) {
+    basename(content$data.filepath),
+    function(tablename) {
       # write filled tables
-      path <- .sv$DataFiles$metadatapath[cur_ind]
-      table <- content$tables[[cur_ind]]
+      path <- .sv$DataFiles %>%
+        dplyr::filter(name == tablename) %>% 
+        dplyr::select(metadatapath) %>% 
+        unlist()
+      table <- content$md.tables[[tablename]]
       data.table::fwrite(table, path, sep = "\t")
     }
   )
@@ -186,8 +185,8 @@ saveReactive <- function(main.env, page) {
 #' @importFrom data.table fwrite
 .saveCatVars <- function(main.env){
   content <- main.env$local.rv
-  
-  sapply(content$catvarFiles, function(file.path) {
+  browser()
+  sapply(content$cv.files, function(file.path) {
     file.name <- basename(file.path)
     
     # Save
@@ -397,13 +396,27 @@ saveReactive <- function(main.env, page) {
     )
   }
   
+  removeDuplicateFiles <- function(filename) {
+    onlyname <- sub("\\..+", "", basename(filename))
+    synonyms <- dir(
+      main.env$save.variable$SelectDP$dp.metadata.path,
+      pattern = onlyname,
+      full.names = TRUE
+    )
+    file.remove(synonyms[basename(synonyms) != basename(filename)])
+  }
+  
   # save
   .sv$Misc <- content
   
   # Fill template for abstract
   saveHTMLasMD(content$abstract)
+  removeDuplicateFiles(content$abstract$file)
+  
   # Fill template for methods
   saveHTMLasMD(content$methods)
+  removeDuplicateFiles(content$methods$file)
+  
   # Fill template for keywords
   .tmp <- lapply(unique(content$keywords$keyword.thesaurus), function(kwt) {
     row.ind <- which(content$keywords$keyword.thesaurus == kwt)
@@ -424,6 +437,7 @@ saveReactive <- function(main.env, page) {
   )
   # Fill template for additional information
   saveHTMLasMD(content$additional.information)
+  removeDuplicateFiles(content$additional.information$file)
   
   # Remove non-md files
   sapply(c("abstract", "methods", "additional.information"), function(x) {

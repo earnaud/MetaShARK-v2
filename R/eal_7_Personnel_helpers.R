@@ -4,9 +4,7 @@
 insertPersonnelInput <- function(id, main.env) {
   # Add row
   .id <- unns(id)
-  if(grepl("^_", .id)) {
-    # already set local table
-  } else { 
+  if(!grepl("^_", .id)) {
     # add a new row to local table
     main.env$local.rv$Personnel[nrow(main.env$local.rv$Personnel)+1,] <- 
       c(rep("", ncol(main.env$local.rv$Personnel)-1), id = .id)

@@ -23,10 +23,6 @@ PersonnelUI <- function(id, main.env) {
 Personnel <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
     # Variable initialization (deprecated)
-    observeEvent(main.env$EAL$page, { # on load
-      req(main.env$EAL$old.page %in% 3:4 && main.env$EAL$page == 5)
-      
-    })
 
     # Setup UI on load
     observeEvent(main.env$EAL$page, { # on load
@@ -35,7 +31,7 @@ Personnel <- function(id, main.env) {
           nrow(main.env$local.rv$Personnel) > 0) {
         sapply(seq(nrow(main.env$local.rv$Personnel)), function(row.id) {
           insertPersonnelInput(
-            session$ns(-row.id),
+            session$ns(sprintf("_%s", row.id)),
             main.env
           )
         })

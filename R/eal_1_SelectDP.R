@@ -48,7 +48,39 @@ SelectDPUI <- function(id, main.env) {
           tags$h4("Edit existing data package",
             style = "text-align:center"
           ),
-          uiOutput(NS(id, "dp_list"))
+          shinyjs::hidden(
+            tags$div(
+              id = NS(id, "no_dp_found"),
+              helpText("No dp has been found")
+            )
+          ),
+          radioButtons(
+            NS(id, "dp_list"),
+            NULL,
+            choiceNames = c("None selected"),
+            choiceValues = c("")
+          ),
+          actionButton(
+            NS(id, "dp_load"),
+            "Load",
+            icon = icon("folder-open")
+          ),
+          actionButton(
+            NS(id, "dp_delete"),
+            "Delete",
+            icon = icon("minus-circle"),
+            class = "redButton"
+          ),
+          downloadButton(
+            NS(id, "dp_download"),
+            label = "Download .zip",
+            icon = icon("file-download")
+          ),
+          tags$p(
+            "If you have handled manually some packages in",
+            isolate(main.env$PATHS$eal.dp),
+            ", some packages might not be listed here."
+          )
         ),
         # Create DP ----
         column(
@@ -132,71 +164,44 @@ SelectDP <- function(id,main.env) {
     label = "EAL1: set DP"
     )
     
-    # update packages every 10 seconds
-    .dp.list <- reactivePoll(
-      intervalMillis = 10000,
-      session = session,
-      checkFunc = function(){
-        identical(
-          listDP(main.env),
-          main.env$local.rv$dp.list
-        )
-      },
-      valueFunc = function(){
-        showNotification(
-          "Refreshed list of DP"
-        )
-        listDP(main.env)
-      }
-    )
-    
-    observeEvent(.dp.list, {
-      req(main.env$EAL$page == 1)
-      main.env$local.rv$dp.list <- .dp.list()
-    },
-    label = "EAL 1: dp list"
-    )
-    
     # Render DP list ====
-    # UI output
-    output$dp_list <- renderUI({
-        validate(
-          need(
-            isTruthy(main.env$local.rv$dp.list),
-            "No data package has been written."
-          )
+    # update packages every 10 seconds
+    observe({
+      invalidateLater(1000)
+      dp.list <- listDP(main.env)
+      changed <- isFALSE(identical(dp.list, main.env$local.rv$dp.list))
+      if(changed) {
+        main.env$local.rv$dp.list <- dp.list
+        
+        # update list
+        updateRadioButtons(
+          session,
+          "dp_list",
+          choiceNames = c("None selected", main.env$local.rv$dp.list),
+          choiceValues = c("", gsub(" \\(.*\\)$", "", main.env$local.rv$dp.list))
         )
-        tagList(
-          radioButtons(
-            session$ns("dp_list"),
-            NULL,
-            choiceNames = c("None selected", main.env$local.rv$dp.list),
-            choiceValues = c("", gsub(" \\(.*\\)$", "", main.env$local.rv$dp.list))
-          ),
-          actionButton(
-            session$ns("dp_load"),
-            "Load",
-            icon = icon("folder-open")
-          ),
-          actionButton(
-            session$ns("dp_delete"),
-            "Delete",
-            icon = icon("minus-circle"),
-            class = "redButton"
-          ),
-          downloadButton(
-            session$ns("dp_download"),
-            label = "Download .zip",
-            icon = icon("file-download")
-          ),
-          tags$p(
-            "If you have handled manually some packages in",
-            isolate(main.env$PATHS$eal.dp),
-            ", some packages might not be listed here."
-          )
-        )
-      })
-
+      }
+    },
+    label = "EAL 1: dp list")
+    
+    # toggles
+    observe({
+      truthy.dp.list <- isContentTruthy(main.env$local.rv$dp.list)
+      shinyjs::toggle("dp_list", condition = truthy.dp.list)
+      shinyjs::toggle("no_dp_found", condition = isFALSE(truthy.dp.list))
+    }, 
+    label = "EAL1: update dp list")
+    
+    # toggle Load and Delete buttons
+    observeEvent(input$dp_list, {
+      valid.selected <- input$dp_list != ""
+      shinyjs::toggleState("dp_load", condition = valid.selected)
+      shinyjs::toggleState("dp_delete", condition = valid.selected)
+      shinyjs::toggleState("dp_download", condition = valid.selected)
+    },
+    label = "EAL1: toggle dp buttons"
+    )
+    
     # Manage DP download ----
     output$dp_download <- downloadHandler(
       filename = function() {
@@ -224,23 +229,6 @@ SelectDP <- function(id,main.env) {
         setwd(.path)
       },
       contentType = "application/zip"
-    )
-
-    # toggle Load and Delete buttons
-    observeEvent(input$dp_list,
-      {
-        if (input$dp_list != "") {
-          shinyjs::enable("dp_load")
-          shinyjs::enable("dp_delete")
-          shinyjs::enable("dp_download")
-        }
-        else {
-          shinyjs::disable("dp_load")
-          shinyjs::disable("dp_delete")
-          shinyjs::disable("dp_download")
-        }
-      },
-      label = "EAL1: [UX] dp buttons"
     )
 
     # DP create ----
@@ -472,17 +460,15 @@ SelectDP <- function(id,main.env) {
       path <- paste0(main.env$PATHS$eal.dp, dp, "_emldp")
 
       # verbose
+      removeModal()
       showNotification(
         paste("Deleting:", dp, sep = "")
       )
 
       # actions
       unlink(path, recursive = TRUE)
-      main.env$local.rv$dp.list <- main.env$local.rv$dp.list[
-        !grepl(dp, main.env$local.rv$dp.list)
-      ]
-      # main.env$DP.LIST <- main.env$DP.LIST[!grepl(dp, main.env$DP.LIST$name)]
-      removeModal()
+      # main.env$local.rv$dp.list <- 
+      #   main.env$local.rv$dp.list[main.env$local.rv$dp.list != dp]
     },
     label = "EAL1: confirm delete DP"
     )

@@ -1,5 +1,5 @@
 #' @noRd
-template <- function(main.env, page){
+templateModules <- function(main.env, page){
   if(is.null(main.env$local.rv))
     stop("No content provided.")
   if(is.null(main.env$save.variable))
