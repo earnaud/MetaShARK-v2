@@ -41,11 +41,12 @@ DataFilesUI <- function(id, main.env) {
           }
         )
       ),
-      uiOutput(NS(id, "data_files")),
-      actionButton(NS(id, "remove_data_files"), "Remove",
-        icon = icon("minus-circle"),
-        class = "redButton"
-      )
+      tags$div(id = "inserthere_eal2")
+      # uiOutput(NS(id, "data_files")),
+      # actionButton(NS(id, "remove_data_files"), "Remove",
+      #   icon = icon("minus-circle"),
+      #   class = "redButton"
+      # )
     ) # end fluidPage
   ) # end return
 }
@@ -58,202 +59,121 @@ DataFilesUI <- function(id, main.env) {
 #' @noRd
 DataFiles <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-    # Variable initialization ----
+    # Variable initialization (deprecated)
     
-    # Data file upload ====
-    # * Add data files ----
+    # Setup UI on load
+    observeEvent(main.env$EAL$page, { # on load
+      req(main.env$EAL$old.page %in% c(0,1) && main.env$EAL$page == 2)
+      if (isContentTruthy(main.env$local.rv$data.files) && 
+          nrow(main.env$local.rv$data.files) > 0) {
+        sapply(seq(nrow(main.env$local.rv$data.files)), function(row.id) {
+          insertDataFileInput(
+            session$ns(sprintf("_%s", row.id)),
+            main.env
+          )
+        })
+      }
+    }, priority = -1)
+    
+    # Add data files ====
     observeEvent(input$add_data_files,
       {
         # validity checks
         req(isContentTruthy(input$add_data_files))
-        withProgress(
-          {
-            # retrieve data files info
+        
+            # * retrieve files info ----
             .loaded.files <- input$add_data_files
-            incProgress(0.2)
             
             # remove spaces
+            file.rename(
+              .loaded.files$datapath,
+              gsub(" ", "_",.loaded.files$datapath)
+            )
             .loaded.files$name <- gsub(" ", "_", .loaded.files$name)
+            .loaded.files$datapath <- gsub(" ", "_", .loaded.files$datapath)
             # add URL, description and table name columns
             .loaded.files$url <- rep("", dim(.loaded.files)[1])
             .loaded.files$description <- rep("", dim(.loaded.files)[1])
             .loaded.files$table.name <- rep("", dim(.loaded.files)[1])
-            incProgress(0.2)
             
-            # bind into input
-            # empty variable
+            # * bind into local.rv ----
+            # empty local.rv
             if (isFALSE(
               isContentTruthy(main.env$local.rv$data.files) && 
               all(dim(main.env$local.rv$data.files) > 0)
             )) {
-              main.env$local.rv$data.files <- .loaded.files
-            } else { # non-empty variable
+              # Bind data
+              main.env$local.rv$data.files <- cbind(
+                id = seq(nrow(.loaded.files)),
+                .loaded.files
+              )
+              # Add UI
+              sapply(
+                seq(nrow(.loaded.files)),
+                function(ind){
+                  # Render
+                  insertDataFileInput(
+                    session$ns(main.env$local.rv$counter),
+                    main.env
+                  )
+                  # Increase file counter
+                  main.env$local.rv$counter <- main.env$local.rv$counter+1
+                }
+              )
+              # Copy new files to the server
+              destination <- sprintf(
+                "%s/%s",
+                main.env$PATHS$eal.tmp,
+                main.env$local.rv$data.files$name
+              )
+              file.copy(main.env$local.rv$data.files$datapath, destination)
+              main.env$local.rv$data.files$datapath <- destination
+              
+            } else {
+              # non-empty local.rv
               sapply(.loaded.files$name, function(filename) {
-                if (fs::is_dir(filename)) {
+                filepath <- .loaded.files$datapath[.loaded.files$name == filename]
+                if (fs::is_dir(filepath)) {
                   showNotification(
                     paste(filename, "is a folder."),
                     type = "warning"
                   )
                 } else {
                   if (!filename %in% main.env$local.rv$data.files$name) {
+                    # Bind data
                     main.env$local.rv$data.files <- unique(rbind(
                       main.env$local.rv$data.files,
-                      .loaded.files[.loaded.files$name == filename, ]
+                      cbind(
+                        id = main.env$local.rv$counter,
+                        .loaded.files[.loaded.files$name == filename, ]
+                      )
                     ))
+                    # Render
+                    insertDataFileInput(
+                      session$ns(main.env$local.rv$counter),
+                      main.env
+                    )
+                    # Increase file counter
+                    main.env$local.rv$counter <- main.env$local.rv$counter + 1
                   }
                 }
               })
             }
-            incProgress(0.2)
             
-            # copies to the server
-            file.copy(
-              main.env$local.rv$data.files$datapath,
-              paste0(main.env$PATHS$eal.tmp, main.env$local.rv$data.files$name)
-            )
-            incProgress(0.2)
-
-            main.env$local.rv$data.files$datapath <- paste0(
-              main.env$PATHS$eal.tmp, 
+            # * copy to the server ----
+            destination <- sprintf(
+              "%s/%s",
+              main.env$PATHS$eal.tmp,
               main.env$local.rv$data.files$name
             )
-            incProgress(0.2)
-          },
-          message = "Downloading data files"
-        )
+            file.copy(main.env$local.rv$data.files$datapath, destination)
+            main.env$local.rv$data.files$datapath <- destination
       },
       ignoreInit = TRUE,
       label = "EAL2: add files"
     )
 
-    # * Remove data files ----
-    observeEvent(input$remove_data_files,
-      {
-        # validity check
-        req(input$select_data_files)
-
-        # actions
-        main.env$local.rv$data.files <- main.env$local.rv$data.files[
-          !(main.env$local.rv$data.files$name %in% input$select_data_files),
-        ]
-      },
-      label = "EAL2: remove files"
-    )
-
-    # Display data files ----
-    # * UI ----
-    output$data_files <- renderUI({
-        validate(
-          need(
-            !is.null(main.env$local.rv$data.files) &&
-              !any(dim(main.env$local.rv$data.files) == 0) &&
-              !is.null(main.env$local.rv$data.files),
-            "Select files to describe."
-          )
-        )
-        
-        df <- main.env$local.rv$data.files
-        checkboxGroupInput(
-          session$ns("select_data_files"),
-          "Select files to delete (all files here will be kept otherwise)",
-          choiceNames = lapply(
-            df$name,
-            function(label) {
-              # Variable initialization
-              .id <- match(label, df$name)
-              xls.warning <- if (grepl("xlsx?$", label))
-                helpText("Only the first sheet of Excel files will be read.")
-              else
-                NULL
-              
-              # Output
-              collapsibleUI(
-                id = NS(id, .id),
-                label = label,
-                .hidden = FALSE,
-                class = "inputBox",
-                tagList(
-                  fluidRow(
-                    column(
-                      6,
-                      textInput(
-                        NS(id, paste0(.id, "-dataName")),
-                        "Data table name",
-                        value = label
-                      )
-                    ),
-                    column(
-                      6,
-                      URL_Input_UI(
-                        NS(id, paste0(.id, "-dataURL")),
-                        label = "Data remote location"
-                      )
-                    ),
-                  ),
-                  xls.warning,
-                  fluidRow(
-                    column(
-                      12,
-                      textAreaInput(
-                        NS(id, paste0(.id, "-dataDesc")),
-                        "Data Table Description",
-                        value = paste("Content of", label),
-                        width = "100%"
-                      )
-                    )
-                  )
-                )
-              )
-            }
-          ),
-          choiceValues = df$name
-        )
-      })
-    
-    # * Server ----
-    observeEvent(names(input), {
-      req(
-        any(grepl("dataName", names(input))) ||
-          any(grepl("dataURL", names(input))) ||
-          any(grepl("dataDesc", names(input)))
-      )
-      sapply(main.env$local.rv$data.files$name, function(.id) {
-        collapsible(.id)
-        ind <- match(.id, main.env$local.rv$data.files$name)
-
-        # Data name
-        observeEvent(input[[paste0(ind, "-dataName")]],
-          {
-            isolate(
-              main.env$local.rv$data.files[ind, "table.name"] <- input[[paste0(ind, "-dataName")]]
-            )
-          },
-          ignoreInit = FALSE
-        )
-        # Data URL
-        observeEvent(input[[paste0(ind, "-dataURL")]],
-          {
-            isolate(
-              main.env$local.rv$data.files[ind, "url"] <- URL_Input(paste0(ind, "-dataURL"))
-            )
-          },
-          ignoreInit = FALSE
-        )
-        # Description
-        observeEvent(input[[paste0(ind, "-dataDesc")]],
-          {
-            isolate(
-              main.env$local.rv$data.files[ind, "description"] <- input[[paste0(ind, "-dataDesc")]]
-            )
-          },
-          ignoreInit = FALSE
-        )
-      })
-    }, 
-    label = "EAL2: set servers"
-    )
-
-    # * Data size ----
+    # Data size ----
     observeEvent(main.env$local.rv$data.files, {
       req(isContentTruthy(main.env$local.rv$data.files))
       files.size <- if (isContentTruthy(main.env$local.rv$data.files$size)) {
@@ -298,19 +218,5 @@ DataFiles <- function(id, main.env) {
     )
 
     # Process data (deprecated)
-    # observeEvent(main.env$EAL$page, {
-    #   req(main.env$EAL$old.page == 2)
-    #   message(NS(id, "proceed"))
-    #   
-    # * Templating
-    #   x <- template(main.env, main.env$EAL$old.page)
-    #   if(class(x) == "try-error") {
-    #     isolate({main.env$EAL$page <- main.env$EAL$page - 1})
-    #   }
-    # },
-    # priority = -1,
-    # ignoreInit = TRUE,
-    # label = "EAL2: process data"
-    # )
   })
 }

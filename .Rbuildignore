@@ -9,3 +9,4 @@ $run_dev.*
 ^\.Rprofile$
 ^\.httr-oauth$
 ^/home/pndb-elie/Softwares/Gits/MetaShARK-v2/Dockerfile$
+^Dockerfile$

@@ -117,17 +117,19 @@ setLocalRV <- function(main.env){
       data.files = if (isContentTruthy(main.env$save.variable$DataFiles)) { # from create button in SelectDP
         .ind <- which(file.exists(main.env$save.variable$DataFiles$datapath))
         .col <- which(names(main.env$save.variable$DataFiles) != "metadatapath")
-        main.env$save.variable$DataFiles[.ind, .col]
+        cbind(
+          id = paste0("_", seq(.ind)),
+          main.env$save.variable$DataFiles[.ind, .col]
+        )
       }
       else
-        data.frame(stringsAsFactors = FALSE)
+        data.frame(stringsAsFactors = FALSE),
+      counter = 1
     ),
     # * Attributes ----
     reactiveValues(
       current = reactiveValues(
-        update.view = makeReactiveTrigger(),
-        file = as.numeric(isContentTruthy(main.env$save.variable$DataFiles$datapath)),
-        preview = NULL # first 5 of table: useful?
+        file = as.numeric(isContentTruthy(main.env$save.variable$DataFiles$datapath))
       ),
       custom.units = reactiveValues(
         modal.state = "closed",
@@ -136,7 +138,13 @@ setLocalRV <- function(main.env){
         unit.id = character()  # inputID for CU modal
       ),
       completed = reactiveValues(),
-      data.filepath = main.env$save.variable$DataFiles$datapath
+      data.filepath = main.env$save.variable$DataFiles$datapath,
+      preview = sapply(
+        main.env$save.variable$DataFiles$datapath,
+        readDataTable,
+        stringsAsFactors = FALSE,
+        nrows = 5
+      )
       # annotations = reactiveValues(
       #   values = data.frame(stringsAsFactors = FALSE),
       #   count = 0
@@ -292,7 +300,6 @@ setLocalRV <- function(main.env){
   # Post-modifications ====
   # * Attributes ----
   if(main.env$EAL$page == 3) {
-    message("savevariable - 3")
     # Path to metadata templates
     if (isContentTruthy(main.env$save.variable$DataFiles$metadatapath)) {
       # Set metadata
@@ -302,6 +309,7 @@ setLocalRV <- function(main.env){
         readDataTable,
         data.table = FALSE, stringsAsFactors = FALSE
       )
+      names(main.env$local.rv$md.tables) <- main.env$save.variable$DataFiles$name
       
       # Curates tables
       sapply(main.env$local.rv$md.tables, function(table){
@@ -324,14 +332,15 @@ setLocalRV <- function(main.env){
       )
       
       # Set completed
-      lapply(seq_along(main.env$save.variable$DataFiles$metadatapath), function(file.index) {
-        file <- basename(main.env$save.variable$DataFiles$metadatapath)[file.index]
-        main.env$local.rv$completed[[file]] <- reactiveValues()
+      lapply(main.env$save.variable$DataFiles$name, function(file.name) {
+        # file <- basename(main.env$save.variable$DataFiles$metadatapath)[file.index]
+        # file.index <- match(file.name, main.env$save.variable$DataFiles$name)
+        main.env$local.rv$completed[[file.name]] <- reactiveValues()
         
-        lapply(seq(nrow(main.env$local.rv$md.tables[[file.index]])), function(row.index) {
+        lapply(seq(nrow(main.env$local.rv$md.tables[[file.name]])), function(row.index) {
           # Set completed per row by class
-          row <- main.env$local.rv$md.tables[[file.index]][row.index, 1]
-          main.env$local.rv$completed[[file]][[row]] <- reactiveValues(
+          row <- main.env$local.rv$md.tables[[file.name]][row.index, 1]
+          main.env$local.rv$completed[[file.name]][[row]] <- reactiveValues(
             # default is TRUE because it is re-evaluated as user reaches Attributes
             attributeName = TRUE,
             attributeDefinition = TRUE,
@@ -349,13 +358,11 @@ setLocalRV <- function(main.env){
            main.env$save.variable$DataFiles$metadatapath")
     
     # Fill 
-    if ((isTRUE(main.env$dev) || isTRUE(main.env$save.variable$quick)) &&
-        length(main.env$save.variable$history) < 4) {
-      lapply(seq(main.env$local.rv$md.tables), function(ind) {
-        
-        sapply(colnames(main.env$local.rv$md.tables[[ind]]), function(col) {
+    if (isTRUE(main.env$dev) || isTRUE(main.env$save.variable$quick)) {
+      lapply(names(main.env$local.rv$md.tables), function(table.name) {
+        sapply(colnames(main.env$local.rv$md.tables[[table.name]]), function(col) {
           # local shortcut
-          .table <- main.env$local.rv$md.tables[[ind]]
+          .table <- main.env$local.rv$md.tables[[table.name]]
           
           # Set values
           if (col == "attributeDefinition") {
@@ -377,9 +384,8 @@ setLocalRV <- function(main.env){
               .table[.unit.rows, col] <- rep(main.env$FORMATS$units[2], length(.unit.rows))
             }
           }
-          
           .table[is.na(.table)] <- ""
-          main.env$local.rv$md.tables[[ind]] <- .table
+          main.env$local.rv$md.tables[[table.name]] <- .table
         }) # end of sapply:col
       }) # end of lapply:files
     } # end filling

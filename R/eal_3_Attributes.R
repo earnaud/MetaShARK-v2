@@ -10,40 +10,17 @@ AttributesUI <- function(id, main.env) {
 
   return(
     fluidPage(
-      tags$b("TEST:"),
-      textOutput(NS(id, "testCU")),
-      tagList(
+      tags$p(
         "Even if EML Assembly Line automatically infers most
         of your data's metadata, some steps need you to check
         out. Please check the following attribute, and fill
         in at least the", withRedStar("mandatory elements.")
       ),
       # Attributes ----
-      fluidRow(
-        column(1,
-          actionButton(
-            NS(id, "file_prev"), "",
-            icon("chevron-left")
-          )
-        ),
-        column(10,
-          uiOutput(
-            NS(id, "current_file"),
-            inline = TRUE
-          )
-        ),
-        column(1,
-          actionButton(
-            NS(id, "file_next"), "",
-            icon("chevron-right")
-          )
-        )
-      ),
-      fluidRow(
-        column(
-          12,
-          uiOutput(NS(id, "edit_attributes"))
-        )
+      tags$div(
+        tags$h4("Attributes"),
+        uiOutput(NS(id, "edit_attributes")) %>%
+          shinycssloaders::withSpinner()
       ),
       # Custom Units ----
       tags$div(
@@ -70,97 +47,94 @@ Attributes <- function(id, main.env) {
     
     # Variable initialization (deprecated)
     
-    # Navigation buttons ====
+    # Navigation buttons (deprecated)
     # Previous file
-    observeEvent(input$file_prev, {
-      req(main.env$EAL$page == 3)
-      req(main.env$local.rv$current$file > 1)
-      
-      # Change file
-      main.env$local.rv$current$file <- main.env$local.rv$current$file - 1
-    },
-    label = "EAL3: prev file"
-    )
-
-    # Next file
-    observeEvent(input$file_next, {
-      req(main.env$EAL$page == 3)
-      req(main.env$local.rv$current$file < length(main.env$local.rv$md.filenames))
-      
-      # Change file
-      main.env$local.rv$current$file <- main.env$local.rv$current$file + 1
-    },
-    label = "EAL3: next file"
-    )
-    
-    # En/disable buttons
-    observe({
-      req(main.env$EAL$page == 3)
-      
-      shinyjs::toggleState(
-        "file_prev", 
-        condition = main.env$local.rv$current$file > 1
-      )
-      shinyjs::toggleState(
-        "file_next",
-        condition = main.env$local.rv$current$file < length(main.env$local.rv$md.filenames)
-      )
-    })
-    
-    # update table
-    observeEvent({
-      input$file_next
-      input$file_prev
-      main.env$EAL$page
-    }, {
-      req(main.env$EAL$page == 3)
-      req(main.env$local.rv$current$file > 0)
-      
-      # shortcut for read variable
-      .file <- main.env$local.rv$current$file
-      
-      # Changes
-      # - remove NA from current table
-      .tab <- main.env$local.rv$md.tables[[.file]]
-      .tab[is.na(.tab)] <- ""
-      main.env$local.rv$md.tables[[.file]] <- .tab
-      # - change preview table
-      main.env$local.rv$current$preview <- readDataTable(
-        main.env$local.rv$data.filepath[.file],
-        stringsAsFactors = FALSE,
-        nrows = 5
-      )
-      # - update toggled inputs
-      main.env$local.rv$current$update.view$trigger()
-    },
-    ignoreNULL = FALSE,
-    label = "EAL3: update table",
-    priority = -1
-    )
-
+    # observeEvent(input$file_prev, {
+    #   req(main.env$EAL$page == 3)
+    #   req(main.env$local.rv$current$file > 1)
+    #   
+    #   # Change file
+    #   main.env$local.rv$current$file <- main.env$local.rv$current$file - 1
+    # },
+    # label = "EAL3: prev file"
+    # )
+    # 
+    # # Next file
+    # observeEvent(input$file_next, {
+    #   req(main.env$EAL$page == 3)
+    #   req(main.env$local.rv$current$file < length(main.env$local.rv$md.filenames))
+    #   
+    #   # Change file
+    #   main.env$local.rv$current$file <- main.env$local.rv$current$file + 1
+    # },
+    # label = "EAL3: next file"
+    # )
+    # 
+    # # En/disable buttons
+    # observe({
+    #   req(main.env$EAL$page == 3)
+    #   
+    #   shinyjs::toggleState(
+    #     "file_prev", 
+    #     condition = main.env$local.rv$current$file > 1
+    #   )
+    #   shinyjs::toggleState(
+    #     "file_next",
+    #     condition = main.env$local.rv$current$file < length(main.env$local.rv$md.filenames)
+    #   )
+    # })
+    # 
+    # # update table
+    # observeEvent({
+    #   input$file_next
+    #   input$file_prev
+    #   main.env$EAL$page
+    # }, {
+    #   req(main.env$EAL$page == 3)
+    #   req(main.env$local.rv$current$file > 0)
+    #   
+    #   # shortcut for read variable
+    #   .file <- main.env$local.rv$current$file
+    #   .file.name <- names(main.env$local.rv$current$file)[.file]
+    #   
+    #   # Changes
+    #   # - remove NA from current table
+    #   .tab <- main.env$local.rv$md.tables[[.file]]
+    #   .tab[is.na(.tab)] <- ""
+    #   main.env$local.rv$md.tables[[.file]] <- .tab
+    #   # - update view in tabSet for attribute edition
+    #   updateTabsetPanel(
+    #     session,
+    #     "tabset",
+    #     selected = .file.name
+    #   )
+    # },
+    # ignoreNULL = FALSE,
+    # label = "EAL3: update table",
+    # priority = -1
+    # )
+    # 
     # display
-    output$current_file <- renderUI({
-      req(main.env$EAL$page == 3)
-      
-      files <- main.env$local.rv$md.filenames
-      current <- main.env$local.rv$current$file
-      
-      tags$div(
-        files[current],
-        class = "ellipsis",
-        style = paste0(
-          "display: inline-block;
-          font-size:14pt;
-          text-align:center;
-          width:100%;
-          background: linear-gradient(90deg, #3c8dbc ",
-          round(100 * current / length(files)),
-          "%, white ",
-          round(100 * current / length(files)),
-          "%);"
-        )
-      )
-    })
+    # output$current_file <- renderUI({
+    #   req(main.env$EAL$page == 3)
+    #   
+    #   files <- main.env$local.rv$md.filenames
+    #   current <- main.env$local.rv$current$file
+    #   
+    #   tags$div(
+    #     files[current],
+    #     class = "ellipsis",
+    #     style = sprintf(
+    #       "display: inline-block;
+    #       font-size:14pt;
+    #       text-align:center;
+    #       width:100%%;
+    #       background: linear-gradient(90deg, #3c8dbc %f%%, white %f%%);",
+    #       round(100 * current / length(files)),
+    #       round(100 * current / length(files))
+    #     )
+    #   )
+    # })
 
     # Form ====
     
@@ -168,69 +142,82 @@ Attributes <- function(id, main.env) {
     output$edit_attributes <- renderUI({
       req(main.env$EAL$page == 3)
       
-      current.file <- main.env$local.rv$current$file
       isolate({
-        current.table <- main.env$local.rv$md.tables[[current.file]]
-      })
-      
-      # validity check
-      validate(
-        need(
-          isContentTruthy(current.table),
-          "No valid table provided."
+        # validity check
+        validate(
+          need(
+            isContentTruthy(main.env$local.rv$md.tables),
+            "No valid table provided."
+          )
         )
-      )
-      message("renderui")
-      # compute ui
-      do.call(
-        shinyBS::bsCollapse,
-        args = c(
-          lapply(
-            seq(nrow(current.table)),
-            function(row.index){
-              isolate({
-                attributeInputListUI(
-                  id = session$ns(
-                    paste(
-                      current.file,
-                      row.index,
-                      sep = "-"
+        
+        # compute ui
+        do.call(
+          tabsetPanel,
+          args = c(
+            id = session$ns("tabset"),
+            lapply(
+              names(main.env$local.rv$md.tables),
+              main.env = main.env,
+              # Table input - tab
+              function(table.name, main.env) {
+                # Set variables
+                table <- main.env$local.rv$md.tables[[table.name]]
+                .id <- session$ns(table.name)
+                
+                # Render UI
+                tabPanel(
+                  title = table.name,
+                  value = table.name,
+                  # Create a container of collapsibles
+                  do.call(
+                    shinyBS::bsCollapse,
+                    args = c(
+                      id = NS(.id, "collapse"),
+                      multiple = FALSE,
+                      # Create a collapsible per attribute
+                      lapply(
+                        seq(nrow(table)),
+                        .attributeInputUI,
+                        id = .id,
+                        table.name = table.name,
+                        main.env = main.env
+                      )
                     )
-                  ),
-                  row.index = row.index,
-                  main.env = main.env
-                )
-              }) # end isolate
-            }
-          ),
-          id = NS(id, "collapse")
+                  ) # end of do.call:bsCollapse
+                ) # end of tabPanelBody
+              }
+            ) # end of sapply
+          )
         )
-      ) # end do.call
+      })
     })
     
     # * Server ----
     observeEvent({
-      input$file_next
-      input$file_prev
+      # input$file_next
+      # input$file_prev
       main.env$EAL$page
     }, {
       req(main.env$EAL$page == 3)
-      req(isContentTruthy(main.env$local.rv$md.tables[[main.env$local.rv$current$file]]))
+      req(isContentTruthy(main.env$local.rv$md.tables))
       
       sapply(
-        seq(nrow(main.env$local.rv$md.tables[[main.env$local.rv$current$file]])),
-        function(row.index) {
-          attributeInputList(
-            id = paste(
-              isolate(main.env$local.rv$current$file),
-              row.index,
-              sep = "-"
-            ),
-            row.index = row.index,
-            main.env = main.env
+        names(main.env$local.rv$md.tables), 
+        main.env = main.env,
+        id = id,
+        # Table input - tab
+        # not a module ! just multiple calls
+        function(id, table.name, main.env) {
+          # Set server
+          sapply(
+            seq(nrow(main.env$local.rv$md.tables[[table.name]])),
+            .attributeInput,
+            main.env = main.env,
+            id = table.name
           )
         }
-      ) # end of sapply : row.index
+      ) # end of sapply
     },
     ignoreNULL = FALSE,
     label = "EAL3: set server",
@@ -396,47 +383,5 @@ Attributes <- function(id, main.env) {
     )
 
     # Process data (deprecated)
-    # observeEvent(main.env$EAL$page, {
-    #   req(main.env$EAL$old.page == 3)
-    #   
-    #   # * Templating
-    #   # for each attribute data frame
-    #   .do.template.catvars <- sapply(
-    #     seq_along(main.env$local.rv$md.filenames),
-    #     function(cur_ind) {
-    #       # check for direction: CustomUnits or CatVars
-    #       return(isTRUE("categorical" %in% main.env$local.rv$md.tables[[cur_ind]][, "class"]))
-    #     }
-    #   ) %>%
-    #     unlist() %>%
-    #     any()
-    #   
-    #   # EMLAL: template new fields if needed
-    #   if (isTRUE(.do.template.catvars)) {
-    #     try(
-    #       EMLassemblyline::template_categorical_variables(
-    #         path = main.env$save.variable$SelectDP$dp.metadata.path,
-    #         data.path = main.env$save.variable$SelectDP$dp.data.path
-    #       )
-    #     )
-    #   }
-    #   
-    #   try(
-    #     EMLassemblyline::template_geographic_coverage(
-    #       path = main.env$save.variable$SelectDP$dp.metadata.path,
-    #       data.path = main.env$save.variable$SelectDP$dp.data.path,
-    #       empty = TRUE,
-    #       write.file = TRUE
-    #     )
-    #   )
-    #   
-    #   if (isFALSE(.do.template.catvars)) {
-    #     isolate(main.env$EAL$page <- main.env$EAL$page + 1)
-    #   }
-    # },
-    # priority = -1,
-    # label = "EAL3: process data",
-    # ignoreInit = TRUE
-    # )
   })
 }

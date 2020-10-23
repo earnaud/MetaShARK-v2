@@ -19,13 +19,6 @@ MakeEMLUI <- function(id, main.env) {
           icon("edit"),
           width = "50%"
         ),
-        textOutput(NS(id, "warnings")),
-        shinyjs::hidden(
-          actionLink(
-            NS(id, "bug_report"),
-            span("Please report this to the dev", icon("external-link-alt"))
-          )
-        ),
         tags$br(),
         fluidRow(
           column(
@@ -34,21 +27,28 @@ MakeEMLUI <- function(id, main.env) {
               id = "publish",
               tags$b("Publish data package"),
               "You can head to the Upload tab and publish 
-                your data package to a metacat repository."
+                your data package to a metacat repository.",
+              actionButton(
+                NS(id, "publish"),
+                "Publish",
+                icon("file-export")
+              )
             )
           ),
           column(
             6,
             tags$b("Generate a summary of your data package."),
             tags$i("(clicking on the below button will open a preview)"),
-            shinyjs::disabled(
-              downloadButton(
-                NS(id, "download_emldown"),
-                "Download emldown",
-                width = "50%"
-              )
+            downloadButton(
+              NS(id, "download_emldown"),
+              "Download emldown",
+              width = "50%"
             )
           ) # End of emldown
+        ),
+        actionLink(
+          NS(id, "bug_report"),
+          span("Click here to report any bug.", icon("external-link-alt"))
         )
       )
     ) # end of fluidPage
@@ -63,18 +63,7 @@ MakeEMLUI <- function(id, main.env) {
 #' @noRd
 MakeEML <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-    # Variable initialization ----
-    observe({
-      req(main.env$EAL$page == 9)
-      main.env$EAL$page.load$depend()
-      
-      out.file <- paste0(
-        isolate(main.env$save.variable$SelectDP$dp.path),
-        "/emldown/emldown.html"
-      )
-    },
-    label = "EAL9: set values"
-    )
+    # Variable initialization (deprecated)
     
     # Make eml ----
     observeEvent(input$make_eml, {
@@ -107,7 +96,7 @@ MakeEML <- function(id, main.env) {
             x$temporal.coverage <- .$Misc$temporal.coverage
             # IGNORED geographic.description
             # IGNORED geographic.coordinates
-            x$maintenance.description <- "Ongoing"
+            x$maintenance.description <- "ongoing"
             x$data.table <- dir(x$data.path)
             x$data.table.name <- optional(.$DataFiles$table.name)
             x$data.table.description <- optional(.$DataFiles$description)
@@ -118,93 +107,65 @@ MakeEML <- function(id, main.env) {
             # TODO other.entity.description
             # TODO other.entity.url
             # TODO provenance -- possible with DOIs ?
-            x$user.id <- optional(main.env$SETTINGS$user)
-            # TODO user domain -- PNDB ?
-            # x$user.domain <- "UserDomain"
-            # x$package.id is set as UUID (default)
+            x$user.id <- optional(
+              if(main.env$SETTINGS$user != "public") 
+                main.env$SETTINGS$user
+            )
+            # TODO user domain -- PNDB ? ORCID ?
+            x$package.id = x$dataset.title # is set as UUID (default)
             x$write.file <- TRUE
             x$return.obj <- TRUE
 
-            # Yet written in the files then used in make_eml
-            x$geographic.coordinates <- NULL
-            x$geographic.description <- NULL
-
             incProgress(0.2)
 
-            .test <- 0
-            out <- try(
-              do.call(
-                EMLassemblyline::make_eml,
-                x[names(x) %in% names(formals(EMLassemblyline::make_eml))]
+            # Remove potential file before re-writing
+            file.remove(
+              dir(
+                main.env$save.variable$SelectDP$dp.eml.path,
+                full.names = TRUE
               )
             )
-            if (class(out) == "try-error") {
-              out[1] <- paste("Upon writing EML:", out)
-            }
+            do.call(
+              EMLassemblyline::make_eml,
+              x[names(x) %in% names(formals(EMLassemblyline::make_eml))]
+            )
+            
             incProgress(0.4)
           }
         },
         message = "Writing EML ...",
         value = 0.1
       )
-      browser()
-      valid.eml <- EML::eml_validate(
-        dir(
-          main.env$save.variable$SelectDP$dp.eml.path,
-          full.names = TRUE
-        )
+      
+      showNotification("EML written.", type = "message")
+      
+      # emldown
+      out.file <- paste0(
+        isolate(main.env$save.variable$SelectDP$dp.path),
+        "/emldown/emldown.html"
       )
-
-      output$warnings <- renderText({
-        shinyjs::disable("publish")
-        shinyjs::disable("emldown")
-        validate(
-          need(
-            class(out) != "try-error",
-            out[1]
-          ),
-          need(
-            !isFALSE(valid.eml),
-            unique(attr(valid.eml, "errors"))
-          )
-        )
-        shinyjs::enable("publish")
-        shinyjs::enable("emldown")
-        return(NULL)
-      })
-
-      if (class(out) == "try-error" ||
-        isFALSE(valid.eml)) {
-        shinyjs::show("bug_report")
-        showNotification("EML invalid", type = "error", duration = NULL)
-      } else {
-        shinyjs::hide("bug_report")
-        showNotification("EML written.", type = "message")
-
-        # emldown
-        eml.file <- dir(
-          main.env$save.variable$SelectDP$dp.eml.path,
-          full.names = TRUE,
-          pattern = main.env$save.variable$SelectDP$dp.title
-        )
-        dir.create(dirname(out.file), recursive = TRUE)
-        old.wd <- getwd()
-        setwd(dirname(out.file))
-        out <- emldown::render_eml(
-          file = eml.file,
-          open = TRUE,
-          out.file = out.file,
-          publish_mode = TRUE
-        )
-        setwd(old.wd)
-        if (file.exists(out.file)) {
-          showNotification("emldown generated", type = "message")
-        }
-      }
+      eml.file <- dir(
+        main.env$save.variable$SelectDP$dp.eml.path,
+        full.names = TRUE,
+        pattern = main.env$save.variable$SelectDP$dp.title
+      )
+      dir.create(dirname(out.file), recursive = TRUE)
+      old.wd <- getwd()
+      setwd(dirname(out.file))
+      emldown::render_eml(
+        file = eml.file,
+        open = TRUE,
+        outfile = out.file,
+        publish_mode = TRUE
+      )
+      setwd(old.wd)
+      if (file.exists(out.file))
+        showNotification("emldown generated", type = "message")
     },
     label = "EAL9: make eml"
     )
 
+    # Bug report ----
     observeEvent(input$bug_report, {
       utils::browseURL("https://github.com/earnaud/MetaShARK-v2/issues/")
     },
@@ -229,5 +190,35 @@ MakeEML <- function(id, main.env) {
         )
       }
     )
+    
+    # Post-end ====
+    observe({
+      req(main.env$EAL$page == 9)
+      invalidateLater(1000)
+      
+      # Allow to publish or not
+      shinyjs::toggleState(
+        "publish",
+        EML::eml_validate(
+          dir(
+            main.env$save.variable$SelectDP$dp.eml.path,
+            pattern = main.env$save.variable$SelectDP$dp.title,
+            full.names = TRUE
+          )
+        )
+      )
+      
+      # Allow to access emldown or not
+      shinyjs::toggleState(
+        "emldown",
+        file.exists(
+          paste0(
+            isolate(main.env$save.variable$SelectDP$dp.path),
+            "/emldown/emldown.html"
+          )
+        )
+      )
+      
+    })
   })
 }
