@@ -30,7 +30,7 @@ saveReactive <- function(main.env, page) {
       }
       
       # Template ----
-      MetaShARK::templateModules(main.env, page)
+      templateModules(main.env, page)
       
       # Save JSON ----
       setProgress(2 / 3, "Write JSON")
