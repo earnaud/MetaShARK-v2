@@ -20,6 +20,10 @@ templateModules <- function(main.env, page){
     )
 }
 
+#' @import shiny
+#' @importFrom EMLassemblyline template_directories template_core_metadata
+#'
+#' @noRd
 .templateInit <- function(main.env) {
   dir.create(
     main.env$save.variable$SelectDP$dp.path,
@@ -62,6 +66,10 @@ templateModules <- function(main.env, page){
   return(x)
 }
 
+#' @import shiny
+#' @importFrom EMLassemblyline template_table_attributes
+#'
+#' @noRd
 .templateAttributes <- function(main.env){
   x <- try({
     EMLassemblyline::template_table_attributes(
@@ -82,6 +90,11 @@ templateModules <- function(main.env, page){
   }
 }
 
+#' @import shiny
+#' @importFrom dplyr %>%
+#' @importFrom EMLassemblyline template_categorical_variables template_geographic_coverage
+#' 
+#' @noRd
 .templateCV_GeoCov <- function(main.env){
   # for each attribute data frame
   .do.template.catvars <- sapply(
@@ -125,6 +138,10 @@ templateModules <- function(main.env, page){
   }
 }
 
+#' @import shiny
+#' @importFrom EMLassemblyline template_taxonomic_coverage
+#' 
+#' @noRd
 .templateTaxCov <- function(main.env){
   if (isTRUE(main.env$EAL$completed)) {
     x <- try(

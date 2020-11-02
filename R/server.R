@@ -1,6 +1,7 @@
 #' @import shiny
-#' @importFrom shinydashboard updateTabItems
-#' @importFrom shinyjs onclick
+#' @importFrom dataone listFormats CNode
+#' @importFrom taxonomyCleanr view_taxa_authorities
+#' @importFrom shinyjs hide show
 #'
 #' @noRd
 appServer <- function(input, output, session) {
@@ -27,7 +28,7 @@ appServer <- function(input, output, session) {
         try(silent = TRUE)
     if (class(.DATAONE.LIST) != "try-error") {
       isolate(main.env$dataone.list <- .DATAONE.LIST)
-      data.table::fwrite(
+      readDataTable(
         .DATAONE.LIST,
         isolate(main.env$PATHS$resources$dataoneCNodesList.txt)
       )
@@ -39,7 +40,7 @@ appServer <- function(input, output, session) {
         try(silent = TRUE)
     if (class(.TAXA.AUTHORITIES) != "try-error") {
       isolate(main.env$taxa.authorities <- .TAXA.AUTHORITIES)
-      data.table::fwrite(
+      readDataTable(
         .TAXA.AUTHORITIES,
         isolate(main.env$PATHS$resources$taxaAuthorities.txt)
       )
@@ -58,6 +59,8 @@ appServer <- function(input, output, session) {
   shinyjs::show("app-content")
 }
 
+#' @importFrom dplyr %>% 
+#'
 #' @noRd
 listDP <- function(main.env) {
   list.files(

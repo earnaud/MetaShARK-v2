@@ -1,5 +1,5 @@
 #' @import shiny
-#' @importFrom shinyFiles shinyDirButton
+#' @importFrom shinyjs hidden disabled
 #'
 #' @noRd
 SelectDPUI <- function(id, main.env) {
@@ -40,7 +40,6 @@ SelectDPUI <- function(id, main.env) {
           )
         )
       ),
-      # },
       fluidRow(
         # Load existing DP ----
         column(
@@ -129,7 +128,6 @@ SelectDPUI <- function(id, main.env) {
                <b>CC-BY-4.0:</b> open source with authorship. <br>
                For more details, visit Creative Commons."),
           # DP creation
-          # uiOutput(NS(id, "dp_create"))
           shinyjs::disabled(
             actionButton(NS(id, "dp_create"), "Create")
           )
@@ -140,11 +138,11 @@ SelectDPUI <- function(id, main.env) {
 }
 
 #' @import shiny
-#' @importFrom shinyFiles getVolumes shinyDirChoose parseDirPath
-#' @importFrom shinyjs enable disable onclick
-#' @importFrom EMLassemblyline template_directories template_core_metadata
-#' @importFrom jsonlite read_json unserializeJSON
-#'
+#' @import shinyjs
+#' @importFrom shinyFeedback hideFeedback showFeedbackDanger showFeedbackSuccess
+#' @importFrom utils zip
+#' @importFrom jsonlite read_json unserializeJSON 
+#' 
 #' @noRd
 SelectDP <- function(id,main.env) {
   moduleServer(id, function(input, output, session) {
@@ -309,9 +307,6 @@ SelectDP <- function(id,main.env) {
       )
       # Next page triggered in this particular saveReactive
       saveReactive(main.env, main.env$EAL$page) # page = 1
-      
-      # x <- template(main.env, main.env$EAL$page)
-      # incProgress(0.6)
     })
 
     # * Load DP ----
@@ -467,8 +462,6 @@ SelectDP <- function(id,main.env) {
 
       # actions
       unlink(path, recursive = TRUE)
-      # main.env$local.rv$dp.list <- 
-      #   main.env$local.rv$dp.list[main.env$local.rv$dp.list != dp]
     },
     label = "EAL1: confirm delete DP"
     )

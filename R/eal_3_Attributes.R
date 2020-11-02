@@ -1,9 +1,6 @@
-#' @title Data Package Template filling
-#'
-#' @description UI part of the Attributes module. Fill in the attributes of the data package
-#'
 #' @import shiny
-#'
+#' @importFrom shinycssloaders withSpinner
+#' 
 #' @noRd
 AttributesUI <- function(id, main.env) {
   ns <- NS(id)
@@ -35,11 +32,10 @@ AttributesUI <- function(id, main.env) {
   ) # end return
 }
 
-#' @importFrom data.table fwrite
 #' @import shiny
-#' @importFrom shinyjs hide show enable disable onclick
-#' @importFrom EMLassemblyline template_categorical_variables template_geographic_coverage
-#' @importFrom shinyBS bsCollapse bsCollapsePanel updateCollapse
+#' @importFrom shinyBS bsCollapse updateCollapse
+#' @importFrom dplyr filter
+#' @importFrom shinyjs toggle
 #'
 #' @noRd
 Attributes <- function(id, main.env) {
@@ -47,97 +43,7 @@ Attributes <- function(id, main.env) {
     
     # Variable initialization (deprecated)
     
-    # Navigation buttons (deprecated)
-    # Previous file
-    # observeEvent(input$file_prev, {
-    #   req(main.env$EAL$page == 3)
-    #   req(main.env$local.rv$current$file > 1)
-    #   
-    #   # Change file
-    #   main.env$local.rv$current$file <- main.env$local.rv$current$file - 1
-    # },
-    # label = "EAL3: prev file"
-    # )
-    # 
-    # # Next file
-    # observeEvent(input$file_next, {
-    #   req(main.env$EAL$page == 3)
-    #   req(main.env$local.rv$current$file < length(main.env$local.rv$md.filenames))
-    #   
-    #   # Change file
-    #   main.env$local.rv$current$file <- main.env$local.rv$current$file + 1
-    # },
-    # label = "EAL3: next file"
-    # )
-    # 
-    # # En/disable buttons
-    # observe({
-    #   req(main.env$EAL$page == 3)
-    #   
-    #   shinyjs::toggleState(
-    #     "file_prev", 
-    #     condition = main.env$local.rv$current$file > 1
-    #   )
-    #   shinyjs::toggleState(
-    #     "file_next",
-    #     condition = main.env$local.rv$current$file < length(main.env$local.rv$md.filenames)
-    #   )
-    # })
-    # 
-    # # update table
-    # observeEvent({
-    #   input$file_next
-    #   input$file_prev
-    #   main.env$EAL$page
-    # }, {
-    #   req(main.env$EAL$page == 3)
-    #   req(main.env$local.rv$current$file > 0)
-    #   
-    #   # shortcut for read variable
-    #   .file <- main.env$local.rv$current$file
-    #   .file.name <- names(main.env$local.rv$current$file)[.file]
-    #   
-    #   # Changes
-    #   # - remove NA from current table
-    #   .tab <- main.env$local.rv$md.tables[[.file]]
-    #   .tab[is.na(.tab)] <- ""
-    #   main.env$local.rv$md.tables[[.file]] <- .tab
-    #   # - update view in tabSet for attribute edition
-    #   updateTabsetPanel(
-    #     session,
-    #     "tabset",
-    #     selected = .file.name
-    #   )
-    # },
-    # ignoreNULL = FALSE,
-    # label = "EAL3: update table",
-    # priority = -1
-    # )
-    # 
-    # display
-    # output$current_file <- renderUI({
-    #   req(main.env$EAL$page == 3)
-    #   
-    #   files <- main.env$local.rv$md.filenames
-    #   current <- main.env$local.rv$current$file
-    #   
-    #   tags$div(
-    #     files[current],
-    #     class = "ellipsis",
-    #     style = sprintf(
-    #       "display: inline-block;
-    #       font-size:14pt;
-    #       text-align:center;
-    #       width:100%%;
-    #       background: linear-gradient(90deg, #3c8dbc %f%%, white %f%%);",
-    #       round(100 * current / length(files)),
-    #       round(100 * current / length(files))
-    #     )
-    #   )
-    # })
-
     # Form ====
-    
     # * UI ----
     output$edit_attributes <- renderUI({
       req(main.env$EAL$page == 3)
@@ -194,11 +100,7 @@ Attributes <- function(id, main.env) {
     })
     
     # * Server ----
-    observeEvent({
-      # input$file_next
-      # input$file_prev
-      main.env$EAL$page
-    }, {
+    observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page == 3)
       req(isContentTruthy(main.env$local.rv$md.tables))
       
@@ -225,9 +127,7 @@ Attributes <- function(id, main.env) {
     ) # end of observeEvent
 
     # Custom units ====
-    output$testCU <- renderText({
-      main.env$local.rv$custom.units$modal.state
-    })
+    output$testCU <- renderText(main.env$local.rv$custom.units$modal.state)
     
     # * CU Input ----
     observeEvent({

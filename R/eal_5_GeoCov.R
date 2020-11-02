@@ -1,5 +1,5 @@
 #' @import shiny
-#' @importFrom shinyjs hidden
+#' @importFrom shinyWidgets materialSwitch
 #'
 #' @noRd
 GeoCovUI <- function(id, main.env) {
@@ -49,11 +49,9 @@ GeoCovUI <- function(id, main.env) {
 }
 
 #' @import shiny
-#' @importFrom shinyBS updateCollapse
-#' @importFrom stringr str_extract_all
-#' @importFrom dplyr %>%
-#' @importFrom EMLassemblyline template_geographic_coverage
-#' @importFrom shinyjs onclick show
+#' @importFrom shinyWidgets updateMaterialSwitch
+#' @importFrom shinyjs toggle
+#' @importFrom dplyr %>% 
 #'
 #' @noRd
 GeoCov <- function(id, main.env) {
@@ -240,7 +238,6 @@ GeoCov <- function(id, main.env) {
 
     # * Manage input ----
     observeEvent(input$addui, {
-      shinyjs::show("slider_tips")
       insertGeoCovInput(
         session$ns(as.numeric(input$addui)), # from 1 to n, NS-ed
         main.env

@@ -3,11 +3,13 @@
 #' @description shiny-formatted render* function. Allow the user to print a .bib bibliography content. References are NOT numbered
 #' according to possible calls from the app.
 #'
-#' @param bib file path to bibliography
+#' @param bib character. Path to bibliography file (.bib format).
 #'
 #' @import shiny
-#' @importFrom RefManageR ReadBib NoCite PrintBibliography
 #' @importFrom utils capture.output
+#' @importFrom RefManageR PrintBibliography
+#' 
+#' @export
 renderBibliography <- function(bib) {
   .bib <- RefManageR::ReadBib(bib)
   RefManageR::NoCite(.bib, "*")

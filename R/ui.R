@@ -1,8 +1,10 @@
 #' @import shiny
-#' @importFrom shinydashboard dashboardPage dashboardHeader dashboardSidebar
-#' sidebarMenu menuItem dashboardBody tabItems tabItem
-#' @importFrom shinyjs useShinyjs hidden
-#'
+#' @import shinydashboard
+#' @importFrom shinyjs useShinyjs inlineCSS hidden
+#' @importFrom shinyFeedback useShinyFeedback
+#' @importFrom htmltools includeCSS
+#' @importFrom shinydashboardPlus loadingState dashboardPagePlus dashboardHeaderPlus
+#' 
 #' @noRd
 appUI <- function() {
   # get app arguments
@@ -102,12 +104,6 @@ appUI <- function() {
                 tabName = "about",
                 icon = icon("beer")
               ),
-              # shinyjs::hidden( # Ghost tab for options
-              #   shinydashboard::menuItem(
-              #     "settings",
-              #     tabName = "settings"
-              #   )
-              # ),
               if (main.env$dev) {
                 tagList(
                   tags$hr(),
@@ -148,11 +144,6 @@ appUI <- function() {
                 tabName = "about",
                 aboutUI("about")
               )
-              # ,
-              # shinydashboard::tabItem(
-              #   tabName = "settings",
-              #   settingsUI("settings", wip = main.env$wip)
-              # )
             )
           ) # end body
         ) # end of dashboardPage

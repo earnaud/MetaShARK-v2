@@ -1,10 +1,7 @@
 #' @import shiny
-#' @importFrom shinyjs hidden disabled
 #'
 #' @noRd
 MakeEMLUI <- function(id, main.env) {
-  ns <- NS(id)
-
   return(
     fluidPage(
       fluidRow(
@@ -56,9 +53,11 @@ MakeEMLUI <- function(id, main.env) {
 }
 
 #' @import shiny
-#' @importFrom shinyjs show enable onclick
-#' @importFrom EMLassemblyline make_eml template_arguments
+#' @importFrom shinyjs hide toggleState
+#' @importFrom EMLassemblyline template_arguments make_eml
+#' @importFrom EML eml_validate
 #' @importFrom emldown render_eml
+#' @importFrom utils browseURL zip
 #'
 #' @noRd
 MakeEML <- function(id, main.env) {

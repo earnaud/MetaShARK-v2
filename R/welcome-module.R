@@ -1,8 +1,6 @@
-#' @title welcome
-#'
-#' @description Welcome page of the MetaShARK app.
-#'
 #' @import shiny
+#' 
+#' @noRd
 welcomeUI <- function(id, wip = FALSE) {
   ns <- NS(id)
 

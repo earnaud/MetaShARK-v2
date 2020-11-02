@@ -1,11 +1,7 @@
-#' @importFrom fs path_home
-#' @importFrom dataone listFormats CNode
 #' @import shiny
 #' @importFrom EML get_unitList
 #' @importFrom data.table fread
-#' @importFrom taxonomyCleanr view_taxa_authorities
 #' @importFrom dplyr %>%
-#' @importFrom jsonlite serializeJSON unserializeJSON read_json write_json
 #'
 #' @noRd
 .globalScript <- function(args = list(dev = FALSE, wip = FALSE)) {
@@ -121,7 +117,6 @@
   )
 
   # Semantics ====
-
   assign(
     "SEMANTICS",
     reactiveValues(

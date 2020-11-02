@@ -12,6 +12,8 @@
 #' arguments provided as a list (empty list by default).
 #' @param module,module.args server for the module to embed and its potential
 #' arguments provided as a list (empty list by default).
+#' 
+#' FIXME finish this module
 insertModuleBox <- function(
   id, name = NULL, selector, 
   moduleUI, moduleUI.args = list(), 

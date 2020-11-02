@@ -1,21 +1,10 @@
-#' @title uploadDP
-#'
-#' @description automation script to upload data packages
-#' produced with {dataone} and {datapack}. This function is
-#' freely inspired by [this tutorial script](http://training.arcticdata.io/materials/arctic-data-center-training/programming-metadata-and-data-publishing.html#publish-data-to-the-arctic-data-center-test-site).
-#'
-#' @param mn Member Node URL.
-#' @param cn Contributing Node URL.
-#' @param token Dataone (test) token.
-#' @param eml Metadata file path (XML validating NCEAS' EML Schema)
-#' @param data Data files path
-#' @param scripts Scripts files path
-#' @param formats List of DataONE CN supported [formats](https://cn.dataone.org/cn/v2/formats)
-#'
 #' @importFrom dataone generateIdentifier CNode MNode D1Client uploadDataPackage
 #' @importFrom datapack addMember
 #' @importFrom EML read_eml write_eml eml_validate
 #' @importFrom mime guess_type
+#' 
+#' @noRd
+# FIXME rework this module
 uploadDP <- function(
                      # essential
                      mn,

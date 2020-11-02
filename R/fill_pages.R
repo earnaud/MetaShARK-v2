@@ -1,8 +1,8 @@
 # UI ====
 
-#' @noRd
-#'
 #' @import shiny
+#' 
+#' @noRd
 tabPage <- function(id, title, ui, navTagList = NULL) {
   tabPanelBody(
     value = title,
@@ -74,7 +74,8 @@ pagesUI <- function(id, parent.id, main.env) {
 
 # Server ====
 
-#' Wizard pages server
+#' @import shiny
+#' @importFrom shinyjs toggleState
 #'
 #' @noRd
 pagesServer <- function(id, main.env) {
@@ -213,9 +214,9 @@ pagesServer <- function(id, main.env) {
 
 # * Next ====
 
-#' @noRd
-#'
 #' @import shiny
+#'
+#' @noRd
 nextTabButton <- function(id, i) {
   actionButton(
     NS(id, paste(i, i + 1, sep = "_")),
@@ -227,9 +228,9 @@ nextTabButton <- function(id, i) {
 
 # * Previous ====
 
-#' @noRd
-#'
 #' @import shiny
+#'
+#' @noRd
 prevTabButton <- function(id, i) {
   actionButton(
     NS(id, paste(i, i - 1, sep = "_")),

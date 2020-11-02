@@ -70,6 +70,8 @@ initReactive <- function(sub.list = NULL, save.variable = NULL, main.env) {
 }
 
 #' @import shiny
+#'
+#' @noRd
 setSaveVariable <- function(content, save.variable, lv = 1, root = "root") {
   lapply(
     names(content),
@@ -101,6 +103,14 @@ setSaveVariable <- function(content, save.variable, lv = 1, root = "root") {
 }
 
 # Local save variable ====
+#' @import shiny
+#' @importFrom dplyr filter select %>% mutate
+#' @importFrom data.table fread
+#' @importFrom rmarkdown pandoc_convert
+#' @importFrom xml2 read_html
+#' @importFrom textutils HTMLdecode
+#'
+#' @noRd
 setLocalRV <- function(main.env){
   # Set variable ====
   main.env$local.rv <- switch(
@@ -230,7 +240,7 @@ setLocalRV <- function(main.env){
       # Get keywords
       kw <- data.frame()
       if (isContentTruthy(isolate(main.env$save.variable$SelectDP$dp.metadata.path))) {
-        kw <- fread(
+        kw <- readDataTable(
           paste0(isolate(main.env$save.variable$SelectDP$dp.metadata.path), "/keywords.txt"),
           data.table = FALSE, stringsAsFactors = FALSE
         )
@@ -238,7 +248,11 @@ setLocalRV <- function(main.env){
         if(isContentTruthy(kw))
           kw <- data.frame(
             keyword = sapply(unique(kw$keyword.thesaurus), function(kwt) {
-              paste(kw %>% dplyr::filter(keyword.thesaurus == kwt) %>% dplyr::select(keyword) %>% unlist(), collapse = ",")
+              paste(kw %>% 
+                      dplyr::filter(keyword.thesaurus == kwt) %>% 
+                      dplyr::select(keyword) %>% 
+                      unlist(),
+                    collapse = ",")
             }),
             keyword.thesaurus = unique(kw$keyword.thesaurus),
             keyword.set = paste0("_", seq(unique(kw$keyword.thesaurus))),
@@ -290,7 +304,7 @@ setLocalRV <- function(main.env){
         )
       )
     },
-    # Make EML ----
+    # * Make EML ----
     # empty RV to be able at last to save the step
     {
       reactiveValues(empty = NULL)
@@ -314,7 +328,7 @@ setLocalRV <- function(main.env){
       # Curates tables
       sapply(main.env$local.rv$md.tables, function(table){
         table[is.na(table)] <- ""
-        if(main.env$save.variable$quick || main.env$dev)
+        if(isTRUE(main.env$save.variable$quick) || isTRUE(main.env$dev))
           table$attributeDefinition <- paste("Description for:", table$attributeName)
       })
       
@@ -333,8 +347,6 @@ setLocalRV <- function(main.env){
       
       # Set completed
       lapply(main.env$save.variable$DataFiles$name, function(file.name) {
-        # file <- basename(main.env$save.variable$DataFiles$metadatapath)[file.index]
-        # file.index <- match(file.name, main.env$save.variable$DataFiles$name)
         main.env$local.rv$completed[[file.name]] <- reactiveValues()
         
         lapply(seq(nrow(main.env$local.rv$md.tables[[file.name]])), function(row.index) {
@@ -411,7 +423,7 @@ setLocalRV <- function(main.env){
     sapply(main.env$local.rv$cv.files, function(file.path) {
       # Set each table per file
       file.name <- basename(file.path)
-      main.env$local.rv$cv.tables[[file.name]] <- fread(
+      main.env$local.rv$cv.tables[[file.name]] <- data.table::fread(
         file.path,
         data.table = FALSE, stringsAsFactors = FALSE,
         na.strings = "NA"
@@ -466,7 +478,7 @@ setLocalRV <- function(main.env){
       main.env$local.rv$method <- main.env$save.variable$GeoCov$method
 
       # * Columns
-      if (main.env$local.rv$method == "columns") {
+      if(main.env$local.rv$method == "columns") {
         site.name <- main.env$save.variable$GeoCov$columns$site$col
         lat.col <- main.env$save.variable$GeoCov$columns$lat$col
         lon.col <- main.env$save.variable$GeoCov$columns$lon$col
@@ -526,11 +538,6 @@ setLocalRV <- function(main.env){
   if(main.env$EAL$page == 7) {
     # Read template
     {
-      # personnel.file <- dir(
-      #   main.env$save.variable$SelectDP$dp.metadata.path,
-      #   pattern = "ersonnel",
-      #   full.names = TRUE
-      # )
       # Here, do not read from file: format for 'role' is not the same
       saved.table <- if (main.env$save.variable$Personnel %>%
                          listReactiveValues() %>%

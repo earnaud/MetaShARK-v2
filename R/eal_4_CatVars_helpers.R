@@ -1,4 +1,10 @@
 # * Write UI ====
+
+#' @import shiny
+#' @importFrom dplyr %>% select filter
+#' @importFrom shinyBS bsCollapsePanel
+#'
+#' @noRd
 CatVarsInputUI <- function(id, attribute, main.env) {
   # Shortcuts
   .file.name <- main.env$local.rv$current$file
@@ -33,8 +39,13 @@ CatVarsInputUI <- function(id, attribute, main.env) {
 }
 
 # * Write server ====
-# id and attribute are the same, split for legibility purposes
+
+#' @import shiny
+#' @importFrom dplyr %>% select filter
+#'
+#' @noRd
 CatVarsInput <- function(id, attribute, main.env) {
+  # id and attribute are the same, split for legibility purposes
   moduleServer(id, function(input, output, session){
     # Shortcuts
     .file.name <- main.env$local.rv$current$file

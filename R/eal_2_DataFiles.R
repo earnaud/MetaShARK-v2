@@ -1,3 +1,8 @@
+#' @param id character. An ID string that corresponds with the ID used to call 
+#' the module's UI function.
+#' @param main.env environment. An internal environment for MetaShARK save 
+#' variables.
+#' 
 #' @import shiny
 #' @importFrom shinyFiles shinyFilesButton
 #'
@@ -42,19 +47,13 @@ DataFilesUI <- function(id, main.env) {
         )
       ),
       tags$div(id = "inserthere_eal2")
-      # uiOutput(NS(id, "data_files")),
-      # actionButton(NS(id, "remove_data_files"), "Remove",
-      #   icon = icon("minus-circle"),
-      #   class = "redButton"
-      # )
     ) # end fluidPage
   ) # end return
 }
 
 #' @import shiny
-#' @importFrom shinyFiles getVolumes shinyFileChoose parseFilePaths
-#' @importFrom shinyjs onclick enable disable
-#' @importFrom EMLassemblyline template_table_attributes
+#' @importFrom fs is_dir
+#' @importFrom gdata humanReadable
 #'
 #' @noRd
 DataFiles <- function(id, main.env) {
@@ -194,9 +193,9 @@ DataFiles <- function(id, main.env) {
       main.env$EAL$tag.list <- tagList(
         "Files size:",
         tags$p(
-          utils::object.size(files.size),
+          gdata::humanReadable(files.size),
           if (files.size >= files.size.max) {
-            paste("Max. recommended:", utils:::format.object_size(files.size.max))
+            paste("Max. recommended:", gdata::humanReadable(files.size.max))
           } else {
             NULL
           },

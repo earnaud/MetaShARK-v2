@@ -9,6 +9,8 @@
 #' @return A div with `style = "text-align: center"`
 #' 
 #' @importFrom shiny tags
+#' 
+#' @export
 centered <- function(...) {
   tags$div(..., style = "text-align: center")
 }
@@ -23,7 +25,10 @@ centered <- function(...) {
 #'
 #' @examples
 #' withRedStar("Enter your name here")
+#' 
 #' @import shiny
+#' 
+#' @export
 withRedStar <- function(text) {
   tags$span(
     HTML(
@@ -46,6 +51,8 @@ withRedStar <- function(text) {
 #' @return styled content as WIP
 #' 
 #' @importFrom shiny tags
+#' 
+#' @export
 wipRow <- function(...) {
   tags$div(
     tags$div(style = "height: 10px", class = "topInputRow wip"),
@@ -61,10 +68,26 @@ unns <- function(id) {
 #' @title checkFeedback
 #' 
 #' relies on {shinyFeedback} to automate feedback on one input.
+#' 
+#' @param id character. An ID string that corresponds with the ID used to call 
+#' the module's UI function.
+#' @param condition logical. Determines if the feedback is positive or not.
+#' @param silent logical. If TRUE, the only feedback occurs when `condition` is
+#' met. If FALSE, also displays feedbacks for other cases.
+#' @param type character. Either "danger" or "warning", sets the type of 
+#' feedback in case `condition` is not met.
+#' @param text character. What message to display in case of unmet condition.
+#' 
+#' @import shinyFeedback
+#' 
+#' @export
 checkFeedback <- function(
   input, id, condition = NULL, silent = FALSE, type = c("danger", "warning"), text = NULL
 ) {
-  type = type[1]
+  if(isFALSE(is.character(type) && type %in% c("danger", "warning")))
+    type = "danger"
+  else 
+    type = type[1]
   
   shinyFeedback::hideFeedback(id)
   
@@ -81,7 +104,19 @@ checkFeedback <- function(
   }
 }
 
-# Clear server-side of a shiny module
+#' Clear backstage shiny observers
+#'
+#' Clear server-side of a shiny module
+#' 
+#' @param id character. An ID string that corresponds with the ID used to call 
+#' the module's UI function.*
+#' @param .input internal. Shiny server `input` variable passed to servers.
+#' 
+#' @details 
+#' Freely teached from a community soluce on
+#' [appsilon](https://appsilon.com/how-to-safely-remove-a-dynamic-shiny-module/).
+#' 
+#' @export
 remove_shiny_inputs <- function(id, .input) {
   invisible(
     lapply(grep(id, names(.input), value = TRUE), function(i) {

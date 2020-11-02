@@ -1,13 +1,15 @@
-#' @title listReactiveValues
+#' List Reactive Values
 #'
-#' @description Allows to turn a `reactiveValues`` object into a list. Uses
+#' Allows to turn a `reactiveValues`` object into a non-reactive list. Uses
 #' recursive method.
 #'
-#' @param rv reactiveValues to turn into list
-#' @param lv (verbose purposes)
-#' @param name root node name
+#' @param rv reactiveValues. Target to turn into list.
+#' @param lv internal. Verbose purposes.
+#' @param name internal. Current root node name
 #'
 #' @import shiny
+#' 
+#' @export
 listReactiveValues <- function(rv, lv = 0, name = "root") {
   if (missing(rv)) {
     stop("No reactiveValues provided")

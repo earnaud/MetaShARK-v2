@@ -58,6 +58,7 @@ fillUI <- function(id, main.env) {
 }
 
 #' @import shiny
+#' @importFrom shinyjs onclick show hide 
 #'
 #' @noRd
 fill <- function(id, main.env) {
@@ -166,8 +167,6 @@ fill <- function(id, main.env) {
       # * Save  & Template ----
       if(main.env$EAL$old.page > 1)
         saveReactive(main.env, main.env$EAL$old.page)
-      # if(main.env$EAL$page > main.env$EAL$old.page)
-      #   template(main.env, main.env$EAL$old.page)
       
       # * set EAL variables ----
       # left Data Files
