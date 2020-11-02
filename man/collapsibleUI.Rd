@@ -2,12 +2,16 @@
 % Please edit documentation in R/utils-collapsible.R
 \name{collapsibleUI}
 \alias{collapsibleUI}
+\alias{collapsible}
 \title{collapsibleUI}
 \usage{
 collapsibleUI(id, label, .hidden = TRUE, ..., class = NULL)
+
+collapsible(id)
 }
 \arguments{
-\item{id}{character. The input slot that will be used to access the value.}
+\item{id}{character. An ID string that corresponds with the ID used to call
+the module's UI function.}
 
 \item{label}{character. A label appearing on the clickable link.}
 
@@ -20,3 +24,8 @@ collapsibleUI(id, label, .hidden = TRUE, ..., class = NULL)
 \description{
 A shiny module to get a div collapsed by clicking on a link.
 }
+\section{Functions}{
+\itemize{
+\item \code{collapsible}: Server part for collapsible widget module.
+}}
+

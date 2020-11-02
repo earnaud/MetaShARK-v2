@@ -12,5 +12,7 @@ optional(x, type = NULL)
 \item{type}{typed value (e.g. character()) in case option is invalid.}
 }
 \description{
-Fill optional arguments of a function.
+Fill optional arguments of a function if the given argument comes to be not
+truthy (e.g. by getting it after a script execution and passing it to a
+function).
 }

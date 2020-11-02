@@ -15,20 +15,22 @@ insertModuleBox(
 )
 }
 \arguments{
-\item{id}{namespaced id for the UI (previous modules namespaces will be 
+\item{id}{namespaced id for the UI (previous modules namespaces will be
 removed for server)}
 
-\item{name}{name to display for the current container. If set to NULL (default), 
-`id` will be used. If set to FALSE, no name will be displayed.}
+\item{name}{name to display for the current container. If set to NULL (default),
+\code{id} will be used. If set to FALSE, no name will be displayed.}
 
-\item{selector}{A string that is accepted by jQuery's selector (i.e. the 
-string s to be placed in a $(s) jQuery call). (See `shiny::insertUI`)}
+\item{selector}{A string that is accepted by jQuery's selector (i.e. the
+string s to be placed in a $(s) jQuery call). (See \code{shiny::insertUI})}
 
 \item{moduleUI, moduleUI.args}{UI for the module to embed and its potential
 arguments provided as a list (empty list by default).}
 
 \item{module, module.args}{server for the module to embed and its potential
-arguments provided as a list (empty list by default).}
+arguments provided as a list (empty list by default).
+
+FIXME finish this module}
 }
 \description{
 Convenience function to insert a container able to auto-destroy.
