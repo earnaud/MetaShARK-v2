@@ -1,4 +1,5 @@
 #' @import shiny
+#' 
 #' @noRd
 PersonnelUI <- function(id, main.env) {
   ns <- NS(id)
@@ -16,8 +17,6 @@ PersonnelUI <- function(id, main.env) {
 }
 
 #' @import shiny
-#' @importFrom shinyjs onclick enable disable
-#' @importFrom data.table fwrite
 #'
 #' @noRd
 Personnel <- function(id, main.env) {

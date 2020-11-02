@@ -20,7 +20,7 @@
 #' metadata. It uses the EML standard (cf. NCEAS work) to allow a full and
 #' precise description of input datasets.
 #' 
-#' For server setup, see [this git](https://github.com/earnaud/MetaShARK_docker).
+#' For server setup, see [this git](https://github.com/earnaud/MetaShARK_docker)
 #'
 #' @author
 #' Elie Arnaud <elie.arnaud@mnhn.fr>
@@ -29,18 +29,20 @@
 #' # run this to launch MetaShARK
 #' runMetashark()
 #' 
-#' @export
 #' @import shiny
+#' 
+#' @export
 runMetashark <- function(...) {
   invisible(require("shinyBS"))
-  options(shiny.reactlog = TRUE)
 
   args <- list(...)
   args$dev <- isTRUE(args$dev)
   args$wip <- isTRUE(args$wip)
-  args$reactlog <- if (is.null(args$reactlog)) TRUE else isTRUE(args$reactlog)
+  args$reactlog <- isTRUE(args$reactlog)
+  options(shiny.reactlog = args$reactlog)
 
   .globalScript(args = args)
+  on.exit(message("### end of MetaShARK session ###\n"))
   on.exit(rm(main.env, envir = .GlobalEnv))
 
   runApp(shinyApp(ui = appUI, server = appServer))

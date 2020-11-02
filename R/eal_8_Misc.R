@@ -1,11 +1,12 @@
 #' @import shiny
-#' @importFrom tagsinput tagsTextInput
 #' @importFrom data.table fread
+#' @importFrom shinyBS bsCollapse bsCollapsePanel
 #'
 #' @noRd
 MiscUI <- function(id, main.env) {
   ns <- NS(id)
   
+  #FIXME set this to server with an update*
   .metadata.path <- isolate(main.env$save.variable$SelectDP$dp.metadata.path)
   
   if (file.exists(paste0(.metadata.path, "/keywords.txt"))) {
@@ -33,24 +34,24 @@ MiscUI <- function(id, main.env) {
           in content (except files originating from DP itself).</li>
         </ul>
         "),
-      bsCollapse(
+      shinyBS::bsCollapse(
         id = NS(id, "Miscs"),
         # * Abstract ----
-        bsCollapsePanel(
+        shinyBS::bsCollapsePanel(
           title = withRedStar("Abstract"),
           value = 1,
           MiscellaneousUI(NS(id, "abstract"))
         ),
         
         # * Methods ----
-        bsCollapsePanel(
+        shinyBS::bsCollapsePanel(
           title = withRedStar("Methods"),
           value = 2,
           MiscellaneousUI(NS(id, "methods"))
         ),
         
         # * Keywords ----
-        bsCollapsePanel(
+        shinyBS::bsCollapsePanel(
           title = withRedStar("Keywords"),
           value = 3,
           tagList(
@@ -63,7 +64,7 @@ MiscUI <- function(id, main.env) {
         ),
         
         # * Temporal coverage ----
-        bsCollapsePanel(
+        shinyBS::bsCollapsePanel(
           title = withRedStar("Temporal coverage"),
           value = 4,
           fluidRow(
@@ -80,7 +81,7 @@ MiscUI <- function(id, main.env) {
         ),
         
         # * Additional Info ----
-        bsCollapsePanel(
+        shinyBS::bsCollapsePanel(
           title = "Additional Info - optional",
           value = 5,
           MiscellaneousUI(NS(id, "additional.information"))
@@ -92,8 +93,7 @@ MiscUI <- function(id, main.env) {
 
 
 #' @import shiny
-#' @importFrom shinyjs onclick enable disable
-#' @importFrom data.table fread
+#' @importFrom shinyBS updateCollapse
 #'
 #' @noRd
 Misc <- function(id, main.env) {
@@ -111,6 +111,7 @@ Misc <- function(id, main.env) {
     observeEvent(input$add_kws, {
       insertKeywordSet(session$ns(input$add_kws), main.env)
     })
+    
     # ** Setup ----
     # Initial UI
     observeEvent(main.env$EAL$page, {
@@ -146,7 +147,7 @@ Misc <- function(id, main.env) {
             .val <- main.env$local.rv$keywords$keyword.thesaurus[kid]
             
             textInput(
-              session$ns(paste0("thesaurus-for-", keyword)),
+              session$ns(paste0("thesaurus_for_", keyword)),
               keyword,
               value = if (isTruthy(.val)) .val else ""
             )
@@ -164,7 +165,7 @@ Misc <- function(id, main.env) {
       )
       sapply(seq_along(main.env$local.rv$keywords$keyword), function(kid) {
         keyword <- main.env$local.rv$keywords$keyword[kid]
-        input_id <- paste0("thesaurus-for-", keyword)
+        input_id <- paste0("thesaurus_for_", keyword)
         .val <- if (isTruthy(input[[input_id]])) input[[input_id]] else ""
         
         main.env$local.rv$keywords$keyword.thesaurus[kid] <- .val

@@ -1,7 +1,8 @@
 # Columns ====
 
 #' @importFrom stringr str_extract_all
-#'
+#' @importFrom dplyr %>%
+#' 
 #' @noRd
 extractCoordinates <- function(main.env, coord.cols, .pattern, files.data) {
   # initialize variables
@@ -61,9 +62,8 @@ extractCoordinates <- function(main.env, coord.cols, .pattern, files.data) {
 
 # Custom ====
 
-#' @importFrom dplyr bind_rows
 #' @import shiny
-#'
+#' 
 #' @noRd
 insertGeoCovInput <- function(id, main.env, default = NULL) {
   # create the UI
@@ -75,7 +75,7 @@ insertGeoCovInput <- function(id, main.env, default = NULL) {
 }
 
 #' @import shiny
-#' @importFrom shinyjs hidden
+#' @importFrom shinyWidgets textInputAddon
 #'
 #' @noRd
 GeoCovInputUI <- function(id, site.id, default = NULL) {
@@ -157,8 +157,6 @@ GeoCovInputUI <- function(id, site.id, default = NULL) {
 }
 
 #' @import shiny
-#' @importFrom dplyr slice %>%
-#' @importFrom shinyjs onclick
 #'
 #' @noRd
 GeoCovInput <- function(id, main.env) {

@@ -1,9 +1,10 @@
+#' @param id character. An ID string that corresponds with the ID used to call 
+#' the module's UI function.
+#' 
 #' @import shiny
-#'
+#' 
 #' @noRd
 aboutUI <- function(id) {
-  ns <- NS(id)
-
   fluidPage(
     tags$h1("About MetaShARK dev team"),
     HTML("MetaShARK is developped within the french Museum National 
@@ -31,7 +32,7 @@ aboutUI <- function(id) {
     tags$p("The following references will lead the user to the source
       of tools and methods reused in MetaShARK."),
     uiOutput(NS(id, "informatics")),
-    # Sci litt
+    # Science litterature
     tags$h2("Literature"),
     tags$p("MetaShARK is based on the following papers and articles
       concerning mainly ecological metadata."),
@@ -39,10 +40,9 @@ aboutUI <- function(id) {
   )
 }
 
-#' @title about
-#'
-#' @description server part of the about module.
-#'
+#' @param id character. An ID string that corresponds with the ID used to call 
+#' the module's UI function.
+#' 
 #' @import shiny
 #'
 #' @noRd

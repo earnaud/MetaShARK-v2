@@ -1,4 +1,7 @@
 # EAL 7 Personnel ====
+#' @import shiny
+#'
+#' @noRd
 orcidInputUI <- function(id, val) {
   ns <- NS(id)
   
@@ -9,6 +12,10 @@ orcidInputUI <- function(id, val) {
   )
 }
 
+#' @import shiny
+#' @importFrom stringr str_extract
+#'
+#' @noRd
 orcidInput <- function(id, main.env, row) {
   moduleServer(id, function(input, output, session) {
     observeEvent(input$orcid, {
@@ -140,7 +147,10 @@ orcidUI <- function(id, globals) {
 }
 
 #' @import shiny
+#' @importFrom stringr str_extract
 #' @importFrom shinyjs onclick
+#'
+#' @noRd
 orcid <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
 

@@ -1,13 +1,15 @@
-#' @title URL_Input_UI
+#' URL Input
 #'
-#' @description URL Shiny input module.
+#' URL Shiny input module. Implements elementary test to get a valid URL.
 #'
 #' @param id (character) shiny module inputId.
 #' @param label (character) display label for the control, or NULL for no label.
 #' @param width	(character) the width of the input, e.g. '400px', or '100%'; see
 #' validateCssUnit().
 #'
-#' @return (output of `callModule`) If input is a valid URL (regex-tested + curl-tested), returns input.
+#' @return 
+#' (output of calling the module part)
+#' If input is a valid URL (regex-tested + curl-tested), returns input.
 #' Else, returns NA.
 #'
 #' @import shiny

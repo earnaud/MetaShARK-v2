@@ -1,8 +1,9 @@
+#' Executed after changing page 
+#' 
 #' @import shiny
-#' @importFrom jsonlite write_json serializeJSON
+#' @importFrom jsonlite write_json serializeJSON 
 #'
 #' @noRd
-# Executed after chaging page
 saveReactive <- function(main.env, page) {
   if(is.null(main.env$local.rv))
     stop("No content provided.")
@@ -100,6 +101,8 @@ saveReactive <- function(main.env, page) {
   return(.sv)
 }
 
+#' @importFrom dplyr select
+#' 
 #' @noRd
 .saveDataFiles <- function(main.env){
   .sv <- main.env$save.variable
@@ -143,10 +146,10 @@ saveReactive <- function(main.env, page) {
   return(.sv)
 }
 
-#' @noRd
-#'
-#' @import shiny
+#' @importFrom dplyr filter select %>%
 #' @importFrom data.table fwrite
+#' 
+#' @noRd
 .saveAttributes <- function(main.env){
   .sv <- main.env$save.variable
   content <- main.env$local.rv
@@ -180,12 +183,12 @@ saveReactive <- function(main.env, page) {
   return(.sv)
 }
 
-#' @noRd
-#'
 #' @importFrom data.table fwrite
+#' 
+#' @noRd
 .saveCatVars <- function(main.env){
   content <- main.env$local.rv
-  browser()
+  
   sapply(content$cv.files, function(file.path) {
     file.name <- basename(file.path)
     
@@ -309,13 +312,10 @@ saveReactive <- function(main.env, page) {
     )
   
   # Output
-  main.env$save.variable <- .sv
-  return(main.env$save.variable)
+  return(.sv)
 }
 
 #' @noRd
-#'
-#' @import shiny
 .saveTaxCov <- function(main.env){
   .sv <- main.env$save.variable
   content <- main.env$local.rv
@@ -329,9 +329,10 @@ saveReactive <- function(main.env, page) {
   main.env$save.variable <- .sv
 }
 
-#' @noRd
-#'
 #' @importFrom data.table fwrite
+#' @importFrom dplyr %>% mutate
+#'
+#' @noRd
 .savePersonnel <- function(main.env){
   .sv <- main.env$save.variable
   content <- main.env$local.rv
@@ -357,7 +358,7 @@ saveReactive <- function(main.env, page) {
       lapply(seq(roles), function(ind) 
         .personnel <<- rbind(
           .personnel, 
-          row %>% mutate(role = roles[ind])
+          row %>% dplyr::mutate(role = roles[ind])
         )
       )
     })
@@ -374,13 +375,16 @@ saveReactive <- function(main.env, page) {
   }
   
   # Output
-  main.env$save.variable <- .sv
+  return(.sv)
 }
 
-#' @noRd
-#'
-#' @importFrom data.table fwrite
 #' @import shiny
+#' @importFrom data.table fwrite
+#' @importFrom htmltools save_html HTML
+#' @importFrom rmarkdown pandoc_convert
+#' @importFrom dplyr %>% bind_rows
+#' 
+#' @noRd
 .saveMisc <- function(main.env){
   .sv <- main.env$save.variable
   content <- main.env$local.rv
@@ -422,11 +426,12 @@ saveReactive <- function(main.env, page) {
     row.ind <- which(content$keywords$keyword.thesaurus == kwt)
     
     data.frame(
-      keyword = strsplit(content$keywords$keyword[row.ind], ",") %>% unlist(),
+      keyword = strsplit(content$keywords$keyword[row.ind], ",") %>% 
+        unlist(),
       keyword.thesaurus = kwt
     )
   })
-  .keywords <- bind_rows(.tmp)
+  .keywords <- dplyr::bind_rows(.tmp)
   data.table::fwrite(
     .keywords,
     paste0(
@@ -443,7 +448,7 @@ saveReactive <- function(main.env, page) {
   sapply(c("abstract", "methods", "additional.information"), function(x) {
     file.remove(
       dir(
-        main.env$save.variable$SelectDP$dp.metadata.path, 
+        main.env$save.variable$SelectDP$dp.metadata.path,
         full.names = TRUE,
         pattern = paste0("^.*", x, ".*\\.[^md]$")
       )
@@ -451,5 +456,5 @@ saveReactive <- function(main.env, page) {
   })
   
   # Output
-  main.env$save.variable <- .sv
+  return(.sv)
 }

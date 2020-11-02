@@ -1,11 +1,8 @@
-#' @title settings in rightSideBar
-#'
-#' @description UI part of the settings module. Allow the user to change several
-#' settings in the app. This is designed to be wrapped in {shinydashboardPlus}.
-#'
 #' @import shiny
-#' @import shinydashboard
-#' @import shinydashboardPlus
+#' @importFrom shinydashboardPlus rightSidebar rightSidebarTabContent
+#' @importFrom shinyWidgets prettySwitch
+#' 
+#' @noRd
 rightSidebarSettings <- function(id, wip) {
   shinydashboardPlus::rightSidebar(
 
@@ -124,13 +121,13 @@ rightSidebarSettings <- function(id, wip) {
 #' @description server part of the settings module. Allow the user to change several settings in the app.
 #'
 #' @import shiny
-#' @importFrom shinyjs onclick
 #' @importFrom cedarr accessOntology
+#' 
+#' @noRd
 settings <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
     # Sessionning ====
     collapsible("help-orcid")
-
     orcid("orcid", main.env)
 
     # Metacat token ====

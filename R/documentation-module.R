@@ -38,8 +38,8 @@ docUI <- function(id) {
 }
 
 #' @import shiny
-#' @importFrom shinyTree renderTree get_selected
-#' @importFrom jsonlite read_json unserializeJSON
+#' @importFrom shinyTree shinyTree renderTree get_selected
+#' @importFrom jsonlite unserializeJSON read_json
 #'
 #' @noRd
 documentation <- function(id) {
@@ -55,14 +55,12 @@ documentation <- function(id) {
     # UI render ====
 
     # render tree
-    output$tree <- shinyTree::renderTree({
-      tree
-    })
+    output$tree <- shinyTree::renderTree(tree)
 
     # output selected node
     output$doc <- renderUI({
       req("tree" %in% names(input))
-      tree.node <- get_selected(input$tree)
+      tree.node <- shinyTree::get_selected(input$tree)
       validate(
         need(unlist(tree.node), "(Select an item first)")
       )

@@ -1,3 +1,6 @@
+#' @import shiny
+#'
+#' @noRd
 roleInputUI <- function(id, role.choices, val, width) {
   selectInput(
     inputId = NS(id, "role"),
@@ -10,6 +13,10 @@ roleInputUI <- function(id, role.choices, val, width) {
   )
 }
 
+#' @import shiny
+#' @importFrom shinyjs toggleState
+#'
+#' @noRd
 roleInput <- function(id, main.env, row) {
   moduleServer(id, function(input, output, session) {
     

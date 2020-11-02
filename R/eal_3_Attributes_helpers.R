@@ -1,4 +1,11 @@
 # UI ====
+
+#' @import shiny
+#' @importFrom shinyBS bsCollapsePanel
+#' @importFrom shinyFeedback useShinyFeedback
+
+#' 
+#' @noRd
 .attributeInputUI <-  function(id, row.ind, table.name, main.env) {
   # Set variables
   row <- main.env$local.rv$md.tables[[table.name]][row.ind,]
@@ -23,6 +30,10 @@
   )
 }
 
+#' @import shiny
+#' @importFrom shinyjs hidden
+#'
+#' @noRd
 .fieldInputUI <- function(id, table.name, row.ind, md.name, main.env) {
   # Set variables
   value <- main.env$local.rv$md.tables[[table.name]][row.ind, md.name]
@@ -91,6 +102,10 @@
 }
 
 # Server =====
+
+#' @import shiny
+#'
+#' @noRd
 .attributeInput <- function(id, row.ind, main.env) {
   moduleServer(id, function(input, output, session) {
     # Set variables
@@ -110,6 +125,11 @@
   })
 }
 
+#' @import shiny
+#' @importFrom shinyjs toggle
+#' @importFrom shinyFeedback hideFeedback showFeedbackSuccess showFeedbackWarning showFeedbackDanger
+#'
+#' @noRd
 .fieldInput <- function(id, table.name, row.ind, md.name, main.env) {
   moduleServer(id, function(input, output, session) {
     observeEvent(input[[md.name]], {
@@ -263,6 +283,9 @@ setUnitList <- function(main.env) {
 }
 
 # Custom Units ====
+#' @import shiny
+#'
+#' @noRd
 customUnitsUI <- function(id, values = rep(NA, 5), cu.table = NULL) {
   modalDialog(
     title = "Custom Unit",
@@ -315,6 +338,11 @@ customUnitsUI <- function(id, values = rep(NA, 5), cu.table = NULL) {
   )
 }
 
+#' @import shiny
+#' @importFrom shinyjs onclick toggleState 
+#' @importFrom dplyr filter
+#'
+#' @noRd
 customUnits <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
     #  * Cancel ----

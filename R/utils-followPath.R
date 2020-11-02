@@ -1,15 +1,16 @@
-# --- List handling
-
 #' @title followPath
 #'
-#' @description Takes a hierarchy list (tree), a path written in a vector pasted with sep, and returns the leaf
+#' @description Takes a hierarchy list (tree), a path written in a vector pasted 
+#' with sep, and returns the leaf.
 #'
 #' @param tree explored hierarchy list thanks to path
-#' @param path vector of characters matching some of tree names and
-#' separated with sep
+#' @param path vector of characters matching tree's nodes' names and
+#' separated with sep.
 #' @param sep separators between path elements (aka tree names)
 #' @param root if your path has a root name for root node, enter its name here.
 #' Else, enter NULL.
+#' 
+#' @export
 followPath <- function(tree, path, sep = "/", root = "root") {
   # Validity checks
   if (is.list(path)) {
@@ -36,5 +37,6 @@ followPath <- function(tree, path, sep = "/", root = "root") {
     tree <- tree[[path[1]]]
     path <- path[-1]
   }
+  
   return(tree)
 }

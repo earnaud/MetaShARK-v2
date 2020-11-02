@@ -1,6 +1,8 @@
-#' @title readDataTable
+#' Read Data Tables
 #'
-#' @description Guess the type of the data file (e.g. .xls* or not) and loads it accordingly
+#' Disclaimer: this function is still maturing. There is no guarantee about its 
+#' performance.
+#' Guess the type of the data file (e.g. .xls* or not) and loads it accordingly.
 #'
 #' @return a data.frame
 #'
@@ -12,6 +14,9 @@
 #' @param ... additional arguments to read.table.
 #'
 #' @importFrom gdata read.xls
+#' @importFrom data.table fread
+#' 
+# @export
 readDataTable <- function(file, data.table = FALSE, ...) {
   if (missing(file) || length(file) == 0) {
     stop("Provide a file for this function.")

@@ -1,4 +1,6 @@
 #' @import shiny
+#'
+#' @noRd
 CatVarsUI <- function(id, main.env) {
   ns <- NS(id)
 
@@ -40,9 +42,10 @@ CatVarsUI <- function(id, main.env) {
 }
 
 #' @import shiny
-#' @importFrom dplyr %>% filter select mutate
-#' @importFrom shinyBS bsCollapse bsCollapsePanel
-#' @importFrom shinyjs onclick
+#' @importFrom shinyjs toggleState
+#' @importFrom shinyBS bsCollapse
+#' @importFrom shinyFeedback hideFeedback showFeedbackSuccess showFeedbackDanger
+#' @importFrom dplyr %>%
 #'
 #' @noRd
 CatVars <- function(id, main.env) {
@@ -225,15 +228,5 @@ CatVars <- function(id, main.env) {
     )
 
     # Process data (deprecated)
-    # observeEvent(main.env$EAL$.next, {
-    #   message("Next")
-    #   req(main.env$EAL$old.page == 4)
-    #   
-    #   saveReactive(main.env, 4)
-    # },
-    # label = "EAL4: process data",
-    # priority = 1,
-    # ignoreInit = TRUE
-    # )
   })
 }

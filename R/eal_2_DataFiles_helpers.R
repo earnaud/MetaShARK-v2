@@ -1,3 +1,6 @@
+#' @import shiny
+#' 
+#' @noRd
 insertDataFileInput <- function(id, main.env){
   # Add row
   .id <- unns(id)
@@ -9,7 +12,8 @@ insertDataFileInput <- function(id, main.env){
   DataFileInput(.id, main.env)
 }
 
-#' @importFrom shinyBS bsTooltip
+#' @import shiny
+#' @importFrom shinyjs hidden 
 #'
 #' @noRd
 DataFileInputUI <- function(id, main.env) {
@@ -77,9 +81,11 @@ DataFileInputUI <- function(id, main.env) {
   
   return(ui)
 }
+
 #' @import shiny
-#' @importFrom stringr str_extract
-#'
+#' @importFrom shinyjs toggle
+#' @importFrom shinyFeedback hideFeedback showFeedbackWarning showFeedbackSuccess
+#' 
 #' @noRd
 DataFileInput <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {

@@ -8,10 +8,9 @@
 #' @import shiny
 #' @importFrom data.table fread
 uploadUI <- function(id, main.env) {
-  ns <- NS(id)
   dev <- main.env$dev
 
-  registeredEndpoints <- data.table::fread(
+  registeredEndpoints <- readDataTable(
     isolate(main.env$PATHS$resources)$registeredEndpoints.txt
   )
   dp.list <- list.files(

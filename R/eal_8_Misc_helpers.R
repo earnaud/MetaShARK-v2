@@ -1,5 +1,5 @@
 #' @import shiny
-#' @importFrom shinyFiles shinyFilesButton
+#' @importFrom htmltools tagAppendAttributes
 #'
 #' @noRd
 MiscellaneousUI <- function(id) {
@@ -26,7 +26,8 @@ MiscellaneousUI <- function(id) {
 }
 
 #' @import shiny
-#' @importFrom shinyAce updateAceEditor
+#' @importFrom SummeRnote summernoteInput
+#' @importFrom dplyr %>%
 #'
 #' @noRd
 Miscellaneous <- function(id, main.env, help.label = NULL) {
@@ -79,12 +80,13 @@ Miscellaneous <- function(id, main.env, help.label = NULL) {
     })
   })
 }
-library(shiny)
-
-ui <- fluidPage(
-)
 
 # Keyword Sets ====
+
+#' @import shiny
+#' @importFrom dplyr filter select %>%
+#'
+#' @noRd
 insertKeywordSet <- function(id, main.env, .setup = FALSE) {
   # Add row
   kws <- unns(id)
@@ -109,6 +111,10 @@ insertKeywordSet <- function(id, main.env, .setup = FALSE) {
   keywordSet(kws, main.env, .setup = .setup)
 }
 
+#' @import shiny
+#' @importFrom shinyWidgets searchInput
+#'
+#' @noRd
 keywordSetUI <- function(id, kwt.value = NULL) {
   # Get value
   if(isFALSE(
@@ -136,12 +142,16 @@ keywordSetUI <- function(id, kwt.value = NULL) {
       )
     ),
     tags$div(id=paste0("inserthere_eal8_", unns(id)), class = "tag_sequence")
-    # uiOutput(NS(id, "keywords"))
   )
 }
 
 # Auto save is performed here to allow quick comparisons between different 
 # keyword sets.
+#' @import shiny
+#' @importFrom dplyr filter select %>% mutate
+#' @importFrom shinyWidgets updateSearchInput
+#'
+#' @noRd
 keywordSet <- function(id, main.env, .setup = FALSE) {
   moduleServer(id, function(input, output, session) {
     kws <- unns(id) # same id, different variable for legibility
@@ -213,6 +223,10 @@ keywordSet <- function(id, main.env, .setup = FALSE) {
 }
 
 # Keyword tags ====
+#' @import shiny
+#' @importFrom dplyr filter select %>% mutate
+#'
+#' @noRd
 insertKeywordTag <- function(id, kws, main.env) {
   # Add item
   new.kw <- unns(id)
@@ -252,16 +266,21 @@ insertKeywordTag <- function(id, kws, main.env) {
   keywordTag(new.kw, kws, main.env)
 }
 
+#' @import shiny
+#'
+#' @noRd
 keywordTagUI <- function(id) {
   tags$div(
     id = NS(id, "kw_tag"),
-    # style = "color: white; background-color: #5682a3; border-radius: 3px;
-    #   width: max-content; padding: 0 5px",
     unns(id),
     actionLink(NS(id, "remove"), "", icon("times"), style = "color: white")
   )
 }
 
+#' @import shiny
+#' @importFrom dplyr %>% mutate
+#'
+#' @noRd
 keywordTag <- function(id, kws, main.env) {
   moduleServer(id, function(input, output, session) {
     observeEvent(input$remove, {
