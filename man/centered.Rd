@@ -10,7 +10,7 @@ centered(...)
 \item{...}{any HTML tag.}
 }
 \value{
-A div with `style = "text-align: center"`
+A div with \code{style = "text-align: center"}
 }
 \description{
 Returns the content styled as centered text.

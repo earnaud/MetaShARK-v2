@@ -9,8 +9,8 @@ followPath(tree, path, sep = "/", root = "root")
 \arguments{
 \item{tree}{explored hierarchy list thanks to path}
 
-\item{path}{vector of characters matching some of tree names and
-separated with sep}
+\item{path}{vector of characters matching tree's nodes' names and
+separated with sep.}
 
 \item{sep}{separators between path elements (aka tree names)}
 
@@ -18,5 +18,6 @@ separated with sep}
 Else, enter NULL.}
 }
 \description{
-Takes a hierarchy list (tree), a path written in a vector pasted with sep, and returns the leaf
+Takes a hierarchy list (tree), a path written in a vector pasted
+with sep, and returns the leaf.
 }

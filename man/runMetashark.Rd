@@ -9,9 +9,9 @@ runMetashark(...)
 \arguments{
 \item{...}{options to pass to the application, ignored if missing or mistyped.
 \describe{
-  \item{wip}{logical. Shows WIP parts of the app. (default to FALSE)}
-  \item{dev}{logical. Add development elements in the GUI. (default to FALSE)}
-  \item{reactlog}{logical. Use reactlog? (default to TRUE)}
+\item{wip}{logical. Shows WIP parts of the app. (default to FALSE)}
+\item{dev}{logical. Add development elements in the GUI. (default to FALSE)}
+\item{reactlog}{logical. Use reactlog? (default to TRUE)}
 }}
 }
 \description{
@@ -23,7 +23,7 @@ which is designed to help its user as much as possible for filling ecological
 metadata. It uses the EML standard (cf. NCEAS work) to allow a full and
 precise description of input datasets.
 
-For server setup, see [this git](https://github.com/earnaud/MetaShARK_docker).
+For server setup, see \href{https://github.com/earnaud/MetaShARK_docker}{this git}
 }
 \examples{
 # run this to launch MetaShARK
@@ -31,5 +31,5 @@ runMetashark()
 
 }
 \author{
-Elie Arnaud <elie.arnaud@mnhn.fr>
+Elie Arnaud \href{mailto:elie.arnaud@mnhn.fr}{elie.arnaud@mnhn.fr}
 }

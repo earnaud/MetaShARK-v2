@@ -3,7 +3,7 @@
 \name{URL_Input_UI}
 \alias{URL_Input_UI}
 \alias{URL_Input}
-\title{URL_Input_UI}
+\title{URL Input}
 \usage{
 URL_Input_UI(id, label = "URL", width = "100\%")
 
@@ -14,15 +14,16 @@ URL_Input(id)
 
 \item{label}{(character) display label for the control, or NULL for no label.}
 
-\item{width}{(character) the width of the input, e.g. '400px', or '100%'; see
+\item{width}{(character) the width of the input, e.g. '400px', or '100\%'; see
 validateCssUnit().}
 }
 \value{
-(output of `callModule`) If input is a valid URL (regex-tested + curl-tested), returns input.
+(output of calling the module part)
+If input is a valid URL (regex-tested + curl-tested), returns input.
 Else, returns NA.
 }
 \description{
-URL Shiny input module.
+URL Shiny input module. Implements elementary test to get a valid URL.
 }
 \section{Functions}{
 \itemize{

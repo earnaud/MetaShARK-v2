@@ -15,6 +15,20 @@ checkFeedback(
   text = NULL
 )
 }
+\arguments{
+\item{id}{character. An ID string that corresponds with the ID used to call
+the module's UI function.}
+
+\item{condition}{logical. Determines if the feedback is positive or not.}
+
+\item{silent}{logical. If TRUE, the only feedback occurs when \code{condition} is
+met. If FALSE, also displays feedbacks for other cases.}
+
+\item{type}{character. Either "danger" or "warning", sets the type of
+feedback in case \code{condition} is not met.}
+
+\item{text}{character. What message to display in case of unmet condition.}
+}
 \description{
 checkFeedback
 

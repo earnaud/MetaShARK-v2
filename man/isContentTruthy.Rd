@@ -2,14 +2,18 @@
 % Please edit documentation in R/utils-isContentTruthy.R
 \name{isContentTruthy}
 \alias{isContentTruthy}
-\title{isContentTruthy}
+\title{Check for data structures validity}
 \usage{
 isContentTruthy(x)
 }
 \arguments{
 \item{x}{argument to check fo truthiness}
 }
+\value{
+A logical indicating whether or not the variable is Truthy.
+}
 \description{
-check if `x` is truthy (as shiny::isTruthy) or not.
-Returns the argument if truthy, or the `output` argument if not (default to NULL)
+Check if \code{x} is truthy (as shiny::isTruthy) or not, but also
+checks for its potential content. This function uses \code{unlist()} and \code{all()} to
+check every bit of the variable.
 }

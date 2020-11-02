@@ -2,18 +2,18 @@
 % Please edit documentation in R/utils-listReactiveValues.R
 \name{listReactiveValues}
 \alias{listReactiveValues}
-\title{listReactiveValues}
+\title{List Reactive Values}
 \usage{
 listReactiveValues(rv, lv = 0, name = "root")
 }
 \arguments{
-\item{rv}{reactiveValues to turn into list}
+\item{rv}{reactiveValues. Target to turn into list.}
 
-\item{lv}{(verbose purposes)}
+\item{lv}{internal. Verbose purposes.}
 
-\item{name}{root node name}
+\item{name}{internal. Current root node name}
 }
 \description{
-Allows to turn a `reactiveValues`` object into a list. Uses
+Allows to turn a `reactiveValues`` object into a non-reactive list. Uses
 recursive method.
 }
