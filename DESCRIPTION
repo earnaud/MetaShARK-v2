@@ -51,6 +51,7 @@ Remotes:
     ThinkR-open/tagsinput,
     ropenscilabs/emldown
 RoxygenNote: 7.1.1
+Roxygen: list(markdown = TRUE)
 URL: https://github.com/earnaud/MetaShARK-v2.git
 BugReports: https://github.com/earnaud/MetaShARK-v2.git/issues
 Suggests: 
