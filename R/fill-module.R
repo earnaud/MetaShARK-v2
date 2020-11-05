@@ -125,7 +125,7 @@ fill <- function(id, main.env) {
       label = "EAL quit?"
       )
       
-      # calls saveRDS method and quits
+      # calls save method and quits
       observeEvent(input$save_quit, {
         req(input$save_quit)
         
@@ -164,6 +164,7 @@ fill <- function(id, main.env) {
     
     # Navigation ====
     observeEvent(main.env$EAL$page, {
+      message(sprintf("Reaching page %s", main.env$EAL$page))
       # * Save  & Template ----
       if(main.env$EAL$old.page > 1)
         saveReactive(main.env, main.env$EAL$old.page)
