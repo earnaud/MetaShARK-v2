@@ -112,6 +112,8 @@ setSaveVariable <- function(content, save.variable, lv = 1, root = "root") {
 #'
 #' @noRd
 setLocalRV <- function(main.env){
+  message(sprintf("Setting local var for %s", main.env$EAL$page))
+  
   # Set variable ====
   main.env$local.rv <- switch(
     main.env$EAL$page,
@@ -366,8 +368,9 @@ setLocalRV <- function(main.env){
       }) # end lapply:file
     }
     else
-      stop("Incorrect value for variable:
-           main.env$save.variable$DataFiles$metadatapath")
+      stop("[savevariable_functions.R]
+      Incorrect value for variable:
+      main.env$save.variable$DataFiles$metadatapath")
     
     # Fill 
     if (isTRUE(main.env$dev) || isTRUE(main.env$save.variable$quick)) {
