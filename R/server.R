@@ -29,7 +29,7 @@ appServer <- function(input, output, session) {
     if (class(.DATAONE.LIST) != "try-error") {
       isolate(main.env$dataone.list <- .DATAONE.LIST)
       readDataTable(
-        .DATAONE.LIST,
+        # .DATAONE.LIST,
         isolate(main.env$PATHS$resources$dataoneCNodesList.txt)
       )
     }
@@ -41,7 +41,7 @@ appServer <- function(input, output, session) {
     if (class(.TAXA.AUTHORITIES) != "try-error") {
       isolate(main.env$taxa.authorities <- .TAXA.AUTHORITIES)
       readDataTable(
-        .TAXA.AUTHORITIES,
+        # .TAXA.AUTHORITIES,
         isolate(main.env$PATHS$resources$taxaAuthorities.txt)
       )
     }
