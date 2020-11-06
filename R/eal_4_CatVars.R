@@ -194,6 +194,7 @@ CatVars <- function(id, main.env) {
       invalidateLater(1000)
       req(isContentTruthy(main.env$local.rv$cv.files))
       
+      # Completed ====
       main.env$EAL$completed <- sapply(
         seq(names(main.env$local.rv$cv.tables)),
         function(.file.index) {
@@ -204,9 +205,10 @@ CatVars <- function(id, main.env) {
             .valid <- isTruthy(.table[.row.index, "definition"])
             
             # Add feedback to input form
-            input.id <- paste0(
-              .table[1, "attributeName"],
-              "-", .table[1, "code"]
+            input.id <- sprintf(
+              "%s-%s",
+              .table[.row.index, "attributeName"],
+              .table[.row.index, "code"]
             )
             shinyFeedback::hideFeedback(input.id)
 

@@ -1,4 +1,4 @@
-# * Write UI ====
+# UI ====
 
 #' @import shiny
 #' @importFrom dplyr %>% select filter
@@ -38,7 +38,7 @@ CatVarsInputUI <- function(id, attribute, main.env) {
   ) # end of bsCollapsePanel
 }
 
-# * Write server ====
+# Server ====
 
 #' @import shiny
 #' @importFrom dplyr %>% select filter
