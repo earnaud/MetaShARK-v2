@@ -45,6 +45,6 @@ runMetashark <- function(...) {
   .globalScript(args = args)
   on.exit(message("### end of MetaShARK session ###\n"))
   on.exit(rm(main.env, envir = .GlobalEnv))
-
+  
   runApp(shinyApp(ui = appUI, server = appServer))
 }
