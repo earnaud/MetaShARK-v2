@@ -247,6 +247,7 @@ Attributes <- function(id, main.env) {
       )
       
       # * Feedback ----
+      # Collapse
       shinyBS::updateCollapse(
         session,
         "collapse",

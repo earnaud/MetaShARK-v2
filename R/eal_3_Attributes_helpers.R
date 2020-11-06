@@ -15,16 +15,20 @@
   shinyBS::bsCollapsePanel(
     title = attribute,
     value = attribute,
-    ... = tagList(
-      shinyFeedback::useShinyFeedback(),
+    ... = fluidRow(
       # Create an input per metadata field
-      lapply(
-        names(row),
-        .fieldInputUI,
-        table.name = table.name, 
-        row.ind = row.ind,
-        main.env = main.env,
-        id = NS(id, attribute)
+      column(9,
+             lapply(
+               names(row),
+               .fieldInputUI,
+               table.name = table.name, 
+               row.ind = row.ind,
+               main.env = main.env,
+               id = NS(id, attribute)
+             )
+      ),
+      # Preview the attribute
+      column(3, tableOutput(NS(id, "preview"))
       )
     )
   )
@@ -32,72 +36,78 @@
 
 #' @import shiny
 #' @importFrom shinyjs hidden
+#' @importFrom shinyFeedback useShinyFeedback
 #'
 #' @noRd
 .fieldInputUI <- function(id, table.name, row.ind, md.name, main.env) {
+  
   # Set variables
   value <- main.env$local.rv$md.tables[[table.name]][row.ind, md.name]
   formats <- main.env$FORMATS
+  
   # Render UI
-  switch(
-    md.name,
-    # attributeDefinition ----
-    attributeDefinition = textAreaInput(
-      NS(id, md.name),
-      value = value,
-      "Describe the attribute"
-    ),
-    # class ----
-    class = selectInput(
-      NS(id, md.name),
-      "Dectected class (change if misdetected)",
-      choices = c("numeric", "character", "Date", "categorical"),
-      selected = value
-    ),
-    # unit ----
-    unit = {
-      tmp <- selectInput(
+  tagList(
+    shinyFeedback::useShinyFeedback(),
+    switch(
+      md.name,
+      # attributeDefinition ----
+      attributeDefinition = textAreaInput(
         NS(id, md.name),
-        "Select an unit",
-        choices = setUnitList(main.env),
-        selected = if(isTruthy(value) && 
-                      !grepl("!.*!", value) &&
-                      value != "custom")
-          value
-      )
-      if (isTruthy(value)) {
-        tmp
-      } else {
-        shinyjs::hidden(tmp)
-      }
-    },
-    # dateTimeFormatString ----
-    dateTimeFormatString = {
-      tmp <- selectInput( # TODO better hour format
+        value = value,
+        "Describe the attribute"
+      ),
+      # class ----
+      class = selectInput(
         NS(id, md.name),
-        "Select a date format",
-        unique(c(value, formats$dates)),
-        selected = if (isTruthy(value) && !grepl("!Ad.*ere!", value)) value
-      )
-      if (isTruthy(value)) {
-        tmp
-      } else {
-        shinyjs::hidden(tmp)
-      }
-    },
-    # missingValueCode ----
-    missingValueCode = textInput(
-      NS(id, md.name),
-      "Code for missing value (max 1 word)",
-      value = value
-    ),
-    # missingValueCodeExplanation ----
-    missingValueCodeExplanation = textAreaInput(
-      NS(id, md.name),
-      "Explain Missing Values",
-      value = value
-    ),
-    NULL
+        "Dectected class (change if misdetected)",
+        choices = c("numeric", "character", "Date", "categorical"),
+        selected = value
+      ),
+      # unit ----
+      unit = {
+        tmp <- selectInput(
+          NS(id, md.name),
+          "Select an unit",
+          choices = setUnitList(main.env),
+          selected = if(isTruthy(value) && 
+                        !grepl("!.*!", value) &&
+                        value != "custom")
+            value
+        )
+        if (isTruthy(value)) {
+          tmp
+        } else {
+          shinyjs::hidden(tmp)
+        }
+      },
+      # dateTimeFormatString ----
+      dateTimeFormatString = {
+        tmp <- selectInput( # TODO better hour format
+          NS(id, md.name),
+          "Select a date format",
+          unique(c(value, formats$dates)),
+          selected = if (isTruthy(value) && !grepl("!Ad.*ere!", value)) value
+        )
+        if (isTruthy(value)) {
+          tmp
+        } else {
+          shinyjs::hidden(tmp)
+        }
+      },
+      # missingValueCode ----
+      missingValueCode = textInput(
+        NS(id, md.name),
+        "Code for missing value (max 1 word)",
+        value = value
+      ),
+      # missingValueCodeExplanation ----
+      missingValueCodeExplanation = textAreaInput(
+        NS(id, md.name),
+        "Explain Missing Values",
+        value = value
+      ),
+      NULL
+    )
   )
 }
 
@@ -108,6 +118,7 @@
 #' @noRd
 .attributeInput <- function(id, row.ind, main.env) {
   moduleServer(id, function(input, output, session) {
+    
     # Set variables
     table.name <- id
     row <- main.env$local.rv$md.tables[[table.name]][row.ind,]
@@ -122,6 +133,14 @@
       main.env = main.env,
       id = attribute
     )
+    
+    # Render preview
+    output$preview <- renderTable({
+      .table <- main.env$local.rv$preview[[
+        which(basename(names(main.env$local.rv$preview)) == table.name)
+      ]][attribute]
+    })
+    
   })
 }
 
@@ -132,9 +151,9 @@
 #' @noRd
 .fieldInput <- function(id, table.name, row.ind, md.name, main.env) {
   moduleServer(id, function(input, output, session) {
+    
     observeEvent(input[[md.name]], {
       req(input[[md.name]])
-      
       .value <- input[[md.name]]
       table <- main.env$local.rv$md.tables[[table.name]]
       .row <- table[row.ind, "attributeName"]
@@ -214,28 +233,28 @@
         TRUE
       )
       
-      # Feedback ====
-      shinyFeedback::hideFeedback(md.name)
-      
-      if(isTRUE(main.env$local.rv$completed[[table.name]][[.row]][[md.name]]))
-        shinyFeedback::showFeedbackSuccess(md.name)
-      else {
-        if(md.name == "unit" && .value == "custom")
-          shinyFeedback::showFeedbackWarning(
-            md.name,
-            text = "describe the custom unit"
-          )
-        else if(md.name %in% c("attributeDefinition", "dateTimeFormatString", "unit"))
-          shinyFeedback::showFeedbackDanger(
-            md.name,
-            text = "invalid value provided"
-          )
-        else if(md.name == "missingValueCode")
-          shinyFeedback::showFeedbackWarning(
-            md.name,
-            text = "blank code means 'no missing value'"
-          )
-      }
+      # # Feedback ====
+      # shinyFeedback::hideFeedback(md.name)
+      # 
+      # if(isTRUE(main.env$local.rv$completed[[table.name]][[.row]][[md.name]]))
+      #   shinyFeedback::showFeedbackSuccess(md.name)
+      # else {
+      #   if(md.name == "unit" && .value == "custom")
+      #     shinyFeedback::showFeedbackWarning(
+      #       md.name,
+      #       text = "describe the custom unit"
+      #     )
+      #   else if(md.name %in% c("attributeDefinition", "dateTimeFormatString", "unit"))
+      #     shinyFeedback::showFeedbackDanger(
+      #       md.name,
+      #       text = "invalid value provided"
+      #     )
+      #   else if(md.name == "missingValueCode")
+      #     shinyFeedback::showFeedbackWarning(
+      #       md.name,
+      #       text = "blank code means 'no missing value'"
+      #     )
+      # }
       
       # Set values ====
       # Correct values
@@ -419,4 +438,3 @@ customUnits <- function(id, main.env) {
     
   })
 }
-  

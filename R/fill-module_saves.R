@@ -253,8 +253,9 @@ saveReactive <- function(main.env, page) {
     .sv$GeoCov$columns <- main.env$local.rv$columns
 
     # Site
-    site <- printReactiveValues(main.env$local.rv$columns$site)
-    .geographicDescription <- .values$data.content[[site["file"]]][[site["col"]]]
+    site <- listReactiveValues(main.env$local.rv$columns$site)
+    browser()
+    .geographicDescription <- .values$data.content[[site$file]][[site$col]]
 
     # extract queried
     .tmp <- extractCoordinates(

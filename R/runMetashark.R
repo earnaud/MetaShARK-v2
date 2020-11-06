@@ -34,6 +34,7 @@
 #' @export
 runMetashark <- function(...) {
   invisible(require("shinyBS"))
+  invisible(require("shinyTree"))
 
   args <- list(...)
   args$dev <- isTRUE(args$dev)
