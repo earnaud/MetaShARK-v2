@@ -224,7 +224,9 @@ CatVars <- function(id, main.env) {
             return(.valid)
           })
         }
-      ) %>% all
+      ) %>% 
+        unlist %>%
+        all
     },
     label = "EAL4: continuous save"
     )
