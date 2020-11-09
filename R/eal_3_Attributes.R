@@ -58,7 +58,7 @@ Attributes <- function(id, main.env) {
         )
         
         # compute ui
-        do.call(
+        ui <- do.call(
           tabsetPanel,
           args = c(
             id = session$ns("tabset"),
@@ -97,12 +97,16 @@ Attributes <- function(id, main.env) {
           )
         )
       })
+      
+      return(ui)
     })
     
     # * Server ----
     observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page == 3)
-      req(isContentTruthy(main.env$local.rv$md.tables))
+      validate(
+        need(isContentTruthy(main.env$local.rv$md.tables), message = FALSE)
+      )
       
       sapply(
         names(main.env$local.rv$md.tables), 

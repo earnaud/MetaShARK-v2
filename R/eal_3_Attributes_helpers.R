@@ -17,18 +17,19 @@
     value = attribute,
     ... = fluidRow(
       # Create an input per metadata field
-      column(9,
-             lapply(
-               names(row),
-               .fieldInputUI,
-               table.name = table.name, 
-               row.ind = row.ind,
-               main.env = main.env,
-               id = NS(id, attribute)
-             )
+      column(
+        9,
+        lapply(
+          names(row),
+          .fieldInputUI,
+          table.name = table.name,
+          row.ind = row.ind,
+          main.env = main.env,
+          id = NS(id, attribute)
+        )
       ),
       # Preview the attribute
-      column(3, tableOutput(NS(id, "preview"))
+      column(3, tableOutput(NS( NS(id, attribute), "preview"))
       )
     )
   )
@@ -153,7 +154,10 @@
   moduleServer(id, function(input, output, session) {
     
     observeEvent(input[[md.name]], {
-      req(input[[md.name]])
+      validate(
+        need(input[[md.name]], message = FALSE)
+      )
+      
       .value <- input[[md.name]]
       table <- main.env$local.rv$md.tables[[table.name]]
       .row <- table[row.ind, "attributeName"]
