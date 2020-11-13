@@ -168,6 +168,7 @@ setLocalRV <- function(main.env){
         index = numeric(),
         file = character()
       ),
+      trigger = makeReactiveTrigger(),
       cv.files = character(),
       cv.tables = reactiveValues(),
       completed = reactiveValues()
@@ -437,17 +438,36 @@ setLocalRV <- function(main.env){
           } else {
             definition
           }
+        ) %>%
+        dplyr::mutate(
+          code = gsub("^$","NA", code)
         )
       
       # Set completed
       main.env$local.rv$completed[[file.name]] <- reactiveValues()
+      attributes <- main.env$local.rv$cv.tables[[file.name]]$attributeName %>%
+        unique
+      lapply(attributes, function(attribute) {
+        main.env$local.rv$completed[[file.name]][[attribute]] <- reactiveValues()
+        codes <- main.env$local.rv$cv.tables[[file.name]] %>%
+          filter(attributeName == attribute) %>%
+          select(code) %>%
+          unlist
+        main.env$local.rv$completed[[file.name]][[attribute]] <- rep(FALSE, length(codes)) %>%
+          setNames(nm = codes)
+      })
       
-      lapply(seq(nrow(main.env$local.rv$cv.tables[[file.name]])), function(row.index) {
-        row <- main.env$local.rv$cv.tables[[file.name]][row.index,]
-        # Set completed per row by class
-        row.id <- paste(row[1:2], collapse = ":")
-        main.env$local.rv$completed[[file.name]][[row.id]] <- FALSE # one item per row
-      }) # end lapply:row.index
+      # Old 
+      # 
+      # main.env$local.rv$completed[[file.name]] <- reactiveValues()
+      # 
+      # lapply(seq(nrow(main.env$local.rv$cv.tables[[file.name]])), function(row.index) {
+      #   row <- main.env$local.rv$cv.tables[[file.name]][row.index,]
+      #   # Set completed per row by class
+      #   row.id <- paste(row[1:2], collapse = ":")
+      #   main.env$local.rv$completed[[file.name]][[row.id]] <- FALSE # one item per row
+      # }) # end lapply:row.index
+      
     }) # end lapply:file
   }
   

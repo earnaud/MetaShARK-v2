@@ -48,7 +48,6 @@
   
   # Render UI
   tagList(
-    shinyFeedback::useShinyFeedback(),
     switch(
       md.name,
       # attributeDefinition ----
@@ -238,27 +237,27 @@
       )
       
       # # Feedback ====
-      # shinyFeedback::hideFeedback(md.name)
-      # 
-      # if(isTRUE(main.env$local.rv$completed[[table.name]][[.row]][[md.name]]))
-      #   shinyFeedback::showFeedbackSuccess(md.name)
-      # else {
-      #   if(md.name == "unit" && .value == "custom")
-      #     shinyFeedback::showFeedbackWarning(
-      #       md.name,
-      #       text = "describe the custom unit"
-      #     )
-      #   else if(md.name %in% c("attributeDefinition", "dateTimeFormatString", "unit"))
-      #     shinyFeedback::showFeedbackDanger(
-      #       md.name,
-      #       text = "invalid value provided"
-      #     )
-      #   else if(md.name == "missingValueCode")
-      #     shinyFeedback::showFeedbackWarning(
-      #       md.name,
-      #       text = "blank code means 'no missing value'"
-      #     )
-      # }
+      shinyFeedback::hideFeedback(md.name)
+      
+      if(isTRUE(main.env$local.rv$completed[[table.name]][[.row]][[md.name]]))
+        shinyFeedback::showFeedbackSuccess(md.name)
+      else {
+        if(md.name == "unit" && .value == "custom")
+          shinyFeedback::showFeedbackWarning(
+            md.name,
+            text = "describe the custom unit"
+          )
+        else if(md.name %in% c("attributeDefinition", "dateTimeFormatString", "unit"))
+          shinyFeedback::showFeedbackDanger(
+            md.name,
+            text = "invalid value provided"
+          )
+        else if(md.name == "missingValueCode")
+          shinyFeedback::showFeedbackWarning(
+            md.name,
+            text = "blank code means 'no missing value'"
+          )
+      }
       
       # Set values ====
       # Correct values

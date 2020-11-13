@@ -2,37 +2,53 @@ library(shiny)
 
 test_UI <- function(id) {
   ns <- NS(id)
-  tagList(
-    textInput("test", "test")
-  )
+  
+  tabPanel("One", textInput(ns("text"), "Write 'nope'"))
 }
 
-test_server <- function(id, rv) {
+test_server <- function(id) {
   moduleServer(id, function(input, output, session) {
-    observeEvent(input$test, {
-      rv$text <- input$test
+    observeEvent(input$text, {
+      text <- input$text
+      
+      shinyFeedback::hideFeedback("text")
+      
+      if(text == "nope")
+        shinyFeedback::showFeedbackSuccess("text")
+      else
+        shinyFeedback::showFeedbackDanger("text", "No !")
     })
   })
 }
 
 ui <- fluidPage(
+  shinyFeedback::useShinyFeedback(),
   actionButton("dev", "dev"),
   uiOutput("test")
 )
 
 server <- function(input, output, session) {
-  rv <- reactiveValues(
-    text = ""
-  )
-  
   output$test <- renderUI({
-    test_UI("outer")
+    do.call(
+      tabsetPanel,
+      args = c(
+        id = session$ns("tabset"),
+        lapply(
+          c(session$ns("One"), session$ns("Two")),
+          test_UI
+        )
+      )
+    )
   })
   
-  test_server("outer")
+  sapply(c("One","Two"), test_server)
   
   observeEvent(input$dev, {
     browser()
+  })
+  
+  observeEvent(input$tabset, {
+    message(sprintf("[Out] You are at %s", input$tabset))
   })
 }
 
