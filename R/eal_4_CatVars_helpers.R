@@ -5,12 +5,12 @@
 #' @importFrom shinyBS bsCollapsePanel
 #'
 #' @noRd
-CatVarsInputUI <- function(id, attribute, main.env) {
+CatVarsInputUI <- function(id, attribute, table.name, main.env) {
   # Shortcuts
-  .file.name <- main.env$local.rv$current$file
+  # .file.name <- main.env$local.rv$current$file
   .tables <- main.env$local.rv$cv.tables
   
-  codes <- .tables[[.file.name]] %>%
+  codes <- .tables[[table.name]] %>%
     dplyr::filter(attributeName == attribute) %>%
     dplyr::select(code)
   
@@ -20,15 +20,16 @@ CatVarsInputUI <- function(id, attribute, main.env) {
     ... = tagList(
       lapply(unlist(codes), function(.code) {
         # Correct value for NAs
-        if (is.na(.code)) {
+        if (is.na(.code) || .code == "") {
+          browser()
           .code <- "NA"
         }
         
         # proper UI
         textAreaInput(
           inputId = NS(id, gsub("[ [:punct:]]", "", .code)),
-          label = .code,
-          value = .tables[[.file.name]] %>%
+          label = ifelse(is.na(.code), "NA", .code),
+          value = .tables[[table.name]] %>%
             dplyr::filter(attributeName == attribute & code == .code) %>%
             dplyr::select(definition) %>%
             unique()
@@ -44,14 +45,13 @@ CatVarsInputUI <- function(id, attribute, main.env) {
 #' @importFrom dplyr %>% select filter
 #'
 #' @noRd
-CatVarsInput <- function(id, attribute, main.env) {
-  # id and attribute are the same, split for legibility purposes
+CatVarsInput <- function(id, attribute, table.name, main.env) {
   moduleServer(id, function(input, output, session){
     # Shortcuts
-    .file.name <- main.env$local.rv$current$file
+    # .file.name <- main.env$local.rv$current$file
     .tables <- main.env$local.rv$cv.tables
     
-    codes <- .tables[[.file.name]] %>%
+    codes <- .tables[[table.name]] %>%
       dplyr::filter(attributeName == attribute) %>%
       dplyr::select(code)
     
@@ -65,16 +65,28 @@ CatVarsInput <- function(id, attribute, main.env) {
       input.id <- gsub("[ [:punct:]]", "", .code)
       
       observeEvent(input[[input.id]], {
-        # Get value
-        .row.index <- intersect(
-          which(.tables[[.file.name]]$attributeName == attribute),
-          which(.tables[[.file.name]]$code == .code)
-        )
+        # validity check
+        .valid <- isTruthy(input[[input.id]])
+        shinyFeedback::hideFeedback(input.id)
         
-        if(isTruthy(input[[input.id]]))
-          main.env$local.rv$cv.tables[[.file.name]][.row.index, "definition"] <- input[[input.id]]
+        if(isTRUE(.valid)) {
+          shinyFeedback::showFeedbackSuccess(input.id)
+          # set value
+          main.env$local.rv$cv.tables[[table.name]] %>%
+            dplyr::filter(attributeName == attribute, code == .code) %>%
+            dplyr::mutate(definition = input[[input.id]])
+        }
+        else {
+          shinyFeedback::showFeedbackDanger(
+            input.id,
+            text = "Invalid description provided."
+          )
+        }
+        
+        main.env$local.rv$completed[[table.name]][[attribute]][.code] <<- .valid
+        main.env$local.rv$trigger$trigger()
       },
-      label = paste("EAL4", attribute, .code, sep = ">")
+      label = paste("EAL4:", attribute, .code)
       )
     })
   })

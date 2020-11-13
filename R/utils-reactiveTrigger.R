@@ -10,14 +10,16 @@
 #' @import shiny
 #' 
 #' @export
-makeReactiveTrigger <- function() {
+makeReactiveTrigger <- function(dev = FALSE, label = "") {
   rv <- reactiveValues(a = 0)
   list(
     depend = function() {
+      if(isTRUE(dev)) message("[dev] triggered: ", label)
       rv$a
       invisible()
     },
     trigger = function() {
+      if(isTRUE(dev)) message("[dev] trigger: ", label)
       rv$a <- isolate(rv$a + 1)
     }
   )

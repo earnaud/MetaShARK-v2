@@ -4,7 +4,7 @@
 \alias{makeReactiveTrigger}
 \title{reactiveTrigger}
 \usage{
-makeReactiveTrigger()
+makeReactiveTrigger(dev = FALSE, label = "")
 }
 \description{
 Create a 'reactiveTrigger' object (NOT a proper R class) with two methods:

@@ -58,7 +58,7 @@ Attributes <- function(id, main.env) {
         )
         
         # compute ui
-        ui <- do.call(
+        do.call(
           tabsetPanel,
           args = c(
             id = session$ns("tabset"),
@@ -97,8 +97,6 @@ Attributes <- function(id, main.env) {
           )
         )
       })
-      
-      return(ui)
     })
     
     # * Server ----
@@ -108,6 +106,7 @@ Attributes <- function(id, main.env) {
         need(isContentTruthy(main.env$local.rv$md.tables), message = FALSE)
       )
       
+      # Get inputs
       sapply(
         names(main.env$local.rv$md.tables), 
         main.env = main.env,
@@ -251,28 +250,31 @@ Attributes <- function(id, main.env) {
       )
       
       # * Feedback ----
-      # Collapse
-      shinyBS::updateCollapse(
-        session,
-        "collapse",
-        style = lapply(
-          main.env$local.rv$md.filenames[main.env$local.rv$current$file],
-          function(filename) {
-            lapply(names(main.env$local.rv$completed[[filename]]), function(att){
-              ifelse(
-                main.env$local.rv$completed[[filename]][[att]] %>%
-                  listReactiveValues() %>%
-                  unlist() %>%
-                  all() %>%
-                  isTRUE(),
-                "success",
-                "warning"
-              )
-            }) %>%
-              setNames(nm = names(main.env$local.rv$completed[[filename]]))
-          }
-        ) %>% unlist(recursive = F)
-      )
+      # Collapse update
+      if(isTruthy(input$tabset)){
+        filename = input$tabset
+        shinyBS::updateCollapse(
+          session,
+          NS(filename, "collapse"),
+          style = do.call(
+            args = list(filename = filename),
+            function(filename) {
+              lapply(names(main.env$local.rv$completed[[filename]]), function(att){
+                ifelse(
+                  main.env$local.rv$completed[[filename]][[att]] %>%
+                    listReactiveValues() %>%
+                    unlist() %>%
+                    all() %>%
+                    isTRUE(),
+                  "success",
+                  "warning"
+                )
+              }) %>%
+                setNames(nm = names(main.env$local.rv$completed[[filename]]))
+            }
+          )
+        )
+      }
       
       # * Check completeness ----
       main.env$EAL$completed <- all(

@@ -15,7 +15,6 @@ listReactiveValues <- function(rv, lv = 0, name = "root") {
     stop("No reactiveValues provided")
   }
   if (!is.reactivevalues(rv)) {
-    message("Provided `rv` is not a reactiveValues")
     return(rv)
   }
 
