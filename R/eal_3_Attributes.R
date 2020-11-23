@@ -10,8 +10,9 @@ AttributesUI <- function(id, main.env) {
       tags$p(
         "Even if EML Assembly Line automatically infers most
         of your data's metadata, some steps need you to check
-        out. Please check the following attribute, and fill
-        in at least the", withRedStar("mandatory elements.")
+        out. Please check the following attribute, and fill 
+        the required fields. Once they will be filled, corresponding
+        attribute will turn to green.")
       ),
       # Attributes ----
       tags$div(

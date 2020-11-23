@@ -29,8 +29,7 @@
         )
       ),
       # Preview the attribute
-      column(3, tableOutput(NS( NS(id, attribute), "preview"))
-      )
+      column(3, tableOutput(NS( NS(id, attribute), "preview")))
     )
   )
 }
@@ -44,7 +43,30 @@
   
   # Set variables
   value <- main.env$local.rv$md.tables[[table.name]][row.ind, md.name]
+  class <- main.env$local.rv$md.tables[[table.name]][row.ind, "class"]
+  attribute <- main.env$local.rv$md.tables[[table.name]][row.ind, "attributeName"]
   formats <- main.env$FORMATS
+  
+  # Correct units
+  if(
+    class == "numeric" &&
+    md.name == "unit" &&
+    isFALSE(isTruthy(value)) &&
+    isFALSE(
+      value %in% c(formats$units, main.env$local.rv$custom.units$unit.id)
+    )
+  ) {
+    value <- formats$units[2] # dimensionless
+  }
+  
+  # Correct date
+  # if(
+  #   class == "Date" &&
+  #   "date" %grep% md.name &&
+  #   isFALSE(isTruthy(value)) &&
+  #   isFALSE(value %in% formats$dates) 
+  # )
+  #   browser()
   
   # Render UI
   tagList(
@@ -124,7 +146,17 @@
     row <- main.env$local.rv$md.tables[[table.name]][row.ind,]
     attribute <- row$attributeName
     
-    # Set server
+    # * Preview ----
+    output[[NS(attribute, "preview")]] <- renderTable({
+      .col <- main.env$local.rv$preview[[
+        which(basename(names(main.env$local.rv$preview)) == table.name)
+      ]][attribute]
+      
+      data.frame(.col[[1]] %>% enc2utf8()) %>%
+        setNames(nm = names(.col))
+    })
+    
+    # * Set server ----
     lapply(
       names(row),
       .fieldInput,
@@ -133,13 +165,6 @@
       main.env = main.env,
       id = attribute
     )
-    
-    # Render preview
-    output$preview <- renderTable({
-      .table <- main.env$local.rv$preview[[
-        which(basename(names(main.env$local.rv$preview)) == table.name)
-      ]][attribute]
-    })
     
   })
 }
@@ -156,6 +181,9 @@
       validate(
         need(input[[md.name]], message = FALSE)
       )
+      
+      # if(main.env$dev)
+      #   message(session$ns(">reached"))
       
       .value <- input[[md.name]]
       table <- main.env$local.rv$md.tables[[table.name]]
@@ -236,7 +264,7 @@
         TRUE
       )
       
-      # # Feedback ====
+      # Feedback ====
       shinyFeedback::hideFeedback(md.name)
       
       if(isTRUE(main.env$local.rv$completed[[table.name]][[.row]][[md.name]]))
