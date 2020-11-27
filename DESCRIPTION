@@ -10,7 +10,7 @@ License: MIT
 Encoding: UTF-8
 LazyData: true
 Imports: 
-    shiny,
+    shiny (>= 1.5.0),
     golem,
     processx,
     attempt,
@@ -38,11 +38,20 @@ Imports:
     config,
     markdown,
     stringr,
-    rorcid
+    rorcid,
+    cedarr,
+    emldown,
+    gdata,
+    jsonlite,
+    tagsinput,
+    taxonomyCleanr,
+    methods,
+    utils
 Remotes:
     ThinkR-open/tagsinput,
     ropenscilabs/emldown
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
+Roxygen: list(markdown = TRUE)
 URL: https://github.com/earnaud/MetaShARK-v2.git
 BugReports: https://github.com/earnaud/MetaShARK-v2.git/issues
 Suggests: 
@@ -50,3 +59,5 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+Depends: 
+    R (>= 2.10)

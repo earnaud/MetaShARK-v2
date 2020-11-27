@@ -7,7 +7,7 @@
 renderBibliography(bib)
 }
 \arguments{
-\item{bib}{file path to bibliography}
+\item{bib}{character. Path to bibliography file (.bib format).}
 }
 \description{
 shiny-formatted render* function. Allow the user to print a .bib bibliography content. References are NOT numbered
