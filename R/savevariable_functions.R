@@ -112,8 +112,6 @@ setSaveVariable <- function(content, save.variable, lv = 1, root = "root") {
 #'
 #' @noRd
 setLocalRV <- function(main.env){
-  message(sprintf("Setting local var for %s", main.env$EAL$page))
-  
   # Set variable ====
   main.env$local.rv <- switch(
     main.env$EAL$page,

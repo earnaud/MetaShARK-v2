@@ -30,15 +30,30 @@ templateModules <- function(main.env, page){
     recursive = TRUE
   )
   
+  if(exists("template_issues")) 
+    rm("template_issues", envir = .GlobalEnv)
+    
   x <- try({
     EMLassemblyline::template_directories(
       main.env$save.variable$SelectDP$dp.path,
       main.env$save.variable$SelectDP$dp.name
     )
+    
     EMLassemblyline::template_core_metadata(
       main.env$save.variable$SelectDP$dp.metadata.path,
       main.env$local.rv$dp.license()
     )
+    
+    if(isTRUE(main.env$wip))
+      EMLassemblyline::template_annotations(
+        main.env$save.variable$SelectDP$dp.metadata.path,
+        main.env$save.variable$SelectDP$dp.data.path,
+        dir(main.env$save.variable$SelectDP$dp.data.path)
+      )
+    
+    # Check for EAL issues
+    if(exists("template_issues")) 
+      stop("EAL issues")
   })
   
   # End set up variable
@@ -71,12 +86,19 @@ templateModules <- function(main.env, page){
 #'
 #' @noRd
 .templateAttributes <- function(main.env){
+  if(exists("template_issues")) 
+    rm("template_issues", envir = .GlobalEnv)
+  
   x <- try({
     EMLassemblyline::template_table_attributes(
       path = isolate(main.env$save.variable$SelectDP$dp.metadata.path),
       data.path = isolate(main.env$save.variable$SelectDP$dp.data.path),
       data.table = isolate(main.env$save.variable$DataFiles$name)
     )
+    
+    # Check for EAL issues
+    if(exists("template_issues")) 
+      stop("EAL issues")
   })
   
   if(class(x) == "try-error") {
@@ -107,6 +129,9 @@ templateModules <- function(main.env, page){
     unlist() %>%
     any()
   
+  if(exists("template_issues")) 
+    rm("template_issues", envir = .GlobalEnv)
+  
   # EMLAL: template new fields if needed
   x <- try({
     if (isTRUE(.do.template.catvars)) {
@@ -115,6 +140,10 @@ templateModules <- function(main.env, page){
         data.path = main.env$save.variable$SelectDP$dp.data.path
       )
     }
+
+    # Check for EAL issues
+    if(exists("template_issues")) 
+      stop("EAL template issues - CatVar")
     
     EMLassemblyline::template_geographic_coverage(
       path = main.env$save.variable$SelectDP$dp.metadata.path,
@@ -122,6 +151,10 @@ templateModules <- function(main.env, page){
       empty = TRUE,
       write.file = TRUE
     )
+    
+    # Check for EAL issues
+    if(exists("template_issues")) 
+      stop("EAL template issues - GeoCov")
   })
   
   if(class(x) == "try-error") {
@@ -143,8 +176,31 @@ templateModules <- function(main.env, page){
 #' 
 #' @noRd
 .templateTaxCov <- function(main.env){
-  if (isTRUE(main.env$EAL$completed)) {
-    x <- try(
+  if(exists("template_issues")) 
+    rm("template_issues", envir = .GlobalEnv)
+  
+  if (isTRUE(main.env$local.rv$complete)) {
+    showModal(
+      modalDialog(
+        title = "Templating taxonomic coverage",
+        tagList(
+          tags$h3("Taxonomic coverage is being processed"),
+          "Please wait until completion. This might take minutes.",
+          "Selected authorities being queried:",
+          main.env$FORMATS$taxa.authorities %>%
+            filter(id == main.env$local.rv$taxa.authority) %>%
+            select(authority) %>%
+            unlist %>% 
+            lapply(tags$li) %>% 
+            tagList %>% 
+            tags$ul()
+          
+        ),
+        footer = NULL
+      )
+    )
+    
+    x <- try({
       EMLassemblyline::template_taxonomic_coverage(
         main.env$save.variable$SelectDP$dp.metadata.path,
         main.env$save.variable$SelectDP$dp.data.path,
@@ -153,7 +209,14 @@ templateModules <- function(main.env, page){
         taxa.name.type = main.env$local.rv$taxa.name.type,
         taxa.authority = main.env$local.rv$taxa.authority
       )
-    )
+      
+      # Check for EAL issues
+      if(exists("template_issues")) 
+        stop("EAL issues")
+    })
+    
+    removeModal()
+    
     if(class(x) == "try-error")
       showNotification(
         x,

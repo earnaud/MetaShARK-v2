@@ -85,13 +85,15 @@ pagesServer <- function(id, main.env) {
     changePage <- function(from, to, input, main.env) {
       observeEvent(input[[paste(from, to, sep = "_")]], {
         main.env$EAL$old.page <- main.env$EAL$page
-        main.env$EAL$page <- main.env$EAL$page + to - from
         
         # Case of previous at geographic coverage
-        if(main.env$EAL$old.page == 5 && 
+        if(isFALSE(main.env$EAL$old.page == 5 && 
            main.env$EAL$page < main.env$EAL$old.page &&
-           isFALSE("Categorical Variables" %in% main.env$EAL$history))
-          isolate({main.env$EAL$page <- main.env$EAL$page - 1})
+           isFALSE("Categorical Variables" %in% main.env$EAL$history)))
+          main.env$EAL$page <- main.env$EAL$page + to - from
+          # isolate({main.env$EAL$page <- main.env$EAL$page - 1})
+        
+        if(main.env$dev) devmsg("page: %s", main.env$EAL$page)
       },
       label = paste("changePage", from, to)
       )

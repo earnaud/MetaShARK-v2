@@ -159,12 +159,14 @@ fill <- function(id, main.env) {
     
     # * Save ----
     observeEvent(input$save, {
+      if(main.env$dev) devmsg("saved: %s", main.env$EAL$page)
       saveReactive(main.env, main.env$EAL$page)
     })
     
     # Navigation ====
     observeEvent(main.env$EAL$page, {
-      message(sprintf("Reaching page %s", main.env$EAL$page))
+      req(main.env$EAL$page != main.env$EAL$old.page)
+      
       # * Save  & Template ----
       if(main.env$EAL$old.page > 1)
         saveReactive(main.env, main.env$EAL$old.page)

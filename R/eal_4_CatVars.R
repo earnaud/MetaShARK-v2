@@ -144,13 +144,14 @@ CatVars <- function(id, main.env) {
                       id = NS(.id, "collapse"),
                       ... = lapply(
                         unique(table$attributeName),
-                        function(attribute)
+                        function(attribute){
                           CatVarsInputUI(
-                            id = NS(.id, attribute %>% gsub("-", "", .)),
+                            id = NS(.id, gsub("-", "", attribute)),
                             attribute = attribute,
                             table.name = table.name,
                             main.env = main.env
                           )
+                        }
                       )
                     )
                   ) # end do.call:bsCollapse
@@ -200,8 +201,8 @@ CatVars <- function(id, main.env) {
     observe({
       req(main.env$EAL$page == 4)
       
-      # invalidateLater(5000)
-      main.env$local.rv$trigger$depend()
+      invalidateLater(1000)
+      # main.env$local.rv$trigger$depend()
       
       req(
         length(main.env$local.rv$cv.files) > 0 &&
@@ -243,11 +244,13 @@ CatVars <- function(id, main.env) {
     observe({
       req(main.env$EAL$page == 4)
       
+      invalidateLater(1000)
+      
       main.env$EAL$completed <- main.env$local.rv$completed %>%
         listReactiveValues() %>%
         unlist %>%
-        isTRUE %>%
-        all()
+        all %>%
+        isTRUE
     },
     priority = -1,
     label = "EAL4: completeness check"

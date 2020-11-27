@@ -146,6 +146,7 @@ TaxCov <- function(id, main.env) {
     # Saves ====
     observe({
       req(main.env$EAL$page == 6)
+      
       invalidateLater(1000)
       
       main.env$EAL$completed <- TRUE

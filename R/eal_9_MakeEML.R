@@ -195,6 +195,13 @@ MakeEML <- function(id, main.env) {
       req(main.env$EAL$page == 9)
       invalidateLater(1000)
       
+      validate(
+        need(
+          length(dir(main.env$save.variable$SelectDP$dp.eml.path)) > 0,
+          "No EML file generated"
+        )
+      )
+      
       # Allow to publish or not
       shinyjs::toggleState(
         "publish",
