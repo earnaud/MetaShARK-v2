@@ -254,7 +254,6 @@ saveReactive <- function(main.env, page) {
 
     # Site
     site <- listReactiveValues(main.env$local.rv$columns$site)
-    browser()
     .geographicDescription <- .values$data.content[[site$file]][[site$col]]
 
     # extract queried

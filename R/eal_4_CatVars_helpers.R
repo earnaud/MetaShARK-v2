@@ -21,18 +21,21 @@ CatVarsInputUI <- function(id, attribute, table.name, main.env) {
       lapply(unlist(codes), function(.code) {
         # Correct value for NAs
         if (is.na(.code) || .code == "") {
-          browser()
           .code <- "NA"
         }
+        .value <- .tables[[table.name]] %>%
+          dplyr::filter(attributeName == attribute & code == .code) %>%
+          dplyr::select(definition) %>%
+          unique() %>% 
+          unlist()
+        if(length(.value) == 0)
+          .value <- sprintf("No description provided for: %s", .code)
         
         # proper UI
         textAreaInput(
           inputId = NS(id, gsub("[ [:punct:]]", "", .code)),
           label = ifelse(is.na(.code), "NA", .code),
-          value = .tables[[table.name]] %>%
-            dplyr::filter(attributeName == attribute & code == .code) %>%
-            dplyr::select(definition) %>%
-            unique()
+          value = .value
         )
       })
     ) # end of "tagapply" -- text areas
@@ -57,7 +60,7 @@ CatVarsInput <- function(id, attribute, table.name, main.env) {
     
     sapply(unlist(codes), function(.code) {
       # Correct value for NAs
-      if (is.na(.code)) {
+      if (is.na(.code) || .code == "") {
         .code <- "NA"
       }
       

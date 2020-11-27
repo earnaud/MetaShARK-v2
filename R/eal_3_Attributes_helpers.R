@@ -152,6 +152,10 @@
         which(basename(names(main.env$local.rv$preview)) == table.name)
       ]][attribute]
       
+      validate(
+        need(isContentTruthy(.col), "Empty attribute")
+      )
+      
       data.frame(.col[[1]] %>% enc2utf8()) %>%
         setNames(nm = names(.col))
     })
