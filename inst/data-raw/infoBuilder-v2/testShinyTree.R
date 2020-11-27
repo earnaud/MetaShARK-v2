@@ -42,32 +42,27 @@ testShinyTree_UI <- function(id) {
   )
 }
 
-testShinyTree <- function(input, output, session, doc, tree) {
-  output$tree <- renderTree({
-    tree
-  })
-  
-  # output$selected <- renderPrint({
-  #   browser()
-  #   tree <- input$tree
-  #   req(tree)
-  #   get_selected(tree)
-  # })
-  
-  output$doc <- renderUI({
-    tree.node <- get_selected(input$tree)
-    validate(
-      need(unlist(tree.node), "(Select an item first)")
-    )
-    path <- paste(c(attr(tree.node[[1]], "ancestry"), unlist(tree.node)), collapse = "/")
-    doc.node <- followPath(doc, path)
-    if("annotation" %in% names(doc.node))
-      doc.node$annotation
-    else
-      helpText("No content found at:", path)
-  })
-  
-  observeEvent(input$browse, {
-    browser()
+testShinyTree <- function(id, doc, tree) {
+  moduleServer(id, function(input, output, session){
+    output$tree <- renderTree({
+      tree
+    })
+    
+    output$doc <- renderUI({
+      tree.node <- get_selected(input$tree)
+      validate(
+        need(unlist(tree.node), "(Select an item first)")
+      )
+      path <- paste(c(attr(tree.node[[1]], "ancestry"), unlist(tree.node)), collapse = "/")
+      doc.node <- followPath(doc, path)
+      if("annotation" %in% names(doc.node))
+        doc.node$annotation
+      else
+        helpText("No content found at:", path)
+    })
+    
+    observeEvent(input$browse, {
+      browser()
+    })
   })
 }

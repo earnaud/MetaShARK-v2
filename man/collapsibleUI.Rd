@@ -5,12 +5,17 @@
 \alias{collapsible}
 \title{collapsibleUI}
 \usage{
-collapsibleUI(id, label, hidden = TRUE, ..., class = NULL)
+collapsibleUI(id, label, .hidden = TRUE, ..., class = NULL)
 
-collapsible(input, output, session)
+collapsible(id)
 }
 \arguments{
+\item{id}{character. An ID string that corresponds with the ID used to call
+the module's UI function.}
+
 \item{label}{character. A label appearing on the clickable link.}
+
+\item{.hidden}{logical. A flag to make the UI display as collapsed or not.}
 
 \item{...}{shiny UI elements. Any UI element displayed as core content.}
 
@@ -21,6 +26,6 @@ A shiny module to get a div collapsed by clicking on a link.
 }
 \section{Functions}{
 \itemize{
-\item \code{collapsible}: 
+\item \code{collapsible}: Server part for collapsible widget module.
 }}
 

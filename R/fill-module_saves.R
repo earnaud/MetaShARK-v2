@@ -1,142 +1,287 @@
+#' Executed after changing page 
+#' 
+#' @import shiny
+#' @importFrom jsonlite write_json serializeJSON 
 #'
-.saveDataFiles <- function(savevar, rv){
-  tmp <- savevar$emlal$DataFiles
+#' @noRd
+saveReactive <- function(main.env, page) {
+  if(is.null(main.env$local.rv))
+    stop("No content provided.")
+  if(is.null(main.env$save.variable))
+    stop("No save variable provided")
   
-  if(!checkTruth(tmp))
-    tmp <- data.frame(
-      name = character(),
-      size = character(),
-      type = character(),
-      datapath = character()
-    )
+  withProgress({
+    isolate({
+      # Save local variable content ----
+      setProgress(1 / 3, "Save metadata")
+      if(page != 9) {
+        main.env$save.variable <- do.call(
+          what = switch(page,
+                        ".saveSelectDP",
+                        ".saveDataFiles",
+                        ".saveAttributes",
+                        ".saveCatVars",
+                        ".saveGeoCov",
+                        ".saveTaxCov",
+                        ".savePersonnel",
+                        ".saveMisc"
+          ),
+          args = list(main.env)
+        )
+      }
+      
+      # Template ----
+      templateModules(main.env, page)
+      
+      # Save JSON ----
+      setProgress(2 / 3, "Write JSON")
+      # set files + path
+      path <- main.env$save.variable$SelectDP$dp.path
+      filename <- main.env$save.variable$SelectDP$dp.name
+      location <- paste0(path, "/", filename, ".json")
+      # write files
+      if (file.exists(location))
+        file.remove(location)
+      jsonlite::write_json(
+        jsonlite::serializeJSON(
+          listReactiveValues(main.env$save.variable)
+        ),
+        location
+      )
+      
+      incProgress(1 / 3)
+    })
+  })
   
-  # -- Get files data
-  tmp$datapath <- paste0(
-    savevar$emlal$SelectDP$dp_data_path,
-    "/", rv$data_files$name
+  showNotification(
+    paste("Saved:", main.env$EAL$current, "."),
+    duration = 2.5,
+    type = "message"
   )
-  
-  # -- set metadatapath
-  tmp$metadatapath <- paste(
-    savevar$emlal$SelectDP$dp_metadata_path,
-    sub(
-      "(.*)\\.[a-zA-Z0-9]*$",
-      "attributes_\\1.txt",
-      rv$data_files$name
-    ),
-    sep = "/"
-  )
-  
-  # Set table name
-  tmp$table_name <- rv$data_files$table_name
-  # Set description
-  tmp$description <- rv$data_files$description
-  # Set URL
-  tmp$url <- rv$data_files$url
-  
-  savevar$emlal$DataFiles <- tmp
-  
-  # copy files
-  file.copy(
-    from = rv$data_files$datapath,
-    to = savevar$emlal$SelectDP$dp_data_path
-  )
-  
-  rv$data_files$datapath <-paste0(
-    savevar$emlal$SelectDP$dp_data_path,
-    "/", rv$data_files$name
-  )
-  return(savevar)
 }
 
-#' @importFrom shiny withProgress incProgress reactiveValues
+#' @noRd
+.saveSelectDP <- function(main.env){
+  # Shortcuts
+  .sv <- main.env$save.variable
+  content <- main.env$local.rv
+  
+  # Save content in sv
+  .sv$SelectDP$dp.name <- content$dp.name()
+  .sv$SelectDP$dp.path <- paste0(
+    main.env$PATHS$eal.dp,
+    content$dp.name(),
+    "_emldp"
+  )
+  .sv$SelectDP$dp.metadata.path <- paste(
+    .sv$SelectDP$dp.path,
+    content$dp.name(),
+    "metadata_templates",
+    sep = "/"
+  )
+  .sv$SelectDP$dp.data.path <- paste(
+    .sv$SelectDP$dp.path,
+    content$dp.name(),
+    "data_objects",
+    sep = "/"
+  )
+  .sv$SelectDP$dp.eml.path <- paste(
+    .sv$SelectDP$dp.path,
+    content$dp.name(),
+    "eml",
+    sep = "/"
+  )
+  .sv$SelectDP$dp.title <- content$dp.title()
+  .sv$quick <- content$quick
+  .sv$creator <- if(isTRUE(main.env$SETTINGS$logged))
+    main.env$SETTINGS$user
+  else
+    "public" # prefered to set it properly than only with variable
+  
+  return(.sv)
+}
+
+#' @importFrom dplyr select
+#' 
+#' @noRd
+.saveDataFiles <- function(main.env){
+  .sv <- main.env$save.variable
+  .tmp <- main.env$local.rv$data.files
+  .tmp <- try(dplyr::select(.tmp, -id))
+  
+  # Format content
+  if (!isContentTruthy(.tmp)) {
+    message("Invalid content")
+  }
+  else {
+    # -- Get files data
+    .from <- .tmp$datapath
+    .to <- paste0(
+      .sv$SelectDP$dp.data.path,
+      "/", .tmp$name
+    )
+    file.copy(
+      from = .from,
+      to = .to
+    )
+    .tmp$datapath <- .to
+
+    # -- set metadatapath
+    .tmp$metadatapath <- paste(
+      .sv$SelectDP$dp.metadata.path,
+      sub(
+        "(.*)\\.[a-zA-Z0-9]*$",
+        "attributes_\\1.txt",
+        .tmp$name
+      ),
+      sep = "/"
+    )
+  }
+  .tmp[] <- lapply(.tmp, as.character)
+  
+  # Save
+  .sv$DataFiles <- .tmp
+  try(main.env$local.rv$data.files$datapath <- .tmp$datapath)
+
+  return(.sv)
+}
+
+#' @importFrom dplyr filter select %>%
 #' @importFrom data.table fwrite
-.saveAttributes <- function(savevar, rv){
+#' 
+#' @noRd
+.saveAttributes <- function(main.env){
+  .sv <- main.env$save.variable
+  content <- main.env$local.rv
+  
+  # Save
+  .sv$Attributes <- content$md.tables
+  names(.sv$Attributes) <- .sv$DataFiles$name
+  
   # Write attribute tables
   sapply(
-    seq_along(rv$filenames),
-    function(cur_ind) {
+    basename(content$data.filepath),
+    function(tablename) {
       # write filled tables
-      path <- savevar$emlal$DataFiles$metadatapath[cur_ind]
-      table <- rv$tables[[cur_ind]]
-      fwrite(table, path, sep = "\t")
+      path <- .sv$DataFiles %>%
+        dplyr::filter(name == tablename) %>% 
+        dplyr::select(metadatapath) %>% 
+        unlist()
+      table <- content$md.tables[[tablename]]
+      data.table::fwrite(table, path, sep = "\t")
     }
   )
   
   # Write Custom units
-  if(checkTruth(rv$CU_Table))
-    fwrite(
-      rv$CU_Table,
-      paste0(savevar$emlal$SelectDP$dp_metadata_path, "/custom_units.txt")
+  if (isContentTruthy(content$CU_Table)) {
+    data.table::fwrite(
+      content$CU_Table,
+      paste0(.sv$SelectDP$dp.metadata.path, "/custom_units.txt")
     )
-  
-  return(savevar)
+  }
+
+  return(.sv)
 }
 
 #' @importFrom data.table fwrite
-.saveCatVars <- function(savevar, rv){
-  sapply(rv$catvarFiles, function(file_path){
-    file_name <- basename(file_path)
-    savevar$emlal$CatVars[[file_name]] <- rv[[file_name]]$CatVars
+#' 
+#' @noRd
+.saveCatVars <- function(main.env){
+  content <- main.env$local.rv
+  
+  sapply(content$cv.files, function(file.path) {
+    file.name <- basename(file.path)
     
-    .tmp <- savevar$emlal$CatVars[[file_name]]$code == ""
-    savevar$emlal$CatVars[[file_name]]$code[.tmp] <- "NA"
-    
-    file.remove(file_path)
-    
-    fwrite(
-      savevar$emlal$CatVars[[file_name]],
-      file_path,
+    # Save
+    main.env$save.variable$CatVars[[file.name]] <- content$cv.tables[[file.name]]
+    .tmp <- main.env$save.variable$CatVars[[file.name]]$code == ""
+    main.env$save.variable$CatVars[[file.name]]$code[.tmp] <- "NA"
+
+    # Overwrite
+    file.remove(file.path)
+    data.table::fwrite(
+      main.env$save.variable$CatVars[[file.name]],
+      file.path,
       sep = "\t"
     )
   })
-  
-  return(savevar)
+
+  return(main.env$save.variable)
 }
 
+#' @noRd
+#'
 #' @importFrom data.table fwrite
-.saveGeoCov <- function(
-  savevar, rv, .method = "columns", .values, globals){
+#' @import shiny
+.saveGeoCov <- function(main.env){
+  .sv <- main.env$save.variable
+  main.env$local.rv <- main.env$local.rv
   
-  geocov <- data.frame(
-    geographicDescription = character(),
-    northBoundingCoordinate = numeric(),
-    southBoundingCoordinate = numeric(),
-    eastBoundingCoordinate = numeric(),
-    westBoundingCoordinate = numeric()
+  # Initialize variables
+  .method <- main.env$local.rv$method
+
+  data.files <- .sv$DataFiles$datapath
+  data.content <- lapply(data.files, readDataTable, stringsAsFactors = FALSE)
+  names(data.content) <- basename(data.files)
+
+  # format extracted content - keep latlon-valid columns
+  data.content.coordinates <- lapply(
+    names(data.content),
+    function(data.filename) {
+      df <- data.content[[data.filename]]
+      df.num <- unlist(
+        lapply(df, function(df.col) {
+          all(grepl(main.env$PATTERNS$coordinates, df.col))
+        })
+      )
+      df[, df.num]
+    }
   )
-  
+  names(data.content.coordinates) <- basename(data.files)
+
+  .values <- list(
+    data.content = data.content,
+    data.content.coordinates = data.content.coordinates
+  )
+
+  geocov <- NULL
+  .sv$GeoCov <- reactiveValues() # reset
+  .sv$GeoCov$method <- .method
+
   # GeoCov written if .method filled
-  if(.method == "columns"){
-    # reset
-    savevar$emlal$GeoCov <- reactiveValues()
-    savevar$emlal$GeoCov$columns <- rv$columns
-    
+  if (.method == "columns") {
+    .sv$GeoCov$columns <- main.env$local.rv$columns
+
     # Site
-    site <- rv$columns$site.name
-    .geographicDescription <- .values$data.content[[site["file"]]][[site["col"]]]
-    
+    site <- listReactiveValues(main.env$local.rv$columns$site)
+    .geographicDescription <- .values$data.content[[site$file]][[site$col]]
+
     # extract queried
-    tmp <- extractCoordinates(
-      rv,
+    .tmp <- extractCoordinates(
+      main.env,
       "lat",
-      globals$PATTERNS$LATLON, 
+      main.env$PATTERNS$coordinates,
       .values$data.content
     )
-    .northBoundingCoordinate <- tmp$coordinates$N
-    .southBoundingCoordinate <- tmp$coordinates$S
-    rv$warnings$latWarnings <- tmp$warnings
-    
-    tmp <- extractCoordinates(
-      rv,
+    .northBoundingCoordinate <- .tmp$coordinates$N
+    .southBoundingCoordinate <- .tmp$coordinates$S
+    .lat.index <- .tmp$coord.index
+
+    .tmp <- extractCoordinates(
+      main.env,
       "lon",
-      globals$PATTERNS$LATLON, 
+      main.env$PATTERNS$coordinates,
       .values$data.content
     )
-    .eastBoundingCoordinate <- tmp$coordinates$E
-    .westBoundingCoordinate <- tmp$coordinates$W
-    rv$warnings$lonWarnings <- tmp$warnings
-    
+    .eastBoundingCoordinate <- .tmp$coordinates$E
+    .westBoundingCoordinate <- .tmp$coordinates$W
+    .lon.index <- .tmp$coord.index
+
+    # Get only lines fully completed
+    .geographicDescription <- .geographicDescription[
+      .lat.index[which(.lat.index %in% .lon.index)]
+    ]
+
     # Final
     geocov <- data.frame(
       geographicDescription = .geographicDescription,
@@ -146,125 +291,170 @@
       westBoundingCoordinate = .westBoundingCoordinate,
       stringsAsFactors = FALSE
     )
-  }
-  else if(.method == "custom"){
+  } else if (.method == "custom") {
     # save
-    savevar$emlal$GeoCov <- reactiveValues()
-    savevar$emlal$GeoCov$custom <- rv$custom
-    
+    .sv$GeoCov <- reactiveValues()
+    .sv$GeoCov$custom <- main.env$local.rv$custom
+
     # fill
-    geocov <- rv$custom$coordinates
+    geocov <- main.env$local.rv$custom$coordinates
   }
   # Write data
-  if (!is.null(geocov) && 
-      .method != "" &&
-      all(dim(geocov) > 0)
-  ) {
-    fwrite(
+  if (isContentTruthy(geocov))
+    data.table::fwrite(
       geocov,
       paste(
-        savevar$emlal$SelectDP$dp_metadata_path,
+        .sv$SelectDP$dp.metadata.path,
         "geographic_coverage.txt",
         sep = "/"
       ),
       sep = "\t"
     )
-  }
   
-  return(savevar)
+  # Output
+  return(.sv)
 }
 
-#' @importFrom shiny reactiveValues
-.saveTaxCov <- function(savevar, rv){
-  savevar$emlal$TaxCov <- reactiveValues(
-    taxa.table = rv$taxa.table,
-    taxa.col = rv$taxa.col,
-    taxa.name.type = rv$taxa.name.type,
-    taxa.authority = rv$taxa.authority
-  )
+#' @noRd
+.saveTaxCov <- function(main.env){
+  .sv <- main.env$save.variable
+  content <- main.env$local.rv
   
-  return(savevar)
-}
+  # Save
+  .sv$TaxCov$taxa.table <- content$taxa.table
+  .sv$TaxCov$taxa.col <- content$taxa.col
+  .sv$TaxCov$taxa.name.type <- content$taxa.name.type
+  .sv$TaxCov$taxa.authority <- content$taxa.authority
 
-#' @importFrom data.table fwrite
-.savePersonnel <- function(savevar, rv){
-  # save
-  savevar$emlal$Personnel <- rv$Personnel
-  
-  # prettify
-  cols <- c(
-    "givenName", "middleInitial", "surName", 
-    "organizationName", "electronicMailAddress", 
-    "userId", "role", 
-    "projectTitle", "fundingAgency", "fundingNumber"
-  )
-  personnel <- rv$Personnel[names(rv$Personnel) %in% cols]
-  
-  # write file
-  fwrite(
-    personnel,
-    paste0(
-      savevar$emlal$SelectDP$dp_metadata_path,
-      "/personnel.txt"
-    ), 
-    sep = "\t"
-  )
-  
-  return(savevar)
+  main.env$save.variable <- .sv
 }
 
 #' @importFrom data.table fwrite
-#' @importFrom shiny withProgress setProgress incProgress
-.saveMisc <- function(savevar, rv){
-  withProgress({
-    savevar$emlal$Misc <- rv
+#' @importFrom dplyr %>% mutate
+#'
+#' @noRd
+.savePersonnel <- function(main.env){
+  .sv <- main.env$save.variable
+  content <- main.env$local.rv
+  
+  if(isContentTruthy(content$Personnel)) {
+    # Save variable
+    .sv$Personnel <- content$Personnel
     
-    setProgress(
-      value = 0.25,
-      message = "Writing 'abstract.txt'."
+    # Write file
+    # prettify
+    cols <- c(
+      "givenName", "middleInitial", "surName",
+      "organizationName", "electronicMailAddress",
+      "userId", "role",
+      "projectTitle", "fundingAgency", "fundingNumber"
     )
-    write.text(
-      rv$abstract$content(),
-      rv$abstract$file
-    )
+    personnel <- content$Personnel[names(content$Personnel) %in% cols]
+    .personnel <- personnel[NULL,]
+    sapply(seq(nrow(personnel)), function(ind) {
+      row <- personnel[ind,]
+      
+      roles <- unlist(strsplit(row$role, ","))
+      lapply(seq(roles), function(ind) 
+        .personnel <<- rbind(
+          .personnel, 
+          row %>% dplyr::mutate(role = roles[ind])
+        )
+      )
+    })
     
-    setProgress(
-      value = 0.5,
-      "Writing 'methods.txt'."
-    )
-    write.text(
-      rv$methods$content(),
-      rv$methods$file
-    )
-    
-    setProgress(
-      value = 0.75,
-      "Writing 'keywords.txt'."
-    )
-    fwrite(
-      data.frame(
-        keyword = rv$keywords$keyword,
-        keywordThesaurus = rv$keywords$keywordThesaurus
-      ),
+    # File template for personnel
+    data.table::fwrite(
+      .personnel,
       paste0(
-        savevar$emlal$SelectDP$dp_metadata_path,
-        "/keywords.txt"
+        .sv$SelectDP$dp.metadata.path,
+        "/personnel.txt"
       ),
       sep = "\t"
     )
-    
-    setProgress(
-      value = 0.99,
-      "Writing 'additional_info.txt'."
-    )
-    write.text(
-      rv$additional_info$content(),
-      rv$additional_info$file
-    )
-    
-    incProgress(0.01)
-  },
-    message = "Processing Miscellaneous.")
+  }
   
-  return(savevar)
+  # Output
+  return(.sv)
+}
+
+#' @import shiny
+#' @importFrom data.table fwrite
+#' @importFrom htmltools save_html HTML
+#' @importFrom rmarkdown pandoc_convert
+#' @importFrom dplyr %>% bind_rows
+#' 
+#' @noRd
+.saveMisc <- function(main.env){
+  .sv <- main.env$save.variable
+  content <- main.env$local.rv
+  
+  saveHTMLasMD <- function(.content) {
+    .tmp.file <- tempfile(fileext = ".html")
+    htmltools::save_html(html = htmltools::HTML(.content$content), .tmp.file)
+    rmarkdown::pandoc_convert(
+      .tmp.file,
+      from = "html",
+      to = "markdown_strict",
+      output = .content$file
+    )
+  }
+  
+  removeDuplicateFiles <- function(filename) {
+    onlyname <- sub("\\..+", "", basename(filename))
+    synonyms <- dir(
+      main.env$save.variable$SelectDP$dp.metadata.path,
+      pattern = onlyname,
+      full.names = TRUE
+    )
+    file.remove(synonyms[basename(synonyms) != basename(filename)])
+  }
+  
+  # save
+  .sv$Misc <- content
+  
+  # Fill template for abstract
+  saveHTMLasMD(content$abstract)
+  removeDuplicateFiles(content$abstract$file)
+  
+  # Fill template for methods
+  saveHTMLasMD(content$methods)
+  removeDuplicateFiles(content$methods$file)
+  
+  # Fill template for keywords
+  .tmp <- lapply(unique(content$keywords$keyword.thesaurus), function(kwt) {
+    row.ind <- which(content$keywords$keyword.thesaurus == kwt)
+    
+    data.frame(
+      keyword = strsplit(content$keywords$keyword[row.ind], ",") %>% 
+        unlist(),
+      keyword.thesaurus = kwt
+    )
+  })
+  .keywords <- dplyr::bind_rows(.tmp)
+  data.table::fwrite(
+    .keywords,
+    paste0(
+      .sv$SelectDP$dp.metadata.path,
+      "/keywords.txt"
+    ),
+    sep = "\t"
+  )
+  # Fill template for additional information
+  saveHTMLasMD(content$additional.information)
+  removeDuplicateFiles(content$additional.information$file)
+  
+  # Remove non-md files
+  sapply(c("abstract", "methods", "additional.information"), function(x) {
+    file.remove(
+      dir(
+        main.env$save.variable$SelectDP$dp.metadata.path,
+        full.names = TRUE,
+        pattern = paste0("^.*", x, ".*\\.[^md]$")
+      )
+    )
+  })
+  
+  # Output
+  return(.sv)
 }
