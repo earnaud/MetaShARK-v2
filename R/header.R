@@ -10,7 +10,7 @@
   options(stringsAsFactors = FALSE)
   
   # Environment setup ====
-  main.env <- new.env()
+  main.env <- new.env(parent = options()$metashark.env)
 
   assign("dev", args$dev, main.env)
   assign("wip", args$wip, main.env)
