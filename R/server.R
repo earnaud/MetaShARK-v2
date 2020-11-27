@@ -4,9 +4,9 @@
 #' @importFrom shinyjs hide show
 #'
 #' @noRd
-appServer <- function(input, output, session) {
+server <- function(input, output, session) {
   # get variables
-  main.env <- get("main.env", .GlobalEnv)
+  main.env <- get("main.env", options()$metashark.env)
 
   assign(
     "current.tab",
@@ -43,6 +43,18 @@ appServer <- function(input, output, session) {
       )
       isolate(main.env$taxa.authorities <- .TAXA.AUTHORITIES)
     }
+    
+    # Ontology list
+    .ONTOLOGIES <- data.table::fread(
+      system.file(
+        "resources/bioportal_ontologies_list.csv",
+        package = "MetaShARK"
+      )
+    )
+    isolate(main.env$ontologies <- .TAXA.AUTHORITIES)
+    
+    if(exists("template_issues"))
+      rm("template_issues", envir = .GlobalEnv)
   })
 
   ## modules called ----

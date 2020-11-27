@@ -6,9 +6,9 @@
 #' @importFrom shinydashboardPlus loadingState dashboardPagePlus dashboardHeaderPlus
 #' 
 #' @noRd
-appUI <- function() {
+ui <- function() {
   # get app arguments
-  main.env <- get("main.env", .GlobalEnv)
+  main.env <- get("main.env", options()$metashark.env)
 
   # prepare variable
   .menu.width <- "250px"

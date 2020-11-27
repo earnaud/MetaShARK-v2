@@ -12,6 +12,7 @@
 #'   \item{wip}{logical. Shows WIP parts of the app. (default to FALSE)}
 #'   \item{dev}{logical. Add development elements in the GUI. (default to FALSE)}
 #'   \item{reactlog}{logical. Use reactlog? (default to TRUE)}
+#'   \item{test}{logical. Recod tests? (default to FALSE)}
 #' }
 #'
 #' @details
@@ -40,11 +41,13 @@ runMetashark <- function(...) {
   args$dev <- isTRUE(args$dev)
   args$wip <- isTRUE(args$wip)
   args$reactlog <- isTRUE(args$reactlog)
+  args$test <- isTRUE(args$test)
   options(shiny.reactlog = args$reactlog)
 
   .globalScript(args = args)
   on.exit(message("### end of MetaShARK session ###\n"))
   on.exit(rm(main.env, envir = .GlobalEnv))
   
-  runApp(shinyApp(ui = appUI, server = appServer))
+  if(args$test) browser()
+  runApp(shinyApp(ui = ui, server = server))
 }
