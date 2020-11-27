@@ -1,3 +1,24 @@
+annotationsUI <- function(id) {
+  actionButton(NS(id, "annotate"), "", icon("project-diagram"))
+}
+
+annotations <- function(id, label, main.env) {
+moduleServer(id, function(input, output, session) {
+    observeEvent(input$annotate, {
+      modalDialog(
+        title = sprintf("Annotate %s", label),
+        tagList(
+          selectizeInput()
+        ),
+        footer = tags$span(
+          modalButton("Dismiss"),
+          actionButton("validate", "Validate")
+        )
+      )
+    })
+  })
+}
+
 #' annotationsUI <- function(id) {
 #'   ns <- NS(id)
 #'
