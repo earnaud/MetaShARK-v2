@@ -2,28 +2,33 @@
 #'
 #' @description A shiny module to get a div collapsed by clicking on a link.
 #'
+#' @param id character.  An ID string that corresponds with the ID used to call 
+#' the module's UI function.
 #' @param label character. A label appearing on the clickable link.
+#' @param .hidden logical. A flag to make the UI display as collapsed or not.
 #' @param ... shiny UI elements. Any UI element displayed as core content.
 #' @param class character. CSS class to apply to ... .
 #'
-#' @importFrom shiny NS tagList actionLink icon div tags
+#' @import shiny
 #' @importFrom shinyjs useShinyjs hidden
 #' 
 #' @export
-collapsibleUI <- function(id, label, hidden = TRUE, ..., class = NULL) {
-  ns <- NS(id)
-  
-  content <- tags$div(id = ns("area"), tagList(...), class = class)
+collapsibleUI <- function(id, label, .hidden = TRUE, ..., class = NULL) {
+  content <- tags$div(
+    id = NS(id, "area"),
+    tagList(...),
+    class = class
+  )
 
   tagList(
-    useShinyjs(),
+    shinyjs::useShinyjs(),
     actionLink(
-      ns("link"),
+      NS(id, "link"),
       label,
-      icon = if (isTRUE(hidden)) icon("chevron-right") else icon("chevron-down")
+      icon = if (isTRUE(.hidden)) icon("chevron-right") else icon("chevron-down")
     ),
-    if (isTRUE(hidden)) {
-      hidden(
+    if (isTRUE(.hidden)) {
+      shinyjs::hidden(
         content
       )
     } else {
@@ -33,25 +38,33 @@ collapsibleUI <- function(id, label, hidden = TRUE, ..., class = NULL) {
 }
 
 #' @describeIn collapsibleUI
-#'
-#' @importFrom shiny observeEvent updateActionButton icon
+#' 
+#' Server part for collapsible widget module.
+#' 
+#' @param id character. An ID string that corresponds with the ID used to call 
+#' the module's UI function.
+#' 
+#' @import shiny
 #' @importFrom shinyjs toggle
-collapsible <- function(input, output, session) {
-  observeEvent(input$link, {
-    
-    toggle(
-      id = "area",
-      anim = TRUE,
-      animType = "slide",
-      time = 0.25
-    )
+#'
+#' @export
+collapsible <- function(id) {
+  moduleServer(id, function(input, output, session) {
+    observeEvent(input$link, {
+      shinyjs::toggle(
+        id = "area",
+        anim = TRUE,
+        animType = "slide",
+        time = 0.25
+      )
 
-    if (input$link %% 2 == 1) {
-      .tmp <- "chevron-down"
-    } else {
-      .tmp <- "chevron-right"
-    }
+      if (input$link %% 2 == 1) {
+        .tmp <- "chevron-down"
+      } else {
+        .tmp <- "chevron-right"
+      }
 
-    updateActionButton(session, "link", icon = icon(.tmp))
+      updateActionButton(session, "link", icon = icon(.tmp))
+    })
   })
 }

@@ -3,41 +3,28 @@
 #' @description shiny-formatted render* function. Allow the user to print a .bib bibliography content. References are NOT numbered
 #' according to possible calls from the app.
 #'
-#' @param bib file path to bibliography
+#' @param bib character. Path to bibliography file (.bib format).
 #'
-#' @export
-#' @importFrom RefManageR ReadBib NoCite PrintBibliography
-#' @importFrom shiny renderUI withProgress incProgress HTML
+#' @import shiny
 #' @importFrom utils capture.output
+#' @importFrom RefManageR PrintBibliography
+#' 
+#' @export
 renderBibliography <- function(bib) {
-  bib <- ReadBib(bib)
-  NoCite(bib, "*")
-  
+  .bib <- RefManageR::ReadBib(bib)
+  RefManageR::NoCite(.bib, "*")
+
   renderUI(
-    # sapply(
-    #   bib,
-    #   function(b) {
-    #     incProgress(1 / length(bib))
-    #     PrintBibliography(b,
-    #       .opts = list(style = "html")
-    #     )
-    #   }
-    # ) %>% 
-    #   invisible %>% 
-    #   capture.output %>% 
-    #   paste(collapse = "") %>% 
-    #   HTML %>% 
-    #   withProgress(message = "Loading bibtex ...", value = 0)
     withProgress(message = "Loading bibtex ...", value = 0, {
       HTML(
         paste(
-          capture.output(
+          utils::capture.output(
             invisible(
               sapply(
-                bib,
+                .bib,
                 function(b) {
-                  incProgress(1 / length(bib))
-                  PrintBibliography(b,
+                  incProgress(1 / length(.bib))
+                  RefManageR::PrintBibliography(b,
                     .opts = list(style = "html")
                   )
                 }

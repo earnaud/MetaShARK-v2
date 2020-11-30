@@ -1,18 +1,10 @@
-#' @title write.text
-#'
-#' @description Applies 'writeLines' in a friendly way. This function has been
-#' quickly designed to allow the writing of plain text files.
-#'
-#' @param x A character vector or list. A list will be unlisted. If length(x) > 1
-#' then every item will be collapsed into a single vector.
-#' @param file A file name (1-length character vector).
-#'
-#' @export
+#' @noRd
 write.text <- function(x, file = ".", collapse = "\n") {
-  # Validity check -----------------------------------------------------
+  # Validity check ----
   if (missing(x)) {
     stop("Error: no text has been provided.")
   }
+  
   if (!is.character(x)) {
     stop("Error: 'x' is not a text.")
   }
@@ -24,7 +16,7 @@ write.text <- function(x, file = ".", collapse = "\n") {
     warning("Length of 'file' > 1 : only the first element has been used.")
   }
 
-  # Process data -----------------------------------------------------
+  # Process data ----
   if (is.list(x)) {
     x <- unlist(x)
   }
@@ -32,7 +24,7 @@ write.text <- function(x, file = ".", collapse = "\n") {
     x <- paste(x, collapse = collapse)
   }
 
-  # Proper write -----------------------------------------------------
+  # Proper write ----
   fileConn <- file(file)
   writeLines(x, fileConn)
   close(fileConn)

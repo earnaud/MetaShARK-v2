@@ -2,15 +2,15 @@
 % Please edit documentation in R/utils-readDataTable.R
 \name{readDataTable}
 \alias{readDataTable}
-\title{readDataTable}
+\title{Read Data Tables}
 \usage{
-readDataTable(file, data.table = FALSE, dev = FALSE, ...)
+readDataTable(file, data.table = FALSE, ...)
 }
 \arguments{
-\item{file}{path to the data table file. For Excel files, 
+\item{file}{path to the data table file. For Excel files,
 supports "http://", "https://", and "ftp://" URLS.}
 
-\item{data.table}{(from `fread()`) TRUE returns a data.table. 
+\item{data.table}{(from \code{fread()}) TRUE returns a data.table.
 FALSE returns a data.frame. The default for this argument can
 be changed with options(datatable.fread.datatable=FALSE).}
 
@@ -20,5 +20,7 @@ be changed with options(datatable.fread.datatable=FALSE).}
 a data.frame
 }
 \description{
-Guess the type of the data file (e.g. .xls* or not) and loads it accordingly
+Disclaimer: this function is still maturing. There is no guarantee about its
+performance.
+Guess the type of the data file (e.g. .xls* or not) and loads it accordingly.
 }

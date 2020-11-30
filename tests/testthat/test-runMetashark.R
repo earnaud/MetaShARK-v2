@@ -23,13 +23,13 @@ test_that("app launches", {
     cleanup_tree = TRUE
   )
   print(p)
-  
+
   # Sys.sleep(5) # commented because launched from a function, not common shiny launch
-  
+
   if (isFALSE(p$is_alive())) {
     stop("App not running")
   }
-  
+
   p$kill()
   print(p)
 })
