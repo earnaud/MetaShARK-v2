@@ -3,12 +3,14 @@
 
 <img src="./inst/media/logo.png" alt="" width="50%">
 
-**DISCLAIMER: MetaShARK uses temporary files for upload purposes and template
-files for the writing of EML. Thus, installing it in locale will write files on
-dedicated parts of your system (temp dir in HOME and a directory called "dataPackagesOutput"
-in HOME).**
+**Stable Server address:** 
+http://metashark.pndb.fr/ ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`
 
-**Stable Server address:** http://openstack-192-168-100-47.genouest.org/  ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance`
+<!--
+**Dev Servers address:**
+http://openstack-192-168-100-72.genouest.org/ ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`
+http://metashark.test.pndb.fr/ ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`
+-->
 
 <!-- ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`  -->
 <!-- ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance` -->
@@ -80,12 +82,12 @@ First feature developped in MetaShARK, it is possible to consult any documented 
 
 Two methods are being developped to fill in metadata:
 
+* EML Assembly Line (EAL) : it is the EDI tool allowing the user to interact with a major part of the EML. MetaShARK is a user front-end solution to offer more automated and visual access to this tool.
 * Metadata Fill-In (MetaFIN) : still not accessible, it is the PNDB specific tool exploring automatic inference to fill in metadata from datasets.
-* EML Assembly Line (EMLAL) : it is the EDI tool allowing the user to interact with a major part of the EML. MetaShARK is a user front-end solution to offer more automated and visual access to this tool.
 
 ### Data Package upload
 
-It is possibe to upload data packages to metacats registered in MetaShARK. You will need to fetch your metacat token in the corresponding MetaCatUI. 
+It is possibe to upload data packages to metacats registered in MetaShARK. You will need to fetch your metacat token in the corresponding MetaCatUI. During development phase, this might not be fully operable as we are trying to properly set our MetaCat and MetaShARK linked together.
 
 ### References
 
@@ -105,11 +107,11 @@ Here it comes ! The first pre-release allowing the user to describe his dataset 
 
 MetaShARK/EAL supports:
 * data package management (CC BY or CC 0 Licences)
-* table files's description (and *only* those ones yet, badly. WIP on other file types)
+* table files's description \*\* (and *only* those ones yet, badly. WIP on other file types)
 * automated\* tables' attributes filling
 * custom units' descriptions
 * automated\* categorical variables description
-* geographic, taxonomic\*\* and temporal coverages
+* geographic, taxonomic and temporal coverages
 * description of persons involved (possibly through ORCID)
 * Metadata automated\* generation at EML format
 
@@ -118,10 +120,15 @@ MetaShARK/EAL supports:
 
 #### Known Bugs
 
-* An {EML} issue occurs upon writing EML in final step. A file is however produced but is not validated according to EML schema. 
+* A bug makes the app crash when you try to change your files selection. Investigation in progress.
 
 ## Authors
 * Elie Arnaud (developper) - elie.arnaud@mnhn.fr
 
 ## Contribute
+
+### Code edit
 Any contribution can be done and submitted. Care about documenting code chunks you want to edit, and also add motivations about these changes.
+
+### Issues post
+On posting issues, make sure your problem/idea has not been discussed before (beware of the "is closed" filter). Some issues are named with a "[XXX]" tag meaning this issue is a topic dedicated to "XXX": such issues are not meant to be closed before a long time.
