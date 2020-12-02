@@ -419,6 +419,7 @@ SelectDP <- function(id,main.env) {
         main.env$EAL$history <- main.env$save.variable$history
       }
       
+      devmsg(main.env$save.variable$SelectDP$dp.data.path)
       shinyjs::enable("dp_load")
     })
 
