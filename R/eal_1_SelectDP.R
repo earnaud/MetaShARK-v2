@@ -366,11 +366,13 @@ SelectDP <- function(id,main.env) {
       sapply(
         names(main.env$save.variable$SelectDP),
         function(.dp.item) {
+          devmsg(main.env$save.variable$SelectDP[[.dp.item]], tag = "dev: before")
           main.env$save.variable$SelectDP[[.dp.item]] <- gsub(
             pattern = "^.*/dataPackagesOutput/emlAssemblyLine/",
             replacement = main.env$PATHS$eal.dp,
             main.env$save.variable$SelectDP[[.dp.item]]
           )
+          devmsg(main.env$save.variable$SelectDP[[.dp.item]], tag = "dev: after")
         }
       )
 
@@ -419,7 +421,6 @@ SelectDP <- function(id,main.env) {
         main.env$EAL$history <- main.env$save.variable$history
       }
       
-      devmsg(main.env$save.variable$SelectDP$dp.data.path)
       shinyjs::enable("dp_load")
     })
 

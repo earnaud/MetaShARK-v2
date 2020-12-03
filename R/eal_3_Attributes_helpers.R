@@ -156,7 +156,7 @@
         need(isContentTruthy(.col), "Empty attribute")
       )
       
-      data.frame(.col[[1]] %>% enc2utf8()) %>%
+      data.frame(.col[[1]] %>% as.character() %>% enc2utf8()) %>%
         setNames(nm = names(.col))
     })
     
