@@ -236,6 +236,7 @@ PersonnelInput <- function(id, main.env) {
       
       req(main.env$PATTERNS$ORCID %grep% .value)
       
+      .value <- stringr::str_extract(.value, main.env$PATTERNS$ORCID)
       # Get ORCID record
       result <- httr::GET(
         sprintf("https://pub.orcid.org/v3.0/%s", .value),

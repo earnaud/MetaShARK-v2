@@ -62,8 +62,7 @@ DataFiles <- function(id, main.env) {
     
     # Setup UI on load
     observeEvent(main.env$EAL$page, { # on load
-      req(main.env$EAL$old.page %in% c(0,1) && 
-            main.env$EAL$page == 2)
+      req(main.env$EAL$page == 2)
       
       if (isContentTruthy(main.env$local.rv$data.files) && 
           nrow(main.env$local.rv$data.files) > 0) {
@@ -217,6 +216,15 @@ DataFiles <- function(id, main.env) {
     },
     label = "EAL2: set completed"
     )
+    
+    # Remove inserted UI ----
+    observeEvent(main.env$EAL$page, {
+      req(main.env$EAL$old.page == 2) # left the DataFiles step
+      
+      sapply(paste0(main.env$local.rv$data.files$id, "-container"), function(id) {
+        removeUI(id, immediate = TRUE)
+      })
+    })
 
     # Process data (deprecated)
   })

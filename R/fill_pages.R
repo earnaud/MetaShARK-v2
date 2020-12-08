@@ -84,6 +84,7 @@ pagesServer <- function(id, main.env) {
     
     changePage <- function(from, to, input, main.env) {
       observeEvent(input[[paste(from, to, sep = "_")]], {
+        if(main.env$dev) devmsg("%s > %s", from, to, tag = "page")
         main.env$EAL$old.page <- main.env$EAL$page
         
         # Case of previous at geographic coverage
@@ -93,7 +94,6 @@ pagesServer <- function(id, main.env) {
           main.env$EAL$page <- main.env$EAL$page + to - from
           # isolate({main.env$EAL$page <- main.env$EAL$page - 1})
         
-        if(main.env$dev) devmsg("page: %s", main.env$EAL$page)
       },
       label = paste("changePage", from, to)
       )
