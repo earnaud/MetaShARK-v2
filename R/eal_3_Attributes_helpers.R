@@ -104,23 +104,32 @@
       },
       # dateTimeFormatString ----
       dateTimeFormatString = {
-        tmp <- selectInput( # TODO better hour format
-          NS(id, md.name),
-          "Select a date format",
-          unique(c(value, formats$dates)),
-          selected = if (isTruthy(value) && !grepl("!Ad.*ere!", value)) value
-        )
-        if (isTruthy(value)) {
-          tmp
+        .ui <- if (isTruthy(value) && !grepl("!Ad.*ere!", value)) {
+          selectInput( 
+            NS(id, md.name),
+            "Select a date format",
+            formats$dates
+          )
         } else {
-          shinyjs::hidden(tmp)
+          selectInput( 
+            NS(id, md.name),
+            "Select a date format",
+            unique(c(value, formats$dates)), # TODO better hour format
+            selected = value
+          )
+        }
+        
+        if (class == "Date") {
+          .ui
+        } else {
+          shinyjs::hidden(.ui)
         }
       },
       # missingValueCode ----
       missingValueCode = textInput(
         NS(id, md.name),
         "Code for missing value (max 1 word)",
-        value = value
+        value = if(isContentTruthy(value) && value != "NA") value
       ),
       # missingValueCodeExplanation ----
       missingValueCodeExplanation = textAreaInput(

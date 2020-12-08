@@ -80,7 +80,6 @@ setSaveVariable <- function(content, save.variable, lv = 1, root = "root") {
       type.content <- typeof(sub.content)
       sub.save.variable <- save.variable[[gsub("_", ".", label)]]
       type.save.variable <- typeof(sub.save.variable)
-      
       if (is.reactivevalues(sub.save.variable)) {
         if (!is.data.frame(sub.content) &&
             is.list(sub.content)) {
@@ -117,6 +116,9 @@ setSaveVariable <- function(content, save.variable, lv = 1, root = "root") {
 #'
 #' @noRd
 setLocalRV <- function(main.env){
+  if(!is.null(unlist(listReactiveValues(main.env$save.variable))))
+    checkTemplates(main.env)
+  
   # Set variable ====
   main.env$local.rv <- switch(
     main.env$EAL$page,
@@ -427,6 +429,7 @@ setLocalRV <- function(main.env){
     # read metadata folder path
     .md.path <- isolate(main.env$save.variable$SelectDP$dp.metadata.path)
     req(isContentTruthy(.md.path))
+    
     main.env$local.rv$cv.files <- list.files(
       .md.path,
       pattern = "catvar",
