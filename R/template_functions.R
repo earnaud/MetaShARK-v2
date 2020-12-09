@@ -161,7 +161,7 @@ templateModules <- function(main.env, page){
       stop("EAL template issues - GeoCov")
   })
   
-  if(class(x) == "try-error")
+  if(class(x) == "try-error" && main.env$dev)
     browser()
   
   if(class(x) == "try-error") {

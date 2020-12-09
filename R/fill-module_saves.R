@@ -401,13 +401,15 @@ saveReactive <- function(main.env, page) {
   }
   
   removeDuplicateFiles <- function(filename) {
-    onlyname <- sub("\\..+", "", basename(filename))
-    synonyms <- dir(
-      main.env$save.variable$SelectDP$dp.metadata.path,
-      pattern = onlyname,
-      full.names = TRUE
-    )
-    file.remove(synonyms[basename(synonyms) != basename(filename)])
+    if(isContentTruthy(filename)){
+      onlyname <- sub("\\..+", "", basename(filename))
+      synonyms <- dir(
+        main.env$save.variable$SelectDP$dp.metadata.path,
+        pattern = onlyname,
+        full.names = TRUE
+      )
+      file.remove(synonyms[basename(synonyms) != basename(filename)])
+    }
   }
   
   # save
@@ -415,10 +417,14 @@ saveReactive <- function(main.env, page) {
   
   # Fill template for abstract
   saveHTMLasMD(content$abstract)
+  if(!is.character(content$abstract$file))
+    content$abstract$file <- paste0(.sv$SelectDP$dp.metadata.path, "/abstract.txt")
   removeDuplicateFiles(content$abstract$file)
   
   # Fill template for methods
   saveHTMLasMD(content$methods)
+  if(!is.character(content$methods$file))
+    content$methods$file <- paste0(.sv$SelectDP$dp.metadata.path, "/abstract.txt")
   removeDuplicateFiles(content$methods$file)
   
   # Fill template for keywords
@@ -442,6 +448,8 @@ saveReactive <- function(main.env, page) {
   )
   # Fill template for additional information
   saveHTMLasMD(content$additional.information)
+  if(!is.character(content$additional.information$file))
+    content$additional.information$file <- paste0(.sv$SelectDP$dp.metadata.path, "/abstract.txt")
   removeDuplicateFiles(content$additional.information$file)
   
   # Remove non-md files
