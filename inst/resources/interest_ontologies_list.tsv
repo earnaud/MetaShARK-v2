@@ -1,0 +1,69 @@
+PLOS Thesaurus	PLOSTHES
+National Center for Biotechnology Information (NCBI) Organismal Classification	NCBITAXON
+Ctenophore Ontology	CTENO
+Environment Ontology	ENVO
+The Ecosystem Ontology	ECSO
+The Extensible Observation Ontology	OBOE
+Santa Barbara Coastal Observation Ontology	OBOE-SBC
+An ontology of core ecological entities	ECOCORE
+Semantic Web for Earth and Environment Technology Ontology	SWEET
+Life Ontology	LIFO
+Biological Collections Ontology	BCO
+Experimental Conditions Ontology	XCO
+Experimental Factor Ontology	EFO
+Ontology of Biological Attributes	OBA
+Units of Measurement Ontology	UO
+Semantic Sensor Network Ontology	SSN
+Quantities, Units, Dimensions and Types Ontology	QUDT
+Quantities, Units, Dimensions and Types Schema - Version 2.0	QUDT2
+Physical Activity Ontology	PACO
+Spatial Ontology	BSPO
+ISO 19115	ISO19115
+ISO 19115 Topic Categories	ISO19115TCC
+ISO 19115 Metadata Information	ISO19115MI
+ISO 19115 Role Codes	ISO19115ROLES
+ISO 19115 Citation Information	ISO19115CI
+ISO 19115 Constraints Information	ISO19115CON
+ISO 19115 Codelists	ISO19115PR
+ISO 19115 Extent Information	ISO19115EX
+ISO 19115 Distribution Information	ISO19115DI
+ISO 19115 Common Classes	ISO19115CC
+ISO 19115 Date Type Code	ISO19115DTC
+ISO 19115 Identification Information	ISO19115ID
+ISO 19115 Reference Systems	ISO19115SRS
+ISO 19110 Methodology for Feature Cataloguing	ISO19110
+Ontology for Geography Markup Language (GML3.0)	GML
+GeoSpecies Ontology	GEOSPECIES
+Time Event Ontology	TEO
+ISO-15926-2_2003_oil	ISO-15926-2_2003
+Ontology for Biobanking	OBIB
+National Cancer Institute Thesaurus	NCIT
+Ontology for Biomedical Investigations	OBI
+Biological Imaging Methods Ontology	FBbi
+Spider Anatomy Ontology	SPD
+Plant Experimental Conditions Ontology	PECO
+Plant Ontology	PO
+Plant Trait Ontology	PTO
+AGRonomy Ontology	AGRO
+Teleost Anatomy Ontology	TAO
+Chemical Entities of Biological Interest Ontology	CHEBI
+Medical Subject Headings	MESH
+Ontology of Medically Related Social Entities	OMRSE
+Statistics Ontology	STATO
+Mathematical Modelling Ontology	MAMO
+EDAM bioinformatics operations, types of data, data formats, identifiers, and topics	EDAM
+Phenotypic Quality Ontology	PATO
+Terminology for the Description of Dynamics	TEDDY
+Mammalian Phenotype Ontology	MP
+Ontology of Microbial Phenotypes	OMP
+Minimal Information about any Sequence (MIxS) Controlled Vocabularies	MIXSCV
+Vertebrate Homologous Organ Group Ontology	VHOG
+NGS ontology	NGSONTO
+Human Genome Organization Gene Symbols	HUGO
+Phylogenetics Ontology	PHAGE
+Ontology of Genes and Genomes	OGG
+LipidOntology	LION
+Uber Anatomy Ontology	UBERON
+Data Collection Ontology	GDCO
+Role Ontology	ROLEO
+Dublin Core	DC

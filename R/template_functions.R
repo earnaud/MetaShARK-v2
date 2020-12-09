@@ -119,13 +119,17 @@ templateModules <- function(main.env, page){
 #' @noRd
 .templateCV_GeoCov <- function(main.env){
   # for each attribute data frame
+  md.tables <- if(main.env$EAL$page == 3)
+    main.env$local.rv$md.filenames 
+  else
+    main.env$save.variable$Attributes
   .do.template.catvars <- sapply(
-    seq_along(main.env$local.rv$md.filenames),
-    function(cur_ind) {
-      # check for direction: CustomUnits or CatVars
-      return(isTRUE("categorical" %in% main.env$local.rv$md.tables[[cur_ind]][, "class"]))
-    }
-  ) %>%
+      seq_along(md.tables),
+      function(cur_ind) {
+        # check for direction: CustomUnits or CatVars
+        return(isTRUE("categorical" %in% md.tables[[cur_ind]][, "class"]))
+      }
+    ) %>%
     unlist() %>%
     any()
   
@@ -156,6 +160,9 @@ templateModules <- function(main.env, page){
     if(exists("template_issues")) 
       stop("EAL template issues - GeoCov")
   })
+  
+  if(class(x) == "try-error" && main.env$dev)
+    browser()
   
   if(class(x) == "try-error") {
     isolate({main.env$EAL$page <- main.env$EAL$page - 1})
@@ -236,4 +243,33 @@ templateModules <- function(main.env, page){
       type = "message"
     )
   }
+}
+
+checkTemplates <- function(main.env) {
+  pat <- switch(
+    as.character(main.env$EAL$page),
+    `3` = "^attribute",
+    `4` = "^catvar",
+    `5` = "^geographic_coverage",
+    `6` = "^taxonomic_coverage",
+    ""
+  )
+  
+  check <- isContentTruthy(
+    dir(
+      main.env$save.variable$SelectDP$dp.metadata.path,
+      pattern = pat
+    )
+  )
+  
+  if(isFALSE(check))
+    templateModules(
+      main.env, 
+      switch(
+        as.character(main.env$EAL$page),
+        `3` = 2,
+        `4` = 3,
+        `5` = 3,
+        `6` = 6
+      ))
 }
