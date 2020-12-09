@@ -8,7 +8,7 @@ files for the writing of EML. Thus, installing it in locale will write files on
 dedicated parts of your system (temp dir in HOME and a directory called "dataPackagesOutput"
 in HOME).**
 
-**Stable Server address:** http://openstack-192-168-100-47.genouest.org/  ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance`
+**Stable Server address:** https://metashark.test.pndb.fr/  ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance`
 
 <!-- ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`  -->
 <!-- ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance` -->
@@ -28,12 +28,11 @@ MetaShARK has a dedicated [dockerhub](https://hub.docker.com/r/eliearnaud/metash
 
 ### Local installation
 
-There are two versions of MetaShARK currently available:
+!!! DEPRECATED !!!
 
-* Stable : this version is either the last version described in the [releases](https://github.com/earnaud/MetaShARK-v2/releases) or one of its subversion which got minor fixes.
-* Dev : this version is the last version released, described later in this file. However, it might suffer some bugs.
+Refer to the `Dockerization` part for locale production use. For dev use, here are some information:
 
-**If you are using local version, reinstall it regularly !** The dev team will try to push needed fixes once per week during development phase.
+**If you are using local version, reinstall it regularly !** 
 
 All dependencies are described in the DESCRIPTION file. You will also need to install the following system libraries, according to you OS:
 
@@ -68,7 +67,19 @@ R -e 'devtools::install_github("earnaud/MetaShARK-v2", ref="dev", dependencies=T
 
 ### Dockerization
 
-You can access docker files and setup at [this repository](https://github.com/earnaud/MetaShARK_docker).
+MetaShARK is provided with two docker possibilities: one for locale setup (in this git) and one for server setup (at [this repository](https://github.com/earnaud/MetaShARK_docker)).
+
+For the locale version, you can run a MetaShARK container with the following sequence (tested on Ubuntu). 
+
+1. In a command shell, get to this git's root: `cd <path/to/MetaShARK>`.
+
+2. Execute the following steps:
+```
+docker build -t metashark .
+docker run -d --rm  -p 3838:3838  --name MS  -v "/home/$USER/dataPackagesOutput:/root/dataPackagesOutput"  metashark
+```
+
+3. In a web browser, type the following URL: `127.0.0.1:3838`.
 
 ## MetaShARK features
 
@@ -91,16 +102,6 @@ It is possibe to upload data packages to metacats registered in MetaShARK. You w
 
 Some references are given that sustain the base principles of this work.
 
-## Releases
-
-### Pre-release 20200316 - Fully functional !
-
-Here we are ! The full EML Assembly Line workflow has been done with MetaShARK. Even if the app might still suffer some bugs, the main steps are accessible. However, it stills only support tabulated file.
-
-### Pre-Release 20200204 - EML Assembly Line (dev version)
-
-Here it comes ! The first pre-release allowing the user to describe his dataset according to the [EML Assembly Line](https://ediorg.github.io/EMLassemblyline/articles/overview.html) recommendations. Please note this version is **still in development** and some features might suffer bugs. Consequently, do not hesitate to [open an issue](https://github.com/earnaud/MetaShARK-v2/issues).
-
 #### Features
 
 MetaShARK/EAL supports:
@@ -115,10 +116,6 @@ MetaShARK/EAL supports:
 
 \* automation still requires user's verification
 \*\* see Known Bugs below
-
-#### Known Bugs
-
-* An {EML} issue occurs upon writing EML in final step. A file is however produced but is not validated according to EML schema. 
 
 ## Authors
 * Elie Arnaud (developper) - elie.arnaud@mnhn.fr
