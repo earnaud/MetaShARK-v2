@@ -78,13 +78,17 @@ setSaveVariable <- function(content, save.variable, lv = 1, root = "root") {
     function(label) {
       sub.content <- content[[label]]
       type.content <- typeof(sub.content)
-      sub.save.variable <- save.variable[[label]]
+      sub.save.variable <- save.variable[[gsub("_", ".", label)]]
       type.save.variable <- typeof(sub.save.variable)
-      
       if (is.reactivevalues(sub.save.variable)) {
         if (!is.data.frame(sub.content) &&
             is.list(sub.content)) {
-          x <- setSaveVariable(content[[label]], save.variable[[label]], lv = lv + 1, root = label)
+          x <- setSaveVariable(
+            content[[label]], 
+            save.variable[[gsub("_", ".", label)]],
+            lv = lv + 1, 
+            root = label
+          )
         }
         else {
           x <- sub.content
@@ -94,7 +98,7 @@ setSaveVariable <- function(content, save.variable, lv = 1, root = "root") {
         x <- sub.content
       }
       
-      isolate(save.variable[[label]] <- x)
+      isolate(save.variable[[gsub("_", ".", label)]] <- x)
       return(NULL)
     }
   )
@@ -112,6 +116,9 @@ setSaveVariable <- function(content, save.variable, lv = 1, root = "root") {
 #'
 #' @noRd
 setLocalRV <- function(main.env){
+  if(!is.null(unlist(listReactiveValues(main.env$save.variable))))
+    checkTemplates(main.env)
+  
   # Set variable ====
   main.env$local.rv <- switch(
     main.env$EAL$page,
@@ -149,12 +156,24 @@ setLocalRV <- function(main.env){
       ),
       completed = reactiveValues(),
       data.filepath = main.env$save.variable$DataFiles$datapath,
-      preview = sapply(
-        main.env$save.variable$DataFiles$datapath,
-        readDataTable,
-        stringsAsFactors = FALSE,
-        nrows = 5
-      )
+      preview = {
+        out <- sapply(
+          main.env$save.variable$DataFiles$datapath,
+          readDataTable,
+          stringsAsFactors = FALSE
+        ) %>% sapply(
+          function(df) {
+            lapply(df, function(col) {
+              out <- col[which(sapply(col, isContentTruthy))]
+              if(length(out) < 5){
+                out <- c(out, rep("", 5-length(out)))
+              } else
+                out <- out[1:5]
+              return(out)
+            })
+          }
+        )
+      }
       # annotations = reactiveValues(
       #   values = data.frame(stringsAsFactors = FALSE),
       #   count = 0
@@ -410,6 +429,7 @@ setLocalRV <- function(main.env){
     # read metadata folder path
     .md.path <- isolate(main.env$save.variable$SelectDP$dp.metadata.path)
     req(isContentTruthy(.md.path))
+    
     main.env$local.rv$cv.files <- list.files(
       .md.path,
       pattern = "catvar",

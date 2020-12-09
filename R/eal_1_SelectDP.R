@@ -410,11 +410,10 @@ SelectDP <- function(id,main.env) {
       }
 
       # resume at saved page
-      if(main.env$save.variable$step == 1){ # crashed on going to next
+      if(main.env$save.variable$step == 1) { # crashed on going to next
         main.env$EAL$page <- main.env$save.variable$step+1
         main.env$EAL$history <- main.env$VALUES$steps[1:main.env$EAL$page]
-      }
-      else{ # expected normal way
+      } else { # expected normal way
         main.env$EAL$page <- main.env$save.variable$step
         main.env$EAL$history <- main.env$save.variable$history
       }

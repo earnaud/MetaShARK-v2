@@ -230,8 +230,45 @@ PersonnelInput <- function(id, main.env) {
     })
     
     # [I] ORCID ====
-    # TODO modulify orcid with SNAKE
     orcidInput("orcid", main.env, row = row)
+    observeEvent(input[["orcid-orcid"]], {
+      .value <- input[["orcid-orcid"]]
+      
+      req(main.env$PATTERNS$ORCID %grep% .value)
+      
+      .value <- stringr::str_extract(.value, main.env$PATTERNS$ORCID)
+      # Get ORCID record
+      result <- httr::GET(
+        sprintf("https://pub.orcid.org/v3.0/%s", .value),
+        httr::add_headers(Accept = "application/json")
+      )
+      result$content <- result$content %>% 
+        rawToChar() %>% 
+        jsonlite::fromJSON()
+      
+      # Update inputs with orcid record
+      given.name <- try(result$content$person$name$`given-names`$value)
+      if(class(given.name) != "try-error") {
+        updateTextInput(session, "first_name", value = given.name)
+      }
+      
+      last.name <- try(result$content$person$name$`family-name`$value)
+      if(class(last.name) != "try-error") {
+        updateTextInput(session, "last_name", value = last.name)
+      }
+      
+      email <- try(result$content$person$emails$email$email)
+      if(class(email) != "try-error") {
+        updateTextInput(session, "email", value = email)
+      }
+      
+      organization.name <- try(result$content$`activities-summary`$employments$
+                                 `affiliation-group`$summaries[[1]]$`employment-summary`$organization$
+                                 name)
+      if(class(organization.name) != "try-error") {
+        updateTextInput(session, "organization", value = organization.name)
+      }
+    })
     
     # [I] Names ====
     # * First name ----

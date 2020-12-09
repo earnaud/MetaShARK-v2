@@ -29,11 +29,12 @@ orcidInput <- function(id, main.env, row) {
         # Save value
         main.env$local.rv$Personnel$userId[row()] <-
           stringr::str_extract(.value, main.env$PATTERNS$ORCID)
+        .orcid <- main.env$local.rv$Personnel$userId[row()]
         # Correct input
         updateTextInput(
           session = session,
           inputId = "orcid",
-          value = main.env$local.rv$Personnel$userId[row()]
+          value = .orcid
         )
       }
       

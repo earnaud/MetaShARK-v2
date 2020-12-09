@@ -1,0 +1,31 @@
+language: r
+env:
+  - CODECOV_TOKEN="9693b968-05d2-43bd-8eae-2db59d594127"
+r_github_packages:
+  - EDIorg/EMLassemblyline
+  - ThinkR-open/tagsinput
+  - ropenscilabs/emldown
+  - earnaud/cedarr
+  - trestletech/shinyAce
+warnings_are_errors: false
+matrix:
+  include:
+    - os: linux
+      r: develaddons:
+  apt:
+    sources:
+      - sourceline: 'ppa:opencpu/jq'
+    packages:
+      - libcurl4-openssl-dev 	
+      - libxml2-dev
+      - libssl-dev
+      - libpoppler-cpp-dev
+      - librdf0-dev
+      - libv8-dev
+      - libjq-dev
+      - libudunits2-dev
+script:
+  - R CMD build .
+  - travis_wait 30 R CMD check *tar.gz
+after_success:
+  - travis_wait 30 Rscript -e 'library(covr); codecov()'
