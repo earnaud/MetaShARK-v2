@@ -175,6 +175,7 @@ DataFiles <- function(id, main.env) {
 
     # Data size ----
     observeEvent(main.env$local.rv$data.files, {
+      main.env$EAL$tag.list <- tagList()
       req(isContentTruthy(main.env$local.rv$data.files))
       files.size <- if (isContentTruthy(main.env$local.rv$data.files$size)) {
         sum(main.env$local.rv$data.files$size)

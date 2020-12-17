@@ -105,9 +105,10 @@
     "FORMATS",
     reactiveValues(
       dates = c(
-        "YYYY",
-        "YYYY-MM", "YYYY-MM-DD", "YYYY-DD-MM",
-        "MM-YYYY", "DD-MM-YYYY", "MM-DD-YYYY"
+        "YYYY-MM-DD", "YYYY",
+        "YYYY-MM",  "YYYY-DD-MM",
+        "MM-YYYY", "DD-MM-YYYY", "MM-DD-YYYY",
+        "hh:mm:ss", "hh:mm", "mm:ss", "hh"
       ),
       units = .units,
       dataone.list = .DATAONE.LIST,

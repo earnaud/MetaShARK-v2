@@ -20,7 +20,13 @@ TaxCovUI <- function(id, main.env) {
 TaxCov <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
     # Variable Initialization (deprecated)
-
+    shinyjs::onclick("dev", {
+      if(main.env$current.tab() == "fill" &&
+            main.env$EAL$page == 6) {
+        browser()
+      }
+    }, asis = TRUE)
+    
     # Set UI ====
 
     # * taxa.table ----
@@ -29,14 +35,19 @@ TaxCov <- function(id, main.env) {
         # Set choices for selectInput -- reuse & filter Attributes
         .att <- main.env$save.variable$Attributes
         .choice <- main.env$local.rv$.taxa.choices <- list()
-        sapply(names(.att), function(.file) {
+        sapply(names(.att), function(.md.file) {
+          .data.file <- main.env$save.variable$DataFiles %>%
+            filter(grepl(.md.file, metadatapath)) %>%
+            select(datapath) %>%
+            unlist %>%
+            basename
           # Set sites
-          .choice[[.file]] <<- .att[[.file]] %>% 
+          .choice[[.data.file]] <<- .att[[.md.file]] %>% 
             dplyr::filter(class %in% c("character", "categorical")) %>% 
             dplyr::select(attributeName) %>%
             unlist
-          .choice[[.file]] <<- paste(.file, .choice[[.file]], sep="/") %>%
-            setNames(nm = .choice[[.file]])
+          .choice[[.data.file]] <<- paste(.data.file, .choice[[.data.file]], sep="/") %>%
+            setNames(nm = .choice[[.data.file]])
         })
         # Set value -- read from saved
         .value <- if(isContentTruthy(main.env$save.variable$TaxCov)){

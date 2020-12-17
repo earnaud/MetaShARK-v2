@@ -67,7 +67,8 @@ fill <- function(id, main.env) {
       shinyjs::onclick(
         "dev",
         {
-          if (main.env$current.tab() == "fill") {
+          if (main.env$current.tab() == "fill"
+              && main.env$EAL$page != 3) {
             browser()
           }
         },
@@ -166,7 +167,6 @@ fill <- function(id, main.env) {
     # Navigation ====
     observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page != main.env$EAL$old.page)
-      if(main.env$dev) devmsg("reaching %s", main.env$EAL$page)
       
       # * Save  & Template ----
       if(main.env$EAL$old.page > 1)

@@ -35,6 +35,6 @@ listReactiveValues <- function(rv, lv = 0, name = "root") {
     }
   })
   names(out) <- n
-
+  
   return(out)
 }
