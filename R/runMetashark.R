@@ -40,7 +40,7 @@ runMetashark <- function(...) {
   args <- list(...)
   args$dev <- isTRUE(args$dev)
   args$wip <- isTRUE(args$wip)
-  args$reactlog <- isTRUE(args$reactlog)
+  args$reactlog <- isTRUE(args$reactlog) || isTRUE(args$dev)
   args$test <- isTRUE(args$test)
   options(shiny.reactlog = args$reactlog)
 

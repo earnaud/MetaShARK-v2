@@ -119,15 +119,15 @@ templateModules <- function(main.env, page){
 #' @noRd
 .templateCV_GeoCov <- function(main.env){
   # for each attribute data frame
-  md.tables <- if(main.env$EAL$page == 3)
-    main.env$local.rv$md.filenames 
-  else
-    main.env$save.variable$Attributes
+  md.tables <- if(main.env$EAL$page == 3) {
+    main.env$local.rv$md.tables
+  } else {main.env$save.variable$Attributes}
+  
   .do.template.catvars <- sapply(
-      seq_along(md.tables),
-      function(cur_ind) {
+      names(md.tables),
+      function(md.table) {
         # check for direction: CustomUnits or CatVars
-        return(isTRUE("categorical" %in% md.tables[[cur_ind]][, "class"]))
+        return(isTRUE("categorical" %in% md.tables[[md.table]][, "class"]))
       }
     ) %>%
     unlist() %>%
@@ -236,8 +236,7 @@ templateModules <- function(main.env, page){
         "Taxonomic Coverage has been written.",
         type = "message"
       )
-  }
-  else {
+  } else {
     showNotification(
       "Taxonomic Coverage has been skipped.",
       type = "message"

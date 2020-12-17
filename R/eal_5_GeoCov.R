@@ -57,6 +57,13 @@ GeoCovUI <- function(id, main.env) {
 GeoCov <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
     # Variable initialization (deprecated)
+    shinyjs::onclick("dev", {
+      if(main.env$current.tab() == "fill" &&
+         main.env$EAL$page == 5) {
+        browser()
+      }
+    }, asis = TRUE)
+    
     observe({
       req(main.env$EAL$page == 5)
       main.env$EAL$page.load$depend()
@@ -168,6 +175,9 @@ GeoCov <- function(id, main.env) {
         main.env$local.rv$columns$site$file <- 
           main.env$local.rv$columns$choices$file <- .tmp[1]
       }
+      
+      # Add feedback
+      checkFeedback(input, "site", type = "danger")
     },
     ignoreInit = TRUE,
     ignoreNULL = FALSE,
@@ -189,6 +199,9 @@ GeoCov <- function(id, main.env) {
         main.env$local.rv$columns$lat$file <-
           main.env$local.rv$columns$choices$file <- .tmp[1]
       }
+      
+      # Add feedback
+      checkFeedback(input, "latitude", type = "danger")
     },
     ignoreInit = TRUE,
     priority = 1,
@@ -211,6 +224,9 @@ GeoCov <- function(id, main.env) {
         main.env$local.rv$columns$lon$file <-
           main.env$local.rv$columns$choices$file <- .tmp[1]
       }
+      
+      # Add feedback
+      checkFeedback(input, "longitude", type = "danger")
     },
     ignoreInit = TRUE,
     priority = 1,
