@@ -1,12 +1,11 @@
-[![DOI](https://zenodo.org/badge/216049930.svg)](https://zenodo.org/badge/latestdoi/216049930)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4297467.svg)](https://doi.org/10.5281/zenodo.4297467)
+
 [![lifecycle](https://img.shields.io/badge/lifecycle-maturing-orange.svg)](https://www.tidyverse.org/lifecycle/#maturing)
 
 <img src="./inst/media/logo.png" alt="" width="50%">
 
-**DISCLAIMER: MetaShARK uses temporary files for upload purposes and template
-files for the writing of EML. Thus, installing it in locale will write files on
-dedicated parts of your system (temp dir in HOME and a directory called "dataPackagesOutput"
-in HOME).**
+**Stable Server address:** 
+http://metashark.pndb.fr/ ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`
 
 **Stable Server address:** https://metashark.test.pndb.fr/  ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance`
 
@@ -91,12 +90,12 @@ First feature developped in MetaShARK, it is possible to consult any documented 
 
 Two methods are being developped to fill in metadata:
 
+* EML Assembly Line (EAL) : it is the EDI tool allowing the user to interact with a major part of the EML. MetaShARK is a user front-end solution to offer more automated and visual access to this tool.
 * Metadata Fill-In (MetaFIN) : still not accessible, it is the PNDB specific tool exploring automatic inference to fill in metadata from datasets.
-* EML Assembly Line (EMLAL) : it is the EDI tool allowing the user to interact with a major part of the EML. MetaShARK is a user front-end solution to offer more automated and visual access to this tool.
 
 ### Data Package upload
 
-It is possibe to upload data packages to metacats registered in MetaShARK. You will need to fetch your metacat token in the corresponding MetaCatUI. 
+It is possibe to upload data packages to metacats registered in MetaShARK. You will need to fetch your metacat token in the corresponding MetaCatUI. During development phase, this might not be fully operable as we are trying to properly set our MetaCat and MetaShARK linked together.
 
 ### References
 
@@ -106,11 +105,11 @@ Some references are given that sustain the base principles of this work.
 
 MetaShARK/EAL supports:
 * data package management (CC BY or CC 0 Licences)
-* table files's description (and *only* those ones yet, badly. WIP on other file types)
+* table files's description \*\* (and *only* those ones yet, badly. WIP on other file types)
 * automated\* tables' attributes filling
 * custom units' descriptions
 * automated\* categorical variables description
-* geographic, taxonomic\*\* and temporal coverages
+* geographic, taxonomic and temporal coverages
 * description of persons involved (possibly through ORCID)
 * Metadata automated\* generation at EML format
 
@@ -121,4 +120,9 @@ MetaShARK/EAL supports:
 * Elie Arnaud (developper) - elie.arnaud@mnhn.fr
 
 ## Contribute
+
+### Code edit
 Any contribution can be done and submitted. Care about documenting code chunks you want to edit, and also add motivations about these changes.
+
+### Issues post
+On posting issues, make sure your problem/idea has not been discussed before (beware of the "is closed" filter). Some issues are named with a "[XXX]" tag meaning this issue is a topic dedicated to "XXX": such issues are not meant to be closed before a long time.
