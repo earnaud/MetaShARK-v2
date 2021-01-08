@@ -1,9 +1,11 @@
 FROM rocker/shiny:3.6.3
+ARG DEV=FALSE
 
+RUN mkdir -p ~/dataPackagesOutput/emlassemblyline
 RUN apt-get update --fix-missing -y \
     && apt-get install -y software-properties-common aptitude
 RUN sudo add-apt-repository ppa:cran/libgit2
-RUN aptitude install -y -f \
+RUN aptitude install -y -f -o APT::Get::Fix-Missing=true \
 	default-jre-headless \
 	git-core \
 	libcurl4-openssl-dev \
@@ -26,8 +28,8 @@ RUN aptitude install -y -f \
 	libharfbuzz-dev \
 	libfribidi-dev \
 	mesa-common-dev \
-    && apt-get clean \ 
-    && rm -rf /var/lib/apt/lists/*
+  && apt-get clean \ 
+  && rm -rf /var/lib/apt/lists/*
 
 RUN dpkg -S /usr/include/GL/gl.h
 RUN echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), download.file.method = 'libcurl')" >> /usr/local/lib/R/etc/Rprofile.site
@@ -85,4 +87,4 @@ WORKDIR /build_zone
 RUN R -e 'remotes::install_local("MetaShARK_0.0.0.9000.tar.gz", upgrade="never")'
 EXPOSE 3838
 
-CMD R -e "options('shiny.port'=3838,shiny.host='0.0.0.0');MetaShARK::runMetashark()"
+CMD R -e "options('shiny.port'=3838,shiny.host='0.0.0.0'); MetaShARK::runMetashark(dev={$DEV})"
