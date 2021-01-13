@@ -102,6 +102,8 @@ checkFeedback <- function(
     if(type == "warning")
       shinyFeedback::showFeedbackWarning(id, text = text)
   }
+  
+  return(condition)
 }
 
 #' Clear backstage shiny observers

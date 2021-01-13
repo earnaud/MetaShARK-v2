@@ -7,7 +7,6 @@ getPredicate <- function(api.key, ontology = "OBOREL", predicate) {
   # Check `ontology` is available in BioPortal
   predicate.classes <- cedarr::accessOntology(api.key, ontology, item = "classes")
   # Search for `predicate` in `ontology` classes
-  browser()
   predicate.id <- functionToFindApproximatelyATermAmongOthers()
   predicate.found <- cedarr::accessClass(api.key, ontology, predicate.id)
   

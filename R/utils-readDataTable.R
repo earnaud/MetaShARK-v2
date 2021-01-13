@@ -28,7 +28,7 @@ readDataTable <- function(file, data.table = FALSE, ...) {
     x <- TRUE
     content <- list()
     while(class(x)[1] != "try-error") {
-      x <- try(as.data.frame(readxl::read_excel(file, sheet, ...)))
+      x <- try(as.data.frame(readxl::read_excel(file, sheet, na = "NA", ...)))
       if(class(x)[1] != "try-error")
         content[[sheet]] <- x
       sheet <- sheet+1
@@ -36,7 +36,12 @@ readDataTable <- function(file, data.table = FALSE, ...) {
     options(show.error.messages = FALSE)
     df <- content
   } else {
-    df <- data.table::fread(file, data.table = data.table, ...)
+    df <- data.table::fread(
+      file, 
+      data.table = data.table, 
+      na.strings = "NA", 
+      ...
+    )
   }
 
   return(df)

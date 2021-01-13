@@ -144,9 +144,20 @@ SelectDPUI <- function(id, main.env) {
 #' @importFrom jsonlite read_json unserializeJSON 
 #' 
 #' @noRd
-SelectDP <- function(id,main.env) {
+SelectDP <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-
+    if (main.env$dev){
+      observeEvent(
+        main.env$dev.browse(), 
+        {
+          if (main.env$current.tab() == "fill" &&
+              main.env$EAL$page == 1) {
+            browser()
+          }
+        }
+      )
+    }
+    
     # Help server
     collapsible("usage")
 

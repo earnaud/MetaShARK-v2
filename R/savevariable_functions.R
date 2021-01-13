@@ -116,7 +116,7 @@ setSaveVariable <- function(content, save.variable, lv = 1, root = "root") {
 #'
 #' @noRd
 setLocalRV <- function(main.env){
-  if(!is.null(unlist(listReactiveValues(main.env$save.variable))))
+  if(isContentTruthy(main.env$save.variable$SelectDP$dp.metadata.path))
     checkTemplates(main.env)
   
   # Set variable ====
@@ -145,17 +145,22 @@ setLocalRV <- function(main.env){
     ),
     # * Attributes ----
     reactiveValues(
-      current = reactiveValues(
-        file = as.numeric(isContentTruthy(main.env$save.variable$DataFiles$datapath))
-      ),
-      custom.units = reactiveValues(
-        modal.state = "closed",
-        table = data.frame(stringsAsFactors = FALSE),
-        values = rep(NA, 5),
-        unit.id = character()  # inputID for CU modal
-      ),
+      md.tables = reactiveValues(),
+      rv.tables = reactiveValues(),
+      checked = FALSE,
       completed = reactiveValues(),
       data.filepath = main.env$save.variable$DataFiles$datapath,
+      md.filenames = basename(main.env$save.variable$DataFiles$metadatapath),
+      custom.units = reactiveValues(
+        table = readDataTable(
+          dir(
+            isolate(main.env$save.variable$SelectDP$dp.metadata.path),
+            pattern = "^custom_units",
+            full.names = TRUE
+          ),
+          stringsAsFactors = FALSE
+        )
+      ),
       preview = {
         out <- sapply(
           main.env$save.variable$DataFiles$datapath,
@@ -172,12 +177,12 @@ setLocalRV <- function(main.env){
               return(out)
             })
           }
-        )
+        ) %>% 
+          setNames(
+            nm = basename(main.env$save.variable$DataFiles$metadatapath) %>%
+              gsub("attributes_", "", .)
+          )
       }
-      # annotations = reactiveValues(
-      #   values = data.frame(stringsAsFactors = FALSE),
-      #   count = 0
-      # ),
     ),
     # * CatVars ----
     reactiveValues(
@@ -334,58 +339,67 @@ setLocalRV <- function(main.env){
   # Post-modifications ====
   # * Attributes ----
   if(main.env$EAL$page == 3) {
-    # Path to metadata templates
+    # Path to metadata templates empty?
     if (isContentTruthy(main.env$save.variable$DataFiles$metadatapath)) {
-      # Set metadata
-      main.env$local.rv$md.filenames <- basename(main.env$save.variable$DataFiles$metadatapath)
-      main.env$local.rv$md.tables <- lapply(
+      # Set content
+      lapply(
         main.env$save.variable$DataFiles$metadatapath,
-        readDataTable,
-        data.table = FALSE, stringsAsFactors = FALSE
-      )
-      names(main.env$local.rv$md.tables) <- main.env$save.variable$DataFiles$name
-      
-      # Curates tables
-      sapply(main.env$local.rv$md.tables, function(table){
-        table[is.na(table)] <- ""
-        if(isTRUE(main.env$save.variable$quick) || isTRUE(main.env$dev))
-          table$attributeDefinition <- paste("Description for:", table$attributeName)
-      })
-      
-      # Set custom units
-      main.env$local.rv$custom.units$trigger <- reactive({
-        main.env$local.rv$custom.units$modal.state
-      })
-      main.env$local.rv$custom.units$table <- readDataTable(
-        dir(
-          isolate(main.env$save.variable$SelectDP$dp.metadata.path),
-          pattern = "ustom",
-          full.names = TRUE
-        ),
-        stringsAsFactors = FALSE
-      )
-      
-      # Set completed
-      lapply(main.env$save.variable$DataFiles$name, function(file.name) {
-        main.env$local.rv$completed[[file.name]] <- reactiveValues()
-        
-        lapply(seq(nrow(main.env$local.rv$md.tables[[file.name]])), function(row.index) {
-          # Set completed per row by class
-          row <- main.env$local.rv$md.tables[[file.name]][row.index, 1]
-          main.env$local.rv$completed[[file.name]][[row]] <- reactiveValues(
-            # default is TRUE because it is re-evaluated as user reaches Attributes
-            attributeName = TRUE,
-            attributeDefinition = TRUE,
-            class = TRUE,
-            dateTimeFormatString = TRUE,
-            unit = TRUE,
-            missingValueCode = TRUE,
-            missingValueCodeExplanation = TRUE
+        function(path){
+          # Use data file name as reference
+          .rv.name <- gsub("attributes_", "", basename(path))
+          # Populate metadata tables
+          main.env$local.rv$md.tables[[.rv.name]] <<- readDataTable(
+            path, data.table = FALSE, stringsAsFactors = FALSE
           )
-        }) # end lapply:row
-      }) # end lapply:file
-    }
-    else
+          # Set a shortcut for the remain of this iteration
+          .table <- main.env$local.rv$md.tables[[.rv.name]]
+          # Curates table content
+          .table[is.na(.table)] <- ""
+          if(isTRUE(main.env$save.variable$quick) || isTRUE(main.env$dev))
+            .table$attributeDefinition <- paste("Description for:", .table$attributeName)
+          # Add units for 'latitude' and 'longitude'
+          .degree.attributes <- .table$attributeName %in% c("latitude", "longitude")
+          if(any(.degree.attributes))
+            .table$unit[.degree.attributes] <- "degree"
+          main.env$local.rv$md.tables[[.rv.name]] <<- .table
+          # Add reactivity to each table (test)
+          makeReactiveBinding(
+            sprintf(
+              "main.env$local.rv$md.tables$%s", 
+              .rv.name
+            )
+          )
+          # Add a reactive to read each table (test)
+          main.env$local.rv$rv.tables[[.rv.name]] <- reactive({
+            devmsg("%s", "-- df reactive test")
+            .table
+          })
+          # Add completed status for each attribute of each table
+          main.env$local.rv$completed[[.rv.name]] <- reactiveValues()
+          lapply(seq(nrow(.table)), function(row.index) {
+            # Set completed per row by class
+            .attribute <- .table[row.index, 1]
+            main.env$local.rv$completed[[.rv.name]][[.attribute]] <- reactiveValues(
+              # default is TRUE because it is re-evaluated as user reaches Attributes
+              attributeName = TRUE,
+              attributeDefinition = TRUE,
+              class = TRUE,
+              dateTimeFormatString = TRUE,
+              unit = TRUE,
+              missingValueCode = TRUE,
+              missingValueCodeExplanation = TRUE
+            )
+          }) # end lapply:row
+        }
+      )
+      
+      # Custom units
+      makeReactiveBinding("main.env$local.rv$custom.units$table")
+      main.env$local.rv$custom.units$reactive <- reactive({
+        main.env$local.rv$custom.units$table
+      })
+      main.env$local.rv$custom.units$cancel <- reactiveVal(0)
+    } else
       stop("[savevariable_functions.R]
       Incorrect value for variable:
       main.env$save.variable$DataFiles$metadatapath")
@@ -411,10 +425,15 @@ setLocalRV <- function(main.env){
           }
           
           if (col == "unit") {
+            .nonunit.rows <- which(.table$class != "numeric")
             .unit.rows <- which(.table$class == "numeric")
-            .table[[col]] <- rep("", nrow(.table))
-            if (isTruthy(.unit.rows)) {
-              .table[.unit.rows, col] <- rep(main.env$FORMATS$units[2], length(.unit.rows))
+            if (isTruthy(.nonunit.rows))
+              .table[[col]][.nonunit.rows] <- rep("", length(.nonunit.rows))
+            if (isTruthy(.unit.rows)){
+              .val <- .table[.unit.rows, col]
+              .val[sapply(.val, function(v) 
+                v == main.env$FORMATS$units[2] || !isTruthy(v))] <- main.env$FORMATS$units[2]
+              .table[.unit.rows, col] <- .val
             }
           }
           .table[is.na(.table)] <- ""
@@ -495,21 +514,26 @@ setLocalRV <- function(main.env){
     .att <- main.env$save.variable$Attributes
     .site <- main.env$local.rv$columns$choices$sites <- list()
     .col <- main.env$local.rv$columns$choices$coords <- list()
-    sapply(names(.att), function(.file) {
+    sapply(names(.att), function(.md.file) {
+      .data.file <- main.env$save.variable$DataFiles %>%
+        filter(grepl(.md.file, metadatapath)) %>%
+        select(datapath) %>%
+        unlist %>%
+        basename
       # Set sites
-      .site[[.file]] <<- .att[[.file]] %>% 
+      .site[[.data.file]] <<- .att[[.md.file]] %>% 
         dplyr::filter(class %in% c("character", "categorical")) %>% 
         dplyr::select(attributeName) %>%
         unlist
-      .site[[.file]] <<- paste(.file, .site[[.file]], sep="/") %>%
-        setNames(nm = .site[[.file]])
+      .site[[.data.file]] <<- paste(.data.file, .site[[.data.file]], sep="/") %>%
+        setNames(nm = .site[[.data.file]])
       # Set columns
-      .col[[.file]] <<- .att[[.file]] %>% 
+      .col[[.data.file]] <<- .att[[.md.file]] %>% 
         dplyr::filter(class == "numeric") %>%
         dplyr::select(attributeName) %>%
         unlist
-      .col[[.file]] <<- paste(.file, .col[[.file]], sep="/") %>%
-        setNames(nm = .col[[.file]])
+      .col[[.data.file]] <<- paste(.data.file, .col[[.data.file]], sep="/") %>%
+        setNames(nm = .col[[.data.file]])
     })
     main.env$local.rv$columns$choices$sites <- .site
     main.env$local.rv$columns$choices$coords <- .col
@@ -517,7 +541,7 @@ setLocalRV <- function(main.env){
     # Read saved values
     if(isContentTruthy(listReactiveValues(main.env$save.variable$GeoCov))) {
       main.env$local.rv$method <- main.env$save.variable$GeoCov$method
-
+      
       # * Columns
       if(main.env$local.rv$method == "columns") {
         site.name <- main.env$save.variable$GeoCov$columns$site$col
@@ -547,8 +571,8 @@ setLocalRV <- function(main.env){
     # Set completeness
     main.env$local.rv$columns$complete <- reactive(
       isTruthy(main.env$local.rv$columns$site$col) &&
-      isTruthy(main.env$local.rv$columns$lat$col) &&
-      isTruthy(main.env$local.rv$columns$lon$col)
+        isTruthy(main.env$local.rv$columns$lat$col) &&
+        isTruthy(main.env$local.rv$columns$lon$col)
     )
     main.env$local.rv$custom$complete <-reactive(isContentTruthy(main.env$local.rv$custom$coordinates))
   }
@@ -557,7 +581,7 @@ setLocalRV <- function(main.env){
   if(main.env$EAL$page == 6) {
     # File
     if(isTruthy(main.env$save.variable$TaxCov$taxa.table) && 
-       main.env$save.variable$TaxCov$taxa.table %in%
+       gsub("\\..*","", main.env$save.variable$TaxCov$taxa.table) %grep%
        names(main.env$save.variable$Attributes))
       main.env$local.rv$taxa.table <- unlist(main.env$save.variable$TaxCov$taxa.table)
     # Col
@@ -583,8 +607,8 @@ setLocalRV <- function(main.env){
       saved.table <- if (main.env$save.variable$Personnel %>%
                          listReactiveValues() %>%
                          isContentTruthy())
-          isolate(main.env$save.variable$Personnel) else
-            NULL
+        isolate(main.env$save.variable$Personnel) else
+          NULL
       if(!is.null(saved.table)) {
         # Remove NA
         saved.table[is.na(saved.table)] <- ""
