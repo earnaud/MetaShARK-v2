@@ -1,14 +1,13 @@
 # DOCKER LOCAL BUILD #
 # ================== #
 
-docker build \
-  -t metashark:local \
-  --build-arg DEV=TRUE \
-  .
+mkdir ~/metashark_data
+
+docker build -t metashark:local .
 
 docker run -d --rm \
-  -v ~/dataPackagesOutput/emlassemblyline:~/dataPackagesOutput/emlassemblyline \
+  -v ~/metashark_data:/root/dataPackagesOutput \
   -p 3838:3838 \
   --name MetaShARK_dockerized \
-  metashark_local
+  metashark:local
 

@@ -8,18 +8,39 @@ server <- function(input, output, session) {
   # get variables
   main.env <- get("main.env", options()$metashark.env)
 
+  browser()
+  
+  # Set user-specific data
+  assign(
+    "credentials",
+    reactiveValues(
+      orcid = character(),
+      name = character()
+    ),
+    envir = session$userData
+  )
+  assign(
+    "contents",
+    reactiveValues(
+      dp.index = character()
+    ),
+    envir = session$userData
+  )
+  
+  # App variables
   assign(
     "current.tab",
     reactive(input$side_menu),
     envir = main.env
   )
-
-  if (main.env$dev)
+  
+  if (main.env$dev){
     observeEvent(input$dev, {
       if (main.env$current.tab() != "fill")
         browser()
     })
-
+  }
+  
   # Update values ====
   invisible({
     # DataONE nodes

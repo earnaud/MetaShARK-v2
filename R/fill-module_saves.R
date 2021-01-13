@@ -174,7 +174,7 @@ saveReactive <- function(main.env, page) {
   # Write Custom units
   if (isContentTruthy(content$CU_Table)) {
     data.table::fwrite(
-      content$CU_Table,
+      content$CU_Table, 
       paste0(.sv$SelectDP$dp.metadata.path, "/custom_units.txt")
     )
   }

@@ -33,32 +33,51 @@
   assign("PATHS", PATHS, envir = main.env)
 
   # Sessionning ====
-  # if (isTRUE(file.exists(isolate(PATHS$eal.dp.index)))) {
-  #   DP.LIST <- data.table::fread(isolate(PATHS$eal.dp.index), sep = "\t")
-  # }
-  # else {
-  #   DP.LIST <- data.frame(
-  #     creator.orcid = character(),
-  #     name = character(),
-  #     title = character(),
-  #     path = character(),
-  #     stringsAsFactors = FALSE
-  #   )
-  # }
-  # 
-  # # Curate DP.LIST versus actual list
-  # DP.LIST$path <- DP.LIST$path %>% gsub("//+", "/", .)
-  # .actual.index <- dir(
-  #   isolate(main.env$PATHS$eal.dp),
-  #   pattern = "_emldp$",
-  #   full.names = TRUE
-  # ) %>% gsub("//+", "/", .)
-  # DP.LIST <- dplyr::filter(DP.LIST, path %in% .actual.index)
-  # 
-  # data.table::fwrite(DP.LIST, isolate(PATHS$eal.dp.index), sep = "\t")
-  # 
-  # assign("DP.LIST", DP.LIST, envir = main.env)
-  # makeReactiveBinding("DP.LIST", env = main.env)
+  
+  if (isTRUE(file.exists(isolate(PATHS$eal.dp.index)))) {
+    DP.LIST <- data.table::fread(isolate(PATHS$eal.dp.index), sep = "\t")
+    DP.LIST$path <- DP.LIST$path %>%
+      gsub("//+", "/", .)
+  } else {
+    DP.LIST <- data.frame(
+      creator.orcid = character(),
+      name = character(),
+      title = character(),
+      path = character(),
+      stringsAsFactors = FALSE
+    )
+    # Fill DP.LIST for first-time runs
+    .files <- dir(PATHS$eal.dp, full.names = TRUE)
+    if(length(.files) > 0) {
+      sapply(.files, function(.file) {
+        .info <- jsonlite::read_json(
+          sprintf("%s/%s.json", .file, basename(.file))
+        )[[1]] %>%
+          jsonlite::unserializeJSON()
+        
+        .row <- c(
+          creator.orcid = "public",
+          name = .info$SelectDP$dp.name,
+          title = .info$SelectDP$dp.title,
+          path = .file
+        )
+        DP.LIST <<- rbind(DP.LIST, .row)
+      })
+    }
+  }
+
+  # Curate DP.LIST versus actual list
+  .actual.index <- dir(
+    isolate(main.env$PATHS$eal.dp),
+    pattern = "_emldp$",
+    full.names = TRUE
+  ) %>% gsub("//+", "/", .)
+  DP.LIST <- dplyr::filter(DP.LIST, path %in% .actual.index)
+
+  data.table::fwrite(DP.LIST, isolate(PATHS$eal.dp.index), sep = "\t")
+
+  assign("DP.LIST", DP.LIST, envir = main.env)
+  makeReactiveBinding("DP.LIST", env = main.env)
 
   # Values ====
   assign(

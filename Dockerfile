@@ -1,7 +1,6 @@
 FROM rocker/shiny:3.6.3
 ARG DEV=FALSE
 
-RUN mkdir -p ~/dataPackagesOutput/emlassemblyline
 RUN apt-get update --fix-missing -y \
     && apt-get install -y software-properties-common aptitude
 RUN sudo add-apt-repository ppa:cran/libgit2
@@ -82,9 +81,12 @@ RUN Rscript -e 'remotes::install_github("EDIorg/EMLassemblyline@f05ef748feed7242
 RUN Rscript -e 'remotes::install_github("LukasK13/SummeRnote@7c404e1578ab3567fdb331716ca831913ccf645a")'
 
 RUN mkdir /build_zone
+RUN mkdir -p /dataPackagesOutput/emlassemblyline
+RUN echo ls ~
 ADD . /build_zone
 WORKDIR /build_zone
 RUN R -e 'remotes::install_local("MetaShARK_0.0.0.9000.tar.gz", upgrade="never")'
 EXPOSE 3838
 
-CMD R -e "options('shiny.port'=3838,shiny.host='0.0.0.0'); MetaShARK::runMetashark(dev={$DEV})"
+CMD R -e "options('shiny.port'=3838,shiny.host='0.0.0.0'); MetaShARK::runMetashark()"
+# CMD ["R", "-e options('shiny.port'=3838,shiny.host='0.0.0.0'); MetaShARK::runMetashark()"]

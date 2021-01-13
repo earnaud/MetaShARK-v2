@@ -43,7 +43,8 @@ AttributesUI <- function(id, main.env) {
             # - attributeDefinition ----
             textAreaInput(
               ns("attributeDefinition"), 
-              "Description of the attribute"
+              "Description of the attribute",
+              width = "100%"
             ),
             # - class ----
             selectInput(
@@ -72,7 +73,8 @@ AttributesUI <- function(id, main.env) {
             # - missingValueCodeExplanation ----
             textAreaInput(
               ns("missingValueCodeExplanation"),
-              "Explain Missing Values"
+              "Explain Missing Values",
+              width = "100%"
             )
           ) # end div
         ) # end hidden
@@ -103,12 +105,17 @@ AttributesUI <- function(id, main.env) {
 #' @importFrom shinyTree renderTree
 Attributes <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-    shinyjs::onclick("dev", {
-      if (main.env$current.tab() == "fill"
-          && main.env$EAL$page == 3) {
-        browser()
-      }
-    }, asis = TRUE)
+    if (main.env$dev){
+      observeEvent(
+        main.env$dev.browse(), 
+        {
+          if (main.env$current.tab() == "fill" &&
+              main.env$EAL$page == 3) {
+            browser()
+          }
+        }
+      )
+    }
     
     # Tree ====  
     
@@ -277,6 +284,10 @@ Attributes <- function(id, main.env) {
       )
       
       # ** Check validity ----
+      # at least check one attribute
+      main.env$local.rv$checked <- TRUE
+      
+      # ShinyFeedBack
       checkFeedback(input, "attributeDefinition", type = "danger")
       checkFeedback(input, "class", type = "danger")
       checkFeedback(
@@ -455,13 +466,12 @@ Attributes <- function(id, main.env) {
           input$unit
         )
       } else { # Custom unit
-        # Check for existing custom units
+        # Check if currently worked unit is a custom one
         saved <- main.env$local.rv$md.tables[[selected.file()]] %>%
           filter(attributeName == selected.attribute()) %>%
           select(unit) %>%
           unlist()
         # Set default value for input module
-        # browser()
         if(isTRUE(saved %in% main.env$local.rv$custom.units$table$unit.id)) {
           .values <- main.env$local.rv$custom.units$table %>%
             dplyr::filter(id == saved) %>%
@@ -483,10 +493,12 @@ Attributes <- function(id, main.env) {
       # Check validity
       .condition <- if(input$class == "numeric") {
         isTruthy(input$unit) && 
-        (input$unit %grep% main.env$FORMATS$units ||
-           input$unit %in% main.env$local.rv$custom.units$table$id)
+          input$unit != "custom" &&
+          (input$unit %grep% main.env$FORMATS$units ||
+             input$unit %in% main.env$local.rv$custom.units$table$id)
       } else TRUE
-      devmsg("%s", as.character(.condition))
+      if(main.env$dev)
+        devmsg("%s", as.character(.condition))
       checkFeedback(
         input, 
         "unit",
@@ -499,8 +511,29 @@ Attributes <- function(id, main.env) {
     customUnits("customUnits", main.env)
     
     observeEvent({
-      if(main.env$EAL$page == 3)
+      if(main.env$EAL$page == 3 &&
+         "cancel" %in% names(main.env$local.rv$custom.units)){
+        main.env$local.rv$custom.units$cancel()
+      }
+    }, {
+      # Set unit
+      .tmp <- setUnitList(
+        main.env, 
+        set = "dimensionless"
+      )
+      updateSelectInput(
+        session,
+        "unit",
+        choices = .tmp$unit.list,
+        selected = .tmp$set.unit
+      )
+    }, priority = -1)
+    
+    observeEvent({
+      if(main.env$EAL$page == 3 &&
+         "reactive" %in% names(main.env$local.rv$custom.units)){
         main.env$local.rv$custom.units$reactive()
+      }
     }, {
       req(main.env$EAL$page == 3)
       req(input$unit == "custom")
@@ -595,7 +628,7 @@ Attributes <- function(id, main.env) {
       if(isContentTruthy(input$missingValueCode))
         checkFeedback(input, "missingValueCodeExplanation", type = "danger") else
           checkFeedback(input, "missingValueCodeExplanation", type = "warning")
-          
+      
     })
     
     # * missingValueCodeExplanation ----
@@ -663,21 +696,22 @@ Attributes <- function(id, main.env) {
           {
             if(input$class == "Date") {
               isContentTruthy(input$dateTimeFormatString) &&
-              input$dateTimeFormatString %in% main.env$FORMATS$dates
+                input$dateTimeFormatString %in% main.env$FORMATS$dates
             } else TRUE
           } &&
           {
             if(input$class == "numeric") {
               isContentTruthy(input$unit) &&
-              input$unit %in% c(
-                main.env$local.rv$custom.units$table$id,
-                main.env$FORMATS$units
-              )
+                input$unit != "custom" &&
+                input$unit %in% c(
+                  main.env$local.rv$custom.units$table$id,
+                  main.env$FORMATS$units
+                )
             } else TRUE
           } && 
           {
             if(isFALSE(input$missingValueCode == "" &&
-               input$missingValueCodeExplanation == "")) {
+                       input$missingValueCodeExplanation == "")) {
               isContentTruthy(input$missingValueCode) &&
                 isContentTruthy(input$missingValueCodeExplanation)
             } else TRUE
@@ -685,19 +719,22 @@ Attributes <- function(id, main.env) {
       )
       
       # Update whole completeness
-      main.env$EAL$completed <- all(
-        unlist(
-          listReactiveValues(
-            main.env$local.rv$completed
+      main.env$EAL$completed <- isTRUE(main.env$local.rv$checked) &&
+        all(
+          unlist(
+            listReactiveValues(
+              main.env$local.rv$completed
+            )
           )
         )
-      )
+      
       # If any problem, tell the user
+      # TODO add lacking attributes completion
       if(!main.env$EAL$completed) {
         main.env$EAL$tag.list <- tagList()
         
       } else {
-      # Else, allow next
+        # Else, allow next
         main.env$EAL$tag.list <- tagList()
         
       }
