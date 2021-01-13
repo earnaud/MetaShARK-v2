@@ -202,6 +202,9 @@ SelectDP <- function(input, output, session,
   # DP load -----------------------------------------------------
   # reset input if user comes back on this screen
   # fetch list of DP at selected location
+  rv$dp_list <- reactiveDirReader(rv$dp_location, session, ...)
+    
+    
   observeEvent(rv$dp_location, {
     dpList <- list.files(rv$dp_location, pattern = "_emldp$")
     if (length(dpList) != 0) {
