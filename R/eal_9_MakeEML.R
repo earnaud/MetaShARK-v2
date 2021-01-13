@@ -62,7 +62,17 @@ MakeEMLUI <- function(id, main.env) {
 #' @noRd
 MakeEML <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-    # Variable initialization (deprecated)
+    if (main.env$dev){
+      observeEvent(
+        main.env$dev.browse(), 
+        {
+          if (main.env$current.tab() == "fill" &&
+              main.env$EAL$page == 9) {
+            browser()
+          }
+        }
+      )
+    }
     
     # Make eml ----
     observeEvent(input$make_eml, {
@@ -93,8 +103,8 @@ MakeEML <- function(id, main.env) {
             x$eml.path <- .$SelectDP$dp.eml.path
             x$dataset.title <- .$SelectDP$dp.title
             x$temporal.coverage <- .$Misc$temporal.coverage
-            # IGNORED geographic.description
-            # IGNORED geographic.coordinates
+            # FROM FILES geographic.description
+            # FROM FILES geographic.coordinates
             x$maintenance.description <- "ongoing"
             x$data.table <- dir(x$data.path)
             x$data.table.name <- optional(.$DataFiles$table.name)

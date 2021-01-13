@@ -98,7 +98,17 @@ MiscUI <- function(id, main.env) {
 #' @noRd
 Misc <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-    # Variable initialization (deprecated)
+    if (main.env$dev){
+      observeEvent(
+        main.env$dev.browse(), 
+        {
+          if (main.env$current.tab() == "fill" &&
+              main.env$EAL$page == 8) {
+            browser()
+          }
+        }
+      )
+    }
     
     # Fill ----
     # * Abstract ====
@@ -128,7 +138,6 @@ Misc <- function(id, main.env) {
         )
       })
     }, priority = -1)
-    
     
     observeEvent(input$keywords, {
       req(input$keywords)
@@ -176,7 +185,7 @@ Misc <- function(id, main.env) {
     
     # * Temporal coverage ====
     if (!is.null(isolate(main.env$save.variable$Misc$temporal.coverage))) {
-      main.env$local.rv$temporal.coverage <- isolate(main.env$save.variable$Misc$temporal.coverage)
+      isolate(main.env$local.rv$temporal.coverage <- main.env$save.variable$Misc$temporal.coverage)
       updateDateRangeInput(
         session,
         "temporal.coverage",
@@ -184,6 +193,7 @@ Misc <- function(id, main.env) {
         end = main.env$local.rv$temporal.coverage[2]
       )
     }
+    
     observeEvent(input$temporal_coverage, {
       main.env$local.rv$temporal.coverage <- input$temporal_coverage
     },

@@ -114,6 +114,8 @@ customUnits <- function(id, main.env) {
     #  * Cancel ----
     shinyjs::onclick("modal_cancel", {
       req(main.env$EAL$page == 3)
+      main.env$local.rv$custom.units$
+        cancel <- reactiveVal(main.env$local.rv$custom.units$cancel + 1)
       removeModal()
     })
     

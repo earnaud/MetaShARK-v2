@@ -6,7 +6,6 @@ fillUI <- function(id, main.env) {
     id = NS(id, "tabs"),
     tabPanel(
       "EAL",
-      # EMLALUI(NS(id, "EAL"), main.env)
       fluidPage(
         style = "padding-top:2.5%;",
         # * Top row ----

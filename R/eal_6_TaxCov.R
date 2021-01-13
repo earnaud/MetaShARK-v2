@@ -19,13 +19,17 @@ TaxCovUI <- function(id, main.env) {
 #' @noRd
 TaxCov <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-    # Variable Initialization (deprecated)
-    shinyjs::onclick("dev", {
-      if(main.env$current.tab() == "fill" &&
-            main.env$EAL$page == 6) {
-        browser()
-      }
-    }, asis = TRUE)
+    if (main.env$dev){
+      observeEvent(
+        main.env$dev.browse(), 
+        {
+          if (main.env$current.tab() == "fill" &&
+              main.env$EAL$page == 6) {
+            browser()
+          }
+        }
+      )
+    }
     
     # Set UI ====
 

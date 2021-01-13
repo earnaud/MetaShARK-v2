@@ -147,6 +147,7 @@ setLocalRV <- function(main.env){
     reactiveValues(
       md.tables = reactiveValues(),
       rv.tables = reactiveValues(),
+      checked = FALSE,
       completed = reactiveValues(),
       data.filepath = main.env$save.variable$DataFiles$datapath,
       md.filenames = basename(main.env$save.variable$DataFiles$metadatapath),
@@ -351,12 +352,16 @@ setLocalRV <- function(main.env){
             path, data.table = FALSE, stringsAsFactors = FALSE
           )
           # Set a shortcut for the remain of this iteration
-          table <- main.env$local.rv$md.tables[[.rv.name]]
+          .table <- main.env$local.rv$md.tables[[.rv.name]]
           # Curates table content
-          table[is.na(table)] <- ""
+          .table[is.na(.table)] <- ""
           if(isTRUE(main.env$save.variable$quick) || isTRUE(main.env$dev))
-            table$attributeDefinition <- paste("Description for:", table$attributeName)
-          main.env$local.rv$md.tables[[.rv.name]] <- table
+            .table$attributeDefinition <- paste("Description for:", .table$attributeName)
+          # Add units for 'latitude' and 'longitude'
+          .degree.attributes <- .table$attributeName %in% c("latitude", "longitude")
+          if(any(.degree.attributes))
+            .table$unit[.degree.attributes] <- "degree"
+          main.env$local.rv$md.tables[[.rv.name]] <<- .table
           # Add reactivity to each table (test)
           makeReactiveBinding(
             sprintf(
@@ -367,13 +372,13 @@ setLocalRV <- function(main.env){
           # Add a reactive to read each table (test)
           main.env$local.rv$rv.tables[[.rv.name]] <- reactive({
             devmsg("%s", "-- df reactive test")
-            table
+            .table
           })
           # Add completed status for each attribute of each table
           main.env$local.rv$completed[[.rv.name]] <- reactiveValues()
-          lapply(seq(nrow(table)), function(row.index) {
+          lapply(seq(nrow(.table)), function(row.index) {
             # Set completed per row by class
-            .attribute <- table[row.index, 1]
+            .attribute <- .table[row.index, 1]
             main.env$local.rv$completed[[.rv.name]][[.attribute]] <- reactiveValues(
               # default is TRUE because it is re-evaluated as user reaches Attributes
               attributeName = TRUE,
@@ -393,6 +398,7 @@ setLocalRV <- function(main.env){
       main.env$local.rv$custom.units$reactive <- reactive({
         main.env$local.rv$custom.units$table
       })
+      main.env$local.rv$custom.units$cancel <- reactiveVal(0)
     } else
       stop("[savevariable_functions.R]
       Incorrect value for variable:
@@ -419,10 +425,15 @@ setLocalRV <- function(main.env){
           }
           
           if (col == "unit") {
+            .nonunit.rows <- which(.table$class != "numeric")
             .unit.rows <- which(.table$class == "numeric")
-            .table[[col]] <- rep("", nrow(.table))
-            if (isTruthy(.unit.rows)) {
-              .table[.unit.rows, col] <- rep(main.env$FORMATS$units[2], length(.unit.rows))
+            if (isTruthy(.nonunit.rows))
+              .table[[col]][.nonunit.rows] <- rep("", length(.nonunit.rows))
+            if (isTruthy(.unit.rows)){
+              .val <- .table[.unit.rows, col]
+              .val[sapply(.val, function(v) 
+                v == main.env$FORMATS$units[2] || !isTruthy(v))] <- main.env$FORMATS$units[2]
+              .table[.unit.rows, col] <- .val
             }
           }
           .table[is.na(.table)] <- ""
