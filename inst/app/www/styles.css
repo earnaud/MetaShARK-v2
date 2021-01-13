@@ -53,12 +53,12 @@ textarea {
 .inputBox {
 	border: 1px solid lightgrey;
 	border-radius: 10px;
-	margin: 5px;
-	padding: 0;
+	padding: 3px;
+	margin: 3px;
 }
 
 .topInputRow {
-  background-color: #eee;
+  background-color: #e6e6e6;
   border-radius: 10px 10px 0 0;
   width: 100%;
   display: flex;
@@ -66,6 +66,14 @@ textarea {
   align-items: center;
   margin-left: auto;
   margin-right: auto;
+}
+
+.contentRow {
+  background-color: #f6f6f6;
+}
+
+.topInputRow span {
+  display: inline-flex;
 }
 
 .leftMargin {
@@ -84,6 +92,16 @@ textarea {
 	color: red;
 }
 
+.tag_sequence div {
+  display: inline-block;
+  color: white; 
+  background-color: #3c8dbc; 
+  border-radius: 3px;
+  margin: 3px;
+  width: max-content; 
+  padding: 0 5px;
+}
+
 .text-title {
   display: inline-block;
   font-size:14pt;
@@ -92,4 +110,19 @@ textarea {
 
 .valid {
   color: green;
+}
+
+.wip {
+  background: 
+  repeating-linear-gradient(
+    45deg,
+    yellow,
+    yellow 10px,
+    black 10px,
+    black 20px
+  );
+}
+
+.wip * {
+  background-color: white;
 }

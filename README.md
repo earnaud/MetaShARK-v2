@@ -1,11 +1,13 @@
-[![DOI](https://zenodo.org/badge/216049930.svg)](https://zenodo.org/badge/latestdoi/216049930)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4297467.svg)](https://doi.org/10.5281/zenodo.4297467)
+
 [![lifecycle](https://img.shields.io/badge/lifecycle-maturing-orange.svg)](https://www.tidyverse.org/lifecycle/#maturing)
 
 <img src="./inst/media/logo.png" alt="" width="50%">
 
-**Stable Server address:** http://openstack-192-168-100-121.genouest.org/  ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance`
+**Stable Server address:** 
+http://metashark.pndb.fr/ ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`
 
-**Dev Server address:** http://openstack-192-168-100-116.genouest.org/ ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`
+**Stable Server address:** https://metashark.test.pndb.fr/  ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance`
 
 <!-- ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`  -->
 <!-- ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance` -->
@@ -25,12 +27,11 @@ MetaShARK has a dedicated [dockerhub](https://hub.docker.com/r/eliearnaud/metash
 
 ### Local installation
 
-There are two versions of MetaShARK currently available:
+!!! DEPRECATED !!!
 
-* Stable : this version is either the last version described in the [releases](https://github.com/earnaud/MetaShARK-v2/releases) or one of its subversion which got minor fixes.
-* Dev : this version is the last version released, described later in this file. However, it might suffer some bugs.
+Refer to the `Dockerization` part for locale production use. For dev use, here are some information:
 
-**If you are using local version, reinstall it regularly !** The dev team will try to push needed fixes once per week during development phase.
+**If you are using local version, reinstall it regularly !** 
 
 All dependencies are described in the DESCRIPTION file. You will also need to install the following system libraries, according to you OS:
 
@@ -65,7 +66,19 @@ R -e 'devtools::install_github("earnaud/MetaShARK-v2", ref="dev", dependencies=T
 
 ### Dockerization
 
-You can access docker files and setup at [this repository](https://github.com/earnaud/MetaShARK_docker).
+MetaShARK is provided with two docker possibilities: one for locale setup (in this git) and one for server setup (at [this repository](https://github.com/earnaud/MetaShARK_docker)).
+
+For the locale version, you can run a MetaShARK container with the following sequence (tested on Ubuntu). 
+
+1. In a command shell, get to this git's root: `cd <path/to/MetaShARK>`.
+
+2. Execute the following steps:
+```
+docker build -t metashark .
+docker run -d --rm  -p 3838:3838  --name MS  -v "/home/$USER/dataPackagesOutput:/root/dataPackagesOutput"  metashark
+```
+
+3. In a web browser, type the following URL: `127.0.0.1:3838`.
 
 ## MetaShARK features
 
@@ -77,48 +90,39 @@ First feature developped in MetaShARK, it is possible to consult any documented 
 
 Two methods are being developped to fill in metadata:
 
+* EML Assembly Line (EAL) : it is the EDI tool allowing the user to interact with a major part of the EML. MetaShARK is a user front-end solution to offer more automated and visual access to this tool.
 * Metadata Fill-In (MetaFIN) : still not accessible, it is the PNDB specific tool exploring automatic inference to fill in metadata from datasets.
-* EML Assembly Line (EMLAL) : it is the EDI tool allowing the user to interact with a major part of the EML. MetaShARK is a user front-end solution to offer more automated and visual access to this tool.
 
 ### Data Package upload
 
-It is possibe to upload data packages to metacats registered in MetaShARK. You will need to fetch your metacat token in the corresponding MetaCatUI. 
+It is possibe to upload data packages to metacats registered in MetaShARK. You will need to fetch your metacat token in the corresponding MetaCatUI. During development phase, this might not be fully operable as we are trying to properly set our MetaCat and MetaShARK linked together.
 
 ### References
 
 Some references are given that sustain the base principles of this work.
 
-## Releases
-
-### Pre-release 20200316 - Fully functional !
-
-Here we are ! The full EML Assembly Line workflow has been done with MetaShARK. Even if the app might still suffer some bugs, the main steps are accessible. However, it stills only support tabulated file.
-
-### Pre-Release 20200204 - EML Assembly Line (dev version)
-
-Here it comes ! The first pre-release allowing the user to describe his dataset according to the [EML Assembly Line](https://ediorg.github.io/EMLassemblyline/articles/overview.html) recommendations. Please note this version is **still in development** and some features might suffer bugs. Consequently, do not hesitate to [open an issue](https://github.com/earnaud/MetaShARK-v2/issues).
-
 #### Features
 
 MetaShARK/EAL supports:
 * data package management (CC BY or CC 0 Licences)
-* table files's description (and *only* those ones yet, badly. WIP on other file types)
+* table files's description \*\* (and *only* those ones yet, badly. WIP on other file types)
 * automated\* tables' attributes filling
 * custom units' descriptions
 * automated\* categorical variables description
-* geographic, taxonomic\*\* and temporal coverages
+* geographic, taxonomic and temporal coverages
 * description of persons involved (possibly through ORCID)
 * Metadata automated\* generation at EML format
 
 \* automation still requires user's verification
 \*\* see Known Bugs below
 
-#### Known Bugs
-
-* An {EML} issue occurs upon writing EML in final step. A file is however produced but is not validated according to EML schema. 
-
 ## Authors
 * Elie Arnaud (developper) - elie.arnaud@mnhn.fr
 
 ## Contribute
+
+### Code edit
 Any contribution can be done and submitted. Care about documenting code chunks you want to edit, and also add motivations about these changes.
+
+### Issues post
+On posting issues, make sure your problem/idea has not been discussed before (beware of the "is closed" filter). Some issues are named with a "[XXX]" tag meaning this issue is a topic dedicated to "XXX": such issues are not meant to be closed before a long time.

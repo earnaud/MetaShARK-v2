@@ -1,56 +1,53 @@
 #' @title Run MetaShARK
 #'
-#' @description Main function for launching the MetaShARK application.
+#' @description
+#' Main function for launching the MetaShARK application.
 #'
 #' @usage
-#' runMetaShark(...)
+#' runMetashark(...)
 #'
-#' @param server
-#' Logical. Is the app deployed in server or not?
-#' If FALSE (default), the app is deployed for a local desktop usage.
-#' If TRUE, the app is deployed for a distant server usage. The main difference between
-#' both is the way filesystems will be used.
-#'
-#' @param test
-#' Logical. Is the application run with `{shinytest}`, or not. 
-#' Default to FALSE.
-#'
-#' @param ... 
+#' @param ...
 #' options to pass to the application, ignored if missing or mistyped.
 #' \describe{
-#'   \item{dev}{Logical. Add development elements in the GUI.}
+#'   \item{wip}{logical. Shows WIP parts of the app. (default to FALSE)}
+#'   \item{dev}{logical. Add development elements in the GUI. (default to FALSE)}
+#'   \item{reactlog}{logical. Use reactlog? (default to TRUE)}
+#'   \item{test}{logical. Recod tests? (default to FALSE)}
 #' }
 #'
-#' @details 
+#' @details
 #' MetaShARK (METAdata SHiny Automated Resource & Knowledge) is a web app
 #' which is designed to help its user as much as possible for filling ecological
 #' metadata. It uses the EML standard (cf. NCEAS work) to allow a full and
 #' precise description of input datasets.
+#' 
+#' For server setup, see [this git](https://github.com/earnaud/MetaShARK_docker)
+#'
+#' @author
+#' Elie Arnaud <elie.arnaud@mnhn.fr>
 #'
 #' @examples
 #' # run this to launch MetaShARK
 #' runMetashark()
-#' @author Elie Arnaud <elie.arnaud@mnhn.fr>
-#'
+#' 
+#' @import shiny
+#' 
 #' @export
-#' @importFrom shiny shinyApp runApp
-#' @importFrom golem with_golem_options
-runMetashark <- function(server = FALSE, test = FALSE, ...) {
-  args <- list(...)
-  
-  app <- with_golem_options(
-    shinyApp(
-      ui = .app_ui,
-      server = .app_server,
-      onStart = .headerScript
-    ),
-    golem_opts = c(server = server, args)
-  )
+runMetashark <- function(...) {
+  invisible(require("shinyBS"))
+  invisible(require("shinyTree"))
 
-  if(isFALSE(test))
-    runApp(
-      appDir = app
-    )
-  if(isTRUE(test))
-    return(app)
+  args <- list(...)
+  args$dev <- isTRUE(args$dev)
+  args$wip <- isTRUE(args$wip)
+  args$reactlog <- isTRUE(args$reactlog) || isTRUE(args$dev)
+  args$test <- isTRUE(args$test)
+  options(shiny.reactlog = args$reactlog)
+
+  .globalScript(args = args)
+  on.exit(message("### end of MetaShARK session ###\n"))
+  on.exit(rm(main.env, envir = .GlobalEnv))
+  
+  if(args$test) browser()
+  runApp(shinyApp(ui = ui, server = server))
 }

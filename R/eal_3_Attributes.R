@@ -1,701 +1,747 @@
-#' @title Data Package Template filling
+#' @import shiny
+#' @importFrom shinyTree shinyTree
 #'
-#' @description UI part of the Attributes module. Fill in the attributes of the data package
-#'
-#' @importFrom shiny NS fluidPage fluidRow column tags tagList HTML actionButton icon uiOutput
-AttributesUI <- function(id, title, dev) {
+#' @noRd
+AttributesUI <- function(id, main.env) {
   ns <- NS(id)
   
-  return(
-    fluidPage(
-      tagList(
-        "Even if EML Assembly Line automatically infers most
-        of your data's metadata, some steps need you to check
-        out. Please check the following attribute, and fill
-        in at least the", with_red_star("mandatory elements.")
-      ),
-      # Attributes
-      fluidRow(
-        column(
-          1,
-          actionButton(
-            ns("file_prev"),
-            "",
-            icon("chevron-left")
-          )
-        ),
-        column(
-          10,
-          uiOutput(ns("current_file"),
-            inline = TRUE
-          )
-        ),
-        column(
-          1,
-          actionButton(
-            ns("file_next"),
-            "",
-            icon("chevron-right")
-          )
+  unit.list <- isolate(setUnitList(main.env)$unit.list)
+  
+  tagList(
+    tags$p(
+      "Even if EML Assembly Line automatically infers most
+      of your data's metadata, some steps need you to check
+      out. Please check the following attribute, and fill
+      the required fields. Once they will be filled, corresponding
+      fields will turn to green."
+    ),
+    fluidRow(
+      # Left : shinyTree (output)
+      column(
+        5, 
+        shinyTree::shinyTree(
+          # TODO add colors
+          ns("tree") #,
+          # types = "{ 'red-node': {'a_attr' : { 'style' : 'color:red' }},
+          #   'green-node': {'a_attr' : { 'style' : 'color:green' }} }"
         )
       ),
-      fluidRow(
-        column(12,
-          uiOutput(ns("edit_attributes")) %>% withSpinner(color = "#599cd4")
+      # Right: form
+      column(
+        5,
+        tags$div(
+          id = "no_attribute",
+          helpText("No attribute selected")
+        ),
+        shinyjs::hidden(
+          tags$div(
+            id = "form",
+            # - filename (output)
+            helpText(textOutput(ns("filename"))),
+            # - attributeName (output)
+            tags$h4(textOutput(ns("attributeName"))),
+            # - attributeDefinition ----
+            textAreaInput(
+              ns("attributeDefinition"), 
+              "Description of the attribute",
+              width = "100%"
+            ),
+            # - class ----
+            selectInput(
+              ns("class"),
+              "Dectected class (change if misdetected)",
+              choices = c("numeric", "character", "Date", "categorical")
+            ),
+            # - dateTimeFormatString ----
+            selectInput(
+              ns("dateTimeFormatString"),
+              "Select a date format",
+              choices = isolate(main.env$FORMATS$dates)
+            ),
+            # - unit ----
+            selectInput(
+              ns("unit"),
+              "Select an unit",
+              choices = unit.list,
+              selected = unit.list$dimensionless[1]
+            ),
+            # - missingValueCode ----
+            textInput(
+              ns("missingValueCode"),
+              "Code for missing value (1 word)"
+            ),
+            # - missingValueCodeExplanation ----
+            textAreaInput(
+              ns("missingValueCodeExplanation"),
+              "Explain Missing Values",
+              width = "100%"
+            )
+          ) # end div
+        ) # end hidden
+      ), # end column
+      column(
+        2, 
+        tags$div(
+          id = "preview",
+          tags$b("Data Preview"),
+          tableOutput(ns("preview"))
         )
-      ),
-      # Custom Units
-      tags$h4("Custom Units"),
-      fluidRow(
-        tableOutput(ns("CUUI"))
       )
-    ) # end fluidPage
-  ) # end return
+    ), # end fluidRow
+    # Custom Units ----
+    shinyjs::hidden(
+      tags$div(
+        id = "custom_units",
+        tags$hr(),
+        tags$h4("Custom units"),
+        fluidRow(
+          tableOutput(ns("CUUI"))
+        )
+      )
+    )
+  )
 }
 
-#' @describeIn AttributesUI
-#'
-#' @description server part of the Attributes module.
-#'
-#' @importFrom data.table fwrite
-#' @importFrom shiny observeEvent req reactiveValues observe renderUI tags callModule textAreaInput HTML selectInput tagList
-#' observe eventReactive validate
-#' @importFrom shinyjs hide show enable disable onclick
-#' @importFrom EMLassemblyline template_categorical_variables template_geographic_coverage
-#' @importFrom shinyBS bsCollapse bsCollapsePanel updateCollapse
-Attributes <- function(input, output, session,
-  savevar, globals, NSB) {
-  ns <- session$ns
-  
-  if (globals$dev) {
-    onclick("fill", {
-      req(input$fill)
-      rv <- .fill(rv)
-    }) # end of observeEvent
-    
-    onclick("dev", {
-      req(globals$EMLAL$NAVIGATE == 3)
-      browser()
-    }, asis=TRUE)
-  }
-  
-  if (globals$dev || isTRUE(savevar$emlal$quick)) {
-    .fill <- function(rv = rv) {
-      lapply(seq(rv$tables), function(ind) {
-        table <- rv$tables[[ind]]
-        sapply(colnames(table), function(col) {
-          # Set values
-          if (col == "attributeDefinition") {
-            rv$tables[[ind]][[col]] <- paste("Description for", rv$tables[[ind]][["attributeName"]])
+#' @importFrom shinyTree renderTree
+Attributes <- function(id, main.env) {
+  moduleServer(id, function(input, output, session) {
+    if (main.env$dev){
+      observeEvent(
+        main.env$dev.browse(), 
+        {
+          if (main.env$current.tab() == "fill" &&
+              main.env$EAL$page == 3) {
+            browser()
           }
-          if (col %in% c("missingValueCodeExplanation", "missingValueCode")) {
-            rv$tables[[ind]][[col]] <- rep("LoremIpsum", dim(table)[1])
-          }
-          if (col == "dateTimeFormatString") {
-            dat_row <- which(rv$tables[[ind]]$class == "Date")
-            rv$tables[[ind]][dat_row, col] <- rep(globals$FORMAT$DATE[3], length(dat_row))
-          }
-          if (col == "unit") {
-            uni_row <- which(rv$tables[[ind]]$class == "numeric")
-            rv$tables[[ind]][uni_row, col] <- rep(globals$FORMAT$UNIT[2], length(uni_row))
-          }
-          
-          # Update values
-          if (ind == rv$current_file) {
-            sapply(1:dim(rv$tables[[ind]])[1], function(item) {
-              inputId <- paste(ind, item, col, sep = "-")
-              if (inputId %in% names(input)) {
-                if (col %in% c("unit", "dateTimeFormatString")) {
-                  updateSelectInput(session, inputId, selected = rv$tables[[ind]][item, col])
-                }
-                if (col %in% c("attributeDefinition", "missingValueCode", "missingValueCodeExplanation")) {
-                  updateTextAreaInput(session, inputId, value = rv$tables[[ind]][item, col])
-                }
-              }
-            })
-          }
-        }) # end of sapply
-        
-        # Update current table
-        if (ind == rv$current_file) {
-          rv$current_table <- rv$tables[[ind]]
         }
-      }) # end of lapply
-      return(rv)
-    } # end of .fill
-  }
-  
-  
-  # variable initialization -----------------------------------------------------
-  rv <- reactiveValues(
-    data.filepath = savevar$emlal$DataFiles$datapath,
-    filepath = savevar$emlal$DataFiles$metadatapath,
-    filenames = basename(savevar$emlal$DataFiles$metadatapath),
-    current_file = 1,
-    tables = NULL,
-    current_table = NULL,
-    current_preview = NULL,
-    CU_Table = data.frame(),
-    cu_values = rep(NA,5),
-    modalOn = FALSE,
-    unitId = ""
-  )
-  rv$tables <- lapply(
-    rv$filepath, readDataTable,
-    data.table = FALSE, stringsAsFactors = FALSE
-  )
-  rv$current_table <- rv$tables[[rv$current_file]]
-  rv$CU_Table <- readDataTable(
-    dir(savevar$emlal$SelectDP$dp_metadata_path, pattern = "ustom", full.names = TRUE),
-    stringsAsFactors = FALSE,
-  )
-  
-  if (isTRUE(savevar$emlal$quick)) {
-    rv <- .fill(rv)
-  }
-  
-  curt <- makeReactiveTrigger()
-  unitcheck <- makeReactiveTrigger()
-  
-  # List of observers
-  obs <- reactiveValues()
-  
-  # Navigation buttons -----------------------------------------------------
-  onclick("file_prev", {
-    req(rv$current_file > 1)
-    # Save
-    if (!is.null(rv$current_table)) {
-      rv$tables[[rv$current_file]] <- rv$current_table
-    }
-    # Change file
-    rv$current_file <- rv$current_file - 1
-  })
-  
-  onclick("file_next", {
-    req(rv$current_file < length(rv$filenames))
-    # Save
-    if (!is.null(rv$current_table)) {
-      rv$tables[[rv$current_file]] <- rv$current_table
-    }
-    # Change file
-    rv$current_file <- rv$current_file + 1
-  })
-  
-  # update table
-  observeEvent(rv$current_file,{
-    req(rv$current_file > 0)
-    rv$current_table <- rv$tables[[rv$current_file]]
-    rv$current_table[is.na(rv$current_table)] <- ""
-    rv$current_preview <- readDataTable(
-      rv$data.filepath[rv$current_file],
-      stringsAsFactors = FALSE,
-      nrows = 5
-    )
-  }, priority = 1)
-  
-  # display
-  output$current_file <- renderUI(
-    tags$div(
-      h4(rv$filenames[rv$current_file]),
-      style = paste0(
-        "background: linear-gradient(90deg, #3c8dbc ",
-        round(100 * rv$currentIndex / length(rv$filenames)),
-        "%, white ",
-        round(100 * rv$currentIndex / length(rv$filenames)),
-        "%);"
-      ),
-      class = "ellipsis text-title"
-    )
-  )
-  
-  # * UI -----------------------------------------------------
-  observeEvent(rv$current_file, {
-    req(checkTruth(rv$current_table))
-    current_table <- isolate(rv$current_table)
-    
-    output$edit_attributes <- renderUI({
-      # validity check
-      validate(
-        need(
-          !identical(current_table, data.frame()) &&
-            isTruthy(current_table),
-          "No valid attributes table."
-        )
       )
+    }
+    
+    # Tree ====  
+    
+    # * Make tree ----
+    # Compute tree
+    treeContent <- eventReactive({
+      main.env$EAL$page
+      main.env$local.rv$md.tables
+    }, {
+      req(main.env$EAL$page == 3)
+      .tables <- isolate(main.env$local.rv$md.tables)
       
-      # GUI
-      ui <- do.call(
-        bsCollapse,
-        args = c(
-          lapply(
-            seq(dim(current_table)[1]), # rows
-            fields = colnames(current_table),
-            function(row_index, fields) {
-              # prepare variables
-              attribute_row <- current_table[row_index, ]
-              
-              return(
-                bsCollapsePanel(
-                  title = attribute_row[fields[1]],
-                  tagList(
-                    column(9,
-                      lapply(fields[-1], function(colname) {
-                        # prepare var
-                        saved_value <- isolate(rv$current_table[row_index, colname])
-                        inputId <- paste(
-                          isolate(rv$current_file),
-                          row_index,
-                          colname,
-                          sep = "-"
-                        )
-                        
-                        # GUI
-                        switch(colname,
-                          attributeDefinition = textAreaInput(
-                            ns(inputId),
-                            value = saved_value,
-                            with_red_star("Describe the attribute")
-                          ),
-                          class = selectInput(
-                            ns(inputId),
-                            "Dectected class (change if misdetected)",
-                            choices = c("numeric", "character", "Date", "categorical"),
-                            selected = saved_value
-                          ),
-                          unit = {
-                            tmp <- selectInput(
-                              ns(inputId),
-                              with_red_star("Select an unit"),
-                              unique(c(
-                                saved_value,
-                                as.character(rv$CU_Table$id),
-                                globals$FORMAT$UNIT
-                              )),
-                              selected = if (isTruthy(saved_value)) saved_value
-                            )
-                            if (isTruthy(saved_value))
-                              tmp
-                            else
-                              hidden(tmp)
-                          },
-                          dateTimeFormatString = {
-                            tmp <- selectInput( # TODO add a module for hour format
-                              ns(inputId),
-                              with_red_star("Select a date format"),
-                              unique(c(saved_value, globals$FORMAT$DATE)),
-                              selected = saved_value
-                            )
-                            if (isTruthy(saved_value))
-                              tmp
-                            else
-                              hidden(tmp)
-                          },
-                          missingValueCode = textInput(
-                            ns(inputId),
-                            "Code for missing value (max 1 word)",
-                            value = saved_value
-                          ),
-                          missingValueCodeExplanation = textAreaInput(
-                            ns(inputId),
-                            "Explain Missing Values",
-                            value = saved_value
-                          ),
-                          NULL
-                        ) # end of switch
-                      }) # end of lapply colname
-                    ),
-                    column(
-                      3,
-                      h4("Preview:"),
-                      tableOutput(ns(paste0("preview-", colnames(rv$current_preview)[row_index])))
-                    ) # end of column
-                  )
-                ) # end of bsCollapsePanel
-              ) # end of return
-            }
-          ), # end of lapply : row_index
-          id = ns("collapse")
-        )
-      )
-      return(ui)
-    })
-    
-  }) # end of observeEvent
-  
-  # * Server -----------------------------------------------------
-  observeEvent(rv$current_file, {
-    req(checkTruth(rv$current_table))
-    
-    sapply(
-      seq(dim(rv$current_table)[1]),
-      fields = colnames(rv$current_table)[-1], # not Attribute Name
-      function(row_index, fields) {
-        
-        # TODO Update style: to correct
-        #   updateCollapse(
-        #     session = session,
-        #     ns("collapse"),
-        #     style = filled
-        #   )
-        
-        preview_column <- colnames(rv$current_preview)[row_index]
-        output[[paste0("preview-", preview_column)]] <- renderTable(rv$current_preview[preview_column])
-        
-        lapply(fields, function(colname) {
-          inputId <- paste(
-            isolate(rv$current_file),
-            row_index,
-            colname,
-            sep = "-"
-          )
-          
-          obs[[inputId]] <- observeEvent(input[[inputId]], {
-            req(input[[inputId]])
-            if(grepl("class", inputId)){ # input: class
-              # Date
-              date_id <- paste(
-                isolate(rv$current_file),
-                row_index, 
-                "dateTimeFormatString",
-                sep="-"
-              )
-              if(input[[inputId]] == "Date")
-                show(date_id)
-              else {
-                isolate(rv$current_table[row_index, "dateTimeFormatString"] <- "")
-                hide(date_id)
-              }
-              
-              # Unit
-              unit_id <- paste(
-                isolate(rv$current_file),
-                row_index, 
-                "unit",
-                sep="-"
-              )
-              if(input[[inputId]] == "numeric")
-                show(unit_id)
-              else{
-                isolate(rv$current_table[row_index, "unit"] <- "")
-                hide(unit_id)
-              }
-              
-              rv$current_table[row_index, colname] <- input[[inputId]]
-            } else if (grepl("missingValueCode$", inputId)) { # input: missing Value code
-              if (grepl(".+ +.*", input[[inputId]])) {
-                val <- gsub("^ +", "", input[[inputId]])
-                updateTextInput(
-                  session,
-                  inputId,
-                  value = strsplit(val, " ")[[1]][1]
-                )
-                showNotification(
-                  id = session$ns("mvc_update"),
-                  ui = HTML("<code>missingValueCode</code> fields are limited to a <b>single word.</b>"),
-                  duration = 3,
-                  type = "warning"
-                )
-              }
-              
-              rv$current_table[row_index, colname] <- strsplit(input[[inputId]], " ")[[1]][1]
-            } else { # input: others
-              if(grepl("unit", inputId)){
-                # Trigger CU
-                if(input[[inputId]] == "custom" &&
-                  isFALSE(rv$modalOn)){
-                  isolate(rv$unitId <- c(
-                    isolate(rv$current_file),
-                    row_index,
-                    colname
-                  ))
-                  curt$trigger()
-                } else
-                # Remove CU
-                if(!input[[inputId]] %in% rv$CU_Table$id &&
-                    checkTruth(rv$CU_Table$id)){
-                  rv$CU_Table <- rv$CU_Table %>% 
-                    slice(which(rv$CU_Table$id %in% rv$current_table$unit[-row_index]))
-                }
-              }
-              # isolate(
-                rv$current_table[row_index, colname] <- input[[inputId]]
+      lapply(
+        names(.tables),
+        # Files node
+        main.env = main.env,
+        function(file.name, main.env) {
+          structure(lapply(
+            .tables[[file.name]]$attributeName,
+            # Attributes leaves
+            main.env = main.env,
+            file.name = file.name,
+            function(attributeName, file.name, main.env){
+              # check completeness
+              # complete.color <- ifelse(
+              #   all(
+              #     unlist(
+              #       listReactiveValues(
+              #         main.env$local.rv$completed[[
+              #           file.name]][[
+              #             attributeName
+              #           ]]
+              #       )
+              #     )
+              #   ),
+              #   "green-node",
+              #   "red-node"
               # )
+              
+              # Render leaf
+              structure(
+                attributeName,
+                sttype="default",
+                sticon="fa fa-table" #,
+                # sttype=complete.color
+              )
             }
-            rv$tables[[rv$current_file]] <- rv$current_table
-          }) # end of inner observeEvent
-        }) # end of lapply colname
-      } # end of *in situ* function
-    ) # end of sapply : row_index
-  }) # end of observeEvent
-  
-  # Custom units ----
-  observe({
-    curt$depend()
-    df <- isolate(rv$current_table)
-    modalOn <- isolate(rv$modalOn)
-    req(any(df$unit == "custom"))
-    
-    row <- which(df$unit == "custom")
-    class <- df[row,"class"]
-    
-    if(class == "numeric" && 
-        modalOn == FALSE){
-      rv$cu_values <- rv$CU_Table %>%
-        filter(grepl(class, id))
-      if(any(dim(rv$cu_values) == 0))
-        rv$cu_values <- rep(NA, 5)
-      
-      showModal(CU_Modal(rv$cu_values, CU_Table = rv$CU_Table))
-      
-      rv$modalOn <- TRUE
-      
-      isolate({
-        rv$current_table[row, "unit"] <- ""
-      })
-    }
-  })
-  
-  CU_Modal <- function(values = rep(NA,5), CU_Table = NULL){
-    modalDialog(
-      title = "Custom Unit",
-      tagList(
-        # id
-        fluidRow(
-          column(6, offset = 3,
-            textInput(
-              ns("modal_id"),
-              label = with_red_star("Unit identifier"),
-              placeholder = "e.g. milligramsPerGram",
-              value = if(!is.na(values[1])) values[1] else NULL
-            ),
-            # unitType
-            textInput(
-              ns("modal_unitType"),
-              label = with_red_star("Physical property types the unit belongs to"),
-              placeholder = "e.g. mass",
-              value = if(!is.na(values[2])) values[2] else NULL
-            ),
-            # ParentSI
-            selectInput(
-              ns("modal_parentSI"),
-              label = with_red_star("Parent unit in SI"),
-              choices = globals$FORMAT$UNIT[-1],
-              selected = if(!is.na(values[3])) values[3] else NULL
-            ),
-            # MultiplierToSI
-            numericInput(
-              ns("modal_multiplier"),
-              label = with_red_star("Numeric multiplier computed from Parent unit in SI"),
-              value = 1,
-            ),
-            # Description
-            textAreaInput(
-              ns("modal_description"),
-              label = with_red_star("Unit description"),
-              placeholder = "e.g. milligrams per gram",
-              value = if(!is.na(values[5])) values[5] else NULL
-            )
+          ) %>%
+            setNames(nm = .tables[[file.name]]$attributeName), 
+          sttype = "root", sticon = "fa fa-file"
           )
-        ) # end of fluidRow
-      ),
-      easyClose = FALSE,
-      footer = tagList(
-        actionButton(ns("modal_cancel"), "Cancel"),
-        actionButton(ns("modal_submit"), "Submit")
-      )
-    )
-  }
-  
-  # * CU server ----
-  # Cancel
-  onclick("modal_cancel", {
-    req(isTRUE(rv$modalOn))
-    
-    # Close modal
-    rv$modalOn <- FALSE
-    removeModal()
-    
-    isolate(
-      updateSelectInput(
-        session,
-        paste(rv$unitId, collapse = "-"),
-        selected = globals$FORMAT$UNIT[2]
-      )
-    )
-  })
-  
-  # Submit button en/disable
-  observe({
-    req(isTRUE(rv$modalOn))
-    
-    # type a new one
-    if(!input$modal_id %in% rv$CU_Table$id &&
-        input$modal_id != "custom" &&
-        isTruthy(input$modal_id)  &&
-        isTruthy(input$modal_unitType) &&
-        isTruthy(input$modal_parentSI) &&
-        isTruthy(input$modal_multiplier) &&
-        isTruthy(input$modal_description)) {
-      enable("modal_submit")
-    } else
-      disable("modal_submit")
-  })
-  
-  # Submit
-  onclick("modal_submit", {
-    req(isTRUE(rv$modalOn))
-    
-    # Close modal
-    removeModal()
-    rv$modalOn <- FALSE
-    
-    isolate({
-      rv$cu_values <- c(
-        input$modal_id,
-        input$modal_unitType,
-        input$modal_parentSI,
-        input$modal_multiplier,
-        input$modal_description
-      )
-    })
-      
-    # Update CU values
-    if(rv$cu_values[1] %in% rv$CU_Table$id)
-      rv$CU_Table <- rv$CU_Table %>%
-      filter(id = rv$cu_values[1]) %>% 
-      replace(values = rv$cu_values)
-    # Add CU values
-    else{
-      names(rv$cu_values) <- colnames(rv$CU_Table) 
-      rv$CU_Table[dim(rv$CU_Table)[1]+1,] <- rv$cu_values
-    }
-    
-    # update input UI
-    isolate({
-      updateSelectInput(
-        session,
-        paste(rv$unitId, collapse = "-"),
-        selected = input$modal_id
-      )
-    })
-    
-    row <- rv$unitId[2]
-    col <- rv$unitId[3]
-    isolate(rv$current_table[row, col] <- input$modal_id)
-  })
-
-  output$CUUI <- renderTable({
-    validate(
-      need(isTruthy(unlist(rv$CU_Table)), "No custom units registered")
-    )
-    return(rv$CU_Table)
-  })
-  
-  # Saves -----------------------------------------------------
-  observeEvent(rv$tables, {
-    globals$EMLAL$COMPLETE_CURRENT <- FALSE
-    req(
-      length(rv$tables) != 0 &&
-        !any(sapply(rv$tables, identical, y = data.frame()))
-    )
-    
-    globals$EMLAL$COMPLETE_CURRENT <- all(
-      unlist(
-        lapply(
-          rv$tables,
-          function(table) {
-            isTruthy(table) &&
-              all(sapply(table$attributeName, isTruthy)) &&
-              all(sapply(table$attributeDefinition, isTruthy)) &&
-              all(sapply(table$class, isTruthy)) &&
-              !any(grepl("!Add.*here!", table$unit)) &&
-              !any(grepl("!Add.*here!", table$dateTimeFormatString))
-          }
-        ) # lapply
-      ) # unlist
-    ) # all
-  },
-    priority = -1
-  )
-  
-  observeEvent(NSB$SAVE, {
-    req(tail(globals$EMLAL$HISTORY,1) == "Attributes")
-    
-    savevar <- saveReactive(
-      savevar = savevar,
-      rv = list(Attributes = rv)
-    )
-  }, ignoreInit = TRUE)
-  
-  # en/disable buttons
-  observeEvent(rv$current_file, {
-    req(
-      isTruthy(names(input)) &&
-        isTruthy(names(rv$current_file))
-    )
-    
-    if (rv$current_file == 1) {
-      disable("file_prev")
-    } else {
-      enable("file_prev")
-    }
-    if (rv$current_file == length(rv$filenames)) {
-      disable("file_next")
-    } else {
-      enable("file_next")
-    }
-  })
-  
-  # Process data -----------------------------------------------------
-  observeEvent(NSB$NEXT, {
-    req(globals$EMLAL$CURRENT == "Attributes")
-
-    withProgress({
-      setProgress(0.5, "Saving metadata")
-      
-      savevar <- saveReactive(
-        savevar = savevar, 
-        rv = list(Attributes = rv)
-      )
-      
-      # for each attribute data frame
-      setProgress(0.8, "Resolving catvar templates")
-      templateCatvars <- sapply(
-        seq_along(rv$filenames),
-        function(cur_ind) {
-          
-          # check for direction: CustomUnits or CatVars
-          return(isTRUE("categorical" %in% rv$tables[[cur_ind]][, "class"]))
         }
-      ) %>% unlist %>% any
+      ) %>% 
+        setNames(nm = names(.tables))
+    })
+    
+    # Render computed tree
+    output$tree <- shinyTree::renderTree({
+      treeContent()
+    })
+    
+    # * Get input from tree ----
+    # shinyTree selection
+    .selected <- reactive({
+      if(isContentTruthy(input$tree)){
+        get_selected(input$tree)
+      } else {
+        return(NULL)
+      }
+    })
+    
+    # shinyTree path exploration
+    .ancestor <- reactive({
+      if(isContentTruthy(.selected())){
+        attr(.selected()[[1]], "ancestry")
+      } else {
+        return(NULL)
+      }
+    })
+    
+    # get selected file from shinyTree
+    selected.file <- reactive({
+      req(isContentTruthy(.selected()) && 
+            isContentTruthy(.ancestor()))
+      if(length(.ancestor()) == 0)
+        return(.selected()[[1]][1])
+      else
+        return(.ancestor())
+    })
+    
+    # Show selected filename
+    output$filename <- renderText(selected.file())
+    
+    # Set shortcut reactive for table
+    selected.table <- reactive({
+      main.env$local.rv$md.tables[[selected.file()]]
+    })
+    
+    # get selected attribute from shinyTree
+    selected.attribute <- reactive({
+      req(isContentTruthy(.selected()))
+      if(length(.ancestor()) == 0)
+        return(NULL)
+      else
+        return(.selected()[[1]][1])
+    })
+    
+    # Show selected attributeName
+    output$attributeName <- renderText({
+      req(selected.attribute())
+      selected.attribute()
+    })
+    
+    # * Change attribute ----
+    observeEvent({
+      selected.attribute()
+    }, {
+      validate(
+        need(isTruthy(selected.file()), "Not a valid file"),
+        need(!is.null(selected.attribute()), "Not a valid attribute")
+      )
       
-      # EMLAL: template new fields if needed
-      if (isTRUE(templateCatvars)) {
-        try(
-          template_categorical_variables(
-            path = savevar$emlal$SelectDP$dp_metadata_path,
-            data.path = savevar$emlal$SelectDP$dp_data_path
+      # Update values
+      .row <- main.env$local.rv$md.tables[[selected.file()]] %>%
+        filter(attributeName == selected.attribute())
+      # Set class
+      updateSelectInput(
+        session,
+        "class", 
+        selected = .row$class
+      )
+      # Set attributeDefinition
+      updateTextAreaInput(
+        session,
+        "attributeDefinition",
+        value = .row$attributeDefinition
+      )
+      # Set dateTimeFormatString
+      updateSelectInput(
+        session,
+        "dateTimeFormatString",
+        selected = .row$dateTimeFormatString
+      )
+      # Set unit
+      .tmp <- setUnitList(
+        main.env, 
+        set = if(.row$class == "numeric") .row$unit
+      )
+      updateSelectInput(
+        session,
+        "unit",
+        choices = .tmp$unit.list,
+        selected = .tmp$set.unit
+      )
+      # Set missingValueCode
+      updateTextInput(
+        session,
+        "missingValueCode",
+        value = .row$missingValueCode
+      )
+      # Set missingValueCodeExplanation
+      updateTextAreaInput(
+        session,
+        "missingValueCodeExplanation",
+        value = .row$missingValueCodeExplanation
+      )
+      
+      # ** Check validity ----
+      # at least check one attribute
+      main.env$local.rv$checked <- TRUE
+      
+      # ShinyFeedBack
+      checkFeedback(input, "attributeDefinition", type = "danger")
+      checkFeedback(input, "class", type = "danger")
+      checkFeedback(
+        input, "dateTimeFormatString", 
+        condition = if(input$class == "Date")
+          isTruthy(input$dateTimeFormatString) && 
+          input$dateTimeFormatString %in% main.env$FORMATS$dates
+        else
+          TRUE,
+        type = "danger"
+      )
+      checkFeedback(
+        input, "unit", 
+        condition = if(input$class == "numeric")
+          isTruthy(input$unit) && 
+          input$unit %grep% main.env$FORMATS$units
+        else
+          TRUE,
+        type = "danger"
+      )
+      checkFeedback(input, "missingValueCode", type = "warning")
+      checkFeedback(input, "missingValueCodeExplanation", type = "warning")
+    }, 
+    ignoreNULL = FALSE, 
+    ignoreInit = FALSE)
+    
+    # Form ====
+    
+    # toggle form 
+    observe({
+      shinyjs::toggle(selector = "#no_attribute", condition = is.null(selected.attribute()))
+      shinyjs::toggle(selector = "#form", condition = !is.null(selected.attribute()))
+      shinyjs::toggle(
+        selector = "#custom_units",
+        condition = nrow(main.env$local.rv$custom.units$table) > 0
+      )
+    })
+    
+    # * attributeDefinition ----
+    observeEvent(input$attributeDefinition, {
+      validate(
+        need(isTruthy(selected.file()), "No file selected"),
+        need(isTruthy(selected.attribute()), "No attribute selected")
+      )
+      
+      # Get value
+      .row <- which(
+        main.env$local.rv$
+          md.tables[[selected.file()]]$
+          attributeName == selected.attribute()
+      )
+      
+      main.env$local.rv$
+        md.tables[[selected.file()]]$
+        attributeDefinition[.row] <<- input$attributeDefinition
+      
+      # Check validity
+      checkFeedback(input, "attributeDefinition", type = "danger")
+    })
+    
+    # * class ----
+    observeEvent({
+      input$class
+      selected.attribute()
+    }, {
+      validate(
+        need(isTruthy(selected.file()), "No file selected"),
+        need(isTruthy(selected.attribute()), "No attribute selected"),
+        need(isTruthy(input$class), "Invalid value for class"),
+        need(
+          input$class %in% c("character", "categorical", "numeric", "Date"), 
+          "Value not found for class"
+        )
+      )
+      
+      main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
+        main.env$local.rv$md.tables[[selected.file()]],
+        selected.attribute(),
+        "class",
+        input$class
+      )
+      
+      # Hide/show units and dateTFS
+      shinyjs::toggle(
+        "dateTimeFormatString",
+        condition = input$class == "Date"
+      )
+      if(input$class != "Date") {
+        updateSelectInput(
+          session,
+          "dateTimeFormatString",
+          selected = ""
+        )
+      } else {
+        updateSelectInput(
+          session,
+          "dateTimeFormatString",
+          selected = main.env$FORMATS$dates[1] # YYYY-MM-DD
+        )
+      }
+      
+      shinyjs::toggle(
+        "unit",
+        condition = input$class == "numeric"
+      )
+      if(input$class != "numeric") {
+        updateSelectInput(
+          session,
+          "unit",
+          selected = ""
+        )
+      } else {
+        .unit <- selected.table()[
+          which(selected.table()$attributeName == selected.attribute()),
+          "unit"
+        ]
+        .tmp <- setUnitList(
+          main.env, 
+          set = optional(.unit, "dimensionless")
+        )
+        updateSelectInput(
+          session,
+          "unit",
+          choices = .tmp$unit.list,
+          selected = .tmp$set.unit
+        )
+      }
+      
+      # Check validity
+      checkFeedback(input, "class", type = "danger")
+    })
+    
+    # * dateTimeFormatString ----
+    observeEvent(input$dateTimeFormatString, {
+      validate(
+        need(isTruthy(selected.file()), "No file selected"),
+        need(isTruthy(selected.attribute()), "No attribute selected"),
+        need(input$class == "Date", "Not a Date")
+      )
+      
+      main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
+        main.env$local.rv$md.tables[[selected.file()]],
+        selected.attribute(),
+        "dateTimeFormatString",
+        input$dateTimeFormatString
+      )
+      
+      # Check validity
+      checkFeedback(
+        input, 
+        "dateTimeFormatString", 
+        condition = if(input$class == "Date")
+          isTruthy(input$dateTimeFormatString) && 
+          input$dateTimeFormatString %in% main.env$FORMATS$dates
+        else
+          TRUE,
+        type = "danger"
+      )
+    })
+    
+    # * unit ----
+    observeEvent(input$unit, {
+      validate(
+        need(isTruthy(selected.file()), "No file selected"),
+        need(isTruthy(selected.attribute()), "No attribute selected"),
+        need(input$class == "numeric", "Not a number")
+      )
+      
+      # Standard unit
+      if(input$unit != "custom") {
+        # Save value
+        main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
+          main.env$local.rv$md.tables[[selected.file()]],
+          selected.attribute(),
+          "unit",
+          input$unit
+        )
+      } else { # Custom unit
+        # Check if currently worked unit is a custom one
+        saved <- main.env$local.rv$md.tables[[selected.file()]] %>%
+          filter(attributeName == selected.attribute()) %>%
+          select(unit) %>%
+          unlist()
+        # Set default value for input module
+        if(isTRUE(saved %in% main.env$local.rv$custom.units$table$unit.id)) {
+          .values <- main.env$local.rv$custom.units$table %>%
+            dplyr::filter(id == saved) %>%
+            unlist(use.names = T)
+        } else {
+          .values <- rep(NA, 5) %>%
+            setNames(nm = names(main.env$local.rv$custom.units$table))
+        }
+        
+        # Properly show modal
+        showModal(
+          customUnitsUI(
+            session$ns("customUnits"),
+            values = .values
           )
         )
       }
       
-      setProgress(0.9, "Templating geographic coverage")
-      try(
-        template_geographic_coverage(
-          path = savevar$emlal$SelectDP$dp_metadata_path,
-          data.path = savevar$emlal$SelectDP$dp_data_path,
-          empty = TRUE,
-          write.file = TRUE
+      # Check validity
+      .condition <- if(input$class == "numeric") {
+        isTruthy(input$unit) && 
+          input$unit != "custom" &&
+          (input$unit %grep% main.env$FORMATS$units ||
+             input$unit %in% main.env$local.rv$custom.units$table$id)
+      } else TRUE
+      if(main.env$dev)
+        devmsg("%s", as.character(.condition))
+      checkFeedback(
+        input, 
+        "unit",
+        condition = .condition,
+        type = "danger"
+      )
+    })
+    
+    # ** Custom Units ----
+    customUnits("customUnits", main.env)
+    
+    observeEvent({
+      if(main.env$EAL$page == 3 &&
+         "cancel" %in% names(main.env$local.rv$custom.units)){
+        main.env$local.rv$custom.units$cancel()
+      }
+    }, {
+      # Set unit
+      .tmp <- setUnitList(
+        main.env, 
+        set = "dimensionless"
+      )
+      updateSelectInput(
+        session,
+        "unit",
+        choices = .tmp$unit.list,
+        selected = .tmp$set.unit
+      )
+    }, priority = -1)
+    
+    observeEvent({
+      if(main.env$EAL$page == 3 &&
+         "reactive" %in% names(main.env$local.rv$custom.units)){
+        main.env$local.rv$custom.units$reactive()
+      }
+    }, {
+      req(main.env$EAL$page == 3)
+      req(input$unit == "custom")
+      
+      .unit <- main.env$local.rv$custom.units$table$id
+      main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
+        main.env$local.rv$md.tables[[selected.file()]],
+        selected.attribute(),
+        "unit",
+        .unit
+      )
+      .tmp <- setUnitList(
+        main.env, 
+        set = if(input$class == "numeric") .unit
+      )
+      updateSelectInput(
+        session,
+        "unit",
+        choices = .tmp$unit.list,
+        selected = .tmp$set.unit
+      )
+    }, priority = -1)
+    
+    output$CUUI <- renderTable({
+      main.env$local.rv$custom.units$reactive()
+    })
+    
+    # Check if a custom unit has been removed
+    observe({
+      # Trigger observe
+      .row <- main.env$local.rv$md.tables[[selected.file()]] %>% 
+        filter(attributeName == selected.attribute())
+      # Get list of CU id
+      .cuids <- main.env$local.rv$custom.units$table$id
+      sapply(.cuids, function(.cuid){
+        .found <- any(sapply(
+          listReactiveValues(main.env$local.rv$md.tables),
+          function(table){
+            .cuid %grep% table$unit
+          }
+        ))
+        if(!.found){
+          .row.index <- which(.cuids == .cuid)
+          main.env$local.rv$custom.units$table <<-
+            main.env$local.rv$custom.units$table[-.row.index,]
+        }
+      })
+    }, priority = -1)
+    
+    # * missingValueCode ----
+    observeEvent(input$missingValueCode, {
+      validate(
+        need(isTruthy(selected.file()), "No file selected"),
+        need(isTruthy(selected.attribute()), "No attribute selected")
+      )
+      
+      # Limit to 1 word
+      if (grepl(".+ +.*", input$missingValueCode)) {
+        # Shorten
+        .value <- strsplit(
+          gsub("^ +", "", input$missingValueCode),
+          split = " "
+        )[[1]][1]
+        # Update input
+        updateTextInput(
+          session,
+          "missingValueCode",
+          value = .value
+        )
+        # Send notification to user
+        showNotification(
+          id = "mvc_update",
+          ui = tagList(
+            tags$code("missingValueCode"),
+            "fields are limited to a",
+            tags$b("single word.")
+          ),
+          duration = 3,
+          type = "warning"
+        )
+      }
+      
+      main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
+        main.env$local.rv$md.tables[[selected.file()]],
+        selected.attribute(),
+        "missingValueCode",
+        input$missingValueCode
+      )
+      
+      # Check validity
+      checkFeedback(input, "missingValueCode", type = "warning")
+      if(isContentTruthy(input$missingValueCode))
+        checkFeedback(input, "missingValueCodeExplanation", type = "danger") else
+          checkFeedback(input, "missingValueCodeExplanation", type = "warning")
+      
+    })
+    
+    # * missingValueCodeExplanation ----
+    observeEvent(input$missingValueCodeExplanation, {
+      validate(
+        need(isTruthy(selected.file()), "No file selected"),
+        need(isTruthy(selected.attribute()), "No attribute selected")
+      )
+      
+      main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
+        main.env$local.rv$md.tables[[selected.file()]],
+        selected.attribute(),
+        "missingValueCodeExplanation",
+        input$missingValueCodeExplanation
+      )
+      
+      # Check validity
+      checkFeedback(input, "missingValueCodeExplanation", type = "warning")
+    })
+    
+    # Preview ====
+    output$preview <- renderTable({
+      req(isContentTruthy(selected.file()))
+      req(isContentTruthy(selected.attribute()))
+      
+      validate(
+        need(
+          isTruthy(main.env$local.rv$preview[[selected.file()]][selected.attribute()]),
+          "empty column"
         )
       )
       
-      if(isFALSE(templateCatvars))
-        isolate(globals$EMLAL$NAVIGATE <- globals$EMLAL$NAVIGATE + 1)
-      incProgress(0.1)
+      as.data.frame(
+        main.env$local.rv$preview[[selected.file()]][[selected.attribute()]] %>%
+          as.vector() %>%
+          sapply(., function(e) {
+            if(is.character(e)) 
+              enc2utf8(e)
+            else
+              e
+          })
+      ) %>%
+        setNames(nm = "")
     })
-  }, priority = 1, ignoreInit = TRUE)
-  
-  # Output -----------------------------------------------------
-  return(savevar)
+    
+    # Completeness ====
+    observeEvent({
+      input$attributeDefinition
+      input$class
+      input$dateTimeFormatString
+      input$unit
+      input$missingValueCode
+      input$missingValueCodeExplanation
+    }, {
+      req(main.env$EAL$page == 3)
+      # Upon any input change, check attribute's completeness
+      main.env$local.rv$completed[[
+        selected.file()
+      ]][[
+        selected.attribute()
+      ]] <- (
+        isContentTruthy(input$attributeDefinition) &&
+          isContentTruthy(input$class) &&
+          input$class %in% c("character", "numeric", "Date", "categorical") &&
+          {
+            if(input$class == "Date") {
+              isContentTruthy(input$dateTimeFormatString) &&
+                input$dateTimeFormatString %in% main.env$FORMATS$dates
+            } else TRUE
+          } &&
+          {
+            if(input$class == "numeric") {
+              isContentTruthy(input$unit) &&
+                input$unit != "custom" &&
+                input$unit %in% c(
+                  main.env$local.rv$custom.units$table$id,
+                  main.env$FORMATS$units
+                )
+            } else TRUE
+          } && 
+          {
+            if(isFALSE(input$missingValueCode == "" &&
+                       input$missingValueCodeExplanation == "")) {
+              isContentTruthy(input$missingValueCode) &&
+                isContentTruthy(input$missingValueCodeExplanation)
+            } else TRUE
+          }
+      )
+      
+      # Update whole completeness
+      main.env$EAL$completed <- isTRUE(main.env$local.rv$checked) &&
+        all(
+          unlist(
+            listReactiveValues(
+              main.env$local.rv$completed
+            )
+          )
+        )
+      
+      # If any problem, tell the user
+      # TODO add lacking attributes completion
+      if(!main.env$EAL$completed) {
+        main.env$EAL$tag.list <- tagList()
+        
+      } else {
+        # Else, allow next
+        main.env$EAL$tag.list <- tagList()
+        
+      }
+    },
+    priority = -2)
+    
+    # (End of Attributes) ====
+    
+  })
 }
-

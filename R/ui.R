@@ -1,110 +1,153 @@
-#' @title .app_ui
-#'
-#' @description UI part of the mainapp's  script
-#'
-#' @importFrom golem get_golem_options
-#' @importFrom shiny tagList tags actionLink icon span imageOutput actionButton HTML includeCSS
-#' @importFrom shinydashboard dashboardPage dashboardHeader dashboardSidebar sidebarMenu menuItem dashboardBody tabItems tabItem
-#' @importFrom shinyjs useShinyjs hidden
-#' @importFrom shinycssloaders withSpinner
-.app_ui <- function() {
+#' @import shiny
+#' @import shinydashboard
+#' @importFrom shinyjs useShinyjs inlineCSS hidden
+#' @importFrom shinyFeedback useShinyFeedback
+#' @importFrom htmltools includeCSS
+#' @importFrom shinydashboardPlus loadingState dashboardPagePlus dashboardHeaderPlus
+#' 
+#' @noRd
+ui <- function() {
   # get app arguments
-  appArgs <- get_golem_options()
-  dev <- appArgs$dev
-  server <- appArgs$server
+  main.env <- get("main.env", options()$metashark.env)
 
   # prepare variable
-  menuWidth <- "250px"
-  if (!is.logical(dev)) dev <- FALSE
-  globals <- .globalScript(dev, reactive = FALSE)
+  .menu.width <- "250px"
 
-  # action
   tagList(
-    includeCSS(system.file("app/www/styles.css", package = "MetaShARK")),
-    # List the first level UI elements here
-    dashboardPage(
-      title = "MetaShARK",
-      dashboardHeader(
-        tags$li(class = "dropdown", actionLink("appOptions", "", icon("gear"))),
-        tags$li(
-          class = "dropdown",
-          if (!isTRUE(server)) {
-            actionLink("close", "", icon("power-off"))
-          } else {
-            NULL
-          }
-        ),
-        title = tags$img(src="media/ms_logo_small.png", width="200px", height="50px"),
-        titleWidth = menuWidth
-      ),
-      ## Menus -----------------------------------------------------
-      dashboardSidebar(
-        useShinyjs(),
-        sidebarMenu(
-          id = "side_menu",
-          menuItem("Welcome",
-            tabName = "welcome",
-            icon = icon("home")
+    shinyjs::useShinyjs(),
+    shinyFeedback::useShinyFeedback(),
+    shinyjs::inlineCSS("
+      #loading-content {
+        position: absolute;
+        background: #000000;
+        opacity: 0.9;
+        z-index: 100;
+        left: 0;
+        right: 0;
+        height: 100%;
+        text-align: center;
+        color: #FFFFFF;
+      }
+      
+      .logo {
+        padding-left: 5px !important;
+        padding-top: 5px !important;
+      }
+    "),
+    htmltools::includeCSS(
+      system.file("app/www/styles.css", package = "MetaShARK")
+    ),
+    # Loading message
+    div(
+      id = "loading-content",
+      h2("Loading..."),
+      shinydashboardPlus::loadingState(),
+      tags$img(
+        src = "media/sea_shark.png",
+        width = "473px",
+        height = "235px"
+      )
+    ),
+    shinyjs::hidden(
+      div(
+        id = "app-content",
+        shinydashboardPlus::dashboardPagePlus(
+          title = "MetaShARK",
+          ## Header ====
+          header = shinydashboardPlus::dashboardHeaderPlus(
+            title = tagList(
+              span(
+                class = "logo-lg",
+                tags$img(
+                  src = "media/metashark-logo-v4.png",
+                  width = "240px",
+                  height = "40px"
+                )
+              ),
+              img(
+                src = "media/hex-MetaShARK_squared.png",
+                width = "40px",
+                height = "40px"
+              )
+            ),
+            titleWidth = "250px",
+            enable_rightsidebar = TRUE,
+            rightSidebarIcon = "gears"
           ),
-          menuItem("Fill in EML",
-            tabName = "fill",
-            icon = icon("file-import")
+          ## Menus ====
+          ## * Tools ----
+          sidebar = shinydashboard::dashboardSidebar(
+            shinydashboard::sidebarMenu(
+              id = "side_menu",
+              shinydashboard::menuItem(
+                "Welcome",
+                tabName = "welcome",
+                icon = icon("home")
+              ),
+              shinydashboard::menuItem(
+                "Fill in EML",
+                tabName = "fill",
+                icon = icon("file-import")
+              ),
+              shinydashboard::menuItem(
+                "Upload EML",
+                tabName = "upload",
+                icon = icon("file-export")
+              ),
+              shinydashboard::menuItem(
+                "EML Documentation",
+                tabName = "documentation",
+                icon = icon("glasses")
+              ),
+              shinydashboard::menuItem(
+                "About MetaShARK",
+                tabName = "about",
+                icon = icon("beer")
+              ),
+              if (main.env$dev) {
+                tagList(
+                  tags$hr(),
+                  actionButton(
+                    "dev", "DEV CHECK"
+                  )
+                )
+              }
+            ),
+            width = "250px"
+          ), # end sidebar
+          # * Settings ----
+          rightsidebar = rightSidebarSettings(
+            "settings",
+            wip = main.env$wip
           ),
-          menuItem("Upload EML",
-            tabName = "upload",
-            icon = icon("file-export")
-          ),
-          menuItem("EML Documentation",
-            tabName = "documentation",
-            icon = icon("glasses")
-          ),
-          menuItem("About MetaShARK",
-            tabName = "about",
-            icon = icon("beer")
-          ),
-          hidden( # Ghost tab for options
-            menuItem("appOptions",
-              tabName = "appOptions",
-              icon = icon("gear")
+          ## Content ====
+          body = shinydashboard::dashboardBody(
+            tags$script(HTML("$('body').addClass('fixed');")),
+            shinydashboard::tabItems(
+              shinydashboard::tabItem(
+                tabName = "welcome",
+                welcomeUI("welcome", wip = main.env$wip)
+              ),
+              shinydashboard::tabItem(
+                tabName = "fill",
+                fillUI("fill", main.env)
+              ),
+              shinydashboard::tabItem(
+                tabName = "upload",
+                uploadUI("upload", main.env)
+              ),
+              shinydashboard::tabItem(
+                tabName = "documentation",
+                docUI("documentation")
+              ),
+              shinydashboard::tabItem(
+                tabName = "about",
+                aboutUI("about")
+              )
             )
-          ),
-          if(globals$dev)
-            actionButton(
-              "dev", "DEV CHECK"
-            )
-        ),
-        width = menuWidth
-      ), # end sidebar
-      ## Content -----------------------------------------------------
-      dashboardBody(
-        tags$script(HTML("$('body').addClass('fixed');")),
-        tabItems(
-          tabItem(
-            tabName = "welcome",
-            welcomeUI("welcome")
-          ),
-          tabItem(
-            tabName = "fill",
-            fillUI("fill", dev)
-          ),
-          tabItem(
-            tabName = "upload",
-            uploadUI("upload", dev, globals, server)
-          ),
-          tabItem(
-            tabName = "documentation",
-            docUI("documentation")
-          ),
-          tabItem(
-            tabName = "about",
-            aboutUI("about")
-          ),
-          tabItem(
-            tabName = "appOptions",
-            appOptionsUI("appOptions", globals$SETTINGS, dev)
-          )
-        )
-      ) # end body
-    ) # end dashboard
-  ) %>% withSpinner # end taglist
+          ) # end body
+        ) # end of dashboardPage
+      ) # end of div
+    ) # end of hidden
+  )
 }
