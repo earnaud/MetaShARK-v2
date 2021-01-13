@@ -156,15 +156,14 @@ saveReactive <- function(main.env, page) {
   
   # Save
   .sv$Attributes <- content$md.tables
-  names(.sv$Attributes) <- .sv$DataFiles$name
   
   # Write attribute tables
   sapply(
-    basename(content$data.filepath),
+    names(content$md.tables),
     function(tablename) {
       # write filled tables
       path <- .sv$DataFiles %>%
-        dplyr::filter(name == tablename) %>% 
+        dplyr::filter(grepl(tablename, metadatapath)) %>% 
         dplyr::select(metadatapath) %>% 
         unlist()
       table <- content$md.tables[[tablename]]
@@ -175,7 +174,7 @@ saveReactive <- function(main.env, page) {
   # Write Custom units
   if (isContentTruthy(content$CU_Table)) {
     data.table::fwrite(
-      content$CU_Table,
+      content$CU_Table, 
       paste0(.sv$SelectDP$dp.metadata.path, "/custom_units.txt")
     )
   }
@@ -215,7 +214,6 @@ saveReactive <- function(main.env, page) {
 #' @import shiny
 .saveGeoCov <- function(main.env){
   .sv <- main.env$save.variable
-  main.env$local.rv <- main.env$local.rv
   
   # Initialize variables
   .method <- main.env$local.rv$method
@@ -231,6 +229,9 @@ saveReactive <- function(main.env, page) {
       df <- data.content[[data.filename]]
       df.num <- unlist(
         lapply(df, function(df.col) {
+          df.col <- df.col[!is.na(df.col)]
+          if(is.character(df.col))
+            df.col <- enc2utf8(df.col)
           all(grepl(main.env$PATTERNS$coordinates, df.col))
         })
       )
@@ -249,7 +250,9 @@ saveReactive <- function(main.env, page) {
   .sv$GeoCov$method <- .method
 
   # GeoCov written if .method filled
-  if (.method == "columns") {
+  if (.method == "columns" &&
+      isContentTruthy(main.env$local.rv$columns$site) &&
+      isContentTruthy(main.env$local.rv$columns)) {
     .sv$GeoCov$columns <- main.env$local.rv$columns
 
     # Site

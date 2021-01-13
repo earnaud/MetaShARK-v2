@@ -3,7 +3,7 @@ annotationsUI <- function(id) {
 }
 
 annotations <- function(id, label, main.env) {
-moduleServer(id, function(input, output, session) {
+  moduleServer(id, function(input, output, session) {
     observeEvent(input$annotate, {
       modalDialog(
         title = sprintf("Annotate %s", label),
