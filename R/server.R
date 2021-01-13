@@ -1,59 +1,102 @@
-#' @title .app_server
+#' @import shiny
+#' @importFrom dataone listFormats CNode
+#' @importFrom taxonomyCleanr view_taxa_authorities
+#' @importFrom shinyjs hide show
 #'
-#' @description server part for the app's main script.
-#'
-#' @importFrom shiny renderImage callModule observeEvent stopApp
-#' @importFrom shinydashboard updateTabItems
-#' @importFrom golem get_golem_options
-#' @importFrom shinyjs onclick
-.app_server <- function(input, output, session) {
+#' @noRd
+server <- function(input, output, session) {
+  # get variables
+  main.env <- get("main.env", options()$metashark.env)
 
-  # get app arguments
-  appArgs <- get_golem_options()
-  dev <- appArgs$dev
-  server <- appArgs$server
-
-  if (!is.logical(dev) || is.null(dev)) dev <- FALSE
-  # initialize global variables
-  globals <- .globalScript(dev)
-  savevar <- NULL
+  browser()
   
-  # DEV -----------------------------------------------------
-  if (dev) {
-    onclick("dev", {
-      req(input$side_menu != "fill")
-      browser()
-    }, asis=TRUE)
+  # Set user-specific data
+  assign(
+    "credentials",
+    reactiveValues(
+      orcid = character(),
+      name = character()
+    ),
+    envir = session$userData
+  )
+  assign(
+    "contents",
+    reactiveValues(
+      dp.index = character()
+    ),
+    envir = session$userData
+  )
+  
+  # App variables
+  assign(
+    "current.tab",
+    reactive(input$side_menu),
+    envir = main.env
+  )
+  
+  if (main.env$dev){
+    observeEvent(input$dev, {
+      if (main.env$current.tab() != "fill")
+        browser()
+    })
   }
   
-  # Head bar server -----------------------------------------------------
-  # Options
-  observeEvent(input$appOptions, {
-    updateTabItems(session, "side_menu", "appOptions")
-  })
-
-  callModule(appOptions, "appOptions", globals$SETTINGS, server)
-
-  # Exit App
-  observeEvent(input$close, {
-    stopApp()
-  })
-
-  ## modules called -----------------------------------------------------
-  observeEvent(input$side_menu, {
-    savevar <- switch(input$side_menu,
-      # welcome
-      # welcome = callModule(welcome, "welcome"),
-      # fill
-      fill = callModule(fill, "fill", globals, server),
-      # upload
-      upload = callModule(upload, "upload", globals, server),
-      # doc
-      documentation = callModule(documentation, "documentation", globals),
-      # about
-      about = callModule(about, "about"),
-      # default
-      NULL
+  # Update values ====
+  invisible({
+    # DataONE nodes
+    .DATAONE.LIST <- if(!main.env$dev) 
+      try(dataone::listFormats(dataone::CNode())) else
+        try(silent = TRUE)
+    if (class(.DATAONE.LIST) != "try-error") {
+      .DATAONE.LIST <- readDataTable(
+        isolate(main.env$PATHS$resources$dataoneCNodesList.txt)
+      )
+      isolate(main.env$dataone.list <- .DATAONE.LIST)
+    }
+  
+    # Taxa authorities
+    .TAXA.AUTHORITIES <- if(!main.env$dev)
+      try(taxonomyCleanr::view_taxa_authorities()) else
+        try(silent = TRUE)
+    if (class(.TAXA.AUTHORITIES) != "try-error") {
+      .TAXA.AUTHORITIES <- readDataTable(
+        isolate(main.env$PATHS$resources$taxaAuthorities.txt)
+      )
+      isolate(main.env$taxa.authorities <- .TAXA.AUTHORITIES)
+    }
+    
+    # Ontology list
+    .ONTOLOGIES <- data.table::fread(
+      system.file(
+        "resources/bioportal_ontologies_list.csv",
+        package = "MetaShARK"
+      )
     )
+    isolate(main.env$ontologies <- .TAXA.AUTHORITIES)
+    
+    if(exists("template_issues"))
+      rm("template_issues", envir = .GlobalEnv)
   })
+
+  ## modules called ----
+  fill("fill", main.env)
+  upload("upload", main.env)
+  documentation("documentation")
+  about("about")
+  settings("settings", main.env)
+
+  # Hide the loading message when the rest of the server function has executed
+  shinyjs::hide(id = "loading-content", anim = TRUE, animType = "fade")
+  shinyjs::show("app-content")
+}
+
+#' @importFrom dplyr %>% 
+#'
+#' @noRd
+listDP <- function(main.env) {
+  list.files(
+    main.env$PATHS$eal.dp,
+    pattern = "_emldp$",
+    full.names = FALSE
+  ) %>% gsub(pattern = "_emldp$", replacement = "")
 }

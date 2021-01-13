@@ -1,243 +1,190 @@
-#' @title Geographic coverage
+#' @import shiny
 #'
-#' @description UI part for the Geographic Coverage module
-#'
-#' @importFrom shiny NS fluidPage column fluidRow actionButton tags tagList
-CatVarsUI <- function(id, title, dev) {
+#' @noRd
+CatVarsUI <- function(id, main.env) {
   ns <- NS(id)
   
   return(
     fluidPage(
       fluidRow(
-        # Navigation
-        fluidRow(
-          column(1,
-            actionButton(
-              ns("file_prev"),
-              "",
-              icon("chevron-left")
-            )
-          ),
-          column(10,
-            uiOutput(
-              ns("current_file"),
-              inline = TRUE
-            )
-          ),
-          column(1,
-            actionButton(ns("file_next"),
-              "",
-              icon("chevron-right")
-            )
-          ),
-          style = "padding: 5px;"
-        ),
-        # content form
-        uiOutput(ns("edit_catvar"))
+        uiOutput(NS(id, "edit_catvar")) %>%
+          shinycssloaders::withSpinner()
       )
     ) # end of fluidPage
   ) # end of return
 }
 
-#' @title Geographic coverage
+#' @import shiny
+#' @importFrom shinyjs toggleState
+#' @importFrom shinyBS bsCollapse
+#' @importFrom shinyFeedback hideFeedback showFeedbackSuccess showFeedbackDanger
+#' @importFrom dplyr %>%
 #'
-#' @description UI part for the Geographic Coverage module
-#'
-#' @importFrom shiny observeEvent callModule tags tagList reactiveValues renderUI textAreaInput
-#' @importFrom dplyr %>% filter select mutate
-#' @importFrom shinyBS bsCollapse bsCollapsePanel
-#' @importFrom shinyjs onclick
-CatVars <- function(input, output, session, 
-  savevar, globals, NSB) {
-  ns <- session$ns
-  if(globals$dev)
-    onclick("dev", {
-      req(globals$EMLAL$NAVIGATE == 4)
-      browser()
-    }, asis=TRUE)
-  
-  # variables initialization -----------------------------------------------------
-  rv <- reactiveValues(
-    catvarFiles = list.files(
-      savevar$emlal$SelectDP$dp_metadata_path,
-      pattern = "catvar",
-      full.names = TRUE
-    ),
-    currentIndex = 1
-  )
-  
-  # update current file
-  observeEvent(rv$currentIndex, {
-    rv$currentFile <- basename(rv$catvarFiles[rv$currentIndex])
-  }, priority = 1, ignoreInit = FALSE)
-  
-  # Set each reactivevalues per file
-  sapply(rv$catvarFiles, function(file_path){
-    file_name <- basename(file_path)
-    rv[[file_name]] <- reactiveValues()
-    
-    # * Init data frame ====
-    rv[[file_name]]$CatVars <- fread(
-      file_path,
-      data.table = FALSE, stringsAsFactors = FALSE,
-      na.strings = "NA"
-      ) %>% 
-      mutate(
-        definition = if(definition == "NA" || is.na(definition))
-          paste("Value:", code, "for attribute:", attributeName)
-        else
-          definition
+#' @noRd
+CatVars <- function(id, main.env) {
+  moduleServer(id, function(input, output, session) {
+    if (main.env$dev){
+      observeEvent(
+        main.env$dev.browse(), 
+        {
+          if (main.env$current.tab() == "fill" &&
+              main.env$EAL$page == 4) {
+            browser()
+          }
+        }
       )
+    }
     
-    # * Write UI ====
-    .content <- lapply(unique(rv[[file_name]]$CatVars$attributeName), function(attribute){
-        # get codes aka values for `attribute` in catvar_*.txt
-        codes <- rv[[file_name]]$CatVars %>%
-          filter(attributeName == attribute) %>%
-          select(code)
-        
-        bsCollapsePanel(
-          title = attribute,
-          # value = attribute,
-          ... = tagList(
-            lapply(unlist(codes), function(cod){
-              inputId <- paste(
-                attribute, 
-                cod%>%
-                  gsub("[ [:punct:]]","", .),
-                sep="-"
-              )
-              
-              textAreaInput(
-                ns(inputId), 
-                cod,
-                value = rv[[file_name]]$CatVars %>%
-                  filter(attributeName == attribute, code == cod) %>%
-                  select(definition)
-              ) 
-            })
-          ) # end of "tagapply" -- text areas
-        ) # end of bsCollapsePanel
-      }) # end of "tagapply" -- collapse boxes
-    rv[[file_name]]$UI <- do.call(
-      bsCollapse,
-      c(
-        .content,
-        id = file_name,
-        multiple = FALSE
-      )
-    )
+    # Form ====
     
-    # * Write server ====
-    rv[[file_name]]$obs <- sapply(seq(dim(rv[[file_name]]$CatVars)[1]), function(row){
-      inputId <- paste(
-        rv[[file_name]]$CatVars$attributeName[row],
-        rv[[file_name]]$CatVars$code[row] %>%
-          gsub("[ [:punct:]]","", .),
-        sep="-"
+    # * UI ----
+    output$edit_catvar <- renderUI({
+      req(main.env$EAL$page == 4)
+      
+      # validity check
+      validate(
+        need(
+          isContentTruthy(main.env$local.rv$cv.tables),
+          "No valid table provided."
+        )
       )
       
-      return(
-        observeEvent(input[[inputId]], {
-          req(input[[inputId]])
-          rv[[file_name]]$CatVars[row, "definition"] <- input[[inputId]]
-        }, suspended = TRUE)
-      )
-    })
-  })
-
-  # Navigation buttons -----------------------------------------------------
-  # Previous file
-  onclick("file_prev", {
-    req(rv$currentIndex, rv$catvarFiles)
-    savevar$emlal$CatVars[[rv$currentFile]] <- rv[[rv$currentFile]]$CatVars
-    if (rv$currentIndex > 1) {
-      rv$currentIndex <- rv$currentIndex - 1
-    }
-  })
-  
-  # Next file
-  onclick("file_next", {
-    req(rv$currentIndex, rv$catvarFiles)
-    savevar$emlal$CatVars[[rv$currentFile]] <- rv[[rv$currentFile]]$CatVars
-    if (rv$currentIndex < length(rv$catvarFiles)) {
-      rv$currentIndex <- rv$currentIndex + 1
-    }
-  })
-  
-  # Current file
-  output$current_file <- renderUI({
-    tags$div(
-      rv$currentFile,
-      class = "ellipsis",
-      style = paste0(
-        "display: inline-block;
-        font-size:14pt;
-        text-align:center;
-        width:100%;
-        background: linear-gradient(90deg, #3c8dbc ",
-        round(100 * rv$currentIndex / length(rv$catvarFiles)),
-        "%, white ",
-        round(100 * rv$currentIndex / length(rv$catvarFiles)),
-        "%);"
-      )
-    )
-  })
-  
-  # Set UI -----------------------------------------------------
-  output$edit_catvar <- renderUI({
-    validate(
-      need(rv[[rv$currentFile]]$UI, "No UI set.")
-    )
-    rv[[rv$currentFile]]$UI
-  }) # end of renderUI
-  
-  # Set Server -----------------------------------------------------
-  
-  # Suspend observers
-  observeEvent(rv$currentIndex, {
-    req(rv$currentFile)
-    sapply(rv[[rv$currentFile]]$obs, function(obs){
-      obs$suspend()
-    })
-  }, priority = 2)
-  
-  # Run observers
-  observeEvent(rv$currentFile, {
-    req(rv$currentFile)
-    sapply(rv[[rv$currentFile]]$obs, function(obs){
-      obs$resume()
-    })
-  }, priority = 0)
-  
-  # Saves -----------------------------------------------------
-  observe({
-    globals$EMLAL$COMPLETE_CURRENT <- all(
-      sapply(basename(rv$catvarFiles), function(file_name){
-        all(sapply(rv[[file_name]]$CatVars$definition, isTruthy))
+      isolate({
+        do.call(
+          tabsetPanel,
+          args = c(
+            id = session$ns("tabset"),
+            lapply(
+              names(main.env$local.rv$cv.tables),
+              main.env = main.env,
+              # Table input - tab
+              function(table.name, main.env) {
+                # Set variables
+                table <- main.env$local.rv$cv.tables[[table.name]]
+                .id <- session$ns(table.name)
+                
+                # Render UI
+                tabPanel(
+                  title = table.name,
+                  value = table.name,
+                  # Create a container of collapsibles
+                  do.call(
+                    shinyBS::bsCollapse,
+                    args = c(
+                      id = NS(.id, "collapse"),
+                      ... = lapply(
+                        unique(table$attributeName),
+                        function(attribute){
+                          CatVarsInputUI(
+                            id = NS(.id, gsub("-", "", attribute)),
+                            attribute = attribute,
+                            table.name = table.name,
+                            main.env = main.env
+                          )
+                        }
+                      )
+                    )
+                  ) # end do.call:bsCollapse
+                ) 
+              }
+            ) # end lapply
+          ) # end args
+        ) # end do.call: tabsetpanel
       })
-    )
-  })
-  
-  observeEvent(NSB$SAVE, {
-    req(tail(globals$EMLAL$HISTORY,1) == "Categorical Variables")
+    }) # end of renderUI
     
-    savevar <- saveReactive(
-      savevar, 
-      rv = list(CatVars = rv)
-    )
-  })
-  
-  # Process data -----------------------------------------------------
-  observeEvent(NSB$NEXT, {
-    req(globals$EMLAL$CURRENT == "Categorical Variables")
+    # * Server ----
+    observeEvent(main.env$EAL$page, {
+      req(main.env$EAL$page == 4)
+      
+      # Get inputs
+      sapply(
+        names(main.env$local.rv$cv.tables), 
+        main.env = main.env,
+        id = id,
+        # Table input - tab
+        # not a module ! just multiple calls
+        function(id, table.name, main.env) {
+          table <- main.env$local.rv$cv.tables[[table.name]]
+          
+          # Set server
+          sapply(
+            unique(table$attributeName),
+            function(attribute)
+              CatVarsInput(
+                # sub-namespace
+                id = NS(table.name, attribute %>% gsub("-", "", .)),
+                attribute = attribute,
+                table.name = table.name,
+                main.env = main.env
+              )
+          )
+        }
+      )
+    },
+    ignoreNULL = FALSE,
+    label = "EAL4: set server",
+    priority = -2
+    ) # end of observeEvent
     
-    savevar <- saveReactive(
-      savevar, 
-      rv = list(CatVars = rv)
+    # Completed ----
+    observe({
+      req(main.env$EAL$page == 4)
+      
+      invalidateLater(1000)
+      # main.env$local.rv$trigger$depend()
+      
+      req(
+        length(main.env$local.rv$cv.files) > 0 &&
+          !any(sapply(main.env$local.rv$cv.files, identical, y = data.frame()))
+      )
+      
+      if(isTruthy(input$tabset)){
+        file.name = input$tabset
+        shinyBS::updateCollapse(
+          session,
+          NS(file.name, "collapse"),
+          style = do.call(
+            args = list(file.name = file.name),
+            function(file.name) {
+              lapply(
+                names(main.env$local.rv$completed[[file.name]]),
+                file.name = file.name,
+                function(file.name, attribute){
+                  ifelse(
+                    main.env$local.rv$completed[[file.name]][[attribute]] %>%
+                      listReactiveValues() %>%
+                      unlist() %>%
+                      all(),
+                    "success",
+                    "warning"
+                  )
+                }) %>%
+                setNames(nm = names(main.env$local.rv$completed[[file.name]]))
+            }
+          )
+        )
+      }
+      
+    },
+    priority = -1,
+    label = "EAL4: collapse update"
     )
-  }, priority = 1, ignoreInit = TRUE)
-  
-  # Output -----------------------------------------------------
-  return(savevar)
+    
+    observe({
+      req(main.env$EAL$page == 4)
+      
+      invalidateLater(1000)
+      
+      main.env$EAL$completed <- main.env$local.rv$completed %>%
+        listReactiveValues() %>%
+        unlist %>%
+        all %>%
+        isTRUE
+    },
+    priority = -1,
+    label = "EAL4: completeness check"
+    )
+    # Process data (deprecated)
+  })
 }

@@ -1,21 +1,10 @@
-#' @title uploadDP
-#'
-#' @description automation script to upload data packages
-#' produced with {dataone} and {datapack}. This function is
-#' freely inspired by [this tutorial script](http://training.arcticdata.io/materials/arctic-data-center-training/programming-metadata-and-data-publishing.html#publish-data-to-the-arctic-data-center-test-site).
-#'
-#' @param mn Member Node URL.
-#' @param cn Contributing Node URL.
-#' @param token Dataone (test) token.
-#' @param eml Metadata file path (XML validating NCEAS' EML Schema)
-#' @param data Data files path
-#' @param scripts Scripts files path
-#' @param formats List of DataONE CN supported [formats](https://cn.dataone.org/cn/v2/formats)
-#'
 #' @importFrom dataone generateIdentifier CNode MNode D1Client uploadDataPackage
 #' @importFrom datapack addMember
 #' @importFrom EML read_eml write_eml eml_validate
 #' @importFrom mime guess_type
+#' 
+#' @noRd
+# FIXME rework this module
 uploadDP <- function(
                      # essential
                      mn,
@@ -27,31 +16,31 @@ uploadDP <- function(
                      scripts = c(),
                      formats,
                      use.doi = FALSE) {
-  # Set variables -----------------------------------------------------
+  # Set variables ----
 
   message("Init")
 
-  cn <- CNode(cn)
-  mn <- MNode(mn)
+  cn <- dataone::CNode(cn)
+  mn <- dataone::MNode(mn)
   if (use.doi) {
-    doi <- generateIdentifier(mn, "DOI")
+    doi <- dataone::generateIdentifier(mn, "DOI")
   } # TODO check this feature
 
-  # # Write DP -----------------------------------------------------
+  # # Write DP ----
 
   # set data package
-  dp <- new("DataPackage")
+  dp <- methods::new("DataPackage")
 
   message("Metadata")
 
   # Add metadata to the data package
-  metadataObj <- new(
+  metadataObj <- methods::new(
     "DataObject",
     # id = if(use.doi) doi else NULL,
     format = eml$format,
     filename = eml$file
   )
-  dp <- addMember(dp, metadataObj)
+  dp <- datapack::addMember(dp, metadataObj)
 
   message("Data")
 
@@ -60,12 +49,12 @@ uploadDP <- function(
     seq(data$file),
     function(d, metadataObj = metadataObj) {
       # add data object
-      dataObj <- new(
+      dataObj <- methods::new(
         "DataObject",
         format = data$format[d],
         filename = data$file[d]
       )
-      dp <- addMember(dp, dataObj, metadataObj)
+      dp <- datapack::addMember(dp, dataObj, metadataObj)
       return(dataObj)
     }
   )
@@ -77,27 +66,27 @@ uploadDP <- function(
     progObjs <- sapply(
       seq(scripts$file),
       function(s, metadataObj = metadataObj) {
-        progObj <- new(
+        progObj <- methods::new(
           "DataObject",
           format = scripts$format[s],
           filename = scripts$file[s]
         )
-        dp <- addMember(dp, progObj, metadataObj)
+        dp <- datapack::addMember(dp, progObj, metadataObj)
 
         return(progObj)
       }
     )
   }
 
-  # # Access rules -----------------------------------------------------
+  # # Access rules ----
 
   message("Access")
 
   accessRules <- NA # TODO allow customized access rules
 
-  # # Upload -----------------------------------------------------
+  # # Upload ----
 
-  d1c <- D1Client(cn, mn)
+  d1c <- dataone::D1Client(cn, mn)
 
   message("Upload")
 
@@ -105,7 +94,7 @@ uploadDP <- function(
   options(dataone_token = token$prod)
 
   packageId <- try(
-    uploadDataPackage(
+    dataone::uploadDataPackage(
       d1c,
       dp,
       public = TRUE,
@@ -114,39 +103,37 @@ uploadDP <- function(
     )
   )
 
+  if (class(packageId) == "try-error") browser()
+
   options(dataone_test_token = NULL)
   options(dataone_token = NULL)
 
   return(packageId)
 }
 
-#' @title describeWorkflowUI
+#' @import shiny
 #'
-#' @description UI part of the script-data workflow-describing linking module (in upload).
-#'
-#' @importFrom shiny NS span div selectInput actionButton icon
+#' @noRd
 describeWorkflowUI <- function(id, sources, targets) {
   ns <- NS(id)
 
   span(
-    id = ns("span"),
-    div(selectInput(ns("script"), "Source script", sources),
+    id = NS(id, "span"),
+    div(selectInput(NS(id, "script"), "Source script", sources),
       style = "display: inline-block; vertical-align: middle;"
     ),
     "describes",
-    div(selectInput(ns("data"), "Target data file", targets),
+    div(selectInput(NS(id, "data"), "Target data file", targets),
       style = "display: inline-block; vertical-align: middle;"
     ),
-    actionButton(ns("remove"), "", icon("minus"), class = "redButton"),
+    actionButton(NS(id, "remove"), "", icon("minus"), class = "redButton"),
     style = "display: inline-block;"
   )
 }
 
-#' @describeIn  describeWorkflowUI
+#' @import shiny
 #'
-#' @description server part of the script-data workflow-describing linking module (in upload).
-#'
-#' @importFrom shiny reactiveValues reactive observeEvent removeUI
+#' @noRd
 describeWorkflow <- function(input, output, session) {
   ns <- session$ns
   rv <- reactiveValues()
@@ -158,7 +145,7 @@ describeWorkflow <- function(input, output, session) {
   # Remove
   observeEvent(input$remove, {
     removeUI(
-      selector = paste0("#", ns("span"))
+      selector = paste0("#", NS(id, "span"))
     )
     rv <- NULL
   })

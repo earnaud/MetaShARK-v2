@@ -10,39 +10,54 @@ License: MIT
 Encoding: UTF-8
 LazyData: true
 Imports: 
-    shiny,
-    golem,
-    processx,
-    attempt,
-    DT,
-    glue,
-    htmltools,
-    EML,
-    EMLassemblyline,
-    RefManageR,
-    data.table,
-    dataone,
-    datapack,
-    dplyr,
-    shinyTree,
-    fs,
-    mime,
-    shinyAce,
-    shinyFiles,
-    shinydashboard,
-    shinyjs,
-    shinyBS,
-    shinycssloaders,
-    readtext,
-    RCurl,
-    config,
-    markdown,
-    stringr,
-    rorcid
+  attempt,
+  cedarr,
+  config,
+  data.table,
+  dataone,
+  datapack,
+  dplyr,
+  DT,
+  EML,
+  EMLassemblyline,
+  emldown,
+  fs,
+  gdata,
+  glue,
+  golem,
+  htmltools,
+  jsonlite,
+  markdown,
+  methods,
+  mime,
+  processx,
+  RCurl,
+  readtext,
+  RefManageR,
+  rorcid,
+  shinyAce,
+  shinyBS,
+  shinycssloaders,
+  shinydashboard,
+  shinyFiles,
+  shinyjs,
+  shinydashboardPlus,
+  shinyFeedback,
+  shinyWidgets,
+  shiny (>= 1.5.0),
+  shinyTree,
+  stringr,
+  SummeRnote,
+  textutils,
+  tippy,
+  tagsinput,
+  taxonomyCleanr,
+  utils
 Remotes:
     ThinkR-open/tagsinput,
     ropenscilabs/emldown
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
+Roxygen: list(markdown = TRUE)
 URL: https://github.com/earnaud/MetaShARK-v2.git
 BugReports: https://github.com/earnaud/MetaShARK-v2.git/issues
 Suggests: 
@@ -50,3 +65,5 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+Depends: 
+    R (>= 2.10)
