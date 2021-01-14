@@ -8,8 +8,6 @@ server <- function(input, output, session) {
   # get variables
   main.env <- get("main.env", options()$metashark.env)
 
-  browser()
-  
   # Set user-specific data
   assign(
     "credentials",
@@ -34,6 +32,12 @@ server <- function(input, output, session) {
     envir = main.env
   )
   
+  # Dev jobs
+  assign(
+    "dev.browse",
+    reactive(input$dev),
+    envir = main.env
+  )
   if (main.env$dev){
     observeEvent(input$dev, {
       if (main.env$current.tab() != "fill")

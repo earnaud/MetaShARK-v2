@@ -1,14 +1,13 @@
-reactiveDirReader <- function(repo, session, ...) {
-  dir.args <- as.list(...)
+reactiveDirReader <- function(repo, session, pattern) {
   files <- reactiveVal(character())
   
   files.poll <- reactivePoll(
     1000,
     session,
     function()
-      identical(files(), do.call(dir, c(repo, dir.args))),
+      identical(files(), dir(repo, pattern)),
     function()
-      dir(repo)
+      dir(repo, pattern)
   )
   
   observe({
