@@ -148,7 +148,7 @@ SelectDP <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
     if (main.env$dev){
       observeEvent(
-        main.env$dev.browse(), 
+        main.env$dev.browse(),
         {
           if (main.env$current.tab() == "fill" &&
               main.env$EAL$page == 1) {
@@ -162,67 +162,76 @@ SelectDP <- function(id, main.env) {
     collapsible("usage")
 
     # variable initialization ----
-    observeEvent(main.env$EAL$page, {
-      req(main.env$EAL$page == 1)
-      
-<<<<<<< HEAD
-      # actions
-      rv$dp_location <- parseDirPath(volumes, input$dp_location)
-      if (is.na(rv$dp_location)) {
-        rv$dp_location <- save
-      }
-    })
-  }
-  else {
-    observeEvent(input$dp_location, {
-      req(input$dp_location)
-      rv$dp_location <- input$dp_location
-    })
-  }
-  
-  # Render selected DP location
-  output$dp_location <- renderText({
-    rv$dp_location
-  })
-  
-  # DP load -----------------------------------------------------
-  # reset input if user comes back on this screen
-  # fetch list of DP at selected location
-  rv$dp_list <- reactiveDirReader(rv$dp_location, session, ...)
-    
-    
-  observeEvent(rv$dp_location, {
-    dpList <- list.files(rv$dp_location, pattern = "_emldp$")
-    if (length(dpList) != 0) {
-      rv$dp_list <- sub("_emldp", "", dpList)
-    } else {
-      rv$dp_list <- NULL
-    }
-  })
-  
-  # Render list of DP at selected location
-  output$dp_list <- renderUI({
-    # req(rv$dp_list)
-    validate(
-      need(
-        isTruthy(rv$dp_list),
-        "No existing data package at this location"
-      )
-=======
-      main.env$local.rv$dp.name <- reactive(input$dp_name)
-      main.env$local.rv$dp.title <- reactive(input$dp_title)
-      main.env$local.rv$dp.license <- reactive(input$license)
-    },
-    priority = -1,
-    label = "EAL1: set DP"
->>>>>>> 13f2b6c6d8acac8291c7bc7a34036f0ec44e20f9
-    )
+#     observeEvent(main.env$EAL$page, {
+#       req(main.env$EAL$page == 1)
+#       
+# # <<<<<<< HEAD
+# #       # actions
+# #       rv$dp_location <- parseDirPath(volumes, input$dp_location)
+# #       if (is.na(rv$dp_location)) {
+# #         rv$dp_location <- save
+# #       }
+# #     })
+# #   }
+# #   else {
+# #     observeEvent(input$dp_location, {
+# #       req(input$dp_location)
+# #       rv$dp_location <- input$dp_location
+# #     })
+# #   }
+# #   
+# #   # Render selected DP location
+# #   output$dp_location <- renderText({
+# #     rv$dp_location
+# #   })
+# #   
+# #   # DP load -----------------------------------------------------
+# #   # reset input if user comes back on this screen
+# #   # fetch list of DP at selected location
+# #   rv$dp_list <- reactiveDirReader(rv$dp_location, session, ...)
+# #     
+# #     
+# #   observeEvent(rv$dp_location, {
+# #     dpList <- list.files(rv$dp_location, pattern = "_emldp$")
+# #     if (length(dpList) != 0) {
+# #       rv$dp_list <- sub("_emldp", "", dpList)
+# #     } else {
+# #       rv$dp_list <- NULL
+# #     }
+# #   })
+# #   
+# #   # Render list of DP at selected location
+# #   output$dp_list <- renderUI({
+# #     # req(rv$dp_list)
+# #     validate(
+# #       need(
+# #         isTruthy(rv$dp_list),
+# #         "No existing data package at this location"
+# #       )
+# # =======
+#       main.env$local.rv$dp.name <- reactive(input$dp_name)
+#       main.env$local.rv$dp.title <- reactive(input$dp_title)
+#       main.env$local.rv$dp.license <- reactive(input$license)
+#     },
+#     priority = -1,
+#     label = "EAL1: set DP"
+# # >>>>>>> 13f2b6c6d8acac8291c7bc7a34036f0ec44e20f9
+#     )
     
     # Render DP list ====
-    # update packages every 10 seconds
+    # get files list
+    .files.poll <- reactiveDirReader(
+      main.env$PATHS$eal.dp,
+      session,
+      pattern = "_emldp$"
+    )
+    
+    # set it up
     observe({
-      invalidateLater(1000)
-      dp.list <- listDP(main.env)
+      validate(
+        need(isTruthy(.files.poll()), "No files found")
+      )
+      dp.list <- gsub(.files.poll(), pattern = "_emldp$", replacement = "")
       changed <- isFALSE(identical(dp.list, main.env$local.rv$dp.list))
       if(changed) {
         main.env$local.rv$dp.list <- dp.list

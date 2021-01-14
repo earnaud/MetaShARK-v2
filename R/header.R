@@ -47,11 +47,17 @@
       stringsAsFactors = FALSE
     )
     # Fill DP.LIST for first-time runs
-    .files <- dir(PATHS$eal.dp, full.names = TRUE)
+    .files <- dir(isolate(PATHS$eal.dp), full.names = TRUE) %>%
+      gsub(pattern = "//", replacement = "/")
     if(length(.files) > 0) {
       sapply(.files, function(.file) {
         .info <- jsonlite::read_json(
-          sprintf("%s/%s.json", .file, basename(.file))
+          sprintf(
+            "%s/%s.json", 
+            .file, 
+            basename(.file) %>%
+              gsub(pattern = "_emldp$", replacement = "")
+          )
         )[[1]] %>%
           jsonlite::unserializeJSON()
         
@@ -65,7 +71,8 @@
       })
     }
   }
-
+  colnames(DP.LIST) <- c("creator", "name", "title", "path")
+  
   # Curate DP.LIST versus actual list
   .actual.index <- dir(
     isolate(main.env$PATHS$eal.dp),
