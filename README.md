@@ -5,9 +5,10 @@
 <img src="./inst/media/logo.png" alt="" width="50%">
 
 **Stable Server address:** 
-http://metashark.pndb.fr/ ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`
+http://metashark.pndb.fr/ ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance`
 
-**Stable Server address:** https://metashark.test.pndb.fr/  ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance`
+**Stable Test Server address:** 
+https://metashark.test.pndb.fr/  ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance`
 
 <!-- ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`  -->
 <!-- ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance` -->
@@ -19,66 +20,50 @@ The aim of the MetaShARK app is to allow any user a bit familiar with ecology to
 This project has the ambition to offer the user a user-friendly alternative to existing tools (such as the hardcore Morpho ;) ) but also to address an other issue which is the EML is not always fully considered.  
 This MetaShARK git is called "v2" because it is the evolution with {golem} package of the previous [MetaShARK git](https://github.com/earnaud/MetaShARK)
 
-MetaShARK has a dedicated [dockerhub](https://hub.docker.com/r/eliearnaud/metashark/dockerfile) and its deployment method is also [accessible](https://github.com/earnaud/MetaShARK_docker/).
+MetaShARK has a dedicated [dockerhub](https://hub.docker.com/r/eliearnaud/metashark/dockerfile) and its deployment method is also [accessible](https://github.com/earnaud/MetaShARK_docker/). You can also deploy MetaShARK in a local version: for this, check the `local installation` section.
+
+## Legal disclaimers
+
+By using MetaShARK on a machine, you can get to make the app write files on your machine (see `local installation` and docker items for more details). It is discouraged to launch MetaShARK outside of a docker container. 
 
 **Any suggestion is welcome, feel free to contact the dev !**
 
 ## Installing MetaShARK
 
+All instructed install solutions use Docker method. It is therefore required to install this software.
+
 ### Local installation
 
-!!! DEPRECATED !!!
-
-Refer to the `Dockerization` part for locale production use. For dev use, here are some information:
-
-**If you are using local version, reinstall it regularly !** 
-
-All dependencies are described in the DESCRIPTION file. You will also need to install the following system libraries, according to you OS:
-
-| OS          | Debian-like          | Fedora, CentOS, RHEL | Solaris     | Mac OSX     |
-|-------------|----------------------|----------------------|-------------|-------------|
-| libcurl     | libcurl4-openssl-dev | libcurl-devel        | libcurl_dev | curl        |
-| libxml-2.0  | libxml2-dev          | libxml2-devel        | libxml2_dev | libxml2     |
-| openssl     | libssl-dev           | openssl-devel        | libssl_dev  | openssl@1.1 |
-| libjq       | libjq-dev            | libjq-devel          | libjq_dev   | jq          |
-| libv8       | libv8-dev            | v8-devel             | libv8_dev   | v8          |
-| redland     | librdf0-dev          | redland-devel        | librdf_dev  | redland     |
-| poppler-cpp | libpoppler-cpp-dev   | poppler-cpp-devel    | poppler_dev | poppler     |
-
-You can install the app as follow (through command line, for Ubuntu):
-
-```
-apt -y update
-apt -y upgrade 
-apt install -y r-base
-apt install -y libcurl4-openssl-dev libssh2-1-dev libssl-dev libxml2-dev # libgit2-dev 
-R -e 'install.packages("devtools")'
-apt install -y libv8-dev
-R -e 'devtools::install_github("EDIorg/EMLassemblyline", ref="fix_41")'
-apt install -y  libjq-dev librdf0-dev 
-apt-get install -y libpoppler-cpp-dev
-R -e 'install.packages(c("shinyBS","shinycssloaders","readtext"))'
-# Stable: 
-R -e 'devtools::install_github("earnaud/MetaShARK-v2", dependencies=TRUE)'
-# Dev:
-R -e 'devtools::install_github("earnaud/MetaShARK-v2", ref="dev", dependencies=TRUE)'
-```
-
-### Dockerization
-
-MetaShARK is provided with two docker possibilities: one for locale setup (in this git) and one for server setup (at [this repository](https://github.com/earnaud/MetaShARK_docker)).
-
-For the locale version, you can run a MetaShARK container with the following sequence (tested on Ubuntu). 
+It is now possible to deploy a local container for MetaShARK. Please refer to the `build_docker_local.txt` to get all command lines necessary. 
+**Disclaimer:** you can use docker volumes to access files outside of the container (steps 2 & 3a), but this will require to *write files to your computer*. Since you execute by yourself the given command lines, we consider this as a voluntary action from the user.
 
 1. In a command shell, get to this git's root: `cd <path/to/MetaShARK>`.
 
-2. Execute the following steps:
+2. If you want to use volumes (which will let you access files outside of the container, with admin rights), make sure to have a directory in which you can access the data. Here, we will use:
 ```
-docker build -t metashark .
-docker run -d --rm  -p 3838:3838  --name MS  -v "/home/$USER/dataPackagesOutput:/root/dataPackagesOutput"  metashark
+mkdir ~/metashark_data
 ```
 
-3. In a web browser, type the following URL: `127.0.0.1:3838`.
+3. Execute the following command lines:
+  a. If you use volumes:
+```
+docker build -t metashark:local .
+docker run -d --rm  -p 3838:3838  --name MS  -v ~/metashark_data:/root/dataPackagesOutput  metashark:local
+```
+  
+  b. If you do not use volumes:
+```
+docker build -t metashark:local .
+docker run -d --rm  -p 3838:3838  --name MS metashark:local
+```
+
+4. In a web browser, access the following URL: `127.0.0.1:3838`.
+
+
+### Server installation
+
+A dedicated [git](https://github.com/earnaud/MetaShARK_docker) shows the step for setting up an online instance of MetaShARK.
+Online version of MetaShARK can be subject to some misfunctions due to incorrect handling of simultaneous multiple users (see issue #124).
 
 ## MetaShARK features
 
