@@ -12,7 +12,7 @@ RUN aptitude install -y -f -o APT::Get::Fix-Missing=true \
 	libpoppler-cpp-dev \
 	librdf0-dev \
 	libraptor2-dev \
-        librasqal3-dev \
+  librasqal3-dev \
 	libssh2-1-dev \
 	libssl-dev \
 	libv8-dev \
