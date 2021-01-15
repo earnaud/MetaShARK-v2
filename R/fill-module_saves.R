@@ -153,7 +153,6 @@ saveReactive <- function(main.env, page) {
 .saveAttributes <- function(main.env){
   .sv <- main.env$save.variable
   content <- main.env$local.rv
-  
   # Save
   .sv$Attributes <- content$md.tables
   
@@ -163,8 +162,8 @@ saveReactive <- function(main.env, page) {
     function(tablename) {
       # write filled tables
       path <- .sv$DataFiles %>%
-        dplyr::filter(grepl(tablename, metadatapath)) %>% 
-        dplyr::select(metadatapath) %>% 
+        dplyr::filter(grepl(tablename, metadatapath)) %>%
+        dplyr::select(metadatapath) %>%
         unlist()
       table <- content$md.tables[[tablename]]
       data.table::fwrite(table, path, sep = "\t")
