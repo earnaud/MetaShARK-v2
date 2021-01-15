@@ -1,5 +1,4 @@
 FROM rocker/shiny:3.6.3
-ARG DEV=FALSE
 
 RUN apt-get update --fix-missing -y \
     && apt-get install -y software-properties-common aptitude

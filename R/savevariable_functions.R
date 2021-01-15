@@ -120,6 +120,7 @@ setLocalRV <- function(main.env){
     checkTemplates(main.env)
   
   # Set variable ====
+  message(names(main.env$save.variable))
   main.env$local.rv <- switch(
     main.env$EAL$page,
     # * SelectDP ----
@@ -432,12 +433,15 @@ setLocalRV <- function(main.env){
             if (isTruthy(.unit.rows)){
               .val <- .table[.unit.rows, col]
               .val[sapply(.val, function(v) 
-                v == main.env$FORMATS$units[2] || !isTruthy(v))] <- main.env$FORMATS$units[2]
+                v == main.env$FORMATS$units[2] ||
+                  !isTruthy(v) ||
+                  grepl("!Ad.*ere!", v)
+              )] <- main.env$FORMATS$units[2]
               .table[.unit.rows, col] <- .val
             }
           }
           .table[is.na(.table)] <- ""
-          main.env$local.rv$md.tables[[table.name]] <- .table
+          main.env$local.rv$md.tables[[table.name]] <<- .table
         }) # end of sapply:col
       }) # end of lapply:files
     } # end filling
