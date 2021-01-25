@@ -50,8 +50,10 @@ fillUI <- function(id, main.env) {
     ),
     tabPanel(
       "MetaFIN",
-      tags$h1("Under Construction"),
-      tags$img(src = "media/working.png")
+      MetaFINUI(
+        NS(id, "metafin"),
+        main.env
+      )
     )
   )
 }
