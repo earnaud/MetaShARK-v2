@@ -22,15 +22,26 @@ tabPage <- function(id, title, ui, navTagList = NULL) {
 #' @import shiny
 #'
 #' @noRd
-pagesUI <- function(id, parent.id, main.env) {
-  steps <- isolate(main.env$VALUES$steps)
+pagesUI <- function(id, parent.id) {
+  steps = c(
+    "SelectDP",
+    "Data_Files",
+    "Attributes",
+    "Categorical_Variables",
+    "Geographic_Coverage",
+    "Taxonomic_Coverage",
+    "Personnel",
+    "Miscellaneous",
+    "Make_EML"
+  )
+  # steps <- isolate(main.env$VALUES$steps)
   .nb <- length(steps)
   .ui.args <- vector("list", .nb)
   
   # Wizard UI: a hidden tabSetPanel
   sapply(
     seq_along(steps),
-    function(i, main.env) {
+    function(i) {
       page <- steps[i]
       
       .ui.args[[i]] <<- tabPage(
@@ -50,7 +61,6 @@ pagesUI <- function(id, parent.id, main.env) {
           ),
           args = list(
             id = NS(parent.id, page),
-            main.env = main.env
           )
         ),
         navTagList = if (i > 1)
@@ -62,8 +72,7 @@ pagesUI <- function(id, parent.id, main.env) {
         else
           NULL
       )
-    },
-    main.env = main.env
+    }
   )
   
   .ui.args$id <- NS(id, "wizard")
