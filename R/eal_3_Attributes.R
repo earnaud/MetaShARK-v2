@@ -2,10 +2,10 @@
 #' @importFrom shinyTree shinyTree
 #'
 #' @noRd
-AttributesUI <- function(id, main.env) {
+AttributesUI <- function(id) {
   ns <- NS(id)
   
-  unit.list <- isolate(setUnitList(main.env)$unit.list)
+  # unit.list <- isolate(setUnitList(main.env)$unit.list)
   
   tagList(
     tags$p(
@@ -56,14 +56,13 @@ AttributesUI <- function(id, main.env) {
             selectInput(
               ns("dateTimeFormatString"),
               "Select a date format",
-              choices = isolate(main.env$FORMATS$dates)
+              choices = c(NA_character_)
             ),
             # - unit ----
             selectInput(
               ns("unit"),
               "Select an unit",
-              choices = unit.list,
-              selected = unit.list$dimensionless[1]
+              choices = c(NA_character_)
             ),
             # - missingValueCode ----
             textInput(
@@ -425,7 +424,8 @@ Attributes <- function(id, main.env) {
       validate(
         need(isTruthy(selected.file()), "No file selected"),
         need(isTruthy(selected.attribute()), "No attribute selected"),
-        need(input$class == "Date", "Not a Date")
+        need(input$class == "Date", "Not a Date"),
+        need(!is.na(input$dateTimeFormatString), "Unset dateTimeFormatString input.")
       )
       
       main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
@@ -453,7 +453,8 @@ Attributes <- function(id, main.env) {
       validate(
         need(isTruthy(selected.file()), "No file selected"),
         need(isTruthy(selected.attribute()), "No attribute selected"),
-        need(input$class == "numeric", "Not a number")
+        need(input$class == "numeric", "Not a number"),
+        need(!is.na(input$unit), "Unset unit input.")
       )
       
       # Standard unit

@@ -1,7 +1,7 @@
 #' @import shiny
 #'
 #' @noRd
-CatVarsUI <- function(id, main.env) {
+CatVarsUI <- function(id) {
   ns <- NS(id)
   
   return(

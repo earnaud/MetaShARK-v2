@@ -1,7 +1,7 @@
 #' @import shiny
 #'
 #' @noRd
-TaxCovUI <- function(id, main.env) {
+TaxCovUI <- function(id) {
   return(
     fluidPage(
       fluidRow(

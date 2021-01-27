@@ -5,7 +5,7 @@
 \alias{upload}
 \title{uploadUI}
 \usage{
-uploadUI(id, main.env)
+uploadUI(id)
 
 upload(id, main.env)
 }

@@ -2,7 +2,7 @@
 #' @importFrom shinyWidgets materialSwitch
 #'
 #' @noRd
-GeoCovUI <- function(id, main.env) {
+GeoCovUI <- function(id) {
   return(
     fluidPage(
       fluidRow(

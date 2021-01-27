@@ -1,7 +1,7 @@
 #' @import shiny
 #' 
 #' @noRd
-welcomeUI <- function(id, wip = FALSE) {
+welcomeUI <- function(id) {
   ns <- NS(id)
 
   fluidPage(
@@ -10,13 +10,10 @@ welcomeUI <- function(id, wip = FALSE) {
       # MetaShARK
       tags$h1("Welcome in MetaShARK"),
       fluidRow(
-        if (isTRUE(wip)) {
-          wipRow(
-            tags$p("DISCLAIMER: this is a development version. Some parts with 
-            this color code are not meant to be fully functional. So do not 
-            bother with testing them.")
-          )
-        },
+        wipRow(
+          tags$p("DISCLAIMER: some features are still in development. Some parts
+            with this color code are not meant to be fully functional.")
+        ),
         column(
           4,
           tags$h3("MetaShARK"),

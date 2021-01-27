@@ -3,35 +3,33 @@
 #' @importFrom shinyBS bsCollapse bsCollapsePanel
 #'
 #' @noRd
-MiscUI <- function(id, main.env) {
+MiscUI <- function(id) {
   ns <- NS(id)
   
   #FIXME set this to server with an update*
-  .metadata.path <- isolate(main.env$save.variable$SelectDP$dp.metadata.path)
-  
-  if (file.exists(paste0(.metadata.path, "/keywords.txt"))) {
-    keywords <- data.table::fread(
-      paste0(.metadata.path, "/keywords.txt"),
-      data.table = FALSE, stringsAsFactors = FALSE
-    )
-  } else {
-    keywords <- ""
-  }
-  if (isContentTruthy(keywords)) {
-    kw <- keywords$keyword %>%
-      strsplit(split = ",") %>%
-      unlist() %>%
-      paste(collapse = ",")
-  }
+  # .metadata.path <- isolate(main.env$save.variable$SelectDP$dp.metadata.path)
+  # 
+  # if (file.exists(paste0(.metadata.path, "/keywords.txt"))) {
+  #   keywords <- data.table::fread(
+  #     paste0(.metadata.path, "/keywords.txt"),
+  #     data.table = FALSE, stringsAsFactors = FALSE
+  #   )
+  #   keywords <- keywords$keyword %>%
+  #     strsplit(split = ",") %>%
+  #     unlist() %>%
+  #     paste(collapse = ",")
+  # } else {
+  #   keywords <- ""
+  # }
   
   return(
     fluidPage(
       HTML("
         <h5>DISCLAIMER</h5>
         <ul>
-          <li>Do not use special characters, symbols, formatting, or hyperlinks (URLs are acceptable).</li>
+          <li>Unsupported special characters, symbols, formatting, or hyperlinks (URLs are acceptable).</li>
           <li>Any file selected will not be overwritten but will be used to fill
-          in content (except files originating from DP itself).</li>
+          in content (except files originating from Data Package itself).</li>
         </ul>
         "),
       shinyBS::bsCollapse(

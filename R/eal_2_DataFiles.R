@@ -7,7 +7,7 @@
 #' @importFrom shinyFiles shinyFilesButton
 #'
 #' @noRd
-DataFilesUI <- function(id, main.env) {
+DataFilesUI <- function(id) {
   return(
     fluidPage(
       tags$b("Disclaimers:"),
@@ -30,20 +30,19 @@ DataFilesUI <- function(id, main.env) {
             style = "display: inline-block; vertical-align: top;"
           )
         ),
-        column(6,
-          if(main.env$wip){
-            wipRow(
-              URL_Input_UI(
-                NS(id, "url_files"),
-                "Select data file(s) from an URL"
-              ),
-              actionButton(
-                NS(id,"add_url_files"),
-                label = "Get",
-                icon = icon("download")
-              )
+        column(
+          6,
+          wipRow(
+            URL_Input_UI(
+              NS(id, "url_files"),
+              "Select data file(s) from an URL"
+            ),
+            actionButton(
+              NS(id,"add_url_files"),
+              label = "Get",
+              icon = icon("download")
             )
-          }
+          )
         )
       ),
       tags$div(id = "inserthere_eal2")

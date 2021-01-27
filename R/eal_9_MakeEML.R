@@ -1,7 +1,7 @@
 #' @import shiny
 #'
 #' @noRd
-MakeEMLUI <- function(id, main.env) {
+MakeEMLUI <- function(id) {
   return(
     fluidPage(
       fluidRow(

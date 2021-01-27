@@ -6,8 +6,9 @@
 #' @noRd
 server <- function(input, output, session) {
   # get variables
-  main.env <- get("main.env", options()$metashark.env)
-
+  args <- get("metashark.args", envir = .GlobalEnv)
+  main.env <- .globalScript(.args = args, envir = session$userData)
+  
   # Set user-specific data
   assign(
     "credentials",

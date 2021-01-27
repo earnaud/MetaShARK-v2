@@ -1,7 +1,7 @@
 #' @import shiny
 #'
 #' @noRd
-fillUI <- function(id, main.env) {
+fillUI <- function(id) {
   tabsetPanel(
     id = NS(id, "tabs"),
     tabPanel(
@@ -43,16 +43,14 @@ fillUI <- function(id, main.env) {
         # * Pages ----
         pagesUI(
           NS(id, "wizard"),
-          parent.id = id,
-          main.env = main.env
+          parent.id = id
         )
       ) # end fluidPage
     ),
     tabPanel(
       "MetaFIN",
       MetaFINUI(
-        NS(id, "metafin"),
-        main.env
+        NS(id, "metafin")
       )
     )
   )

@@ -43,7 +43,7 @@ pagesUI <- function(id, parent.id) {
     seq_along(steps),
     function(i) {
       page <- steps[i]
-      
+      devmsg(NS(parent.id, page))
       .ui.args[[i]] <<- tabPage(
         id = id, # namespace extension
         title = page,
@@ -60,7 +60,7 @@ pagesUI <- function(id, parent.id) {
             "MakeEMLUI"
           ),
           args = list(
-            id = NS(parent.id, page),
+            id = NS(parent.id, page)
           )
         ),
         navTagList = if (i > 1)

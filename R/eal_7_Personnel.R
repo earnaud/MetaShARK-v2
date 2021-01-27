@@ -1,7 +1,7 @@
 #' @import shiny
 #' 
 #' @noRd
-PersonnelUI <- function(id, main.env) {
+PersonnelUI <- function(id) {
   ns <- NS(id)
 
   return(
