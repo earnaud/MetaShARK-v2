@@ -36,6 +36,7 @@ AttributesUI <- function(id) {
         shinyjs::hidden(
           tags$div(
             id = "form",
+            
             # - filename (output)
             helpText(textOutput(ns("filename"))),
             # - attributeName (output)
@@ -78,6 +79,7 @@ AttributesUI <- function(id) {
           ) # end div
         ) # end hidden
       ), # end column
+      # Preview ----
       column(
         2, 
         tags$div(
@@ -256,6 +258,7 @@ Attributes <- function(id, main.env) {
       updateSelectInput(
         session,
         "dateTimeFormatString",
+        choices = main.env$FORMATS$dates,
         selected = .row$dateTimeFormatString
       )
       # Set unit
@@ -428,11 +431,22 @@ Attributes <- function(id, main.env) {
         need(!is.na(input$dateTimeFormatString), "Unset dateTimeFormatString input.")
       )
       
+      # Correct input value
+      .value <- input$dateTimeFormatString
+      if(isFALSE(.value %in% main.env$FORMATS$dates)) {
+        .value <- main.env$FORMATS$dates[1] # YYYY-MM-DD
+        updateSelectInput(
+          session,
+          "dateTimeFormatString",
+          selected = .value
+        )
+      }
+      
       main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
         main.env$local.rv$md.tables[[selected.file()]],
         selected.attribute(),
         "dateTimeFormatString",
-        input$dateTimeFormatString
+        .value
       )
       
       # Check validity
@@ -441,7 +455,7 @@ Attributes <- function(id, main.env) {
         "dateTimeFormatString", 
         condition = if(input$class == "Date")
           isTruthy(input$dateTimeFormatString) && 
-          input$dateTimeFormatString %in% main.env$FORMATS$dates
+          .value %in% main.env$FORMATS$dates
         else
           TRUE,
         type = "danger"
@@ -457,14 +471,29 @@ Attributes <- function(id, main.env) {
         need(!is.na(input$unit), "Unset unit input.")
       )
       
+      # Correct input value
+      .value <- input$unit
+      if(isFALSE(.value %in% c(
+        main.env$FORMATS$units,
+        "custom",
+        main.env$local.rv$custom.units$table$unit.id
+      ))) {
+        .value <- main.env$FORMATS$units[2] # dimensionless
+        updateSelectInput(
+          session,
+          "unit",
+          selected = .value
+        )
+      }
+      
       # Standard unit
-      if(input$unit != "custom") {
+      if(.value != "custom") {
         # Save value
         main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
           main.env$local.rv$md.tables[[selected.file()]],
           selected.attribute(),
           "unit",
-          input$unit
+          .value
         )
       } else { # Custom unit
         # Check if currently worked unit is a custom one
@@ -493,10 +522,10 @@ Attributes <- function(id, main.env) {
       
       # Check validity
       .condition <- if(input$class == "numeric") {
-        isTruthy(input$unit) && 
-          input$unit != "custom" &&
-          (input$unit %grep% main.env$FORMATS$units ||
-             input$unit %in% main.env$local.rv$custom.units$table$id)
+        isTruthy(.value) && 
+          .value != "custom" &&
+          (.value %grep% main.env$FORMATS$units ||
+             .value %in% main.env$local.rv$custom.units$table$id)
       } else TRUE
       if(main.env$dev)
         devmsg("%s", as.character(.condition))
@@ -591,11 +620,13 @@ Attributes <- function(id, main.env) {
         need(isTruthy(selected.attribute()), "No attribute selected")
       )
       
+      .value <- input$missingValueCode
+      
       # Limit to 1 word
-      if (grepl(".+ +.*", input$missingValueCode)) {
+      if (grepl(".+ +.*", .value)) {
         # Shorten
         .value <- strsplit(
-          gsub("^ +", "", input$missingValueCode),
+          gsub("^ +", "", .value),
           split = " "
         )[[1]][1]
         # Update input
@@ -621,10 +652,18 @@ Attributes <- function(id, main.env) {
         main.env$local.rv$md.tables[[selected.file()]],
         selected.attribute(),
         "missingValueCode",
-        input$missingValueCode
+        .value
       )
       
       # Check validity
+      checkFeedback(
+        input,
+        "missingValueCode",
+        type = if(identical(
+          isContentTruthy(.value), isContentTruthy(input$missingValueCodeExplanation)
+        )) "warning" else "danger"
+      )
+      
       checkFeedback(input, "missingValueCode", type = "warning")
       if(isContentTruthy(input$missingValueCode))
         checkFeedback(input, "missingValueCodeExplanation", type = "danger") else
@@ -639,15 +678,22 @@ Attributes <- function(id, main.env) {
         need(isTruthy(selected.attribute()), "No attribute selected")
       )
       
+      .value <- input$missingValueCodeExplanation
       main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
         main.env$local.rv$md.tables[[selected.file()]],
         selected.attribute(),
         "missingValueCodeExplanation",
-        input$missingValueCodeExplanation
+        .value
       )
       
       # Check validity
-      checkFeedback(input, "missingValueCodeExplanation", type = "warning")
+      checkFeedback(
+        input,
+        "missingValueCodeExplanation",
+        type = if(identical(
+          isContentTruthy(.value), isContentTruthy(input$missingValueCode)
+        )) "warning" else "danger"
+      )
     })
     
     # Preview ====
@@ -662,17 +708,11 @@ Attributes <- function(id, main.env) {
         )
       )
       
-      as.data.frame(
-        main.env$local.rv$preview[[selected.file()]][[selected.attribute()]] %>%
-          as.vector() %>%
-          sapply(., function(e) {
-            if(is.character(e)) 
-              enc2utf8(e)
-            else
-              e
-          })
-      ) %>%
-        setNames(nm = "")
+      main.env$local.rv$preview[[selected.file()]][[selected.attribute()]] %>%
+        as.character %>%
+        enc2utf8 %>%
+        as.data.frame %>%
+        setNames(nm = "Data preview")
     })
     
     # Completeness ====

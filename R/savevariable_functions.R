@@ -120,7 +120,6 @@ setLocalRV <- function(main.env){
     checkTemplates(main.env)
   
   # Set variable ====
-  message(names(main.env$save.variable))
   main.env$local.rv <- switch(
     main.env$EAL$page,
     # * SelectDP ----

@@ -13,6 +13,8 @@ ui <- function() {
   # prepare variable
   .menu.width <- "250px"
 
+  devmsg(system.file(package = "MetaShARK"))
+  
   tagList(
     shinyjs::useShinyjs(),
     shinyFeedback::useShinyFeedback(),
@@ -43,7 +45,7 @@ ui <- function() {
       h2("Loading..."),
       shinydashboardPlus::loadingState(),
       tags$img(
-        src = "media/sea_shark.png",
+        src = system.file("media/sea_shark.png", package = "MetaShARK"),
         width = "473px",
         height = "235px"
       )
@@ -59,13 +61,13 @@ ui <- function() {
               span(
                 class = "logo-lg",
                 tags$img(
-                  src = "media/metashark-logo-v4.png",
+                  src = system.file("media/metashark-logo-v4.png", package = "MetaShARK"),
                   width = "240px",
                   height = "40px"
                 )
               ),
-              img(
-                src = "media/hex-MetaShARK_squared.png",
+              tags$img(
+                src = system.file("media/hex-MetaShARK_squared.png", package = "MetaShARK"),
                 width = "40px",
                 height = "40px"
               )

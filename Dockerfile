@@ -31,8 +31,8 @@ RUN aptitude install -y -f -o APT::Get::Fix-Missing=true \
 
 RUN dpkg -S /usr/include/GL/gl.h
 RUN echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), download.file.method = 'libcurl')" >> /usr/local/lib/R/etc/Rprofile.site
-RUN R -e 'install.packages("remotes")'
-RUN R -e 'remotes::install_github("r-lib/remotes", ref = "97bbf81")'
+RUN R -e 'install.packages("devtools")'
+RUN R -e 'devtools::install_github("r-lib/remotes", ref = "97bbf81")'
 RUN Rscript -e 'remotes::install_version("glue",upgrade="never", version = "1.4.2")'
 RUN Rscript -e 'remotes::install_version("mime",upgrade="never", version = "0.9")'
 RUN Rscript -e 'remotes::install_version("stringr",upgrade="never", version = "1.4.0")'
