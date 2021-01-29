@@ -1,7 +1,11 @@
 #' @import shiny
 #'
 #' @noRd
+<<<<<<< HEAD
 fillUI <- function(id) {
+=======
+fillUI <- function(id, main.env) {
+>>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
   tabsetPanel(
     id = NS(id, "tabs"),
     tabPanel(
@@ -43,15 +47,25 @@ fillUI <- function(id) {
         # * Pages ----
         pagesUI(
           NS(id, "wizard"),
+<<<<<<< HEAD
           parent.id = id
+=======
+          parent.id = id,
+          main.env = main.env
+>>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
         )
       ) # end fluidPage
     ),
     tabPanel(
       "MetaFIN",
+<<<<<<< HEAD
       MetaFINUI(
         NS(id, "metafin")
       )
+=======
+      tags$h1("Under Construction"),
+      tags$img(src = "media/working.png")
+>>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
     )
   )
 }

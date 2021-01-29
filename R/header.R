@@ -4,6 +4,7 @@
 #' @importFrom dplyr %>%
 #'
 #' @noRd
+<<<<<<< HEAD
 .globalScript <- function(.args = list(dev = FALSE, wip = FALSE), envir) {
 
   # Options setup ====
@@ -15,6 +16,18 @@
   
   assign("dev", .args$dev, main.env)
   assign("wip", .args$wip, main.env)
+=======
+.globalScript <- function(args = list(dev = FALSE, wip = FALSE)) {
+
+  # Options setup ====
+  options(stringsAsFactors = FALSE)
+  
+  # Environment setup ====
+  main.env <- new.env(parent = options()$metashark.env)
+
+  assign("dev", args$dev, main.env)
+  assign("wip", args$wip, main.env)
+>>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
 
   # Paths ====
   wwwPaths <- system.file("resources", package = "MetaShARK") %>%
@@ -216,8 +229,16 @@
   )
 
   # output ====
+<<<<<<< HEAD
   shinyOptions(shiny.reactlog = .args$reactlog)
   addResourcePath("media", system.file("media/", package = "MetaShARK"))
 
   return(main.env)
+=======
+  assign("main.env", main.env, .GlobalEnv)
+  shinyOptions(shiny.reactlog = args$reactlog)
+  addResourcePath("media", system.file("media/", package = "MetaShARK"))
+
+  return(NULL)
+>>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
 }

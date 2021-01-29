@@ -42,11 +42,19 @@ runMetashark <- function(...) {
   args$wip <- isTRUE(args$wip)
   args$reactlog <- isTRUE(args$reactlog) || isTRUE(args$dev)
   args$test <- isTRUE(args$test)
+<<<<<<< HEAD
   assign("metashark.args", args, envir = .GlobalEnv)
 
   # .globalScript(args = args)
   # on.exit(message("### end of MetaShARK session ###\n"))
   on.exit(rm("metashark.args", envir = .GlobalEnv))
+=======
+  options(shiny.reactlog = args$reactlog)
+
+  .globalScript(args = args)
+  on.exit(message("### end of MetaShARK session ###\n"))
+  on.exit(rm(main.env, envir = .GlobalEnv))
+>>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
   
   if(args$test) browser()
   runApp(shinyApp(ui = ui, server = server))

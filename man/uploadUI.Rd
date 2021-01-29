@@ -5,7 +5,11 @@
 \alias{upload}
 \title{uploadUI}
 \usage{
+<<<<<<< HEAD
 uploadUI(id)
+=======
+uploadUI(id, main.env)
+>>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
 
 upload(id, main.env)
 }
