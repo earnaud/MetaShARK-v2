@@ -37,24 +37,30 @@ runMetashark <- function(...) {
   invisible(require("shinyBS"))
   invisible(require("shinyTree"))
 
+  # Set args in .GlobalEnv
   args <- list(...)
   args$dev <- isTRUE(args$dev)
   args$wip <- isTRUE(args$wip)
   args$reactlog <- isTRUE(args$reactlog) || isTRUE(args$dev)
   args$test <- isTRUE(args$test)
-<<<<<<< HEAD
   assign("metashark.args", args, envir = .GlobalEnv)
-
-  # .globalScript(args = args)
-  # on.exit(message("### end of MetaShARK session ###\n"))
+  # Set steps in .GlobalEnv for UI purposes
+  assign("ui.steps", c(
+    "SelectDP",
+    "Data_Files",
+    "Attributes",
+    "Categorical_Variables",
+    "Geographic_Coverage",
+    "Taxonomic_Coverage",
+    "Personnel",
+    "Miscellaneous",
+    "Make_EML"
+  ), envir = .GlobalEnv)
+  # on exit removals
   on.exit(rm("metashark.args", envir = .GlobalEnv))
-=======
-  options(shiny.reactlog = args$reactlog)
-
-  .globalScript(args = args)
-  on.exit(message("### end of MetaShARK session ###\n"))
-  on.exit(rm(main.env, envir = .GlobalEnv))
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
+  on.exit(rm("ui.steps", envir = .GlobalEnv))
+  
+  addResourcePath("media", system.file("media/", package = "MetaShARK"))
   
   if(args$test) browser()
   runApp(shinyApp(ui = ui, server = server))

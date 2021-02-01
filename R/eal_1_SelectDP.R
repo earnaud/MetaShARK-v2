@@ -2,11 +2,7 @@
 #' @importFrom shinyjs hidden disabled
 #'
 #' @noRd
-<<<<<<< HEAD
 SelectDPUI <- function(id) {
-=======
-SelectDPUI <- function(id, main.env) {
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
   # UI output
   return(
     fluidPage(
@@ -34,19 +30,10 @@ SelectDPUI <- function(id, main.env) {
                 package removal."),
               tags$li(tags$b("Next: "), "click this to continue your metadata
                 filling. It will bring you to the next step."),
-<<<<<<< HEAD
               tags$li(tags$b("Previous:"), "click this to come back to the
                 previous step."
                 # You can also use the steps", tags$span(icon("circle"),style = "color: dodgerblue;"), " markers to get to the desired step.")
               )
-=======
-              tags$li(tags$b("Previous:"), "click this to come back to one of
-                the previous steps. You can also use the steps", tags$span(
-                icon("circle"),
-                style = "color: dodgerblue;"
-              ), " markers to get
-                to the desired step.")
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
             )
           )
         )
@@ -87,13 +74,8 @@ SelectDPUI <- function(id, main.env) {
             icon = icon("file-download")
           ),
           tags$p(
-<<<<<<< HEAD
             "If you have handled manually some packages in ",
             tags$code("~/dataPackagesOutput/emlassemblyline"),
-=======
-            "If you have handled manually some packages in",
-            isolate(main.env$PATHS$eal.dp),
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
             ", some packages might not be listed here."
           )
         ),

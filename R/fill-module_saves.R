@@ -4,11 +4,7 @@
 #' @importFrom jsonlite write_json serializeJSON 
 #'
 #' @noRd
-<<<<<<< HEAD
 saveReactive <- function(main.env, page, do.template = TRUE) {
-=======
-saveReactive <- function(main.env, page) {
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
   if(is.null(main.env$local.rv))
     stop("No content provided.")
   if(is.null(main.env$save.variable))
@@ -35,12 +31,8 @@ saveReactive <- function(main.env, page) {
       }
       
       # Template ----
-<<<<<<< HEAD
       if(isTRUE(do.template))
         templateModules(main.env, page)
-=======
-      templateModules(main.env, page)
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
       
       # Save JSON ----
       setProgress(2 / 3, "Write JSON")
@@ -164,10 +156,7 @@ saveReactive <- function(main.env, page) {
   content <- main.env$local.rv
   # Save
   .sv$Attributes <- content$md.tables
-<<<<<<< HEAD
   devmsg(names(content$md.tables))
-=======
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
   
   # Write attribute tables
   sapply(

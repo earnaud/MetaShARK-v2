@@ -1,11 +1,7 @@
 #' @import shiny
 #' 
 #' @noRd
-<<<<<<< HEAD
 welcomeUI <- function(id) {
-=======
-welcomeUI <- function(id, wip = FALSE) {
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
   ns <- NS(id)
 
   fluidPage(
@@ -14,20 +10,10 @@ welcomeUI <- function(id, wip = FALSE) {
       # MetaShARK
       tags$h1("Welcome in MetaShARK"),
       fluidRow(
-<<<<<<< HEAD
         wipRow(
           tags$p("DISCLAIMER: some features are still in development. Some parts
             with this color code are not meant to be fully functional.")
         ),
-=======
-        if (isTRUE(wip)) {
-          wipRow(
-            tags$p("DISCLAIMER: this is a development version. Some parts with 
-            this color code are not meant to be fully functional. So do not 
-            bother with testing them.")
-          )
-        },
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
         column(
           4,
           tags$h3("MetaShARK"),
@@ -83,15 +69,11 @@ welcomeUI <- function(id, wip = FALSE) {
             Initiative (EDI). You can find further details on their 
             <a href=https://github.com/EDIorg/EMLassemblyline>git repository</a>.")
           ),
-<<<<<<< HEAD
           tags$img(
             src = system.file("media/edi_logo_small.png", package = "MetaShARK"),
             width = "100px",
             height = "100px"
           )
-=======
-          tags$img(src = "media/edi_logo_small.png", width = "100px", height = "100px")
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
         ),
         column(
           8,

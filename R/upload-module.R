@@ -7,7 +7,6 @@
 #'
 #' @import shiny
 #' @importFrom data.table fread
-<<<<<<< HEAD
 uploadUI <- function(id) {
   
   # registeredEndpoints <- readDataTable(
@@ -28,36 +27,12 @@ uploadUI <- function(id) {
   # 
   # # TODO add update module
   
-=======
-uploadUI <- function(id, main.env) {
-  dev <- main.env$dev
-
-  registeredEndpoints <- readDataTable(
-    isolate(main.env$PATHS$resources)$registeredEndpoints.txt
-  )
-  dp.list <- list.files(
-    "~/dataPackagesOutput/emlAssemblyLine/",
-    pattern = "_emldp$",
-    full.names = TRUE
-  )
-  names(dp.list) <- sub(
-    "_emldp", "",
-    list.files(
-      "~/dataPackagesOutput/emlAssemblyLine/",
-      pattern = "_emldp$"
-    )
-  )
-
-  # TODO add update module
-
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
   tagList(
     tabsetPanel(
       id = "upload",
       # Upload ----
       tabPanel(
         title = "upload",
-<<<<<<< HEAD
         actionButton(NS(id, "dev"), "Dev"),
         # select endpoint ----
         tags$h3("Select your MetaCat portal"),
@@ -70,19 +45,6 @@ uploadUI <- function(id, main.env) {
             NS(id, "endpoint"),
             "Available metacats:",
             c()
-=======
-        if (dev) actionButton(NS(id, "dev"), "Dev"),
-        # select endpoint ----
-        tags$h3("Select your MetaCat portal"),
-        tags$div(
-          tags$p(tags$code("dev"), "portals are under construction. No guarantee is given of
-            their consistance.", tags$code("prod"), "portals are completely functional.
-            Chosing 'Other' will ask you to input some technical information."),
-          selectInput(
-            NS(id, "endpoint"),
-            "Available metacats:",
-            c(registeredEndpoints$mn, "Other")
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
           ),
           uiOutput(NS(id, "actual-endpoint")),
           tagList(
@@ -101,11 +63,7 @@ uploadUI <- function(id, main.env) {
           actionButton(NS(id, "toSettings"), "Go to settings", icon("gear")),
           class = "leftMargin inputBox"
         ),
-<<<<<<< HEAD
         
-=======
-
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
         # files input ----
         tags$h3("Select your data package files"),
         tags$div(
@@ -122,12 +80,7 @@ uploadUI <- function(id, main.env) {
                 NS(id, "DP"),
                 "Data package",
                 choices = c(
-<<<<<<< HEAD
                   None = ""
-=======
-                  None = "",
-                  dp.list
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
                 ),
                 multiple = FALSE
               ),
@@ -160,22 +113,14 @@ uploadUI <- function(id, main.env) {
           ),
           class = "leftMargin inputBox"
         ),
-<<<<<<< HEAD
         
-=======
-
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
         # Constraints ----
         # div(id="constraints_div",
         #     tags$h4("Add constraints between script and data files"),
         #     actionButton(NS(id, "add_constraint"), "", icon = icon("plus"), width = "40px")
         # ),
         # tags$hr(),
-<<<<<<< HEAD
         
-=======
-
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
         actionButton(
           NS(id, "process"),
           "Process",
@@ -210,7 +155,6 @@ uploadUI <- function(id, main.env) {
 #' @importFrom mime guess_type
 upload <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-<<<<<<< HEAD
     registeredEndpoints <- readDataTable(
       isolate(main.env$PATHS$resources)$registeredEndpoints.txt
     )
@@ -224,18 +168,6 @@ upload <- function(id, main.env) {
     )
     endpoint <- reactive(input$endpoint)
     
-=======
-    registeredEndpoints <- data.table::fread(isolate(
-      main.env$PATHS$resources$registeredEndpoints.txt
-    ))
-    dev <- main.env$dev
-
-    # Select endpoint ----
-    endpoint <- reactive({
-      . <- input$endpoint
-    })
-
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
     memberNode <- reactive({
       if (endpoint() != "Other") {
         registeredEndpoints %>%
@@ -245,11 +177,6 @@ upload <- function(id, main.env) {
         input$other_endpoint
       }
     })
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
     output$`actual-endpoint` <- renderUI({
       if (endpoint() != "Other") {
         tags$p(tags$b("Current endpoint:"), memberNode())
@@ -261,7 +188,6 @@ upload <- function(id, main.env) {
         )
       }
     })
-<<<<<<< HEAD
     
     # Token input ----
     observeEvent(input$toSettings,
@@ -275,21 +201,6 @@ upload <- function(id, main.env) {
       if (!is.character(options("dataone_token")) ||
           !is.character(options("dataone_test_token")) ||
           (is.null(options("dataone_token")) && is.null(options("dataone_test_token")))
-=======
-
-    # Token input ----
-    observeEvent(input$toSettings,
-      {
-        shinyjs::click("appOptions", asis = TRUE)
-      },
-      ignoreInit = TRUE
-    )
-
-    observe({
-      if (!is.character(options("dataone_token")) ||
-        !is.character(options("dataone_test_token")) ||
-        (is.null(options("dataone_token")) && is.null(options("dataone_test_token")))
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
       ) {
         output$token_status <- renderUI({
           tags$div("UNFILLED", class = "danger")
@@ -303,7 +214,6 @@ upload <- function(id, main.env) {
         shinyjs::enable("process")
       }
     })
-<<<<<<< HEAD
     
     # Files input ----
     dp.list <- list.files(
@@ -316,16 +226,11 @@ upload <- function(id, main.env) {
       basename(dp.list)
     )
     
-=======
-
-    # Files input ----
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
     rv <- reactiveValues(
       md = data.frame(stringsAsFactors = FALSE),
       data = data.frame(stringsAsFactors = FALSE),
       scr = data.frame(stringsAsFactors = FALSE)
     )
-<<<<<<< HEAD
     
     observeEvent(input$DP, {
       .dir <- gsub("/+", "/", input$DP)
@@ -352,35 +257,6 @@ upload <- function(id, main.env) {
     label = "DPinput"
     )
     
-=======
-
-    observeEvent(input$DP,
-      {
-        .dir <- gsub("/+", "/", input$DP)
-        .id <- basename(.dir) %>% sub("_emldp$", "", .)
-        .eml.files <- sprintf("%s/%s/eml", .dir, .id) %>%
-          dir(full.names = TRUE)
-        rv$md <- data.frame(
-          name = basename(.eml.files),
-          size = base::file.size(.eml.files),
-          type = mime::guess_type(.eml.files),
-          datapath = .eml.files
-        )
-
-        .data.files <- sprintf("%s/%s/data_objects", .dir, .id) %>%
-          dir(full.names = TRUE)
-        rv$data <- data.frame(
-          name = basename(.data.files),
-          size = base::file.size(.data.files),
-          type = mime::guess_type(.data.files),
-          datapath = .data.files
-        )
-      },
-      ignoreInit = TRUE,
-      label = "DPinput"
-    )
-
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
     observeEvent(input$metadata, {
       rv$md <- input$metadata
       showNotification(
@@ -400,11 +276,7 @@ upload <- function(id, main.env) {
       browser() # Update list instead of erasing
       rv$scr <- rbind(input$scripts, .add)
     })
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
     output$filesList <- renderUI({
       validate(
         need(
@@ -414,11 +286,7 @@ upload <- function(id, main.env) {
           "No file selected"
         )
       )
-<<<<<<< HEAD
       
-=======
-
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
       tagList(
         if (dim(rv$md)[1] > 0) {
           checkboxGroupInput(
@@ -444,7 +312,6 @@ upload <- function(id, main.env) {
         actionButton(NS(id, "rmv"), "Remove", class = "danger")
       )
     })
-<<<<<<< HEAD
     
     observeEvent(input$rmv,
                  {
@@ -471,78 +338,31 @@ upload <- function(id, main.env) {
       if (
         dim(rv$md)[1] != 1 ||
         dim(rv$data)[1] < 1
-=======
-
-    observeEvent(input$rmv,
-      {
-        .rmv <- input$`md-files`
-        if (isContentTruthy(.rmv)) {
-          .ind <- match(.rmv, rv$md$name)
-          rv$md <- rv$md[-.ind, ]
-        }
-        .rmv <- input$`data-files`
-        if (isContentTruthy(.rmv)) {
-          .ind <- match(.rmv, rv$data$name)
-          rv$data <- rv$data[-.ind, ]
-        }
-        .rmv <- input$`scr-files`
-        if (isContentTruthy(.rmv)) {
-          .ind <- match(.rmv, rv$scr$name)
-          rv$scr <- rv$scr[-.ind, ]
-        }
-      },
-      ignoreInit = TRUE
-    )
-
-    observe({
-      if (
-        dim(rv$md)[1] != 1 ||
-          dim(rv$data)[1] < 1
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
       ) {
         shinyjs::disable("process")
       } else {
         shinyjs::enable("process")
       }
-<<<<<<< HEAD
       
       if (
         dim(rv$scr)[1] == 0 ||
         dim(rv$data)[1] == 0
-=======
-
-      if (
-        dim(rv$scr)[1] == 0 ||
-          dim(rv$data)[1] == 0
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
       ) {
         shinyjs::disable("add_constraint")
       } else {
         shinyjs::enable("add_constraint")
       }
     })
-<<<<<<< HEAD
     
     # Process ----
     observeEvent(input$process, {
       disable("process")
       
-=======
-
-    # Process ----
-    observeEvent(input$process, {
-      disable("process")
-
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
       md.format <- EML::read_eml(as.character(rv$md$datapath))$schemaLocation %>%
         strsplit(split = " ") %>%
         unlist() %>%
         utils::head(n = 1)
-<<<<<<< HEAD
-      
-=======
 
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
       out <- uploadDP(
         mn = registeredEndpoints %>%
           dplyr::filter(mn == endpoint()) %>%
@@ -575,21 +395,13 @@ upload <- function(id, main.env) {
         formats = main.env$FORMAT$dataone.list$MediaType,
         use.doi = FALSE
       )
-<<<<<<< HEAD
       
-=======
-
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
       if (class(out) == "try-error") {
         showNotification(out[1], type = "error")
       } else {
         showNotification(paste("Uploaded DP", out), type = "message")
       }
-<<<<<<< HEAD
       
-=======
-
->>>>>>> 21780e3c7e17505ab12284e63b960fbb7e749dc8
       shinyjs::enable("process")
     })
   })

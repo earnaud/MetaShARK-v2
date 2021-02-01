@@ -22,8 +22,8 @@ tabPage <- function(id, title, ui, navTagList = NULL) {
 #' @import shiny
 #'
 #' @noRd
-pagesUI <- function(id, parent.id, main.env) {
-  steps <- isolate(main.env$VALUES$steps)
+pagesUI <- function(id, parent.id) {
+  steps <- get("ui.steps", envir = .GlobalEnv)
   .nb <- length(steps)
   .ui.args <- vector("list", .nb)
   
@@ -49,8 +49,7 @@ pagesUI <- function(id, parent.id, main.env) {
             "MakeEMLUI"
           ),
           args = list(
-            id = NS(parent.id, page),
-            main.env = main.env
+            id = NS(parent.id, page)
           )
         ),
         navTagList = if (i > 1)
