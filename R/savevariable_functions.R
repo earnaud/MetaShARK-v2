@@ -118,6 +118,7 @@ setSaveVariable <- function(content, save.variable, lv = 1, root = "root") {
 setLocalRV <- function(main.env){
   if(isContentTruthy(main.env$save.variable$SelectDP$dp.metadata.path))
     checkTemplates(main.env)
+  devmsg(main.env$save.variable$DataFiles$metadatapath)
   
   # Set variable ====
   main.env$local.rv <- switch(
@@ -346,17 +347,35 @@ setLocalRV <- function(main.env){
         main.env$save.variable$DataFiles$metadatapath,
         function(path){
           # Use data file name as reference
+          devmsg(dir.exists("~/dataPackagesOutput/emlAssemblyLine/2021-01-15_project_emldp/2021-01-15_project/data_objects"))
           .rv.name <- gsub("attributes_", "", basename(path))
-          # Populate metadata tables
-          main.env$local.rv$md.tables[[.rv.name]] <<- readDataTable(
+          # Populate metadata table
+          .table <- readDataTable(
             path, data.table = FALSE, stringsAsFactors = FALSE
           )
-          # Set a shortcut for the remain of this iteration
-          .table <- main.env$local.rv$md.tables[[.rv.name]]
           # Curates table content
           .table[is.na(.table)] <- ""
-          if(isTRUE(main.env$save.variable$quick) || isTRUE(main.env$dev))
-            .table$attributeDefinition <- paste("Description for:", .table$attributeName)
+          .table$attributeDefinition <- paste("Description for:", .table$attributeName)
+          # dateTimeFormatString
+          .date.row <- which(.table$class == "Date")
+          .table$dateTimeFormatString <- rep("", nrow(.table))
+          if (isTruthy(.date.row)) {
+            .table$dateTimeFormatString[.date.row] <- rep(main.env$FORMATS$dates[3], length(.date.row))
+          }
+          # Curate unit 
+          .nonunit.rows <- which(.table$class != "numeric")
+          .unit.rows <- which(.table$class == "numeric")
+          if (isTruthy(.nonunit.rows))
+            .table$unit[.nonunit.rows] <- rep("", length(.nonunit.rows))
+          if (isTruthy(.unit.rows)){
+            .val <- .table$unit[.unit.rows]
+            .val[sapply(.val, function(v) 
+              v == main.env$FORMATS$units[2] ||
+                !isTruthy(v) ||
+                grepl("!Ad.*ere!", v)
+            )] <- main.env$FORMATS$units[2] # dimensionless
+            .table$unit[.unit.rows] <- .val
+          }
           # Add units for 'latitude' and 'longitude'
           .degree.attributes <- .table$attributeName %in% c("latitude", "longitude")
           if(any(.degree.attributes))
@@ -374,6 +393,7 @@ setLocalRV <- function(main.env){
             devmsg("%s", "-- df reactive test")
             .table
           })
+          
           # Add completed status for each attribute of each table
           main.env$local.rv$completed[[.rv.name]] <- reactiveValues()
           lapply(seq(nrow(.table)), function(row.index) {
@@ -405,45 +425,43 @@ setLocalRV <- function(main.env){
       main.env$save.variable$DataFiles$metadatapath")
     
     # Fill 
-    if (isTRUE(main.env$dev) || isTRUE(main.env$save.variable$quick)) {
-      lapply(names(main.env$local.rv$md.tables), function(table.name) {
-        sapply(colnames(main.env$local.rv$md.tables[[table.name]]), function(col) {
-          # local shortcut
-          .table <- main.env$local.rv$md.tables[[table.name]]
-          
-          # Set values
-          if (col == "attributeDefinition") {
-            .table[[col]] <- paste("Description for", .table[["attributeName"]])
+    lapply(names(main.env$local.rv$md.tables), function(table.name) {
+      sapply(colnames(main.env$local.rv$md.tables[[table.name]]), function(col) {
+        # local shortcut
+        .table <- main.env$local.rv$md.tables[[table.name]]
+        
+        # Set values
+        if (col == "attributeDefinition") {
+          .table[[col]] <- paste("Description for", .table[["attributeName"]])
+        }
+        
+        if (col == "dateTimeFormatString") {
+          .date.row <- which(.table$class == "Date")
+          .table[[col]] <- rep("", nrow(.table))
+          if (isTruthy(.date.row)) {
+            .table[.date.row, col] <- rep(main.env$FORMATS$dates[3], length(.date.row))
           }
-          
-          if (col == "dateTimeFormatString") {
-            .date.row <- which(.table$class == "Date")
-            .table[[col]] <- rep("", nrow(.table))
-            if (isTruthy(.date.row)) {
-              .table[.date.row, col] <- rep(main.env$FORMATS$dates[3], length(.date.row))
-            }
+        }
+        
+        if (col == "unit") {
+          .nonunit.rows <- which(.table$class != "numeric")
+          .unit.rows <- which(.table$class == "numeric")
+          if (isTruthy(.nonunit.rows))
+            .table[[col]][.nonunit.rows] <- rep("", length(.nonunit.rows))
+          if (isTruthy(.unit.rows)){
+            .val <- .table[.unit.rows, col]
+            .val[sapply(.val, function(v) 
+              v == main.env$FORMATS$units[2] ||
+                !isTruthy(v) ||
+                grepl("!Ad.*ere!", v)
+            )] <- main.env$FORMATS$units[2]
+            .table[.unit.rows, col] <- .val
           }
-          
-          if (col == "unit") {
-            .nonunit.rows <- which(.table$class != "numeric")
-            .unit.rows <- which(.table$class == "numeric")
-            if (isTruthy(.nonunit.rows))
-              .table[[col]][.nonunit.rows] <- rep("", length(.nonunit.rows))
-            if (isTruthy(.unit.rows)){
-              .val <- .table[.unit.rows, col]
-              .val[sapply(.val, function(v) 
-                v == main.env$FORMATS$units[2] ||
-                  !isTruthy(v) ||
-                  grepl("!Ad.*ere!", v)
-              )] <- main.env$FORMATS$units[2]
-              .table[.unit.rows, col] <- .val
-            }
-          }
-          .table[is.na(.table)] <- ""
-          main.env$local.rv$md.tables[[table.name]] <<- .table
-        }) # end of sapply:col
-      }) # end of lapply:files
-    } # end filling
+        }
+        .table[is.na(.table)] <- ""
+        main.env$local.rv$md.tables[[table.name]] <<- .table
+      }) # end of sapply:col
+    }) # end of lapply:files
   } 
   
   # * Catvars ----

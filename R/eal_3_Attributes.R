@@ -36,6 +36,7 @@ AttributesUI <- function(id) {
         shinyjs::hidden(
           tags$div(
             id = "form",
+            style = 'width: 100%;',
             # - filename (output)
             helpText(textOutput(ns("filename"))),
             # - attributeName (output)
@@ -44,8 +45,10 @@ AttributesUI <- function(id) {
             textAreaInput(
               ns("attributeDefinition"), 
               "Description of the attribute",
-              width = "100%"
-            ),
+              value = "!Add description here!",
+              resize = "both"
+            ) %>%
+              shiny::tagAppendAttributes(style = 'width: initial;'),
             # - class ----
             selectInput(
               ns("class"),
@@ -241,17 +244,17 @@ Attributes <- function(id, main.env) {
       # Update values
       .row <- main.env$local.rv$md.tables[[selected.file()]] %>%
         filter(attributeName == selected.attribute())
-      # Set class
-      updateSelectInput(
-        session,
-        "class", 
-        selected = .row$class
-      )
       # Set attributeDefinition
       updateTextAreaInput(
         session,
         "attributeDefinition",
         value = .row$attributeDefinition
+      )
+      # Set class
+      updateSelectInput(
+        session,
+        "class", 
+        selected = .row$class
       )
       # Set dateTimeFormatString
       updateSelectInput(
@@ -429,6 +432,9 @@ Attributes <- function(id, main.env) {
         need(input$class == "Date", "Not a Date"),
         need(!is.na(input$dateTimeFormatString), "Unset dateTimeFormatString input.")
       )
+      
+      if(main.env$dev)
+        devmsg(input$dateTimeFormatString)
       
       # Correct input value
       .value <- input$dateTimeFormatString

@@ -70,7 +70,7 @@ welcomeUI <- function(id) {
             <a href=https://github.com/EDIorg/EMLassemblyline>git repository</a>.")
           ),
           tags$img(
-            src = system.file("media/edi_logo_small.png", package = "MetaShARK"),
+            src = "media/edi_logo_small.png",
             width = "100px",
             height = "100px"
           )

@@ -190,6 +190,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
   content <- main.env$local.rv
   
   sapply(content$cv.files, function(file.path) {
+    devmsg(file.path)
     file.name <- basename(file.path)
     
     # Save

@@ -72,6 +72,10 @@ textarea {
   background-color: #f6f6f6;
 }
 
+.form-group.shiny-input-container.has-feedback {
+  width: 300px !important;
+}
+
 .topInputRow span {
   display: inline-flex;
 }
