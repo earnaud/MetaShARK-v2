@@ -130,7 +130,7 @@ fill <- function(id, main.env) {
         req(input$save_quit)
         
         # Save work at this state
-        saveReactive(main.env, main.env$EAL$page)
+        saveReactive(main.env, main.env$EAL$page, do.template = FALSE)
         
         # Clean & reset variables
         removeModal()
@@ -160,7 +160,7 @@ fill <- function(id, main.env) {
     # * Save ----
     observeEvent(input$save, {
       if(main.env$dev) devmsg("saved: %s", main.env$EAL$page)
-      saveReactive(main.env, main.env$EAL$page)
+      saveReactive(main.env, main.env$EAL$page, do.template = FALSE)
     })
     
     # Navigation ====

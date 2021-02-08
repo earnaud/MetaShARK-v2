@@ -162,6 +162,8 @@ templateModules <- function(main.env, page){
     # Check for EAL issues
     if(exists("template_issues")) 
       stop("EAL template issues - GeoCov")
+    
+    return("done")
   })
   
   if(class(x) == "try-error") {
