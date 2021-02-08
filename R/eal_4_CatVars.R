@@ -151,11 +151,14 @@ CatVars <- function(id, main.env) {
                 names(main.env$local.rv$completed[[file.name]]),
                 file.name = file.name,
                 function(file.name, attribute){
+                  .valid <- main.env$local.rv$completed[[file.name]][[attribute]] %>%
+                    listReactiveValues() %>%
+                    unlist() %>%
+                    all()
+                  if(!.valid)
+                    devmsg(.valid, tag = paste(file.name, attribute))
                   ifelse(
-                    main.env$local.rv$completed[[file.name]][[attribute]] %>%
-                      listReactiveValues() %>%
-                      unlist() %>%
-                      all(),
+                    .valid,
                     "success",
                     "warning"
                   )

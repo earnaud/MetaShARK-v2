@@ -119,10 +119,13 @@ templateModules <- function(main.env, page){
 #' @noRd
 .templateCV_GeoCov <- function(main.env){
   # for each attribute data frame
-  md.tables <- if(main.env$EAL$page == 3) {
-    main.env$local.rv$md.tables
-  } else {main.env$save.variable$Attributes}
+  md.tables <- ifelse(
+    main.env$EAL$page == 3,
+    main.env$local.rv$md.tables,
+    main.env$save.variable$Attributes
+  )
   
+  # loop required to check eac 'class' column
   .do.template.catvars <- sapply(
       names(md.tables),
       function(md.table) {
@@ -161,9 +164,6 @@ templateModules <- function(main.env, page){
       stop("EAL template issues - GeoCov")
   })
   
-  if(class(x) == "try-error" && main.env$dev)
-    browser()
-  
   if(class(x) == "try-error") {
     isolate({main.env$EAL$page <- main.env$EAL$page - 1})
     showNotification(
@@ -172,7 +172,7 @@ templateModules <- function(main.env, page){
       closeButton = TRUE,
       duration = NULL
     )
-  } else
+  } else # skip to Geographic Coverage
   if (isFALSE(.do.template.catvars)) {
     isolate({main.env$EAL$page <- main.env$EAL$page + 1})
   }

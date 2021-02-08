@@ -118,7 +118,6 @@ setSaveVariable <- function(content, save.variable, lv = 1, root = "root") {
 setLocalRV <- function(main.env){
   if(isContentTruthy(main.env$save.variable$SelectDP$dp.metadata.path))
     checkTemplates(main.env)
-  devmsg(main.env$save.variable$DataFiles$metadatapath)
   
   # Set variable ====
   main.env$local.rv <- switch(
@@ -347,7 +346,6 @@ setLocalRV <- function(main.env){
         main.env$save.variable$DataFiles$metadatapath,
         function(path){
           # Use data file name as reference
-          devmsg(dir.exists("~/dataPackagesOutput/emlAssemblyLine/2021-01-15_project_emldp/2021-01-15_project/data_objects"))
           .rv.name <- gsub("attributes_", "", basename(path))
           # Populate metadata table
           .table <- readDataTable(
@@ -390,7 +388,6 @@ setLocalRV <- function(main.env){
           )
           # Add a reactive to read each table (test)
           main.env$local.rv$rv.tables[[.rv.name]] <- reactive({
-            devmsg("%s", "-- df reactive test")
             .table
           })
           
@@ -500,7 +497,13 @@ setLocalRV <- function(main.env){
         dplyr::mutate(
           code = gsub("^$","NA", code)
         )
-      
+      if("commentaire_sortie" %in% unlist(main.env$local.rv$cv.tables[[file.name]])) {
+        devmsg(
+          main.env$local.rv$cv.tables[[file.name]] %>%
+            dplyr::filter(attributeName == "commentaire_sortie") %>%
+            dplyr::select(code)
+        )
+      }
       # Set completed
       main.env$local.rv$completed[[file.name]] <- reactiveValues()
       attributes <- main.env$local.rv$cv.tables[[file.name]]$attributeName %>%

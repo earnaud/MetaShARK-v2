@@ -28,8 +28,11 @@ CatVarsInputUI <- function(id, attribute, table.name, main.env) {
           dplyr::select(definition) %>%
           unique() %>% 
           unlist()
-        if(length(.value) == 0)
+        if(length(.value) == 0){
           .value <- sprintf("No description provided for: %s", .code)
+        }
+        if(length(.code) == 0 || .code == "NA")
+          devmsg("%s:%s = %s", table.name, attribute, .code)
         
         # proper UI
         textAreaInput(
@@ -70,6 +73,8 @@ CatVarsInput <- function(id, attribute, table.name, main.env) {
       observeEvent(input[[input.id]], {
         # validity check
         .valid <- isTruthy(input[[input.id]])
+        if(.code == "NA")
+          devmsg(.valid, tag = paste("catvar:", .code))
         shinyFeedback::hideFeedback(input.id)
         
         if(isTRUE(.valid)) {
