@@ -34,8 +34,6 @@
 #' 
 #' @export
 runMetashark <- function(...) {
-  invisible(require("shinyBS"))
-  invisible(require("shinyTree"))
 
   # Set args in .GlobalEnv
   args <- list(...)
@@ -44,6 +42,7 @@ runMetashark <- function(...) {
   args$reactlog <- isTRUE(args$reactlog) || isTRUE(args$dev)
   args$test <- isTRUE(args$test)
   assign("metashark.args", args, envir = .GlobalEnv)
+  on.exit(rm("metashark.args", envir = .GlobalEnv))
   
   # Set steps in .GlobalEnv for UI purposes
   assign("ui.steps", c(
@@ -57,13 +56,13 @@ runMetashark <- function(...) {
     "Miscellaneous",
     "Make_EML"
   ), envir = .GlobalEnv)
-  
-  # on exit removals
-  on.exit(rm("metashark.args", envir = .GlobalEnv))
   on.exit(rm("ui.steps", envir = .GlobalEnv))
   
+  # Set resourcePaths
   addResourcePath("media", system.file("media/", package = "MetaShARK"))
+  on.exit(removeResourcePath("media"))
   
+  # Ensure correct encoding
   options(encoding = 'UTF-8')
   Sys.setlocale("LC_ALL", "en_US.utf8") 
   
