@@ -65,8 +65,15 @@ runMetashark <- function(...) {
   addResourcePath("media", system.file("media/", package = "MetaShARK"))
   
   options(encoding = 'UTF-8')
-  message(Sys.getlocale())
+  Sys.setlocale("LC_ALL", "en_US.utf8") 
   
-  if(args$test) browser()
+  if(args$test){
+    browser()
+    shinytest::recordTest(
+      shinytest::ShinyDriver$new(
+        "R/"
+      )
+    )
+  }
   runApp(shinyApp(ui = ui, server = server))
 }

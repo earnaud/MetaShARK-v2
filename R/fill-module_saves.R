@@ -155,9 +155,9 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
   .sv <- main.env$save.variable
   content <- main.env$local.rv
   # Save
-  .sv$Attributes <- content$md.tables
+  .sv$Attributes$content <- content$md.tables
   devmsg(names(content$md.tables))
-  
+    
   # Write attribute tables
   sapply(
     names(content$md.tables),

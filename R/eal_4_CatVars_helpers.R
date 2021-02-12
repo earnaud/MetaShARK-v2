@@ -20,14 +20,15 @@ CatVarsInputUI <- function(id, attribute, table.name, main.env) {
     ... = tagList(
       lapply(unlist(codes), function(.code) {
         # Correct value for NAs
-        if (is.na(.code) || .code == "") {
-          .code <- "NA"
-        }
+        browser()
         .value <- .tables[[table.name]] %>%
-          dplyr::filter(attributeName == attribute & code == .code) %>%
+          dplyr::filter(attributeName == attribute & identical(code, .code)) %>%
           dplyr::select(definition) %>%
           unique() %>% 
           unlist()
+        if (is.na(.code) || .code == "") {
+          .code <- "NA"
+        }
         if(length(.value) == 0){
           .value <- sprintf("No description provided for: %s", .code)
         }

@@ -118,12 +118,11 @@ templateModules <- function(main.env, page){
 #' 
 #' @noRd
 .templateCV_GeoCov <- function(main.env){
+  devmsg(main.env$EAL$page, tag = "template")
   # for each attribute data frame
-  md.tables <- ifelse(
-    main.env$EAL$page == 3,
-    main.env$local.rv$md.tables,
-    main.env$save.variable$Attributes
-  )
+  md.tables <- if(main.env$EAL$page == 3)
+    main.env$local.rv$md.tables else
+      main.env$save.variable$Attributes$content
   
   # loop required to check eac 'class' column
   .do.template.catvars <- sapply(
@@ -136,6 +135,8 @@ templateModules <- function(main.env, page){
     unlist() %>%
     any()
   
+  devmsg(.do.template.catvars)
+  
   if(exists("template_issues")) 
     rm("template_issues", envir = .GlobalEnv)
   
@@ -147,7 +148,7 @@ templateModules <- function(main.env, page){
         data.path = main.env$save.variable$SelectDP$dp.data.path
       )
     }
-
+browser()
     # Check for EAL issues
     if(exists("template_issues")) 
       stop("EAL template issues - CatVar")

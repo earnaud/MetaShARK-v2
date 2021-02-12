@@ -166,12 +166,10 @@ fill <- function(id, main.env) {
     # Navigation ====
     observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page != main.env$EAL$old.page)
-      
+      devmsg(main.env$EAL$page, tag = "main")
       # * Save  & Template ----
       if(main.env$EAL$old.page > 1)
         saveReactive(main.env, main.env$EAL$old.page)
-      # else
-      #   checkTemplates(main.env)
       
       # * set EAL variables ----
       # left Data Files

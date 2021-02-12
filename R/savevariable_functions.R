@@ -29,6 +29,9 @@ initReactive <- function(sub.list = NULL, save.variable = NULL, main.env) {
         dp.title = NULL
       ),
       DataFiles = data.frame(stringsAsFactors = FALSE),
+      Attributes = reactiveValues(
+        content = NA # list of data tables
+      ),
       CatVars = reactiveValues(),
       GeoCov = reactiveValues(),
       TaxCov = reactiveValues(
@@ -495,15 +498,9 @@ setLocalRV <- function(main.env){
           }
         ) %>%
         dplyr::mutate(
-          code = gsub("^$","NA", code)
+          code = gsub("^$","\"\"", code)
         )
-      if("commentaire_sortie" %in% unlist(main.env$local.rv$cv.tables[[file.name]])) {
-        devmsg(
-          main.env$local.rv$cv.tables[[file.name]] %>%
-            dplyr::filter(attributeName == "commentaire_sortie") %>%
-            dplyr::select(code)
-        )
-      }
+      
       # Set completed
       main.env$local.rv$completed[[file.name]] <- reactiveValues()
       attributes <- main.env$local.rv$cv.tables[[file.name]]$attributeName %>%
@@ -539,6 +536,7 @@ setLocalRV <- function(main.env){
     .site <- main.env$local.rv$columns$choices$sites <- list()
     .col <- main.env$local.rv$columns$choices$coords <- list()
     sapply(names(.att), function(.md.file) {
+      browser()
       .data.file <- main.env$save.variable$DataFiles %>%
         filter(grepl(.md.file, metadatapath)) %>%
         select(datapath) %>%
