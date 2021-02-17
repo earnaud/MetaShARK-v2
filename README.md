@@ -34,17 +34,24 @@ All instructed install solutions use Docker method. It is therefore required to 
 
 ### Local installation
 
-It is now possible to deploy a local container for MetaShARK. Please refer to the `build_docker_local.txt` to get all command lines necessary. 
-**Disclaimer:** you can use docker volumes to access files outside of the container (steps 2 & 3a), but this will require to *write files to your computer*. Since you execute by yourself the given command lines, we consider this as a voluntary action from the user.
+It is now possible to deploy a local container for MetaShARK. This is only possible by downloading the git in locale following the described steps. Please refer to the `reload_docker.sh` script to get all necessary command lines. 
+**Disclaimer:** you can use docker volumes to access files outside of the container (steps 3 & 4a), but this will require to *write files to your computer*. Since you execute by yourself the given command lines, we consider this as a consent from the user.
 
-1. In a command shell, get to this git's root: `cd <path/to/MetaShARK>`.
+1. Make sure to have built the package as an archive. To achieve this, in an RStudio console:
+```
+# in the root of the package git
+> devtools::build(path=".")
+```
+You shall get a file like `MetaShARK_0.0.0.9000.tar.gz`.
 
-2. If you want to use volumes (which will let you access files outside of the container, with admin rights), make sure to have a directory in which you can access the data. Here, we will use:
+2. In a command shell, get to this git's root: `cd <path/to/MetaShARK/git>`.
+
+3. If you want to use volumes (which will let you access files outside of the container, with admin rights), make sure to have a directory in which you can access the data. Here, we will use:
 ```
 mkdir ~/metashark_data
 ```
 
-3. Execute the following command lines:
+4. Execute the following command lines:
   a. If you use volumes:
 ```
 docker build -t metashark:local .
@@ -57,7 +64,7 @@ docker build -t metashark:local .
 docker run -d --rm  -p 3838:3838  --name MS metashark:local
 ```
 
-4. In a web browser, access the following URL: `127.0.0.1:3838`.
+5. In a web browser, access the following URL: `127.0.0.1:3838`.
 
 
 ### Server installation
