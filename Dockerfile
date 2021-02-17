@@ -76,7 +76,7 @@ RUN Rscript -e 'remotes::install_github("ThinkR-open/tagsinput@9aa70ec34c6fa60ef
 RUN Rscript -e 'remotes::install_github("ropenscilabs/emldown@8d98c8fc708dc1f2ecc8eec3d23a66e4f487e658")'
 RUN Rscript -e 'remotes::install_github("earnaud/cedarr@dece7479cac3689e36283df74fe0514748e67f18")'
 RUN Rscript -e 'remotes::install_github("trestletech/shinyAce@6f8f7c9976b44246e91bb5dbaef1b87d6bbb7b77")'
-RUN Rscript -e 'remotes::install_github("EDIorg/EMLassemblyline@f05ef748feed7242c9eae0a794a98e163524dd48")'
+RUN Rscript -e 'remotes::install_github("EDIorg/EMLassemblyline@6c3247cb950b334b1f125ed485fa778bc80ec05f")'
 RUN Rscript -e 'remotes::install_github("LukasK13/SummeRnote@7c404e1578ab3567fdb331716ca831913ccf645a")'
 
 RUN mkdir /build_zone

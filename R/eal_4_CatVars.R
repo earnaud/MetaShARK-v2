@@ -6,6 +6,7 @@ CatVarsUI <- function(id) {
   
   return(
     fluidPage(
+      wipRow("This step might take some minutes to setup. (To be improved soon)"),
       fluidRow(
         uiOutput(NS(id, "edit_catvar")) %>%
           shinycssloaders::withSpinner()

@@ -27,8 +27,15 @@
 #' Elie Arnaud <elie.arnaud@mnhn.fr>
 #'
 #' @examples
+#' 
+#' ## Not run:
+#' 
+#' library(MetaShARK)
+#' 
 #' # run this to launch MetaShARK
 #' runMetashark()
+#' 
+#' ## End (Not run)
 #' 
 #' @import shiny
 #' 
@@ -39,8 +46,8 @@ runMetashark <- function(...) {
   args <- list(...)
   args$dev <- isTRUE(args$dev)
   args$wip <- isTRUE(args$wip)
+  args$launch.browser <- isTRUE(args$launch.browser)
   args$reactlog <- isTRUE(args$reactlog) || isTRUE(args$dev)
-  args$test <- isTRUE(args$test)
   assign("metashark.args", args, envir = .GlobalEnv)
   on.exit(rm("metashark.args", envir = .GlobalEnv))
   
@@ -66,13 +73,5 @@ runMetashark <- function(...) {
   options(encoding = 'UTF-8')
   Sys.setlocale("LC_ALL", "en_US.utf8") 
   
-  if(args$test){
-    browser()
-    shinytest::recordTest(
-      shinytest::ShinyDriver$new(
-        "R/"
-      )
-    )
-  }
-  runApp(shinyApp(ui = ui, server = server))
+  runApp(shinyApp(ui = ui, server = server), launch.browser = args$launch.browser)
 }

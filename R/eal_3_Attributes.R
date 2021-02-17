@@ -665,11 +665,11 @@ Attributes <- function(id, main.env) {
         input,
         "missingValueCode",
         type = if(identical(
-          isContentTruthy(.value), isContentTruthy(input$missingValueCodeExplanation)
+          isContentTruthy(.value) || .value == "", 
+          isContentTruthy(input$missingValueCodeExplanation)
         )) "warning" else "danger"
       )
       
-      checkFeedback(input, "missingValueCode", type = "warning")
       if(isContentTruthy(input$missingValueCode))
         checkFeedback(input, "missingValueCodeExplanation", type = "danger") else
           checkFeedback(input, "missingValueCodeExplanation", type = "warning")
@@ -696,7 +696,17 @@ Attributes <- function(id, main.env) {
         input,
         "missingValueCodeExplanation",
         type = if(identical(
-          isContentTruthy(.value), isContentTruthy(input$missingValueCode)
+          isContentTruthy(.value),
+          isContentTruthy(input$missingValueCode) || input$missingValueCode == ""
+        )) "warning" else "danger"
+      )
+      
+      checkFeedback(
+        input,
+        "missingValueCode",
+        type = if(identical(
+          isContentTruthy(.value),
+          isContentTruthy(input$missingValueCode) || input$missingValueCode == ""
         )) "warning" else "danger"
       )
     })
@@ -756,11 +766,10 @@ Attributes <- function(id, main.env) {
             } else TRUE
           } && 
           {
-            if(isFALSE(input$missingValueCode == "" &&
-                       input$missingValueCodeExplanation == "")) {
-              isContentTruthy(input$missingValueCode) &&
+            if(input$missingValueCodeExplanation != "") {
+              (isContentTruthy(input$missingValueCode) || input$missingValueCode == "") &&
                 isContentTruthy(input$missingValueCodeExplanation)
-            } else TRUE
+            } else (input$missingValueCode == "")
           }
       )
       

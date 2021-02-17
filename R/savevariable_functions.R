@@ -532,14 +532,13 @@ setLocalRV <- function(main.env){
   # * GeoCov ----
   if(main.env$EAL$page == 5) {
     # Set choices for selectInput -- reuse Attributes
-    .att <- main.env$save.variable$Attributes
+    .att <- main.env$save.variable$Attributes$content
     .site <- main.env$local.rv$columns$choices$sites <- list()
     .col <- main.env$local.rv$columns$choices$coords <- list()
     sapply(names(.att), function(.md.file) {
-      browser()
       .data.file <- main.env$save.variable$DataFiles %>%
-        filter(grepl(.md.file, metadatapath)) %>%
-        select(datapath) %>%
+        filter(grepl(.md.file, metadatapath)) %>% # full metadata path of attributes
+        select(datapath) %>% # full matching data path
         unlist %>%
         basename
       # Set sites

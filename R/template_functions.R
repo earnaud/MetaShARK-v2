@@ -148,7 +148,7 @@ templateModules <- function(main.env, page){
         data.path = main.env$save.variable$SelectDP$dp.data.path
       )
     }
-browser()
+    
     # Check for EAL issues
     if(exists("template_issues")) 
       stop("EAL template issues - CatVar")
@@ -161,7 +161,7 @@ browser()
     )
     
     # Check for EAL issues
-    if(exists("template_issues")) 
+    if(exists("template_issues"))
       stop("EAL template issues - GeoCov")
     
     return("done")

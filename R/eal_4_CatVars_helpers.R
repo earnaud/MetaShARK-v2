@@ -20,7 +20,6 @@ CatVarsInputUI <- function(id, attribute, table.name, main.env) {
     ... = tagList(
       lapply(unlist(codes), function(.code) {
         # Correct value for NAs
-        browser()
         .value <- .tables[[table.name]] %>%
           dplyr::filter(attributeName == attribute & identical(code, .code)) %>%
           dplyr::select(definition) %>%
