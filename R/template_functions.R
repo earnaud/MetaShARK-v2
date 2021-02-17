@@ -169,6 +169,7 @@ templateModules <- function(main.env, page){
   
   if(class(x) == "try-error") {
     isolate({main.env$EAL$page <- main.env$EAL$page - 1})
+    devmsg(EMLassemblyline::issues(), tag = "on template")
     showNotification(
       x,
       type = "error",
