@@ -1,7 +1,7 @@
 #' @import shiny
 #' 
 #' @noRd
-PersonnelUI <- function(id, main.env) {
+PersonnelUI <- function(id) {
   ns <- NS(id)
 
   return(
@@ -21,7 +21,17 @@ PersonnelUI <- function(id, main.env) {
 #' @noRd
 Personnel <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-    # Variable initialization (deprecated)
+    if (main.env$dev){
+      observeEvent(
+        main.env$dev.browse(), 
+        {
+          if (main.env$current.tab() == "fill" &&
+              main.env$EAL$page == 7) {
+            browser()
+          }
+        }
+      )
+    }
 
     # Setup UI on load
     observeEvent(main.env$EAL$page, { # on load

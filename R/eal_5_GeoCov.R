@@ -2,7 +2,7 @@
 #' @importFrom shinyWidgets materialSwitch
 #'
 #' @noRd
-GeoCovUI <- function(id, main.env) {
+GeoCovUI <- function(id) {
   return(
     fluidPage(
       fluidRow(
@@ -56,7 +56,18 @@ GeoCovUI <- function(id, main.env) {
 #' @noRd
 GeoCov <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-    # Variable initialization (deprecated)
+    if (main.env$dev){
+      observeEvent(
+        main.env$dev.browse(), 
+        {
+          if (main.env$current.tab() == "fill" &&
+              main.env$EAL$page == 5) {
+            browser()
+          }
+        }
+      )
+    }
+    
     observe({
       req(main.env$EAL$page == 5)
       main.env$EAL$page.load$depend()
@@ -168,6 +179,9 @@ GeoCov <- function(id, main.env) {
         main.env$local.rv$columns$site$file <- 
           main.env$local.rv$columns$choices$file <- .tmp[1]
       }
+      
+      # Add feedback
+      checkFeedback(input, "site", type = "danger")
     },
     ignoreInit = TRUE,
     ignoreNULL = FALSE,
@@ -189,6 +203,9 @@ GeoCov <- function(id, main.env) {
         main.env$local.rv$columns$lat$file <-
           main.env$local.rv$columns$choices$file <- .tmp[1]
       }
+      
+      # Add feedback
+      checkFeedback(input, "latitude", type = "danger")
     },
     ignoreInit = TRUE,
     priority = 1,
@@ -211,6 +228,9 @@ GeoCov <- function(id, main.env) {
         main.env$local.rv$columns$lon$file <-
           main.env$local.rv$columns$choices$file <- .tmp[1]
       }
+      
+      # Add feedback
+      checkFeedback(input, "longitude", type = "danger")
     },
     ignoreInit = TRUE,
     priority = 1,

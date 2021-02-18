@@ -8,11 +8,13 @@
 #' @noRd
 ui <- function() {
   # get app arguments
-  main.env <- get("main.env", options()$metashark.env)
+  # main.env <- get("main.env", options()$metashark.env)
 
   # prepare variable
   .menu.width <- "250px"
 
+  devmsg(system.file(package = "MetaShARK"))
+  
   tagList(
     shinyjs::useShinyjs(),
     shinyFeedback::useShinyFeedback(),
@@ -59,12 +61,12 @@ ui <- function() {
               span(
                 class = "logo-lg",
                 tags$img(
-                  src = "media/metashark-logo-v4.png",
+                  src = "media/metashark-logo-v4.png", 
                   width = "240px",
                   height = "40px"
                 )
               ),
-              img(
+              tags$img(
                 src = "media/hex-MetaShARK_squared.png",
                 width = "40px",
                 height = "40px"
@@ -104,21 +106,18 @@ ui <- function() {
                 tabName = "about",
                 icon = icon("beer")
               ),
-              if (main.env$dev) {
-                tagList(
-                  tags$hr(),
-                  actionButton(
-                    "dev", "DEV CHECK"
-                  )
+              tagList(
+                tags$hr(),
+                actionButton(
+                  "dev", "DEV CHECK"
                 )
-              }
+              )
             ),
             width = "250px"
           ), # end sidebar
           # * Settings ----
           rightsidebar = rightSidebarSettings(
-            "settings",
-            wip = main.env$wip
+            "settings"
           ),
           ## Content ====
           body = shinydashboard::dashboardBody(
@@ -126,15 +125,15 @@ ui <- function() {
             shinydashboard::tabItems(
               shinydashboard::tabItem(
                 tabName = "welcome",
-                welcomeUI("welcome", wip = main.env$wip)
+                welcomeUI("welcome")
               ),
               shinydashboard::tabItem(
                 tabName = "fill",
-                fillUI("fill", main.env)
+                fillUI("fill")
               ),
               shinydashboard::tabItem(
                 tabName = "upload",
-                uploadUI("upload", main.env)
+                uploadUI("upload")
               ),
               shinydashboard::tabItem(
                 tabName = "documentation",

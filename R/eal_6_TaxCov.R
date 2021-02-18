@@ -1,11 +1,15 @@
 #' @import shiny
 #'
 #' @noRd
-TaxCovUI <- function(id, main.env) {
+TaxCovUI <- function(id) {
   return(
     fluidPage(
       fluidRow(
-        column(4, uiOutput(NS(id, "taxa.table")) ),
+        column(
+          4,
+          uiOutput(NS(id, "taxa.table")),
+          tableOutput(NS(id, "preview"))
+        ),
         column(4, uiOutput(NS(id, "taxa.name.type")) ),
         column(4, uiOutput(NS(id, "taxa.authority")) )
       )
@@ -19,24 +23,40 @@ TaxCovUI <- function(id, main.env) {
 #' @noRd
 TaxCov <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-    # Variable Initialization (deprecated)
-
+    if (main.env$dev){
+      observeEvent(
+        main.env$dev.browse(), 
+        {
+          if (main.env$current.tab() == "fill" &&
+              main.env$EAL$page == 6) {
+            browser()
+          }
+        }
+      )
+    }
+    
     # Set UI ====
 
     # * taxa.table ----
     output$taxa.table <- renderUI({
       isolate({
         # Set choices for selectInput -- reuse & filter Attributes
-        .att <- main.env$save.variable$Attributes
+        .att <- main.env$save.variable$Attributes$content
         .choice <- main.env$local.rv$.taxa.choices <- list()
-        sapply(names(.att), function(.file) {
+        sapply(names(.att), function(.md.file) {
+          .data.file <- main.env$save.variable$DataFiles %>%
+            filter(grepl(.md.file, metadatapath)) %>%
+            select(datapath) %>%
+            unlist %>%
+            basename
           # Set sites
-          .choice[[.file]] <<- .att[[.file]] %>% 
+          .choice[[.data.file]] <<- .att[[.md.file]] %>% 
+            as.data.frame %>%
             dplyr::filter(class %in% c("character", "categorical")) %>% 
             dplyr::select(attributeName) %>%
             unlist
-          .choice[[.file]] <<- paste(.file, .choice[[.file]], sep="/") %>%
-            setNames(nm = .choice[[.file]])
+          .choice[[.data.file]] <<- paste(.data.file, .choice[[.data.file]], sep="/") %>%
+            setNames(nm = .choice[[.data.file]])
         })
         # Set value -- read from saved
         .value <- if(isContentTruthy(main.env$save.variable$TaxCov)){
@@ -57,7 +77,26 @@ TaxCov <- function(id, main.env) {
         multiple = FALSE
       )
     })
-
+    
+    output$preview <- renderTable({
+      validate(
+        need(isTruthy(main.env$local.rv$taxa.table), "invalid taxa selection"),
+        need(isTruthy(main.env$local.rv$taxa.col), "invalid taxa selection")
+      )
+      
+      file <- main.env$save.variable$DataFiles$datapath %>%
+        as.data.frame %>%
+        dplyr::filter(grepl(main.env$local.rv$taxa.table, .)) %>%
+        unlist
+      data <- data.table::fread(
+        file, 
+        nrows = 5,
+        data.table = FALSE
+      )[main.env$local.rv$taxa.col]
+      
+      return(data)
+    })
+    
     # * taxa.name.type ----
     output$taxa.name.type <- renderUI({
       isolate({
@@ -104,7 +143,8 @@ TaxCov <- function(id, main.env) {
     observeEvent(input$taxa.table, 
       {
         # save
-        .tmp <- strsplit(input$taxa.table, split = "/", fixed = TRUE) %>%
+        .tmp <- input$taxa.table %>% 
+          strsplit(., split = "/", fixed = TRUE) %>%
           unlist
         main.env$local.rv$taxa.table <- .tmp[1]
         main.env$local.rv$taxa.col <- .tmp[2]

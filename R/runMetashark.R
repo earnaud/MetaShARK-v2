@@ -27,27 +27,51 @@
 #' Elie Arnaud <elie.arnaud@mnhn.fr>
 #'
 #' @examples
+#' 
+#' ## Not run:
+#' 
+#' library(MetaShARK)
+#' 
 #' # run this to launch MetaShARK
 #' runMetashark()
+#' 
+#' ## End (Not run)
 #' 
 #' @import shiny
 #' 
 #' @export
 runMetashark <- function(...) {
-  invisible(require("shinyBS"))
-  invisible(require("shinyTree"))
 
+  # Set args in .GlobalEnv
   args <- list(...)
   args$dev <- isTRUE(args$dev)
   args$wip <- isTRUE(args$wip)
-  args$reactlog <- isTRUE(args$reactlog)
-  args$test <- isTRUE(args$test)
-  options(shiny.reactlog = args$reactlog)
-
-  .globalScript(args = args)
-  on.exit(message("### end of MetaShARK session ###\n"))
-  on.exit(rm(main.env, envir = .GlobalEnv))
+  args$launch.browser <- isTRUE(args$launch.browser)
+  args$reactlog <- isTRUE(args$reactlog) || isTRUE(args$dev)
+  assign("metashark.args", args, envir = .GlobalEnv)
+  on.exit(rm("metashark.args", envir = .GlobalEnv))
   
-  if(args$test) browser()
-  runApp(shinyApp(ui = ui, server = server))
+  # Set steps in .GlobalEnv for UI purposes
+  assign("ui.steps", c(
+    "SelectDP",
+    "Data_Files",
+    "Attributes",
+    "Categorical_Variables",
+    "Geographic_Coverage",
+    "Taxonomic_Coverage",
+    "Personnel",
+    "Miscellaneous",
+    "Make_EML"
+  ), envir = .GlobalEnv)
+  on.exit(rm("ui.steps", envir = .GlobalEnv))
+  
+  # Set resourcePaths
+  addResourcePath("media", system.file("media/", package = "MetaShARK"))
+  on.exit(removeResourcePath("media"))
+  
+  # Ensure correct encoding
+  options(encoding = 'UTF-8')
+  Sys.setlocale("LC_ALL", "en_US.utf8") 
+  
+  runApp(shinyApp(ui = ui, server = server), launch.browser = args$launch.browser)
 }

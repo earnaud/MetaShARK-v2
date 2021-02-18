@@ -3,7 +3,7 @@
 #' @importFrom shinyWidgets prettySwitch
 #' 
 #' @noRd
-rightSidebarSettings <- function(id, wip) {
+rightSidebarSettings <- function(id) {
   shinydashboardPlus::rightSidebar(
 
     # #### MAX 5 PANELS !!!! due to AdminLTE2 ### #
@@ -15,25 +15,20 @@ rightSidebarSettings <- function(id, wip) {
       active = TRUE,
       icon = "globe",
       tags$div(
-        if (isTRUE(wip)) {
-          wipRow(
-            collapsibleUI(
-              id = NS(id, "orcid-help"),
-              label = "Interest of ORCID",
-              ... = tags$p(
-                "Without login, you can write and read all", tags$b("public"),
-                "data packages created on this instance of MetaShARK. By logging
-                in, you will be able to write", tags$b("private"), "data packages
-                that will not be visible to other users."
-              )
-            ),
-            orcidUI(NS(id, "orcid"))
-            # TODO POC ORCID
-          )
-        }
-        else {
-          "WIP"
-        }
+        wipRow(
+          collapsibleUI(
+            id = NS(id, "orcid-help"),
+            label = "Interest of ORCID",
+            ... = tags$p(
+              "Without login, you can write and read all", tags$b("public"),
+              "data packages created on this instance of MetaShARK. By logging in,
+              you will also be able to edit", tags$b("private"), "data packages
+              that will not be visible to other users."
+            )
+          ),
+          orcidUI(NS(id, "orcid"))
+          # TODO POC ORCID
+        )
       )
     ),
 
@@ -56,11 +51,7 @@ rightSidebarSettings <- function(id, wip) {
           actionButton(NS(id, "metacat_save"), "Save"),
           style = "display: inline-block;"
         ),
-        if (isTRUE(wip)) {
-          textOutput(NS(id, "verbose_token"))
-        } else {
-          NULL
-        },
+        textOutput(NS(id, "verbose_token")),
         collapsibleUI(
           NS(id, "help-metacat"),
           "How to get your token",
@@ -84,33 +75,28 @@ rightSidebarSettings <- function(id, wip) {
       title = "CEDAR token",
       icon = "tree",
       tags$div(
-        if (isTRUE(wip)) {
-          wipRow(
-            textAreaInput(
-              NS(id, "cedar_token"),
-              "Authentication token",
-              width = "120%"
-            ),
-            tags$span(
-              actionButton(NS(id, "cedar_save"), "Save")
-            ),
-            collapsibleUI(
-              NS(id, "help-cedar"),
-              "How to get your token",
-              tagList(
-                tags$b("To fetch your authentication token:"),
-                tags$ul(
-                  tags$li("Login into your CEDAR profile at: https://cedar.metadatacenter.org/"),
-                  tags$li("Navigate in the upper-right menu corner and click 'Profile'."),
-                  tags$li("Paste the content for `key` field before `Usage from REST client`.")
-                )
+        wipRow(
+          textAreaInput(
+            NS(id, "cedar_token"),
+            "Authentication token",
+            width = "120%"
+          ),
+          tags$span(
+            actionButton(NS(id, "cedar_save"), "Save")
+          ),
+          collapsibleUI(
+            NS(id, "help-cedar"),
+            "How to get your token",
+            tagList(
+              tags$b("To fetch your authentication token:"),
+              tags$ul(
+                tags$li("Login into your CEDAR profile at: https://cedar.metadatacenter.org/"),
+                tags$li("Navigate in the upper-right menu corner and click 'Profile'."),
+                tags$li("Paste the content for `key` field before `Usage from REST client`.")
               )
             )
-          ) # end of wipRow
-        }
-        else {
-          "WIP"
-        }
+          )
+        ) # end of wipRow
       )
     )
   )

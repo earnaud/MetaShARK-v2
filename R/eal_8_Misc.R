@@ -3,35 +3,33 @@
 #' @importFrom shinyBS bsCollapse bsCollapsePanel
 #'
 #' @noRd
-MiscUI <- function(id, main.env) {
+MiscUI <- function(id) {
   ns <- NS(id)
   
   #FIXME set this to server with an update*
-  .metadata.path <- isolate(main.env$save.variable$SelectDP$dp.metadata.path)
-  
-  if (file.exists(paste0(.metadata.path, "/keywords.txt"))) {
-    keywords <- data.table::fread(
-      paste0(.metadata.path, "/keywords.txt"),
-      data.table = FALSE, stringsAsFactors = FALSE
-    )
-  } else {
-    keywords <- ""
-  }
-  if (isContentTruthy(keywords)) {
-    kw <- keywords$keyword %>%
-      strsplit(split = ",") %>%
-      unlist() %>%
-      paste(collapse = ",")
-  }
+  # .metadata.path <- isolate(main.env$save.variable$SelectDP$dp.metadata.path)
+  # 
+  # if (file.exists(paste0(.metadata.path, "/keywords.txt"))) {
+  #   keywords <- data.table::fread(
+  #     paste0(.metadata.path, "/keywords.txt"),
+  #     data.table = FALSE, stringsAsFactors = FALSE
+  #   )
+  #   keywords <- keywords$keyword %>%
+  #     strsplit(split = ",") %>%
+  #     unlist() %>%
+  #     paste(collapse = ",")
+  # } else {
+  #   keywords <- ""
+  # }
   
   return(
     fluidPage(
       HTML("
         <h5>DISCLAIMER</h5>
         <ul>
-          <li>Do not use special characters, symbols, formatting, or hyperlinks (URLs are acceptable).</li>
+          <li>Unsupported special characters, symbols, formatting, or hyperlinks (URLs are acceptable).</li>
           <li>Any file selected will not be overwritten but will be used to fill
-          in content (except files originating from DP itself).</li>
+          in content (except files originating from Data Package itself).</li>
         </ul>
         "),
       shinyBS::bsCollapse(
@@ -98,7 +96,17 @@ MiscUI <- function(id, main.env) {
 #' @noRd
 Misc <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-    # Variable initialization (deprecated)
+    if (main.env$dev){
+      observeEvent(
+        main.env$dev.browse(), 
+        {
+          if (main.env$current.tab() == "fill" &&
+              main.env$EAL$page == 8) {
+            browser()
+          }
+        }
+      )
+    }
     
     # Fill ----
     # * Abstract ====
@@ -128,7 +136,6 @@ Misc <- function(id, main.env) {
         )
       })
     }, priority = -1)
-    
     
     observeEvent(input$keywords, {
       req(input$keywords)
@@ -176,7 +183,7 @@ Misc <- function(id, main.env) {
     
     # * Temporal coverage ====
     if (!is.null(isolate(main.env$save.variable$Misc$temporal.coverage))) {
-      main.env$local.rv$temporal.coverage <- isolate(main.env$save.variable$Misc$temporal.coverage)
+      isolate(main.env$local.rv$temporal.coverage <- main.env$save.variable$Misc$temporal.coverage)
       updateDateRangeInput(
         session,
         "temporal.coverage",
@@ -184,6 +191,7 @@ Misc <- function(id, main.env) {
         end = main.env$local.rv$temporal.coverage[2]
       )
     }
+    
     observeEvent(input$temporal_coverage, {
       main.env$local.rv$temporal.coverage <- input$temporal_coverage
     },

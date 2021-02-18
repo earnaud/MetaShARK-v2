@@ -27,8 +27,15 @@ precise description of input datasets.
 For server setup, see \href{https://github.com/earnaud/MetaShARK_docker}{this git}
 }
 \examples{
+
+## Not run:
+
+library(MetaShARK)
+
 # run this to launch MetaShARK
 runMetashark()
+
+## End (Not run)
 
 }
 \author{

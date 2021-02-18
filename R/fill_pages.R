@@ -22,8 +22,8 @@ tabPage <- function(id, title, ui, navTagList = NULL) {
 #' @import shiny
 #'
 #' @noRd
-pagesUI <- function(id, parent.id, main.env) {
-  steps <- isolate(main.env$VALUES$steps)
+pagesUI <- function(id, parent.id) {
+  steps <- get("ui.steps", envir = .GlobalEnv)
   .nb <- length(steps)
   .ui.args <- vector("list", .nb)
   
@@ -49,8 +49,7 @@ pagesUI <- function(id, parent.id, main.env) {
             "MakeEMLUI"
           ),
           args = list(
-            id = NS(parent.id, page),
-            main.env = main.env
+            id = NS(parent.id, page)
           )
         ),
         navTagList = if (i > 1)
@@ -84,6 +83,7 @@ pagesServer <- function(id, main.env) {
     
     changePage <- function(from, to, input, main.env) {
       observeEvent(input[[paste(from, to, sep = "_")]], {
+        if(main.env$dev) devmsg("%s > %s", from, to, tag = "page")
         main.env$EAL$old.page <- main.env$EAL$page
         
         # Case of previous at geographic coverage
@@ -93,7 +93,6 @@ pagesServer <- function(id, main.env) {
           main.env$EAL$page <- main.env$EAL$page + to - from
           # isolate({main.env$EAL$page <- main.env$EAL$page - 1})
         
-        if(main.env$dev) devmsg("page: %s", main.env$EAL$page)
       },
       label = paste("changePage", from, to)
       )

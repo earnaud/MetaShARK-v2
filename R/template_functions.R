@@ -118,16 +118,24 @@ templateModules <- function(main.env, page){
 #' 
 #' @noRd
 .templateCV_GeoCov <- function(main.env){
+  devmsg(main.env$EAL$page, tag = "template")
   # for each attribute data frame
+  md.tables <- if(main.env$EAL$page == 3)
+    main.env$local.rv$md.tables else
+      main.env$save.variable$Attributes$content
+  
+  # loop required to check eac 'class' column
   .do.template.catvars <- sapply(
-    seq_along(main.env$local.rv$md.filenames),
-    function(cur_ind) {
-      # check for direction: CustomUnits or CatVars
-      return(isTRUE("categorical" %in% main.env$local.rv$md.tables[[cur_ind]][, "class"]))
-    }
-  ) %>%
+      names(md.tables),
+      function(md.table) {
+        # check for direction: CustomUnits or CatVars
+        return(isTRUE("categorical" %in% md.tables[[md.table]][, "class"]))
+      }
+    ) %>%
     unlist() %>%
     any()
+  
+  devmsg(.do.template.catvars)
   
   if(exists("template_issues")) 
     rm("template_issues", envir = .GlobalEnv)
@@ -140,7 +148,7 @@ templateModules <- function(main.env, page){
         data.path = main.env$save.variable$SelectDP$dp.data.path
       )
     }
-
+    
     # Check for EAL issues
     if(exists("template_issues")) 
       stop("EAL template issues - CatVar")
@@ -153,19 +161,22 @@ templateModules <- function(main.env, page){
     )
     
     # Check for EAL issues
-    if(exists("template_issues")) 
+    if(exists("template_issues"))
       stop("EAL template issues - GeoCov")
+    
+    return("done")
   })
   
   if(class(x) == "try-error") {
     isolate({main.env$EAL$page <- main.env$EAL$page - 1})
+    devmsg(EMLassemblyline::issues(), tag = "on template")
     showNotification(
       x,
       type = "error",
       closeButton = TRUE,
       duration = NULL
     )
-  } else
+  } else # skip to Geographic Coverage
   if (isFALSE(.do.template.catvars)) {
     isolate({main.env$EAL$page <- main.env$EAL$page + 1})
   }
@@ -229,11 +240,39 @@ templateModules <- function(main.env, page){
         "Taxonomic Coverage has been written.",
         type = "message"
       )
-  }
-  else {
+  } else {
     showNotification(
       "Taxonomic Coverage has been skipped.",
       type = "message"
     )
   }
+}
+
+checkTemplates <- function(main.env) {
+  pat <- switch(
+    as.character(main.env$EAL$page),
+    `3` = "^attribute",
+    `4` = "^catvar",
+    `5` = "^geographic_coverage",
+    `6` = "^taxonomic_coverage",
+    ""
+  )
+  
+  check <- isContentTruthy(
+    dir(
+      main.env$save.variable$SelectDP$dp.metadata.path,
+      pattern = pat
+    )
+  )
+  
+  if(isFALSE(check))
+    templateModules(
+      main.env, 
+      switch(
+        as.character(main.env$EAL$page),
+        `3` = 2,
+        `4` = 3,
+        `5` = 3,
+        `6` = 6
+      ))
 }

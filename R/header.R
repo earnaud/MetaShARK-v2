@@ -4,16 +4,17 @@
 #' @importFrom dplyr %>%
 #'
 #' @noRd
-.globalScript <- function(args = list(dev = FALSE, wip = FALSE)) {
+.globalScript <- function(.args = list(dev = FALSE, wip = FALSE), envir) {
 
   # Options setup ====
   options(stringsAsFactors = FALSE)
+  options(shiny.reactlog = .args$reactlog)
   
   # Environment setup ====
-  main.env <- new.env(parent = options()$metashark.env)
-
-  assign("dev", args$dev, main.env)
-  assign("wip", args$wip, main.env)
+  main.env <- new.env(parent = envir)
+  
+  assign("dev", .args$dev, main.env)
+  assign("wip", .args$wip, main.env)
 
   # Paths ====
   wwwPaths <- system.file("resources", package = "MetaShARK") %>%
@@ -33,32 +34,58 @@
   assign("PATHS", PATHS, envir = main.env)
 
   # Sessionning ====
-  # if (isTRUE(file.exists(isolate(PATHS$eal.dp.index)))) {
-  #   DP.LIST <- data.table::fread(isolate(PATHS$eal.dp.index), sep = "\t")
-  # }
-  # else {
-  #   DP.LIST <- data.frame(
-  #     creator.orcid = character(),
-  #     name = character(),
-  #     title = character(),
-  #     path = character(),
-  #     stringsAsFactors = FALSE
-  #   )
-  # }
-  # 
-  # # Curate DP.LIST versus actual list
-  # DP.LIST$path <- DP.LIST$path %>% gsub("//+", "/", .)
-  # .actual.index <- dir(
-  #   isolate(main.env$PATHS$eal.dp),
-  #   pattern = "_emldp$",
-  #   full.names = TRUE
-  # ) %>% gsub("//+", "/", .)
-  # DP.LIST <- dplyr::filter(DP.LIST, path %in% .actual.index)
-  # 
-  # data.table::fwrite(DP.LIST, isolate(PATHS$eal.dp.index), sep = "\t")
-  # 
-  # assign("DP.LIST", DP.LIST, envir = main.env)
-  # makeReactiveBinding("DP.LIST", env = main.env)
+  
+  if (isTRUE(file.exists(isolate(PATHS$eal.dp.index)))) {
+    DP.LIST <- data.table::fread(isolate(PATHS$eal.dp.index), sep = "\t")
+    DP.LIST$path <- DP.LIST$path %>%
+      gsub("//+", "/", .)
+  } else {
+    DP.LIST <- data.frame(
+      creator.orcid = character(),
+      name = character(),
+      title = character(),
+      path = character(),
+      stringsAsFactors = FALSE
+    )
+    # Fill DP.LIST for first-time runs
+    .files <- dir(isolate(PATHS$eal.dp), full.names = TRUE) %>%
+      gsub(pattern = "//", replacement = "/")
+    if(length(.files) > 0) {
+      sapply(.files, function(.file) {
+        .info <- jsonlite::read_json(
+          sprintf(
+            "%s/%s.json", 
+            .file, 
+            basename(.file) %>%
+              gsub(pattern = "_emldp$", replacement = "")
+          )
+        )[[1]] %>%
+          jsonlite::unserializeJSON()
+        
+        .row <- c(
+          creator.orcid = "public",
+          name = .info$SelectDP$dp.name,
+          title = .info$SelectDP$dp.title,
+          path = .file
+        )
+        DP.LIST <<- rbind(DP.LIST, .row)
+      })
+    }
+  }
+  colnames(DP.LIST) <- c("creator", "name", "title", "path")
+  
+  # Curate DP.LIST versus actual list
+  .actual.index <- dir(
+    isolate(main.env$PATHS$eal.dp),
+    pattern = "_emldp$",
+    full.names = TRUE
+  ) %>% gsub("//+", "/", .)
+  DP.LIST <- dplyr::filter(DP.LIST, path %in% .actual.index)
+
+  data.table::fwrite(DP.LIST, isolate(PATHS$eal.dp.index), sep = "\t")
+
+  assign("DP.LIST", DP.LIST, envir = main.env)
+  makeReactiveBinding("DP.LIST", env = main.env)
 
   # Values ====
   assign(
@@ -67,21 +94,10 @@
       thresholds = reactiveValues(
         files.size.max = 500000
       ),
-      steps = c(
-        "SelectDP",
-        "Data_Files",
-        "Attributes",
-        "Categorical_Variables",
-        "Geographic_Coverage",
-        "Taxonomic_Coverage",
-        "Personnel",
-        "Miscellaneous",
-        "Make_EML"
-      )
+      steps = ui.steps
     ),
     envir = main.env
   )
-
   # Formats ====
   # DataONE nodes
   .DATAONE.LIST <- data.table::fread(wwwPaths$dataoneCNodesList.txt)
@@ -105,9 +121,10 @@
     "FORMATS",
     reactiveValues(
       dates = c(
-        "YYYY",
-        "YYYY-MM", "YYYY-MM-DD", "YYYY-DD-MM",
-        "MM-YYYY", "DD-MM-YYYY", "MM-DD-YYYY"
+        "YYYY-MM-DD", "YYYY",
+        "YYYY-MM",  "YYYY-DD-MM",
+        "MM-YYYY", "DD-MM-YYYY", "MM-DD-YYYY",
+        "hh:mm:ss", "hh:mm", "mm:ss", "hh"
       ),
       units = .units,
       dataone.list = .DATAONE.LIST,
@@ -188,9 +205,7 @@
   )
 
   # output ====
-  assign("main.env", main.env, .GlobalEnv)
-  shinyOptions(shiny.reactlog = args$reactlog)
-  addResourcePath("media", system.file("media/", package = "MetaShARK"))
+  shinyOptions(shiny.reactlog = .args$reactlog)
 
-  return(NULL)
+  return(main.env)
 }

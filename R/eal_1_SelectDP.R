@@ -2,7 +2,7 @@
 #' @importFrom shinyjs hidden disabled
 #'
 #' @noRd
-SelectDPUI <- function(id, main.env) {
+SelectDPUI <- function(id) {
   # UI output
   return(
     fluidPage(
@@ -30,12 +30,10 @@ SelectDPUI <- function(id, main.env) {
                 package removal."),
               tags$li(tags$b("Next: "), "click this to continue your metadata
                 filling. It will bring you to the next step."),
-              tags$li(tags$b("Previous:"), "click this to come back to one of
-                the previous steps. You can also use the steps", tags$span(
-                icon("circle"),
-                style = "color: dodgerblue;"
-              ), " markers to get
-                to the desired step.")
+              tags$li(tags$b("Previous:"), "click this to come back to the
+                previous step."
+                # You can also use the steps", tags$span(icon("circle"),style = "color: dodgerblue;"), " markers to get to the desired step.")
+              )
             )
           )
         )
@@ -76,8 +74,8 @@ SelectDPUI <- function(id, main.env) {
             icon = icon("file-download")
           ),
           tags$p(
-            "If you have handled manually some packages in",
-            isolate(main.env$PATHS$eal.dp),
+            "If you have handled manually some packages in ",
+            tags$code("~/dataPackagesOutput/emlassemblyline"),
             ", some packages might not be listed here."
           )
         ),
@@ -144,16 +142,26 @@ SelectDPUI <- function(id, main.env) {
 #' @importFrom jsonlite read_json unserializeJSON 
 #' 
 #' @noRd
-SelectDP <- function(id,main.env) {
+SelectDP <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-
+    if (main.env$dev){
+      observeEvent(
+        main.env$dev.browse(),
+        {
+          if (main.env$current.tab() == "fill" &&
+              main.env$EAL$page == 1) {
+            browser()
+          }
+        }
+      )
+    }
+    
     # Help server
     collapsible("usage")
 
     # variable initialization ----
     observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page == 1)
-      
       main.env$local.rv$dp.name <- reactive(input$dp_name)
       main.env$local.rv$dp.title <- reactive(input$dp_title)
       main.env$local.rv$dp.license <- reactive(input$license)
@@ -163,10 +171,19 @@ SelectDP <- function(id,main.env) {
     )
     
     # Render DP list ====
-    # update packages every 10 seconds
+    # get files list
+    .files.poll <- reactiveDirReader(
+      main.env$PATHS$eal.dp,
+      session,
+      pattern = "_emldp$"
+    )
+    
+    # set it up
     observe({
-      invalidateLater(1000)
-      dp.list <- listDP(main.env)
+      validate(
+        need(isTruthy(.files.poll()), "No files found")
+      )
+      dp.list <- gsub(.files.poll(), pattern = "_emldp$", replacement = "")
       changed <- isFALSE(identical(dp.list, main.env$local.rv$dp.list))
       if(changed) {
         main.env$local.rv$dp.list <- dp.list
@@ -410,11 +427,10 @@ SelectDP <- function(id,main.env) {
       }
 
       # resume at saved page
-      if(main.env$save.variable$step == 1){ # crashed on going to next
+      if(main.env$save.variable$step == 1) { # crashed on going to next
         main.env$EAL$page <- main.env$save.variable$step+1
         main.env$EAL$history <- main.env$VALUES$steps[1:main.env$EAL$page]
-      }
-      else{ # expected normal way
+      } else { # expected normal way
         main.env$EAL$page <- main.env$save.variable$step
         main.env$EAL$history <- main.env$save.variable$history
       }

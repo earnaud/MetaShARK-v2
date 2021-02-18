@@ -1,11 +1,12 @@
 #' @import shiny
 #'
 #' @noRd
-CatVarsUI <- function(id, main.env) {
+CatVarsUI <- function(id) {
   ns <- NS(id)
   
   return(
     fluidPage(
+      wipRow("This step might take some minutes to setup. (To be improved soon)"),
       fluidRow(
         uiOutput(NS(id, "edit_catvar")) %>%
           shinycssloaders::withSpinner()
@@ -23,87 +24,17 @@ CatVarsUI <- function(id, main.env) {
 #' @noRd
 CatVars <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-    
-    # Variables initialization (deprecated)
-    
-    # Navigation buttons ----
-    # Previous file
-    # observeEvent(input$file_prev, {
-    #   req(main.env$EAL$page == 4)
-    #   req(main.env$local.rv$current$index > 1)
-    #   
-    #   main.env$local.rv$current$index <- main.env$local.rv$current$index - 1
-    # },
-    # label = "EAL4: previous file"
-    # )
-    # 
-    # # Next file
-    # observeEvent(input$file_next, {
-    #   req(main.env$EAL$page == 4)
-    #   req(main.env$local.rv$current$index < length(main.env$local.rv$cv.files))
-    #   
-    #   main.env$local.rv$current$index <- main.env$local.rv$current$index + 1
-    # },
-    # label = "EAL4: next file"
-    # )
-    
-    # En/disable buttons
-    # observe({
-    #   req(main.env$EAL$page == 4)
-    #   
-    #   shinyjs::toggleState(
-    #     "file_prev", 
-    #     condition = main.env$local.rv$current$index > 1
-    #   )
-    #   shinyjs::toggleState(
-    #     "file_next",
-    #     condition = main.env$local.rv$current$index < length(main.env$local.rv$cv.files)
-    #   )
-    # })
-    
-    # update table
-    # observeEvent({
-    #   input$file_next
-    #   input$file_prev
-    #   main.env$EAL$page
-    # }, {
-    #   req(main.env$EAL$page == 4)
-    #   req(main.env$local.rv$current$index > 0)
-    #   
-    #   # shortcut for read variable
-    #   main.env$local.rv$current$file <- basename(main.env$local.rv$cv.files[[main.env$local.rv$current$index]])
-    #   .file.name <- main.env$local.rv$current$file
-    #   
-    #   # Changes
-    #   # - remove NA from current table
-    #   .table <- main.env$local.rv$cv.tables[[.file.name]]
-    #   .table[is.na(.table)] <- ""
-    #   main.env$local.rv$cv.tables[[.file.name]] <- .table
-    # },
-    # ignoreNULL = FALSE,
-    # label = "EAL4: update table",
-    # priority = -1
-    # )
-    
-    # Current file
-    # output$current_file <- renderUI({
-    #   req(main.env$EAL$page == 4)
-    #   tags$div(
-    #     main.env$local.rv$current$file,
-    #     class = "ellipsis",
-    #     style = paste0(
-    #       "display: inline-block;
-    #       font-size:14pt;
-    #       text-align:center;
-    #       width:100%;
-    #       background: linear-gradient(90deg, #3c8dbc ",
-    #       round(100 * main.env$local.rv$current$index / length(main.env$local.rv$cv.files)),
-    #       "%, white ",
-    #       round(100 * main.env$local.rv$current$index / length(main.env$local.rv$cv.files)),
-    #       "%);"
-    #     )
-    #   )
-    # })
+    if (main.env$dev){
+      observeEvent(
+        main.env$dev.browse(), 
+        {
+          if (main.env$current.tab() == "fill" &&
+              main.env$EAL$page == 4) {
+            browser()
+          }
+        }
+      )
+    }
     
     # Form ====
     
@@ -221,11 +152,14 @@ CatVars <- function(id, main.env) {
                 names(main.env$local.rv$completed[[file.name]]),
                 file.name = file.name,
                 function(file.name, attribute){
+                  .valid <- main.env$local.rv$completed[[file.name]][[attribute]] %>%
+                    listReactiveValues() %>%
+                    unlist() %>%
+                    all()
+                  if(!.valid)
+                    devmsg(.valid, tag = paste(file.name, attribute))
                   ifelse(
-                    main.env$local.rv$completed[[file.name]][[attribute]] %>%
-                      listReactiveValues() %>%
-                      unlist() %>%
-                      all(),
+                    .valid,
                     "success",
                     "warning"
                   )

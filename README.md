@@ -1,16 +1,14 @@
-[![DOI](https://zenodo.org/badge/216049930.svg)](https://zenodo.org/badge/latestdoi/216049930)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4297467.svg)](https://doi.org/10.5281/zenodo.4297467)
+
 [![lifecycle](https://img.shields.io/badge/lifecycle-maturing-orange.svg)](https://www.tidyverse.org/lifecycle/#maturing)
 
 <img src="./inst/media/logo.png" alt="" width="50%">
 
 **Stable Server address:** 
-http://metashark.pndb.fr/ ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`
+http://metashark.pndb.fr/ ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance`
 
-<!--
-**Dev Servers address:**
-http://openstack-192-168-100-72.genouest.org/ ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`
-http://metashark.test.pndb.fr/ ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`
--->
+**Stable Test Server address:** 
+https://metashark.test.pndb.fr/  ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance`
 
 <!-- ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`  -->
 <!-- ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance` -->
@@ -22,55 +20,57 @@ The aim of the MetaShARK app is to allow any user a bit familiar with ecology to
 This project has the ambition to offer the user a user-friendly alternative to existing tools (such as the hardcore Morpho ;) ) but also to address an other issue which is the EML is not always fully considered.  
 This MetaShARK git is called "v2" because it is the evolution with {golem} package of the previous [MetaShARK git](https://github.com/earnaud/MetaShARK)
 
-MetaShARK has a dedicated [dockerhub](https://hub.docker.com/r/eliearnaud/metashark/dockerfile) and its deployment method is also [accessible](https://github.com/earnaud/MetaShARK_docker/).
+MetaShARK has a dedicated [dockerhub](https://hub.docker.com/r/eliearnaud/metashark/dockerfile) and its deployment method is also [accessible](https://github.com/earnaud/MetaShARK_docker/). You can also deploy MetaShARK in a local version: for this, check the `local installation` section.
+
+## Legal disclaimers
+
+By using MetaShARK on a machine, you can get to make the app write files on your machine (see `local installation` and docker items for more details). It is discouraged to launch MetaShARK outside of a docker container. 
 
 **Any suggestion is welcome, feel free to contact the dev !**
 
 ## Installing MetaShARK
 
+All instructed install solutions use Docker method. It is therefore required to install this software.
+
 ### Local installation
 
-There are two versions of MetaShARK currently available:
+It is now possible to deploy a local container for MetaShARK. This is only possible by downloading the git in locale following the described steps. Please refer to the `reload_docker.sh` script to get all necessary command lines. 
+**Disclaimer:** you can use docker volumes to access files outside of the container (steps 3 & 4a), but this will require to *write files to your computer*. Since you execute by yourself the given command lines, we consider this as a consent from the user.
 
-* Stable : this version is either the last version described in the [releases](https://github.com/earnaud/MetaShARK-v2/releases) or one of its subversion which got minor fixes.
-* Dev : this version is the last version released, described later in this file. However, it might suffer some bugs.
-
-**If you are using local version, reinstall it regularly !** The dev team will try to push needed fixes once per week during development phase.
-
-All dependencies are described in the DESCRIPTION file. You will also need to install the following system libraries, according to you OS:
-
-| OS          | Debian-like          | Fedora, CentOS, RHEL | Solaris     | Mac OSX     |
-|-------------|----------------------|----------------------|-------------|-------------|
-| libcurl     | libcurl4-openssl-dev | libcurl-devel        | libcurl_dev | curl        |
-| libxml-2.0  | libxml2-dev          | libxml2-devel        | libxml2_dev | libxml2     |
-| openssl     | libssl-dev           | openssl-devel        | libssl_dev  | openssl@1.1 |
-| libjq       | libjq-dev            | libjq-devel          | libjq_dev   | jq          |
-| libv8       | libv8-dev            | v8-devel             | libv8_dev   | v8          |
-| redland     | librdf0-dev          | redland-devel        | librdf_dev  | redland     |
-| poppler-cpp | libpoppler-cpp-dev   | poppler-cpp-devel    | poppler_dev | poppler     |
-
-You can install the app as follow (through command line, for Ubuntu):
-
+1. Make sure to have built the package as an archive. To achieve this, in an RStudio console:
 ```
-apt -y update
-apt -y upgrade 
-apt install -y r-base
-apt install -y libcurl4-openssl-dev libssh2-1-dev libssl-dev libxml2-dev # libgit2-dev 
-R -e 'install.packages("devtools")'
-apt install -y libv8-dev
-R -e 'devtools::install_github("EDIorg/EMLassemblyline", ref="fix_41")'
-apt install -y  libjq-dev librdf0-dev 
-apt-get install -y libpoppler-cpp-dev
-R -e 'install.packages(c("shinyBS","shinycssloaders","readtext"))'
-# Stable: 
-R -e 'devtools::install_github("earnaud/MetaShARK-v2", dependencies=TRUE)'
-# Dev:
-R -e 'devtools::install_github("earnaud/MetaShARK-v2", ref="dev", dependencies=TRUE)'
+# in the root of the package git
+> devtools::build(path=".")
+```
+You shall get a file like `MetaShARK_0.0.0.9000.tar.gz`.
+
+2. In a command shell, get to this git's root: `cd <path/to/MetaShARK/git>`.
+
+3. If you want to use volumes (which will let you access files outside of the container, with admin rights), make sure to have a directory in which you can access the data. Here, we will use:
+```
+mkdir ~/metashark_data
 ```
 
-### Dockerization
+4. Execute the following command lines:
+  a. If you use volumes:
+```
+docker build -t metashark:local .
+docker run -d --rm  -p 3838:3838  --name MS  -v ~/metashark_data:/root/dataPackagesOutput  metashark:local
+```
+  
+  b. If you do not use volumes:
+```
+docker build -t metashark:local .
+docker run -d --rm  -p 3838:3838  --name MS metashark:local
+```
 
-You can access docker files and setup at [this repository](https://github.com/earnaud/MetaShARK_docker).
+5. In a web browser, access the following URL: `127.0.0.1:3838`.
+
+
+### Server installation
+
+A dedicated [git](https://github.com/earnaud/MetaShARK_docker) shows the step for setting up an online instance of MetaShARK.
+Online version of MetaShARK can be subject to some misfunctions due to incorrect handling of simultaneous multiple users (see issue #124).
 
 ## MetaShARK features
 
@@ -93,16 +93,6 @@ It is possibe to upload data packages to metacats registered in MetaShARK. You w
 
 Some references are given that sustain the base principles of this work.
 
-## Releases
-
-### Pre-release 20200316 - Fully functional !
-
-Here we are ! The full EML Assembly Line workflow has been done with MetaShARK. Even if the app might still suffer some bugs, the main steps are accessible. However, it stills only support tabulated file.
-
-### Pre-Release 20200204 - EML Assembly Line (dev version)
-
-Here it comes ! The first pre-release allowing the user to describe his dataset according to the [EML Assembly Line](https://ediorg.github.io/EMLassemblyline/articles/overview.html) recommendations. Please note this version is **still in development** and some features might suffer bugs. Consequently, do not hesitate to [open an issue](https://github.com/earnaud/MetaShARK-v2/issues).
-
 #### Features
 
 MetaShARK/EAL supports:
@@ -117,10 +107,6 @@ MetaShARK/EAL supports:
 
 \* automation still requires user's verification
 \*\* see Known Bugs below
-
-#### Known Bugs
-
-* A bug makes the app crash when you try to change your files selection. Investigation in progress.
 
 ## Authors
 * Elie Arnaud (developper) - elie.arnaud@mnhn.fr

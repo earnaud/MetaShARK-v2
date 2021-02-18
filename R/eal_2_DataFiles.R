@@ -7,7 +7,7 @@
 #' @importFrom shinyFiles shinyFilesButton
 #'
 #' @noRd
-DataFilesUI <- function(id, main.env) {
+DataFilesUI <- function(id) {
   return(
     fluidPage(
       tags$b("Disclaimers:"),
@@ -30,20 +30,19 @@ DataFilesUI <- function(id, main.env) {
             style = "display: inline-block; vertical-align: top;"
           )
         ),
-        column(6,
-          if(main.env$wip){
-            wipRow(
-              URL_Input_UI(
-                NS(id, "url_files"),
-                "Select data file(s) from an URL"
-              ),
-              actionButton(
-                NS(id,"add_url_files"),
-                label = "Get",
-                icon = icon("download")
-              )
+        column(
+          6,
+          wipRow(
+            URL_Input_UI(
+              NS(id, "url_files"),
+              "Select data file(s) from an URL"
+            ),
+            actionButton(
+              NS(id,"add_url_files"),
+              label = "Get",
+              icon = icon("download")
             )
-          }
+          )
         )
       ),
       tags$div(id = "inserthere_eal2")
@@ -58,18 +57,27 @@ DataFilesUI <- function(id, main.env) {
 #' @noRd
 DataFiles <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-    # Variable initialization (deprecated)
+    if (main.env$dev){
+      observeEvent(
+        main.env$dev.browse(), 
+        {
+          if (main.env$current.tab() == "fill" &&
+              main.env$EAL$page == 2) {
+            browser()
+          }
+        }
+      )
+    }
     
     # Setup UI on load
     observeEvent(main.env$EAL$page, { # on load
-      req(main.env$EAL$old.page %in% c(0,1) && 
-            main.env$EAL$page == 2)
+      req(main.env$EAL$page == 2)
       
       if (isContentTruthy(main.env$local.rv$data.files) && 
           nrow(main.env$local.rv$data.files) > 0) {
         sapply(seq(nrow(main.env$local.rv$data.files)), function(row.id) {
           insertDataFileInput(
-            session$ns(sprintf("_%s", row.id)),
+            session$ns(sprintf("_%s", as.character(row.id))),
             main.env
           )
         })
@@ -97,6 +105,25 @@ DataFiles <- function(id, main.env) {
             .loaded.files$description <- rep("", dim(.loaded.files)[1])
             .loaded.files$table.name <- rep("", dim(.loaded.files)[1])
             
+            # Check for folders
+            .to.remove <- c()
+            sapply(1:nrow(.loaded.files), function(.ind) {
+              .loaded.file <- .loaded.files[.ind,]
+              filepath <- .loaded.file$datapath
+              if (fs::is_dir(filepath)) {
+                showNotification(
+                  paste(filename, "is a folder."),
+                  type = "warning"
+                )
+                .to.remove <<- c(.to.remove, .ind)
+              }
+            })
+            if(length(.to.remove) > 0)
+            .loaded.files <- .loaded.files[-.to.remove,]
+            
+            # Do not go further if no more files left
+            req(length(.loaded.files) > 0)
+            
             # * bind into local.rv ----
             # empty local.rv
             if (isFALSE(
@@ -105,7 +132,7 @@ DataFiles <- function(id, main.env) {
             )) {
               # Bind data
               main.env$local.rv$data.files <- cbind(
-                id = seq(nrow(.loaded.files)),
+                id = main.env$local.rv$counter + seq(nrow(.loaded.files)) - 1,
                 .loaded.files
               )
               # Add UI
@@ -134,29 +161,23 @@ DataFiles <- function(id, main.env) {
               # non-empty local.rv
               sapply(.loaded.files$name, function(filename) {
                 filepath <- .loaded.files$datapath[.loaded.files$name == filename]
-                if (fs::is_dir(filepath)) {
-                  showNotification(
-                    paste(filename, "is a folder."),
-                    type = "warning"
-                  )
-                } else {
-                  if (!filename %in% main.env$local.rv$data.files$name) {
-                    # Bind data
-                    main.env$local.rv$data.files <- unique(rbind(
-                      main.env$local.rv$data.files,
-                      cbind(
-                        id = main.env$local.rv$counter,
-                        .loaded.files[.loaded.files$name == filename, ]
-                      )
-                    ))
-                    # Render
-                    insertDataFileInput(
-                      session$ns(main.env$local.rv$counter),
-                      main.env
+
+                if (!filename %in% main.env$local.rv$data.files$name) {
+                  # Bind data
+                  main.env$local.rv$data.files <- unique(rbind(
+                    main.env$local.rv$data.files,
+                    cbind(
+                      id = main.env$local.rv$counter,
+                      .loaded.files[.loaded.files$name == filename, ]
                     )
-                    # Increase file counter
-                    main.env$local.rv$counter <- main.env$local.rv$counter + 1
-                  }
+                  ))
+                  # Render
+                  insertDataFileInput(
+                    session$ns(main.env$local.rv$counter),
+                    main.env
+                  )
+                  # Increase file counter
+                  main.env$local.rv$counter <- main.env$local.rv$counter + 1
                 }
               })
             }
@@ -176,6 +197,7 @@ DataFiles <- function(id, main.env) {
 
     # Data size ----
     observeEvent(main.env$local.rv$data.files, {
+      main.env$EAL$tag.list <- tagList()
       req(isContentTruthy(main.env$local.rv$data.files))
       files.size <- if (isContentTruthy(main.env$local.rv$data.files$size)) {
         sum(main.env$local.rv$data.files$size)
@@ -217,6 +239,15 @@ DataFiles <- function(id, main.env) {
     },
     label = "EAL2: set completed"
     )
+    
+    # Remove inserted UI ----
+    observeEvent(main.env$EAL$page, {
+      req(main.env$EAL$old.page == 2) # left the DataFiles step
+      
+      sapply(paste0(main.env$local.rv$data.files$id, "-container"), function(id) {
+        removeUI(id, immediate = TRUE)
+      })
+    })
 
     # Process data (deprecated)
   })
