@@ -1,6 +1,7 @@
 FROM rocker/shiny:3.6.3
 
-RUN apt-get update --fix-missing -y \
+RUN apt update --fix-missing -y \
+    && apt upgrade -y \
     && apt-get install -y software-properties-common aptitude
 RUN sudo add-apt-repository ppa:cran/libgit2
 RUN aptitude install -y -f -o APT::Get::Fix-Missing=true \
