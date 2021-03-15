@@ -8,7 +8,7 @@
 http://metashark.pndb.fr/ ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance`
 
 **Stable Test Server address:** 
-https://metashark.test.pndb.fr/  ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance`
+https://metashark.test.pndb.fr/  ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`
 
 <!-- ![Active](https://placehold.it/15/c5f015/000000?text=+)`Active`  -->
 <!-- ![Maintenance](https://placehold.it/15/FF0000/000000?text=+) `Maintenance` -->
