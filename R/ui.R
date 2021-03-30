@@ -13,8 +13,6 @@ ui <- function() {
   # prepare variable
   .menu.width <- "250px"
 
-  devmsg(system.file(package = "MetaShARK"))
-  
   tagList(
     shinyjs::useShinyjs(),
     shinyFeedback::useShinyFeedback(),
