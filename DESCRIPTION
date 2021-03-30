@@ -1,6 +1,6 @@
 Package: MetaShARK
 Title: metashark
-Version: 0.0.0.9000
+Version: 1.5.0
 Authors@R: person('Elie', 'ARNAUD', email = 'earnaud@outlook.com', role = c('cre', 'aut'))
 Author: Elie ARNAUD ([aut,cre])
 Maintainer: Elie ARNAUD <earnaud@outlook.com>
