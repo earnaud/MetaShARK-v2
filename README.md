@@ -32,9 +32,25 @@ By using MetaShARK on a machine, you can get to make the app write files on your
 
 All instructed install solutions use Docker method. It is therefore required to install this software.
 
+If this is "easy" on linux, for Windows 10 user, the easiest way is to install first Docker Desktop for windows from this url https://hub.docker.com/editions/community/docker-ce-desktop-windows
+This will install a linux kernel on your windows so you can use a shell, like PowerShell, to run linux command lines.
+Once "docker Desktop" is installed, you have to run it so Docker is activated, then you can run Docker command on PowerShell.
+
 ### Local installation
 
-It is now possible to deploy a local container for MetaShARK. This is only possible by downloading the git in locale following the described steps. Please refer to the `reload_docker.sh` script to get all necessary command lines. 
+It is now possible to deploy a local container for MetaShARK.
+
+Two possibilities :
+
+#### Using the public eliearnaud/metashark prebuilded Docker image
+
+Typing this command line on a shell (using Powershell on Windows 10 for example):
+
+``` docker run -d --rm  -p 3838:3838  --name MS  -v ~/metashark_data:/root/dataPackagesOutput  eliearnaud/metashark ```
+
+#### Using this git Dockerfile
+
+By downloading the git in locale following the described steps. Please refer to the `reload_docker.sh` script to get all necessary command lines. 
 **Disclaimer:** you can use docker volumes to access files outside of the container (steps 3 & 4a), but this will require to *write files to your computer*. Since you execute by yourself the given command lines, we consider this as a consent from the user.
 
 1. Make sure to have built the package as an archive. To achieve this, in an RStudio console:
