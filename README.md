@@ -44,9 +44,13 @@ Two possibilities :
 
 #### Using the public eliearnaud/metashark prebuilded Docker image
 
-Typing this command line on a shell (using Powershell on Windows 10 for example):
+Typing this command line on a shell :
 
+On linux computer:
 ``` docker run -d --rm  -p 3838:3838  --name MS  -v ~/metashark_data:/root/dataPackagesOutput  eliearnaud/metashark ```
+
+On windows computer (using Powershell on Windows 10 for example and if you are in a folder where there is or you accept the creation of a `metashark_data` folder):
+``` docker run -d --rm  -p 3838:3838  --name MS  -v ${PWD}\metashark_data:/root/dataPackagesOutput  eliearnaud/metashark ```
 
 #### Using this git Dockerfile
 
