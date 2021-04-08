@@ -1,0 +1,21 @@
+%grep%                  shorthand for base::grepl
+URL_Input_UI            URL Input
+centered                centered
+checkFeedback           checkFeedback relies on shinyFeedback to
+                        automate feedback on one input.
+collapsibleUI           collapsibleUI
+followPath              followPath
+insertModuleBox         insertModuleBox
+isContentTruthy         Check for data structures validity
+isHTMLTruthy            Check for HTML tags validity
+listReactiveValues      List Reactive Values
+makeReactiveTrigger     reactiveTrigger
+optional                optional
+readDataTable           Read Data Tables
+readPlainText           readFilesText
+remove_shiny_inputs     Clear backstage shiny observers
+renderBibliography      renderBibliography
+runMetashark            Run MetaShARK
+uploadUI                uploadUI
+wipRow                  wipRow
+withRedStar             withRedStar

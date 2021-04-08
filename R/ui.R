@@ -9,10 +9,10 @@
 ui <- function() {
   # get app arguments
   # main.env <- get("main.env", options()$metashark.env)
-
+  
   # prepare variable
   .menu.width <- "250px"
-
+  
   tagList(
     shinyjs::useShinyjs(),
     shinyFeedback::useShinyFeedback(),
@@ -106,9 +106,12 @@ ui <- function() {
               ),
               tagList(
                 tags$hr(),
-                actionButton(
-                  "dev", "DEV CHECK"
-                )
+                shinyjs::hidden(
+                  actionButton(
+                    "dev", "DEV CHECK"
+                  )
+                ),
+                tags$p(uiOutput("version"))
               )
             ),
             width = "250px"

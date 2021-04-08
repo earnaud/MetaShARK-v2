@@ -65,6 +65,8 @@ runMetashark <- function(...) {
   ), envir = .GlobalEnv)
   on.exit(rm("ui.steps", envir = .GlobalEnv))
   
+  
+  
   # Set resourcePaths
   addResourcePath("media", system.file("media/", package = "MetaShARK"))
   on.exit(removeResourcePath("media"))
@@ -76,5 +78,10 @@ runMetashark <- function(...) {
   # Set max flow at 50Mb
   options(shiny.maxRequestSize = 50*1024^2)
   
-  runApp(shinyApp(ui = ui, server = server), launch.browser = args$launch.browser)
+  # Set window values
+  options(shiny.launch.browser = args$launch.browser)
+  options(shiny.port = 3838)
+  options(shiny.host = "127.0.0.1")
+  
+  runApp(shinyApp(ui = ui, server = server))
 }

@@ -1,0 +1,52 @@
+Package: MetaShARK
+Title: metashark
+Version: 0.0.0.9000
+Authors@R: person('Elie', 'ARNAUD', email = 'earnaud@outlook.com', role = c('cre', 'aut'))
+Author: Elie ARNAUD ([aut,cre])
+Maintainer: Elie ARNAUD <earnaud@outlook.com>
+Description: MetaShARK is a Shiny application allowing its
+                    user to fill metadata for a given ecological
+                    dataset of his owns. The data description relies
+                    on Ecological Metadata Language (EML).
+License: MIT
+Encoding: UTF-8
+LazyData: true
+Imports: attempt, cedarr, config, data.table, dataone, datapack, dplyr,
+        DT, EML, EMLassemblyline, emldown, fs, gdata, glue, golem,
+        htmltools, jsonlite, markdown, methods, mime, processx, RCurl,
+        readtext, RefManageR, rmarkdown, rorcid, shinyAce, shinyBS,
+        shinycssloaders, shinydashboard, shinyFiles, shinyjs,
+        shinydashboardPlus, shinyFeedback, shinyWidgets, shiny (>=
+        1.5.0), shinyTree, stringr, SummeRnote, textutils, tippy,
+        tagsinput, taxonomyCleanr, utils, xml2
+Remotes: ThinkR-open/tagsinput, ropenscilabs/emldown
+RoxygenNote: 7.1.1
+Roxygen: list(markdown = TRUE)
+URL: https://github.com/earnaud/MetaShARK-v2.git
+BugReports: https://github.com/earnaud/MetaShARK-v2.git/issues
+Suggests: testthat (>= 3.0.0), knitr
+VignetteBuilder: knitr
+Depends: R (>= 2.10)
+Collate: 'zzz.R' 'utils_writeText.R' 'utils_URL_Input.R'
+        'utils_readPlaintext.R' 'utils_readDataTable.R'
+        'utils_reactiveTrigger.R' 'utils_reactiveDirReader.R'
+        'utils_listReactiveValues.R' 'utils_isContentTruthy.R'
+        'utils_insertModuleBox.R' 'utils_followPath.R' 'utils_devmsg.R'
+        'utils_collapsible.R' 'utils_additional_HTML.R' 'utils_grep.R'
+        'about_module.R' 'about_module_functions.R'
+        'documentation_module.R' 'eal_1_SelectDP.R' 'eal_2_DataFiles.R'
+        'eal_2_DataFiles_helpers.R' 'eal_3_Attributes.R'
+        'eal_3_Attributes_dates.R' 'eal_3_Attributes_helpers.R'
+        'eal_4_CatVars.R' 'eal_4_CatVars_helpers.R' 'eal_5_GeoCov.R'
+        'eal_5_GeoCov_helpers.R' 'eal_6_TaxCov.R'
+        'eal_7_ORCID_helpers.R' 'eal_7_Personnel.R'
+        'eal_7_Personnel_helpers.R' 'eal_7_roleInput.R' 'eal_8_Misc.R'
+        'eal_8_Misc_helpers.R' 'eal_9_MakeEML.R' 'eal_pages.R'
+        'eal_x_Annotations.R' 'eal_x_Annotations_helpers.R'
+        'fill_module.R' 'fill_module_saves.R' 'fill_pages.R' 'header.R'
+        'metafin.R' 'runMetashark.R' 'savevariable_functions.R'
+        'settings_rightSideBar.R' 'template_functions.R'
+        'upload_module.R' 'upload_module_functions.R'
+        'welcome_module.R' 'ui.R' 'server.R'
+Config/testthat/edition: 3
+Built: R 3.6.3; ; 2021-02-12 15:24:33 UTC; unix
