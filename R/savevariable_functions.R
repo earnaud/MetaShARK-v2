@@ -30,7 +30,8 @@ initReactive <- function(sub.list = NULL, save.variable = NULL, main.env) {
       ),
       DataFiles = data.frame(stringsAsFactors = FALSE),
       Attributes = reactiveValues(
-        content = NA # list of data tables
+        content = NA, # list of data tables
+        use.catvars = FALSE
       ),
       CatVars = reactiveValues(),
       GeoCov = reactiveValues(),
@@ -101,7 +102,7 @@ setSaveVariable <- function(content, save.variable, lv = 1, root = "root") {
         x <- sub.content
       }
       
-      isolate(save.variable[[gsub("_", ".", label)]] <- x)
+      isolate({save.variable[[gsub("_", ".", label)]] <- x})
       return(NULL)
     }
   )
@@ -462,8 +463,28 @@ setLocalRV <- function(main.env){
         main.env$local.rv$md.tables[[table.name]] <<- .table
       }) # end of sapply:col
     }) # end of lapply:files
-  } 
   
+    # Add reactive check for catvars templating
+    main.env$local.rv$use.catvars <- reactive({
+      .check <- sapply(
+        names(main.env$local.rv$rv.tables),
+        function(md.table) {
+          # check for direction: CustomUnits or CatVars
+          .table <- main.env$local.rv$rv.tables[[md.table]]()
+          .check <- isTRUE("categorical" %in% .table[,"class"])
+          devmsg(
+            "%s contains catvars: %s",
+            md.table, 
+            .check,
+            tag = "savevariable_functions.R # 474", 
+          )
+        }
+      ) %>%
+        unlist() %>%
+        any()
+    })
+    
+  }
   # * Catvars ----
   if(main.env$EAL$page == 4) {
     # read metadata folder path
@@ -603,12 +624,14 @@ setLocalRV <- function(main.env){
     # File
     if(isTruthy(main.env$save.variable$TaxCov$taxa.table) && 
        gsub("\\..*","", main.env$save.variable$TaxCov$taxa.table) %grep%
-       names(main.env$save.variable$Attributes))
+       names(main.env$save.variable$Attributes$content))
       main.env$local.rv$taxa.table <- unlist(main.env$save.variable$TaxCov$taxa.table)
-    # Col
+    # Column
+    # Get equivalent name for attributes
+    .att.table.name <- gsub("\\..*",".txt", main.env$local.rv$taxa.table)
     if(isTruthy(main.env$save.variable$TaxCov$taxa.col) &&
        main.env$save.variable$TaxCov$taxa.col %in% 
-       main.env$save.variable$Attributes[[main.env$local.rv$taxa.table]]$attributeName)
+       main.env$save.variable$Attributes$content[[.att.table.name]]$attributeName)
       main.env$local.rv$taxa.col <- main.env$save.variable$TaxCov$taxa.col
     # Name type
     if(isTruthy(main.env$save.variable$TaxCov$taxa.name.type) &&
@@ -623,22 +646,21 @@ setLocalRV <- function(main.env){
   # * Personnel ----
   if(main.env$EAL$page == 7) {
     # Read template
-    {
-      # Here, do not read from file: format for 'role' is not the same
-      saved.table <- if (main.env$save.variable$Personnel %>%
-                         listReactiveValues() %>%
-                         isContentTruthy())
-        isolate(main.env$save.variable$Personnel) else
-          NULL
-      if(!is.null(saved.table)) {
-        # Remove NA
-        saved.table[is.na(saved.table)] <- ""
-        # Save
-        main.env$local.rv$Personnel <- saved.table
-      }
+    message("passing here")
+    # Here, do not read from file: format for 'role' is not the same
+    saved.table <- if (main.env$save.variable$Personnel %>%
+                       listReactiveValues() %>%
+                       isContentTruthy())
+      isolate(main.env$save.variable$Personnel) else
+        NULL
+    if(!is.null(saved.table)) {
+      # Remove NA
+      saved.table[is.na(saved.table)] <- ""
+      # Save
+      main.env$local.rv$Personnel <- saved.table
     }
     
-    # Add id column -- specific id foor pre-generated input
+    # Add id column -- specific id for pre-generated input
     if(nrow(main.env$local.rv$Personnel) > 0) {
       main.env$local.rv$Personnel$id <- paste0("_", seq(nrow(main.env$local.rv$Personnel)))
     } else 

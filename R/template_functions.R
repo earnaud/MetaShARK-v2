@@ -124,18 +124,10 @@ templateModules <- function(main.env, page){
     main.env$local.rv$md.tables else
       main.env$save.variable$Attributes$content
   
-  # loop required to check eac 'class' column
-  .do.template.catvars <- sapply(
-      names(md.tables),
-      function(md.table) {
-        # check for direction: CustomUnits or CatVars
-        return(isTRUE("categorical" %in% md.tables[[md.table]][, "class"]))
-      }
-    ) %>%
-    unlist() %>%
-    any()
-  
-  devmsg(.do.template.catvars)
+  # loop required to check each 'class' column -- replaced in savevariable_functions.R by a reactive()
+  .do.template.catvars <- if(main.env$EAL$page == 3)
+    main.env$local.rv$use.catvars() else
+      main.env$save.variable$Attributes$use.catvars
   
   if(exists("template_issues")) 
     rm("template_issues", envir = .GlobalEnv)

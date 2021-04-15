@@ -65,8 +65,6 @@ runMetashark <- function(...) {
   ), envir = .GlobalEnv)
   on.exit(rm("ui.steps", envir = .GlobalEnv))
   
-  
-  
   # Set resourcePaths
   addResourcePath("media", system.file("media/", package = "MetaShARK"))
   on.exit(removeResourcePath("media"))

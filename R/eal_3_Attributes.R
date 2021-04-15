@@ -130,6 +130,7 @@ Attributes <- function(id, main.env) {
     }, {
       req(main.env$EAL$page == 3)
       .tables <- isolate(main.env$local.rv$md.tables)
+      req(isContentTruthy(.tables))
       
       lapply(
         names(.tables),
@@ -162,8 +163,9 @@ Attributes <- function(id, main.env) {
               structure(
                 attributeName,
                 sttype="default",
-                sticon="fa fa-table" #,
-                # sttype=complete.color
+                # sttype=complete.color,
+                sticon="fa fa-table",
+                stopened = TRUE
               )
             }
           ) %>%
