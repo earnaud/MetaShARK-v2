@@ -134,9 +134,7 @@ fill <- function(id, main.env) {
         
         # Clean & reset variables
         removeModal()
-        main.env$EAL$history <- "SelectDP"
-        main.env$EAL$old.page <- main.env$EAL$page
-        main.env$EAL$page <- 1
+        main.env <- cleanModules(main.env)
       },
       label = "EAL save+quit",
       ignoreInit = TRUE
@@ -148,9 +146,7 @@ fill <- function(id, main.env) {
         
         # Clean & reset variables
         removeModal()
-        main.env$EAL$history <- "SelectDP"
-        main.env$EAL$old.page <- main.env$EAL$page
-        main.env$EAL$page <- 1
+        main.env <- cleanModules(main.env)
       },
       label = "EAL quit",
       ignoreInit = TRUE
