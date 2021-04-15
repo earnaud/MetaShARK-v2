@@ -15,6 +15,8 @@ DataFilesUI <- function(id) {
         tags$li("Until now, only table files are supported."),
         tags$li("Selecting a file will immediately upload it (heavy files might 
                 be slow)."),
+        tags$li("Editing a data file requires removing it and uploading its
+                newest version."),
         class = "disclaimer"
       ),
       fluidRow(
@@ -119,7 +121,7 @@ DataFiles <- function(id, main.env) {
               }
             })
             if(length(.to.remove) > 0)
-            .loaded.files <- .loaded.files[-.to.remove,]
+              .loaded.files <- .loaded.files[-.to.remove,]
             
             # Do not go further if no more files left
             req(length(.loaded.files) > 0)
@@ -245,10 +247,10 @@ DataFiles <- function(id, main.env) {
       req(main.env$EAL$old.page == 2) # left the DataFiles step
       
       sapply(paste0(main.env$local.rv$data.files$id, "-container"), function(id) {
-        removeUI(id, immediate = TRUE)
+        removeUI(sprintf("#%s", session$ns(id)), immediate = TRUE)
       })
-    })
-
-    # Process data (deprecated)
+    },
+    priority = 1
+    )
   })
 }
