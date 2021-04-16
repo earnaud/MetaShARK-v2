@@ -51,7 +51,7 @@ setUnitList <- function(main.env, set = NULL) {
 #' @import shiny
 #'
 #' @noRd
-customUnitsUI <- function(id, values = rep(NA, 5)) {
+customUnitsUI <- function(id, values = rep(NA, 5), main.env) {
   modalDialog(
     title = "Custom Unit",
     tagList(
@@ -114,8 +114,8 @@ customUnits <- function(id, main.env) {
     #  * Cancel ----
     shinyjs::onclick("modal_cancel", {
       req(main.env$EAL$page == 3)
-      main.env$local.rv$custom.units$
-        cancel <- reactiveVal(main.env$local.rv$custom.units$cancel + 1)
+      .newCancel <- main.env$local.rv$custom.units$cancel() + 1
+      main.env$local.rv$custom.units$cancel(.newCancel)
       removeModal()
     })
     
