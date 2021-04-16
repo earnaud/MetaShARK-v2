@@ -34,35 +34,48 @@ Personnel <- function(id, main.env) {
     }
 
     # Setup UI on load
-    observeEvent(main.env$EAL$page, { # on load
-      req(main.env$EAL$old.page %in% c(0,6) && main.env$EAL$page == 7)
-      if (isContentTruthy(main.env$local.rv$Personnel) && 
-          nrow(main.env$local.rv$Personnel) > 0) {
-        sapply(seq(nrow(main.env$local.rv$Personnel)), function(row.id) {
-          insertPersonnelInput(
-            session$ns(sprintf("_%s", row.id)),
-            main.env
-          )
-        })
-      }
-    })
+    # observeEvent(main.env$EAL$page, { # on load
+    #   req(main.env$EAL$old.page %in% c(0,6) && main.env$EAL$page == 7)
+    #   if (isContentTruthy(main.env$local.rv$Personnel) && 
+    #       nrow(main.env$local.rv$Personnel) > 0) {
+    #     sapply(seq(nrow(main.env$local.rv$Personnel)), function(row.id) {
+    #       insertPersonnelInput(
+    #         session$ns(sprintf("_%s", row.id)),
+    #         main.env
+    #       )
+    #     })
+    #   }
+    # })
     
     # Fill Personnel ====
     # * Setup ----
     # Initial UI
     observeEvent(main.env$EAL$page, {
-      req(main.env$EAL$page == 7)
-      req(nrow(main.env$local.rv$Personnel) > 0)
-      
-      sapply(seq(nrow(main.env$local.rv$Personnel)), function(ind) {
-        row <- main.env$local.rv$Personnel[ind,]
+      if(main.env$EAL$page == 7) {
+        req(nrow(main.env$local.rv$Personnel) > 0)
         
-        insertPersonnelInput(
-          session$ns(row$id),
-          main.env
-        )
-      })
+        sapply(seq(nrow(main.env$local.rv$Personnel)), function(ind) {
+          row <- main.env$local.rv$Personnel[ind,]
+          
+          insertPersonnelInput(
+            session$ns(row$id),
+            main.env
+          )
+        })
+      } 
     }, priority = -1)
+    
+    observeEvent(main.env$EAL$page, {
+      if(main.env$EAL$old.page == 7) {
+        sapply(seq(nrow(main.env$local.rv$Personnel)), function(ind) {
+          row <- main.env$local.rv$Personnel[ind,]
+          
+          sapply(paste0(main.env$local.rv$Personnel$id, "-container"), function(id) {
+            removeUI(sprintf("#%s", session$ns(id)), immediate = TRUE)
+          })
+        })
+      }
+    }, priority = 1)
     
     # User's additional UI
     observeEvent(input$addui, {

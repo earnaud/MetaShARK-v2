@@ -55,7 +55,7 @@ Miscellaneous <- function(id, main.env, help.label = NULL) {
       req(main.env$EAL$page == 8)
       req("content" %in% names(input))
       input$content
-    }) %>% debounce(1500)
+    }) %>% debounce(1000)
     
     observe({
       req(main.env$EAL$page == 8)

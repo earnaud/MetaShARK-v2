@@ -180,6 +180,9 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
     )
   }
 
+  # Add use of categorical variables (or not)
+  .sv$Attributes$use.catvars <- isTRUE(content$use.catvars())
+  
   return(.sv)
 }
 

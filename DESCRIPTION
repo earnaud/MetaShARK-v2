@@ -107,7 +107,6 @@ Collate:
     'eal_8_Misc.R'
     'eal_8_Misc_helpers.R'
     'eal_9_MakeEML.R'
-    'eal_pages.R'
     'eal_x_Annotations.R'
     'eal_x_Annotations_helpers.R'
     'fill_module.R'

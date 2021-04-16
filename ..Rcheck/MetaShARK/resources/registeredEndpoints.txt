@@ -1,0 +1,3 @@
+mn,URL,cn
+PNDB (dev),http://test.pndb.fr/metacat/d1/mn/v2,STAGING
+PNDB (prod),http://pndb.fr/metacat/d1/mn/v2/,PROD

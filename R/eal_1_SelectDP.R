@@ -375,6 +375,11 @@ SelectDP <- function(id, main.env) {
       # - check quick mode
       .tmp$quick <- isTRUE(.tmp$quick)
       
+      # - for elder DP, add use.catvars boolean variable
+      if("Attributes" %in% .tmp$history && 
+         isFALSE("use.catvars" %in% names(.tmp$Attributes))) # if attributes has been met
+        .tmp$Attributes$use.catvars <- FALSE
+      
       # Once prepared, properly merge tmp and save variables
       main.env$save.variable <- setSaveVariable(.tmp, main.env$save.variable)
 
@@ -434,6 +439,7 @@ SelectDP <- function(id, main.env) {
         main.env$EAL$page <- main.env$save.variable$step
         main.env$EAL$history <- main.env$save.variable$history
       }
+      main.env$EAL$old.page <- 1
       
       shinyjs::enable("dp_load")
     })

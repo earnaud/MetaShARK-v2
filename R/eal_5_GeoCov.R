@@ -241,7 +241,7 @@ GeoCov <- function(id, main.env) {
     # Fill custom ====
     # * Setup ----
     observeEvent(main.env$EAL$page, { # on load
-      req(main.env$EAL$old.page %in% c(0,3:4) && main.env$EAL$page == 5)
+      req(main.env$EAL$page == 5)
       
       if (dim(main.env$local.rv$custom$coordinates)[1] > 0)
         sapply(1:nrow(main.env$local.rv$custom$coordinates), function(.ind) {
@@ -253,7 +253,22 @@ GeoCov <- function(id, main.env) {
         })
     },
     priority = -1,
-    label = "EAL5: set custom"
+    label = "EAL5: set custom UI"
+    )
+    
+    observeEvent(main.env$EAL$page, { # on load
+      req(main.env$EAL$old.page == 5)
+      
+      if (dim(main.env$local.rv$custom$coordinates)[1] > 0)
+        sapply(1:nrow(main.env$local.rv$custom$coordinates), function(.ind) {
+          
+          removeUI(
+            sprintf("#%s-container", session$ns(as.character(-.ind)))
+          )
+        })
+    },
+    priority = 1,
+    label = "EAL5: remove custom UI"
     )
 
     # * Manage input ----

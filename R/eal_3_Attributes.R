@@ -18,17 +18,24 @@ AttributesUI <- function(id) {
     fluidRow(
       # Left : shinyTree (output)
       column(
-        5, 
+        4, 
+        tags$h3("Attributes list"),
         shinyTree::shinyTree(
           # TODO add colors
           ns("tree") #,
           # types = "{ 'red-node': {'a_attr' : { 'style' : 'color:red' }},
           #   'green-node': {'a_attr' : { 'style' : 'color:green' }} }"
-        )
+        ),
+        style = "
+          overflow: scroll;
+          max-height: 60vh;
+          background-color: #e4e7ec;
+        "
       ),
       # Right: form
       column(
-        5,
+        5, offset = 1,
+        tags$h3("Attribute description"),
         tags$div(
           id = "no_attribute",
           helpText("No attribute selected")
@@ -64,7 +71,10 @@ AttributesUI <- function(id) {
             # - unit ----
             selectInput(
               ns("unit"),
-              "Select an unit",
+              label = tagList(
+                tags$b("Select an unit"),
+                helpText("You can search a unit by typing its name.")
+              ),
               choices = c(NA_character_)
             ),
             # - missingValueCode ----
@@ -130,6 +140,7 @@ Attributes <- function(id, main.env) {
     }, {
       req(main.env$EAL$page == 3)
       .tables <- isolate(main.env$local.rv$md.tables)
+      req(isContentTruthy(.tables))
       
       lapply(
         names(.tables),
@@ -162,13 +173,13 @@ Attributes <- function(id, main.env) {
               structure(
                 attributeName,
                 sttype="default",
-                sticon="fa fa-table" #,
-                # sttype=complete.color
+                # sttype=complete.color,
+                sticon="fa fa-table"
               )
             }
           ) %>%
             setNames(nm = .tables[[file.name]]$attributeName), 
-          sttype = "root", sticon = "fa fa-file"
+          sttype = "root", sticon = "fa fa-file", stopened = TRUE
           )
         }
       ) %>% 
@@ -468,26 +479,36 @@ Attributes <- function(id, main.env) {
     })
     
     # * unit ----
-    observeEvent(input$unit, {
+    unit.value <- reactive({
       validate(
         need(isTruthy(selected.file()), "No file selected"),
         need(isTruthy(selected.attribute()), "No attribute selected"),
         need(input$class == "numeric", "Not a number"),
         need(!is.na(input$unit), "Unset unit input.")
       )
+      input$unit
+    }) %>%
+      debounce(1000)
+    
+    observe({
+      req(unit.value())
       
       # Correct input value
-      .value <- input$unit
+      .value <- unit.value()
       if(isFALSE(.value %in% c(
         main.env$FORMATS$units,
         "custom",
         main.env$local.rv$custom.units$table$unit.id
       ))) {
         .value <- main.env$FORMATS$units[2] # dimensionless
-        updateSelectInput(
-          session,
-          "unit",
-          selected = .value
+        # updateSelectInput(
+        #   session,
+        #   "unit",
+        #   selected = .value
+        # )
+        showNotification(
+          id = "unit_404",
+          "Queried unit not found: check spelling."
         )
       }
       
@@ -511,7 +532,7 @@ Attributes <- function(id, main.env) {
           .values <- main.env$local.rv$custom.units$table %>%
             dplyr::filter(id == saved) %>%
             unlist(use.names = T)
-        } else {
+        } else { # New custom unit - empty UI
           .values <- rep(NA, 5) %>%
             setNames(nm = names(main.env$local.rv$custom.units$table))
         }
@@ -520,7 +541,8 @@ Attributes <- function(id, main.env) {
         showModal(
           customUnitsUI(
             session$ns("customUnits"),
-            values = .values
+            values = .values,
+            main.env = main.env
           )
         )
       }

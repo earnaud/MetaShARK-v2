@@ -30,7 +30,7 @@ pagesUI <- function(id, parent.id) {
   # Wizard UI: a hidden tabSetPanel
   sapply(
     seq_along(steps),
-    function(i, main.env) {
+    function(i) {
       page <- steps[i]
       
       .ui.args[[i]] <<- tabPage(
@@ -61,8 +61,7 @@ pagesUI <- function(id, parent.id) {
         else
           NULL
       )
-    },
-    main.env = main.env
+    }
   )
   
   .ui.args$id <- NS(id, "wizard")
@@ -83,16 +82,24 @@ pagesServer <- function(id, main.env) {
     
     changePage <- function(from, to, input, main.env) {
       observeEvent(input[[paste(from, to, sep = "_")]], {
-        if(main.env$dev) devmsg("%s > %s", from, to, tag = "page")
+        devmsg("fill_pages.R", sprintf("%s to %s", from, to))
+        
         main.env$EAL$old.page <- main.env$EAL$page
         
-        # Case of previous at geographic coverage
-        if(isFALSE(main.env$EAL$old.page == 5 && 
-           main.env$EAL$page < main.env$EAL$old.page &&
-           isFALSE("Categorical Variables" %in% main.env$EAL$history)))
-          main.env$EAL$page <- main.env$EAL$page + to - from
-          # isolate({main.env$EAL$page <- main.env$EAL$page - 1})
-        
+        main.env$EAL$page <- main.env$EAL$page +
+          to - 
+          from +
+          ifelse(
+            main.env$EAL$page == 4 && 
+              isFALSE(main.env$save.variable$Attributes$use.catvars),
+            switch(
+              main.env$EAL$old.page,
+              `3` = 1,
+              `5` = -1
+            ),
+            0
+          )
+            
       },
       label = paste("changePage", from, to)
       )

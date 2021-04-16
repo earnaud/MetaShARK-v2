@@ -1,0 +1,640 @@
+\nonstopmode{}
+\documentclass[letterpaper]{book}
+\usepackage[times,inconsolata,hyper]{Rd}
+\usepackage{makeidx}
+\usepackage[utf8]{inputenc} % @SET ENCODING@
+% \usepackage{graphicx} % @USE GRAPHICX@
+\makeindex{}
+\begin{document}
+\chapter*{}
+\begin{center}
+{\textbf{\huge Package `MetaShARK'}}
+\par\bigskip{\large \today}
+\end{center}
+\begin{description}
+\raggedright{}
+\inputencoding{utf8}
+\item[Title]\AsIs{metashark}
+\item[Version]\AsIs{0.0.0.9000}
+\item[Author]\AsIs{Elie ARNAUD ([aut,cre])}
+\item[Maintainer]\AsIs{Elie ARNAUD }\email{earnaud@outlook.com}\AsIs{}
+\item[Description]\AsIs{MetaShARK is a Shiny application allowing its
+user to fill metadata for a given ecological
+dataset of his owns. The data description relies
+on Ecological Metadata Language (EML).}
+\item[License]\AsIs{MIT}
+\item[Encoding]\AsIs{UTF-8}
+\item[LazyData]\AsIs{true}
+\item[Imports]\AsIs{attempt, cedarr, config, data.table, dataone, datapack, dplyr,
+DT, EML, EMLassemblyline, emldown, fs, gdata, glue, golem,
+htmltools, jsonlite, markdown, methods, mime, processx, RCurl,
+readtext, RefManageR, rmarkdown, rorcid, shinyAce, shinyBS,
+shinycssloaders, shinydashboard, shinyFiles, shinyjs,
+shinydashboardPlus, shinyFeedback, shinyWidgets, shiny (>=
+1.5.0), shinyTree, stringr, SummeRnote, textutils, tippy,
+tagsinput, taxonomyCleanr, utils, xml2}
+\item[Remotes]\AsIs{ThinkR-open/tagsinput, ropenscilabs/emldown}
+\item[RoxygenNote]\AsIs{7.1.1}
+\item[Roxygen]\AsIs{list(markdown = TRUE)}
+\item[URL]\AsIs{}\url{https://github.com/earnaud/MetaShARK-v2.git}\AsIs{}
+\item[BugReports]\AsIs{}\url{https://github.com/earnaud/MetaShARK-v2.git/issues}\AsIs{}
+\item[Suggests]\AsIs{testthat (>= 3.0.0), knitr}
+\item[VignetteBuilder]\AsIs{knitr}
+\item[Depends]\AsIs{R (>= 2.10)}
+\item[Collate]\AsIs{'zzz.R' 'utils\_writeText.R' 'utils\_URL\_Input.R'
+'utils\_readPlaintext.R' 'utils\_readDataTable.R'
+'utils\_reactiveTrigger.R' 'utils\_reactiveDirReader.R'
+'utils\_listReactiveValues.R' 'utils\_isContentTruthy.R'
+'utils\_insertModuleBox.R' 'utils\_followPath.R' 'utils\_devmsg.R'
+'utils\_collapsible.R' 'utils\_additional\_HTML.R' 'utils\_grep.R'
+'about\_module.R' 'about\_module\_functions.R'
+'documentation\_module.R' 'eal\_1\_SelectDP.R' 'eal\_2\_DataFiles.R'
+'eal\_2\_DataFiles\_helpers.R' 'eal\_3\_Attributes.R'
+'eal\_3\_Attributes\_dates.R' 'eal\_3\_Attributes\_helpers.R'
+'eal\_4\_CatVars.R' 'eal\_4\_CatVars\_helpers.R' 'eal\_5\_GeoCov.R'
+'eal\_5\_GeoCov\_helpers.R' 'eal\_6\_TaxCov.R'
+'eal\_7\_ORCID\_helpers.R' 'eal\_7\_Personnel.R'
+'eal\_7\_Personnel\_helpers.R' 'eal\_7\_roleInput.R' 'eal\_8\_Misc.R'
+'eal\_8\_Misc\_helpers.R' 'eal\_9\_MakeEML.R' 'eal\_pages.R'
+'eal\_x\_Annotations.R' 'eal\_x\_Annotations\_helpers.R'
+'fill\_module.R' 'fill\_module\_saves.R' 'fill\_pages.R' 'header.R'
+'metafin.R' 'runMetashark.R' 'savevariable\_functions.R'
+'settings\_rightSideBar.R' 'template\_functions.R'
+'upload\_module.R' 'upload\_module\_functions.R'
+'welcome\_module.R' 'ui.R' 'server.R'}
+\item[Config/testthat/edition]\AsIs{3}
+\end{description}
+\Rdcontents{\R{} topics documented:}
+\inputencoding{utf8}
+\HeaderA{centered}{centered}{centered}
+%
+\begin{Description}\relax
+Returns the content styled as centered text.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+centered(...)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{...}] any HTML tag.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A div with \code{style = "text-align: center"}
+\end{Value}
+\inputencoding{utf8}
+\HeaderA{checkFeedback}{checkFeedback relies on shinyFeedback to automate feedback on one input.}{checkFeedback}
+%
+\begin{Description}\relax
+checkFeedback
+
+relies on shinyFeedback to automate feedback on one input.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+checkFeedback(
+  input,
+  id,
+  condition = NULL,
+  silent = FALSE,
+  type = c("danger", "warning"),
+  text = NULL
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{id}] character. An ID string that corresponds with the ID used to call
+the module's UI function.
+
+\item[\code{condition}] logical. Determines if the feedback is positive or not.
+
+\item[\code{silent}] logical. If TRUE, the only feedback occurs when \code{condition} is
+met. If FALSE, also displays feedbacks for other cases.
+
+\item[\code{type}] character. Either "danger" or "warning", sets the type of
+feedback in case \code{condition} is not met.
+
+\item[\code{text}] character. What message to display in case of unmet condition.
+\end{ldescription}
+\end{Arguments}
+\inputencoding{utf8}
+\HeaderA{collapsibleUI}{collapsibleUI}{collapsibleUI}
+\aliasA{collapsible}{collapsibleUI}{collapsible}
+%
+\begin{Description}\relax
+A shiny module to get a div collapsed by clicking on a link.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+collapsibleUI(id, label, .hidden = TRUE, ..., class = NULL)
+
+collapsible(id)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{id}] character. An ID string that corresponds with the ID used to call
+the module's UI function.
+
+\item[\code{label}] character. A label appearing on the clickable link.
+
+\item[\code{.hidden}] logical. A flag to make the UI display as collapsed or not.
+
+\item[\code{...}] shiny UI elements. Any UI element displayed as core content.
+
+\item[\code{class}] character. CSS class to apply to ... .
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Section}{Functions}
+\begin{itemize}
+
+\item{} \code{collapsible}: Server part for collapsible widget module.
+
+\end{itemize}
+\end{Section}
+\inputencoding{utf8}
+\HeaderA{followPath}{followPath}{followPath}
+%
+\begin{Description}\relax
+Takes a hierarchy list (tree), a path written in a vector pasted
+with sep, and returns the leaf.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+followPath(tree, path, sep = "/", root = "root")
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{tree}] explored hierarchy list thanks to path
+
+\item[\code{path}] vector of characters matching tree's nodes' names and
+separated with sep.
+
+\item[\code{sep}] separators between path elements (aka tree names)
+
+\item[\code{root}] if your path has a root name for root node, enter its name here.
+Else, enter NULL.
+\end{ldescription}
+\end{Arguments}
+\inputencoding{utf8}
+\HeaderA{insertModuleBox}{insertModuleBox}{insertModuleBox}
+%
+\begin{Description}\relax
+Convenience function to insert a container able to auto-destroy.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+insertModuleBox(
+  id,
+  name = NULL,
+  selector,
+  moduleUI,
+  moduleUI.args = list(),
+  module,
+  module.args = list()
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{id}] namespaced id for the UI (previous modules namespaces will be
+removed for server)
+
+\item[\code{name}] name to display for the current container. If set to NULL (default),
+\code{id} will be used. If set to FALSE, no name will be displayed.
+
+\item[\code{selector}] A string that is accepted by jQuery's selector (i.e. the
+string s to be placed in a \$(s) jQuery call). (See \code{shiny::insertUI})
+
+\item[\code{moduleUI, moduleUI.args}] UI for the module to embed and its potential
+arguments provided as a list (empty list by default).
+
+\item[\code{module, module.args}] server for the module to embed and its potential
+arguments provided as a list (empty list by default).
+
+FIXME finish this module
+\end{ldescription}
+\end{Arguments}
+\inputencoding{utf8}
+\HeaderA{isContentTruthy}{Check for data structures validity}{isContentTruthy}
+%
+\begin{Description}\relax
+Check if \code{x} is truthy (as shiny::isTruthy) or not, but also
+checks for its potential content. This function uses \code{unlist()} and \code{all()} to
+check every bit of the variable.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+isContentTruthy(x)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{x}] argument to check fo truthiness
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A logical indicating whether or not the variable is Truthy.
+\end{Value}
+\inputencoding{utf8}
+\HeaderA{isHTMLTruthy}{Check for HTML tags validity}{isHTMLTruthy}
+%
+\begin{Description}\relax
+Check if a HTML tag is well formed, according to opening and closing chevrons.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+isHTMLTruthy(x)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{x}] HTML tag. Target of the evaluation.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A logical value indicating whether or not the tag is truthy.
+\end{Value}
+\inputencoding{utf8}
+\HeaderA{listReactiveValues}{List Reactive Values}{listReactiveValues}
+%
+\begin{Description}\relax
+Allows to turn a `reactiveValues`` object into a non-reactive list. Uses
+recursive method.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+listReactiveValues(rv, lv = 0, name = "root")
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{rv}] reactiveValues. Target to turn into list.
+
+\item[\code{lv}] internal. Verbose purposes.
+
+\item[\code{name}] internal. Current root node name
+\end{ldescription}
+\end{Arguments}
+\inputencoding{utf8}
+\HeaderA{makeReactiveTrigger}{reactiveTrigger}{makeReactiveTrigger}
+%
+\begin{Description}\relax
+Create a 'reactiveTrigger' object (NOT a proper R class) with two methods:
+\begin{enumerate}
+
+\item{} depend() : must be written in a code chunk to execute on triggering
+\item{} trigger() : when executed, trigger the object (and all the "depending" code chunks)
+This function is freely reused from Dean Attali's work: check it out, it is
+\Rhref{https://github.com/daattali/advanced-shiny/tree/master/reactive-trigger}{awesome}
+
+\end{enumerate}
+
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+makeReactiveTrigger(dev = FALSE, label = "")
+\end{verbatim}
+\end{Usage}
+\inputencoding{utf8}
+\HeaderA{optional}{optional}{optional}
+%
+\begin{Description}\relax
+Fill optional arguments of a function if the given argument comes to be not
+truthy (e.g. by getting it after a script execution and passing it to a
+function).
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+optional(x, type = NULL)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{x}] value provided for the argument
+
+\item[\code{type}] typed value (e.g. character()) in case option is invalid.
+\end{ldescription}
+\end{Arguments}
+\inputencoding{utf8}
+\HeaderA{readDataTable}{Read Data Tables}{readDataTable}
+%
+\begin{Description}\relax
+Disclaimer: this function is still maturing. There is no guarantee about its
+performance.
+Guess the type of the data file (e.g. .xls* or not) and loads it accordingly.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+readDataTable(file, data.table = FALSE, ...)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{file}] path to the data table file. For Excel files,
+supports "http://", "https://", and "ftp://" URLS.
+
+\item[\code{data.table}] (from \code{fread()}) TRUE returns a data.table.
+FALSE returns a data.frame. The default for this argument can
+be changed with options(datatable.fread.datatable=FALSE).
+
+\item[\code{...}] additional arguments to read.table.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+a data.frame
+\end{Value}
+\inputencoding{utf8}
+\HeaderA{readPlainText}{readFilesText}{readPlainText}
+%
+\begin{Description}\relax
+readFilesText
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+readPlainText(files, prefix = NULL, sep = "/", ...)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{files}] files basename located in the same directory or,
+if prefix = NULL, list of full filenames to read
+
+\item[\code{prefix}] common file prefix for all file names
+specified in 'files'. By default, sep = "/"
+\end{ldescription}
+\end{Arguments}
+\inputencoding{utf8}
+\HeaderA{remove\_shiny\_inputs}{Clear backstage shiny observers}{remove.Rul.shiny.Rul.inputs}
+%
+\begin{Description}\relax
+Clear server-side of a shiny module
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+remove_shiny_inputs(id, .input)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{id}] character. An ID string that corresponds with the ID used to call
+the module's UI function.*
+
+\item[\code{.input}] internal. Shiny server \code{input} variable passed to servers.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}\relax
+Freely teached from a community soluce on
+\Rhref{https://appsilon.com/how-to-safely-remove-a-dynamic-shiny-module/}{appsilon}.
+\end{Details}
+\inputencoding{utf8}
+\HeaderA{renderBibliography}{renderBibliography}{renderBibliography}
+%
+\begin{Description}\relax
+shiny-formatted render* function. Allow the user to print a .bib bibliography content. References are NOT numbered
+according to possible calls from the app.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+renderBibliography(bib)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{bib}] character. Path to bibliography file (.bib format).
+\end{ldescription}
+\end{Arguments}
+\inputencoding{utf8}
+\HeaderA{runMetashark}{Run MetaShARK}{runMetashark}
+%
+\begin{Description}\relax
+Main function for launching the MetaShARK application.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+runMetashark(...)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{...}] options to pass to the application, ignored if missing or mistyped.
+\begin{description}
+
+\item[wip] logical. Shows WIP parts of the app. (default to FALSE)
+\item[dev] logical. Add development elements in the GUI. (default to FALSE)
+\item[reactlog] logical. Use reactlog? (default to TRUE)
+\item[test] logical. Recod tests? (default to FALSE)
+
+\end{description}
+
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}\relax
+MetaShARK (METAdata SHiny Automated Resource \& Knowledge) is a web app
+which is designed to help its user as much as possible for filling ecological
+metadata. It uses the EML standard (cf. NCEAS work) to allow a full and
+precise description of input datasets.
+
+For server setup, see \Rhref{https://github.com/earnaud/MetaShARK_docker}{this git}
+\end{Details}
+%
+\begin{Author}\relax
+Elie Arnaud \Rhref{mailto:elie.arnaud@mnhn.fr}{elie.arnaud@mnhn.fr}
+\end{Author}
+%
+\begin{Examples}
+\begin{ExampleCode}
+## Not run:
+# run this to launch MetaShARK
+runMetashark()
+
+# End (Not run)
+
+\end{ExampleCode}
+\end{Examples}
+\inputencoding{utf8}
+\HeaderA{uploadUI}{uploadUI}{uploadUI}
+\aliasA{upload}{uploadUI}{upload}
+%
+\begin{Description}\relax
+UI part for the upload module. Used to build and drop
+data packages to a chosen metacat.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+uploadUI(id)
+
+upload(id, main.env)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{id}] shiny module id
+
+\item[\code{main.env}] inner global environment
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Section}{Functions}
+\begin{itemize}
+
+\item{} \code{upload}: 
+
+\end{itemize}
+\end{Section}
+\inputencoding{utf8}
+\HeaderA{URL\_Input\_UI}{URL Input}{URL.Rul.Input.Rul.UI}
+\aliasA{URL\_Input}{URL\_Input\_UI}{URL.Rul.Input}
+%
+\begin{Description}\relax
+URL Shiny input module. Implements elementary test to get a valid URL.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+URL_Input_UI(id, label = "URL", width = "100%")
+
+URL_Input(id)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{id}] (character) shiny module inputId.
+
+\item[\code{label}] (character) display label for the control, or NULL for no label.
+
+\item[\code{width}] (character) the width of the input, e.g. '400px', or '100\%'; see
+validateCssUnit().
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+(output of calling the module part)
+If input is a valid URL (regex-tested + curl-tested), returns input.
+Else, returns NA.
+\end{Value}
+%
+\begin{Section}{Functions}
+\begin{itemize}
+
+\item{} \code{URL\_Input}: 
+
+\end{itemize}
+\end{Section}
+\inputencoding{utf8}
+\HeaderA{wipRow}{wipRow}{wipRow}
+%
+\begin{Description}\relax
+styles an inputRow to give it WIP appearance
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+wipRow(...)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{...}] content to style
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+styled content as WIP
+\end{Value}
+\inputencoding{utf8}
+\HeaderA{withRedStar}{withRedStar}{withRedStar}
+%
+\begin{Description}\relax
+Add a red star at the end of the text
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+withRedStar(text)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{text}] the HTLM text to put before the red star
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+an html element
+\end{Value}
+%
+\begin{Examples}
+\begin{ExampleCode}
+withRedStar("Enter your name here")
+
+\end{ExampleCode}
+\end{Examples}
+\inputencoding{utf8}
+\HeaderA{\Rpercent{}grep\Rpercent{}}{shorthand for base::grepl}{.Rpcent.grep.Rpcent.}
+%
+\begin{Description}\relax
+This function is designed to be a shorthand for base::grepl, thought to be used as \code{\%in\%}.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+x %grep% table
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{x}] character. Pattern(s) to be matched against \code{table}.
+
+\item[\code{table}] any unlisted data. A collection of data among which to find \code{pattern}-matching
+elements.
+\end{ldescription}
+\end{Arguments}
+\printindex{}
+\end{document}

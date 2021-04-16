@@ -40,6 +40,7 @@ server <- function(input, output, session) {
     envir = main.env
   )
   if (main.env$dev){
+    shinyjs::show("dev")
     observeEvent(input$dev, {
       if (main.env$current.tab() != "fill")
         browser()
@@ -93,6 +94,11 @@ server <- function(input, output, session) {
   # Hide the loading message when the rest of the server function has executed
   shinyjs::hide(id = "loading-content", anim = TRUE, animType = "fade")
   shinyjs::show("app-content")
+  
+  # Version ----
+  output$version <- renderText({
+    system("git describe --tags `git rev-list --tags --max-count=1`", intern=TRUE)
+  })
 }
 
 #' @importFrom dplyr %>% 

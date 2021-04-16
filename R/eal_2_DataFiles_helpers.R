@@ -128,11 +128,13 @@ DataFileInput <- function(id, main.env) {
       message(sprintf("Removing %s", session$ns("container")))
       # remove the UI
       removeUI(
-        selector = paste0("#", session$ns("container")),
+        selector = sprintf("#%s", session$ns("container")),
         # immediate = TRUE,
         session = session
       )
-      # remove data
+      # erase file from 'data_objects' dir
+      file.remove(main.env$local.rv$data.files[row(),"datapath"])
+      # remove data from local variables
       main.env$local.rv$data.files <- main.env$local.rv$data.files[-row(),]
     })
     

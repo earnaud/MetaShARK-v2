@@ -1,0 +1,261 @@
+* using log directory ‘/home/pndb-elie/Softwares/Gits/MetaShARK-v2/..Rcheck’
+* using R version 3.6.3 (2020-02-29)
+* using platform: x86_64-pc-linux-gnu (64-bit)
+* using session charset: UTF-8
+* using option ‘--no-examples’
+* checking for file ‘./DESCRIPTION’ ... OK
+* this is package ‘MetaShARK’ version ‘0.0.0.9000’
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... NOTE
+Found the following hidden files and directories:
+  .Dockerfile_snapshot
+  .RData
+  .Rhistory
+  .gitignore
+  .httr-oauth
+  .old/infoBuilder/.RData
+  .travis.yml
+  R/.Rhistory
+  inst/data-raw/.gitignore
+  inst/media/.canva_logo.png.svg
+  vignettes/.gitignore
+  ..Rcheck
+  .Rproj.user
+  .git
+  .old
+These were most likely included in error. See section ‘Package
+structure’ in the ‘Writing R Extensions’ manual.
+* checking for portable file names ... OK
+* checking for sufficient/correct file permissions ... OK
+* checking whether package ‘MetaShARK’ can be installed ... WARNING
+Found the following significant warnings:
+  Warning: replacing previous import ‘shiny::runExample’ by ‘shinyjs::runExample’ when loading ‘MetaShARK’
+See ‘/home/pndb-elie/Softwares/Gits/MetaShARK-v2/..Rcheck/00install.out’ for details.
+* checking installed package size ... NOTE
+  installed size is 60.7Mb
+  sub-directories of 1Mb or more:
+    data-raw   23.2Mb
+    media       1.6Mb
+    resources  19.9Mb
+* checking package directory ... OK
+* checking DESCRIPTION meta-information ... NOTE
+License components which are templates and need '+ file LICENSE':
+  MIT
+Checking should be performed on sources prepared by ‘R CMD build’.
+* checking top-level files ... NOTE
+File
+  LICENSE
+is not mentioned in the DESCRIPTION file.
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... WARNING
+Found the following directory with the name of a check directory:
+  ./..Rcheck
+Most likely, these were included erroneously.
+* checking R files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking dependencies in R code ... WARNING
+'::' or ':::' imports not declared from:
+  ‘httr’ ‘readxl’ ‘shiny.grid’ ‘shinytest’
+'library' or 'require' calls not declared from:
+  ‘shinyBS’ ‘shinyTree’
+'library' or 'require' calls in package code:
+  ‘shinyBS’ ‘shinyTree’
+  Please use :: or requireNamespace() instead.
+  See section 'Suggested packages' in the 'Writing R Extensions' manual.
+Namespaces in Imports field not imported from:
+  ‘DT’ ‘attempt’ ‘config’ ‘glue’ ‘golem’ ‘markdown’ ‘processx’ ‘rorcid’
+  ‘shinyAce’ ‘tagsinput’
+  All declared Imports should be used.
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... NOTE
+File ‘MetaShARK-v2/R/zzz.R’:
+  .onLoad calls:
+    require("shinyBS")
+    require("shinyTree")
+
+Package startup functions should not change the search path.
+See section ‘Good practice’ in '?.onAttach'.
+
+.globalScript: no visible binding for global variable ‘.’
+.globalScript: no visible binding for global variable ‘path’
+.globalScript: no visible binding for global variable ‘ui.steps’
+.saveAttributes : <anonymous>: no visible binding for global variable
+  ‘metadatapath’
+.saveDataFiles: no visible binding for global variable ‘id’
+.templateTaxCov: no visible binding for global variable ‘id’
+.templateTaxCov: no visible binding for global variable ‘authority’
+Attributes : <anonymous> : <anonymous>: no visible global function
+  definition for ‘setNames’
+Attributes : <anonymous>: no visible global function definition for
+  ‘setNames’
+Attributes : <anonymous>: no visible binding for global variable
+  ‘attributeName’
+Attributes : <anonymous>: no visible binding for global variable ‘unit’
+CatVars : <anonymous> : <anonymous> : <anonymous>: no visible binding
+  for global variable ‘.’
+CatVars : <anonymous> : <anonymous>: no visible global function
+  definition for ‘setNames’
+CatVarsInput : <anonymous>: no visible binding for global variable
+  ‘attributeName’
+CatVarsInput : <anonymous> : <anonymous>: no visible binding for global
+  variable ‘attributeName’
+CatVarsInputUI: no visible binding for global variable ‘attributeName’
+CatVarsInputUI : <anonymous>: no visible binding for global variable
+  ‘attributeName’
+CatVarsInputUI : <anonymous>: no visible binding for global variable
+  ‘definition’
+DataFiles : <anonymous> : <anonymous>: no visible binding for global
+  variable ‘filename’
+GeoCov : <anonymous>: no visible binding for global variable ‘.’
+Personnel : <anonymous>: no visible binding for global variable ‘.’
+PersonnelInput : <anonymous>: no visible binding for global variable
+  ‘.’
+TaxCov : <anonymous> : <anonymous>: no visible binding for global
+  variable ‘metadatapath’
+TaxCov : <anonymous> : <anonymous>: no visible binding for global
+  variable ‘datapath’
+TaxCov : <anonymous> : <anonymous>: no visible binding for global
+  variable ‘attributeName’
+TaxCov : <anonymous> : <anonymous>: no visible global function
+  definition for ‘setNames’
+TaxCov : <anonymous>: no visible global function definition for
+  ‘setNames’
+TaxCov : <anonymous>: no visible binding for global variable
+  ‘authority’
+customUnits : <anonymous>: no visible global function definition for
+  ‘setNames’
+customUnitsUI: no visible binding for global variable ‘main.env’
+describeWorkflow: no visible binding for global variable ‘id’
+extractCoordinates: no visible binding for global variable ‘.’
+getPredicate: no visible global function definition for
+  ‘functionToFindApproximatelyATermAmongOthers’
+insertKeywordSet: no visible binding for global variable ‘keyword.set’
+insertKeywordSet: no visible binding for global variable
+  ‘keyword.thesaurus’
+insertKeywordTag: no visible binding for global variable ‘keyword.set’
+insertKeywordTag: no visible binding for global variable ‘keyword’
+keywordSet : <anonymous>: no visible binding for global variable
+  ‘keyword.set’
+keywordSet : <anonymous>: no visible binding for global variable
+  ‘keyword’
+keywordSet : <anonymous>: no visible binding for global variable
+  ‘keyword.thesaurus’
+keywordTag : <anonymous>: no visible binding for global variable
+  ‘keyword.set’
+keywordTag : <anonymous>: no visible binding for global variable
+  ‘keyword’
+moduleBox : <anonymous>: no visible binding for global variable ‘.id’
+pagesUI: no visible binding for global variable ‘main.env’
+roleInput : <anonymous>: no visible global function definition for
+  ‘tail’
+setLocalRV: no visible global function definition for ‘setNames’
+setLocalRV: no visible binding for global variable ‘.’
+setLocalRV : <anonymous>: no visible binding for global variable
+  ‘keyword.thesaurus’
+setLocalRV : <anonymous>: no visible binding for global variable
+  ‘keyword’
+setLocalRV : <anonymous>: no visible binding for global variable
+  ‘definition’
+setLocalRV : <anonymous>: no visible binding for global variable
+  ‘attributeName’
+setLocalRV : <anonymous> : <anonymous>: no visible binding for global
+  variable ‘attributeName’
+setLocalRV : <anonymous> : <anonymous>: no visible global function
+  definition for ‘setNames’
+setLocalRV : <anonymous>: no visible binding for global variable
+  ‘metadatapath’
+setLocalRV : <anonymous>: no visible binding for global variable
+  ‘datapath’
+setLocalRV : <anonymous>: no visible global function definition for
+  ‘setNames’
+setUnitList: no visible global function definition for ‘setNames’
+unns: no visible global function definition for ‘tail’
+unns: no visible binding for global variable ‘.’
+upload : <anonymous>: no visible binding for global variable ‘mn’
+upload : <anonymous>: no visible binding for global variable ‘URL’
+upload : <anonymous>: no visible binding for global variable ‘.’
+upload : <anonymous>: no visible binding for global variable ‘cn’
+Undefined global functions or variables:
+  . .id URL attributeName authority cn datapath definition filename
+  functionToFindApproximatelyATermAmongOthers id keyword keyword.set
+  keyword.thesaurus main.env metadatapath mn path setNames tail
+  ui.steps unit
+Consider adding
+  importFrom("stats", "setNames")
+  importFrom("utils", "tail")
+to your NAMESPACE file.
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... WARNING
+Codoc mismatches from documentation object '%grep%':
+%grep%
+  Code: function(x, table, ...)
+  Docs: function(x, table)
+  Argument names in code not in docs:
+    ...
+
+* checking Rd \usage sections ... WARNING
+Undocumented arguments in documentation object 'checkFeedback'
+  ‘input’
+
+Undocumented arguments in documentation object 'makeReactiveTrigger'
+  ‘dev’ ‘label’
+
+Undocumented arguments in documentation object 'readPlainText'
+  ‘sep’ ‘...’
+
+Functions with \usage entries need to have the appropriate \alias
+entries, and all their arguments documented.
+The \usage entries must correspond to syntactically valid R code.
+See chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking files in ‘vignettes’ ... WARNING
+Files in the 'vignettes' directory but no files in 'inst/doc':
+  ‘MetaShARK.Rmd’
+* checking examples ... SKIPPED
+* checking for unstated dependencies in ‘tests’ ... OK
+* checking tests ... ERROR
+  Running ‘testthat.R’
+Running the tests in ‘tests/testthat.R’ failed.
+Complete output:
+  > library(testthat)
+  > 
+  > test_dir("tests/testthat/")
+  Error: No test files found
+  Backtrace:
+      █
+   1. └─testthat::test_dir("tests/testthat/")
+  Execution halted
+* checking for unstated dependencies in vignettes ... OK
+* checking package vignettes in ‘inst/doc’ ... WARNING
+dir.exists(dir) is not TRUE
+Package vignette without corresponding single PDF/HTML:
+   ‘MetaShARK.Rmd’
+
+* checking running R code from vignettes ... NONE
+  ‘MetaShARK.Rmd’using ‘UTF-8’... OK
+* checking re-building of vignette outputs ... OK
+* checking PDF version of manual ... WARNING
+LaTeX errors when creating PDF version.
+This typically indicates Rd problems.
+* checking PDF version of manual without hyperrefs or index ... ERROR
+* DONE
+Status: 2 ERRORs, 8 WARNINGs, 5 NOTEs

@@ -1,0 +1,132 @@
+/* -- Overwrite -- */
+
+img {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+p {
+  text-align: justify;
+}
+
+textarea {
+  min-width: 30%;
+  max-width: 100%;
+  min-height: 35px;
+  max-height: 350px;
+}
+
+/* -- ID -- */
+
+#docSidePanel {
+	overflow-y: scroll;
+	max-height: 800px;
+}
+
+#docPanel {
+  position: fixed;
+  display: block;
+  padding: 10px;
+  height: calc(100% - 70px);
+  max-height: calc(100% - 70px);
+  overflow-y: scroll;
+}
+
+/* -- Classes -- */
+
+.danger {
+  color: white;
+  background-color: red;
+}
+
+.disclaimer {
+  font-weight: bold;
+}
+
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inputBox {
+	border: 1px solid lightgrey;
+	border-radius: 10px;
+	padding: 3px;
+	margin: 3px;
+}
+
+.topInputRow {
+  background-color: #e6e6e6;
+  border-radius: 10px 10px 0 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.contentRow {
+  background-color: #f6f6f6;
+}
+
+.form-group.shiny-input-container.has-feedback {
+  width: 300px !important;
+}
+
+.topInputRow span {
+  display: inline-flex;
+}
+
+.leftMargin {
+  border-left: solid lightgrey; 
+  padding: 20px;
+}
+
+.navSidebar {
+  max-width: 75px;
+  max-width: 100px;
+  text-align: center;
+  padding: 0;
+}
+
+.redButton {
+	color: red;
+}
+
+.tag_sequence div {
+  display: inline-block;
+  color: white; 
+  background-color: #3c8dbc; 
+  border-radius: 3px;
+  margin: 3px;
+  width: max-content; 
+  padding: 0 5px;
+}
+
+.text-title {
+  display: inline-block;
+  font-size:14pt;
+  text-align:center;
+}
+
+.valid {
+  color: green;
+}
+
+.wip {
+  background: 
+  repeating-linear-gradient(
+    45deg,
+    yellow,
+    yellow 10px,
+    black 10px,
+    black 20px
+  );
+}
+
+.wip * {
+  background-color: white;
+}
