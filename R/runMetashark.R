@@ -78,8 +78,6 @@ runMetashark <- function(...) {
   
   # Set window values
   options(shiny.launch.browser = args$launch.browser)
-  options(shiny.port = 3838)
-  options(shiny.host = "127.0.0.1")
   
   runApp(shinyApp(ui = ui, server = server))
 }
