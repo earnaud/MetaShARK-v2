@@ -123,4 +123,5 @@ Collate:
     'welcome_module.R'
     'ui.R'
     'server.R'
+    'clean_modules.R'
 Config/testthat/edition: 3
