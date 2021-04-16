@@ -470,26 +470,36 @@ Attributes <- function(id, main.env) {
     })
     
     # * unit ----
-    observeEvent(input$unit, {
+    unit.value <- reactive({
       validate(
         need(isTruthy(selected.file()), "No file selected"),
         need(isTruthy(selected.attribute()), "No attribute selected"),
         need(input$class == "numeric", "Not a number"),
         need(!is.na(input$unit), "Unset unit input.")
       )
+      input$unit
+    }) %>%
+      debounce(1000)
+    
+    observe({
+      req(unit.value())
       
       # Correct input value
-      .value <- input$unit
+      .value <- unit.value()
       if(isFALSE(.value %in% c(
         main.env$FORMATS$units,
         "custom",
         main.env$local.rv$custom.units$table$unit.id
       ))) {
         .value <- main.env$FORMATS$units[2] # dimensionless
-        updateSelectInput(
-          session,
-          "unit",
-          selected = .value
+        # updateSelectInput(
+        #   session,
+        #   "unit",
+        #   selected = .value
+        # )
+        showNotification(
+          id = "unit_404",
+          "Queried unit not found: check spelling."
         )
       }
       
