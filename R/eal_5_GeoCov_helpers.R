@@ -97,13 +97,14 @@ GeoCovInputUI <- function(id, site.id, default = NULL) {
   }
   else {
     def.site <- ""
-    def.lat <- c(-45, 45)
-    def.lon <- c(-90, 90)
+    # Defaults coordinates are a square around Europe
+    def.lat <- c(35, 65)
+    def.lon <- c(-25, 45)
   }
 
   # UI ====
   tags$div(
-    id = site.id,
+    id = sprintf("%s-container", id),
     fluidRow(
       column(
         11,
