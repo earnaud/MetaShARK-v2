@@ -478,6 +478,7 @@ setLocalRV <- function(main.env){
             .check,
             tag = "savevariable_functions.R # 475"
           )
+          return(.check)
         }
       ) %>%
         unlist() %>%
