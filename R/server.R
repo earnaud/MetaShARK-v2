@@ -33,7 +33,8 @@ server <- function(input, output, session) {
     envir = main.env
   )
   
-  # Dev jobs
+  # Dev jobs ====
+  # Dev button ----
   assign(
     "dev.browse",
     reactive(input$dev),
@@ -46,6 +47,16 @@ server <- function(input, output, session) {
         browser()
     })
   }
+  
+  # Profvis ----
+  observe({
+    if(isTRUE(args$use.profvis))
+      shinyjs::show("close")
+  }) 
+  
+  observeEvent(input$close, {
+    shiny::stopApp()
+  })
   
   # Update values ====
   invisible({
@@ -87,7 +98,7 @@ server <- function(input, output, session) {
   ## modules called ----
   fill("fill", main.env)
   upload("upload", main.env)
-  documentation("documentation")
+  documentation("documentation", main.env)
   about("about")
   settings("settings", main.env)
 

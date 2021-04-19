@@ -42,12 +42,20 @@
 #' @export
 runMetashark <- function(...) {
 
-  # Set args in .GlobalEnv
+  # Set args in .GlobalEnv = local options
   args <- list(...)
-  args$dev <- isTRUE(args$dev)
-  args$wip <- isTRUE(args$wip)
-  args$launch.browser <- isTRUE(args$launch.browser)
+  args$wip <- isTRUE(args$wip) # needed for some UI
+  args$launch.browser <- if(isTRUE(args$launch.browser))
+    args$launch.browser else # Set by the user who knows what to do
+      getOption("shiny.launch.browser") # Default set by shiny 
+  
+  # Dev - debug options
+  args$dev <- isTRUE(args$dev) 
   args$reactlog <- isTRUE(args$reactlog) || isTRUE(args$dev)
+  args$use.profvis <- isTRUE(args$use.profvis)
+  args$use.test <- isTRUE(args$use.test)
+  
+  # Set args in environment
   assign("metashark.args", args, envir = .GlobalEnv)
   on.exit(rm("metashark.args", envir = .GlobalEnv))
   
@@ -77,7 +85,21 @@ runMetashark <- function(...) {
   options(shiny.maxRequestSize = 50*1024^2)
   
   # Set window values
-  options(shiny.launch.browser = args$launch.browser)
+  options(shiny.port = 3838)
   
-  runApp(shinyApp(ui = ui, server = server))
+  if(isTRUE(args$use.profvis)) {
+    profvis::profvis({
+      runApp(
+        shinyApp(ui = ui, server = server), 
+        launch.browser = args$launch.browser,
+        test.mode = args$use.test
+      )
+    })
+  } else {
+    runApp(
+      shinyApp(ui = ui, server = server), 
+      launch.browser = args$launch.browser,
+      test.mode = args$use.test
+    )
+  }
 }

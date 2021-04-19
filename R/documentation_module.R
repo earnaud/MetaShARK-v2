@@ -42,24 +42,48 @@ docUI <- function(id) {
 #' @importFrom jsonlite unserializeJSON read_json
 #'
 #' @noRd
-documentation <- function(id) {
+documentation <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
 
+    local.rv <- reactiveValues(
+      doc = c(),
+      tree = c()
+    )
+    
     # Load data ====
-    doc <- system.file("resources/doc_guideline.json", package = "MetaShARK")
-    doc <- jsonlite::unserializeJSON(jsonlite::read_json(doc)[[1]])
-
-    tree <- system.file("resources/tree_guideline.json", package = "MetaShARK")
-    tree <- jsonlite::unserializeJSON(jsonlite::read_json(tree)[[1]])
+    observe({
+      req(main.env$current.tab() == "documentation")
+      req(isFALSE("tree" %in% names(input)))
+      
+      withProgress({
+        doc <- system.file("resources/doc_guideline.json", package = "MetaShARK")
+        local.rv$doc <- jsonlite::unserializeJSON(jsonlite::read_json(doc)[[1]])
+        incProgress(0.5)
+        
+        tree <- system.file("resources/tree_guideline.json", package = "MetaShARK")
+        local.rv$tree <- jsonlite::unserializeJSON(jsonlite::read_json(tree)[[1]])
+        incProgress(0.5)
+      },
+      message = "Rendering documentation.")
+    })
 
     # UI render ====
 
     # render tree
-    output$tree <- shinyTree::renderTree(tree)
+    output$tree <- shinyTree::renderTree({
+      validate(
+        need(isContentTruthy(local.rv$tree), "Documentation is being loaded.")
+      )
+      
+      local.rv$tree
+    })
 
     # output selected node
     output$doc <- renderUI({
-      req("tree" %in% names(input))
+      validate(
+        need(isContentTruthy(local.rv$tree), "Documentation is being loaded."),
+        need("tree" %in% names(input), "Please select a node.")
+      )
       tree.node <- shinyTree::get_selected(input$tree)
       validate(
         need(unlist(tree.node), "(Select an item first)")
@@ -71,7 +95,7 @@ documentation <- function(id) {
         ),
         collapse = "/"
       )
-      doc.node <- followPath(doc, path)
+      doc.node <- followPath(local.rv$doc, path)
       if ("annotation" %in% names(doc.node)) {
         doc.node$annotation
       } else {

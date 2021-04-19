@@ -49,20 +49,23 @@ aboutUI <- function(id) {
 about <- function(id) {
   moduleServer(id, function(input, output, session) {
 
-    # misc = system.file("resources/bibliography-misc.bib", package = "MetaShARK")
-
+    # Render bibliography for actors
     output$actors <- renderBibliography(
       system.file(
         "resources/bibliography-actors.bib",
         package = "MetaShARK"
       )
     )
+    
+    # Render bibliography for informatic part
     output$informatics <- renderBibliography(
       system.file(
         "resources/bibliography-informatics.bib",
         package = "MetaShARK"
       )
     )
+    
+    # Render bibliography for ecology part
     output$ecology <- renderBibliography(
       system.file(
         "resources/bibliography-ecology.bib",
