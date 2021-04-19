@@ -111,7 +111,10 @@ ui <- function() {
                     "dev", "DEV CHECK"
                   )
                 ),
-                tags$p(uiOutput("version"))
+                tags$p(uiOutput("version")),
+                shinyjs::hidden(
+                  actionButton("close", "EXIT", class = "danger")
+                )
               )
             ),
             width = "250px"
