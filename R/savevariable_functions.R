@@ -476,7 +476,7 @@ setLocalRV <- function(main.env){
             "%s contains catvars: %s",
             md.table, 
             .check,
-            tag = "savevariable_functions.R # 474", 
+            tag = "savevariable_functions.R # 475"
           )
         }
       ) %>%
