@@ -749,7 +749,8 @@ Attributes <- function(id, main.env) {
         as.character %>%
         enc2utf8 %>%
         as.data.frame %>%
-        setNames(nm = "Data preview")
+        unname
+        # setNames(nm = "Data preview")
     })
     
     # Completeness ====
