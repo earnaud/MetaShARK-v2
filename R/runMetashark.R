@@ -45,9 +45,7 @@ runMetashark <- function(...) {
   # Set args in .GlobalEnv = local options
   args <- list(...)
   args$wip <- isTRUE(args$wip) # needed for some UI
-  args$launch.browser <- if(isTRUE(args$launch.browser))
-    args$launch.browser else # Set by the user who knows what to do
-      getOption("shiny.launch.browser") # Default set by shiny 
+  args$launch.browser <- isTRUE(args$launch.browser)
   
   # Dev - debug options
   args$dev <- isTRUE(args$dev) 
