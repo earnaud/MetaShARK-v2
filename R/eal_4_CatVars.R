@@ -6,10 +6,52 @@ CatVarsUI <- function(id) {
   
   return(
     fluidPage(
-      wipRow("This step might take some minutes to setup. (To be improved soon)"),
+      # fluidRow(
+      # uiOutput(NS(id, "edit_catvar")) %>%
+      #   shinycssloaders::withSpinner()
+      # ),
       fluidRow(
-        uiOutput(NS(id, "edit_catvar")) %>%
-          shinycssloaders::withSpinner()
+        column(
+          4,
+          tags$h3("Variables list"),
+          shinyTree::shinyTree(
+            # TODO add colors
+            ns("tree") #,
+            # types = "{ 'red-node': {'a_attr' : { 'style' : 'color:red' }},
+            #   'green-node': {'a_attr' : { 'style' : 'color:green' }} }"
+          ),
+          style = "
+            overflow: scroll;
+            max-height: 60vh;
+            background-color: #e4e7ec;
+          ") %>%
+          shinycssloaders::withSpinner(),
+        column(
+          5, offset = 1,
+          tags$div(
+            id = ns("form"),
+            tags$b(textOutput(ns("code"))),
+            shinyjs::hidden(
+              tags$div(
+                id = ns("warning_missing_value"),
+                helpText("This variable shall probably be described as a missing value in Attributes step.")
+              )
+            ),
+            textAreaInput(
+              inputId = ns("description"),
+              label = NULL,
+              value = ""
+            )
+          ),
+          shinyjs::hidden(
+            tags$div(
+              id = "no_form",
+              helpText("Please select an attribute code first.")
+            )
+          )
+        ),
+        # Empty space
+        column(2)
       )
     ) # end of fluidPage
   ) # end of return
@@ -19,7 +61,7 @@ CatVarsUI <- function(id) {
 #' @importFrom shinyjs toggleState
 #' @importFrom shinyBS bsCollapse
 #' @importFrom shinyFeedback hideFeedback showFeedbackSuccess showFeedbackDanger
-#' @importFrom dplyr %>%
+#' @importFrom dplyr %>% filter slice select
 #'
 #' @noRd
 CatVars <- function(id, main.env) {
@@ -36,159 +78,170 @@ CatVars <- function(id, main.env) {
       )
     }
     
+    # Tree ====
+    
+    # * Compute tree ----
+    treeContent <- eventReactive({
+      main.env$EAL$page
+      main.env$local.rv$cv.tables
+    }, {
+      req(main.env$EAL$page == 4)
+      .tables <- isolate(main.env$local.rv$cv.tables)
+      req(isContentTruthy(.tables))
+      
+      lapply(
+        names(.tables),
+        function(.file.name) {
+          # files
+          structure(lapply(
+            unique(.tables[[.file.name]]$attributeName),
+            file.name = .file.name,
+            function(.attribute.name, file.name){
+              codes <- .tables[[file.name]] %>% 
+                filter(attributeName == .attribute.name) %>% 
+                select(code) %>% 
+                unlist
+              untruthy.codes <- which(!sapply(codes, isContentTruthy))
+              codes.names <- replace(
+                codes, 
+                untruthy.codes,
+                sprintf("[%s:empty]", untruthy.codes)
+              )
+              structure(lapply(
+                codes,
+                function(.code) {
+                  return(
+                    structure(
+                      .code,
+                      sttype="default",
+                      sticon=""
+                    )
+                  )
+                }
+              ),
+              sticon = "fa fa-columns"
+              ) %>% 
+                setNames(codes.names)
+            }
+          ) %>%
+            setNames(nm = unique(.tables[[.file.name]]$attributeName)), 
+          sttype = "root", sticon = "fa fa-file", stopened = TRUE
+          )
+        }
+      ) %>% 
+        setNames(nm = names(.tables))
+      
+    })
+    
+    # * Render tree ----
+    output$tree <- renderTree({
+      treeContent()
+    })
+    
+    # * Get tree input ----
+    # shinyTree selection
+    .selected <- reactive({
+      req(main.env$EAL$page == 4)
+      if(isContentTruthy(input$tree)){
+        get_selected(input$tree)
+      } else {
+        return(NULL)
+      }
+    })
+    
+    # shinyTree path exploration
+    .ancestor <- reactive({
+      req(main.env$EAL$page == 4)
+      if(isContentTruthy(.selected())){
+        attr(.selected()[[1]], "ancestry")
+      } else {
+        return(NULL)
+      }
+    })
+    
+    # boolean to know if a code is selected in the tree
+    .code.selected <- reactive({
+      req(main.env$EAL$page == 4)
+      isTRUE(
+        isContentTruthy(.selected()) &&
+          length(.ancestor()) == 2
+      )
+    })
+    
+    output$code <- renderText({
+      validate(
+        need(.code.selected(), "")
+      )
+      paste("Description of", .selected()[[1]][1])
+    })
+    
+    observe({
+      req(main.env$EAL$page == 4)
+      shinyjs::toggle("form", condition = .code.selected())
+      shinyjs::toggle("no_form", condition = !.code.selected())
+      shinyjs::toggle("warning_missing_value", condition = grepl("empty", .selected()))
+      
+      if(.code.selected()) {
+        if(grepl("empty", .selected())) {
+          .index <- as.numeric(gsub("\\[(.*):empty\\]","\\1", .selected()[[1]][1]))
+          .value <- main.env$local.rv$cv.tables[[.ancestor()[1]]] %>% 
+            filter(attributeName == .ancestor()[2]) %>%
+            slice(.index) %>%
+            select(definition) %>% 
+            unlist %>% 
+            unname
+        } else {
+          .value <- main.env$local.rv$cv.tables[[.ancestor()[1]]] %>% 
+            filter(attributeName == .ancestor()[2]) %>%
+            filter(code == .selected()) %>%
+            select(definition) %>% 
+            unlist %>% 
+            unname # important !
+        }
+        updateTextAreaInput(
+          session = session,
+          "description",
+          value = .value
+        )
+      }
+    })
+    
     # Form ====
     
-    # * UI ----
-    output$edit_catvar <- renderUI({
+    # * Get form input ----
+    observeEvent(input$description, {
       req(main.env$EAL$page == 4)
-      
-      # validity check
-      validate(
-        need(
-          isContentTruthy(main.env$local.rv$cv.tables),
-          "No valid table provided."
-        )
-      )
-      
-      isolate({
-        do.call(
-          tabsetPanel,
-          args = c(
-            id = session$ns("tabset"),
-            lapply(
-              names(main.env$local.rv$cv.tables),
-              main.env = main.env,
-              # Table input - tab
-              function(table.name, main.env) {
-                # Set variables
-                table <- main.env$local.rv$cv.tables[[table.name]]
-                .id <- session$ns(table.name)
-                
-                # Render UI
-                tabPanel(
-                  title = table.name,
-                  value = table.name,
-                  # Create a container of collapsibles
-                  do.call(
-                    shinyBS::bsCollapse,
-                    args = c(
-                      id = NS(.id, "collapse"),
-                      ... = lapply(
-                        unique(table$attributeName),
-                        function(attribute){
-                          CatVarsInputUI(
-                            id = NS(.id, gsub("-", "", attribute)),
-                            attribute = attribute,
-                            table.name = table.name,
-                            main.env = main.env
-                          )
-                        }
-                      )
-                    )
-                  ) # end do.call:bsCollapse
-                ) 
-              }
-            ) # end lapply
-          ) # end args
-        ) # end do.call: tabsetpanel
-      })
-    }) # end of renderUI
+      .table <- main.env$local.rv$cv.tables[[.ancestor()[1]]]
+      .row.id <- which(
+        .table$attributeName == .ancestor()[2] &&
+          .table$code == .selected())
+      .table[.row.id, "code"] <- input$description
+      main.env$local.rv$cv.tables[[.ancestor()[1]]] <- .table
+    })
     
-    # * Server ----
-    observeEvent(main.env$EAL$page, {
+    # * Completed ----
+    observe({
       req(main.env$EAL$page == 4)
+      req(isContentTruthy(main.env$local.rv$cv.tables))
       
-      # Get inputs
       sapply(
-        names(main.env$local.rv$cv.tables), 
-        main.env = main.env,
-        id = id,
-        # Table input - tab
-        # not a module ! just multiple calls
-        function(id, table.name, main.env) {
-          table <- main.env$local.rv$cv.tables[[table.name]]
-          
-          # Set server
+        names(main.env$local.rv$cv.tables),
+        function(.file.name) {
           sapply(
-            unique(table$attributeName),
-            function(attribute)
-              CatVarsInput(
-                # sub-namespace
-                id = NS(table.name, attribute %>% gsub("-", "", .)),
-                attribute = attribute,
-                table.name = table.name,
-                main.env = main.env
-              )
+            unique(main.env$local.rv$cv.tables[[.file.name]]$attributeName),
+            file.name = .file.name,
+            function(.attribute.name, file.name) {
+              main.env$local.rv$completed[[file.name]][[.attribute.name]] <- 
+                isContentTruthy(
+                  main.env$local.rv$cv.tables[[file.name]] %>%
+                    filter(attributeName == .attribute.name) %>%
+                    select(definition)
+                )
+            }
           )
         }
       )
-    },
-    ignoreNULL = FALSE,
-    label = "EAL4: set server",
-    priority = -2
-    ) # end of observeEvent
+    }, priority = -1)
     
-    # Completed ----
-    observe({
-      req(main.env$EAL$page == 4)
-      
-      invalidateLater(1000)
-      # main.env$local.rv$trigger$depend()
-      
-      req(
-        length(main.env$local.rv$cv.files) > 0 &&
-          !any(sapply(main.env$local.rv$cv.files, identical, y = data.frame()))
-      )
-      
-      if(isTruthy(input$tabset)){
-        file.name = input$tabset
-        shinyBS::updateCollapse(
-          session,
-          NS(file.name, "collapse"),
-          style = do.call(
-            args = list(file.name = file.name),
-            function(file.name) {
-              lapply(
-                names(main.env$local.rv$completed[[file.name]]),
-                file.name = file.name,
-                function(file.name, attribute){
-                  .valid <- main.env$local.rv$completed[[file.name]][[attribute]] %>%
-                    listReactiveValues() %>%
-                    unlist() %>%
-                    all()
-                  if(!.valid)
-                    devmsg(.valid, tag = paste(file.name, attribute))
-                  ifelse(
-                    .valid,
-                    "success",
-                    "warning"
-                  )
-                }) %>%
-                setNames(nm = names(main.env$local.rv$completed[[file.name]]))
-            }
-          )
-        )
-      }
-      
-    },
-    priority = -1,
-    label = "EAL4: collapse update"
-    )
-    
-    observe({
-      req(main.env$EAL$page == 4)
-      
-      invalidateLater(1000)
-      
-      main.env$EAL$completed <- main.env$local.rv$completed %>%
-        listReactiveValues() %>%
-        unlist %>%
-        all %>%
-        isTRUE
-    },
-    priority = -1,
-    label = "EAL4: completeness check"
-    )
-    # Process data (deprecated)
   })
 }

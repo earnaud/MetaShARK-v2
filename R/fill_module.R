@@ -13,6 +13,7 @@ fillUI <- function(id) {
           fluidRow(
             div(
               h4("EML Assembly Line"),
+              h3(textOutput(NS(id, "current_step"))),
               style = "float: left"
             ),
             div(
@@ -157,6 +158,11 @@ fill <- function(id, main.env) {
     observeEvent(input$save, {
       if(main.env$dev) devmsg("saved: %s", main.env$EAL$page)
       saveReactive(main.env, main.env$EAL$page, do.template = FALSE)
+    })
+    
+    output$current_step <- renderText({
+      req(main.env$EAL$current)
+      gsub("_", " ", main.env$EAL$current)
     })
     
     # Navigation ====
