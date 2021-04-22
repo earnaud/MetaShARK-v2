@@ -198,15 +198,17 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
     
     # Save
     main.env$save.variable$CatVars[[file.name]] <- content$cv.tables[[file.name]]
-    .tmp <- main.env$save.variable$CatVars[[file.name]]$code == ""
-    main.env$save.variable$CatVars[[file.name]]$code[.tmp] <- "NA"
+    # .tmp <- main.env$save.variable$CatVars[[file.name]]$code == ""
+    # browser()
+    # main.env$save.variable$CatVars[[file.name]]$code[.tmp] <- NA_character_
 
     # Overwrite
     file.remove(file.path)
     data.table::fwrite(
       main.env$save.variable$CatVars[[file.name]],
       file.path,
-      sep = "\t"
+      sep = "\t",
+      na = "NA"
     )
   })
 

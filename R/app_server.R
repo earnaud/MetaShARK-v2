@@ -48,16 +48,6 @@ server <- function(input, output, session) {
     })
   }
   
-  # Profvis ----
-  observe({
-    if(isTRUE(args$use.profvis))
-      shinyjs::show("close")
-  }) 
-  
-  observeEvent(input$close, {
-    shiny::stopApp()
-  })
-  
   # Update values ====
   invisible({
     # DataONE nodes

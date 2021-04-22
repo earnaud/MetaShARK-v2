@@ -16,7 +16,7 @@ AttributesUI <- function(id) {
       fields will turn to green."
     ),
     fluidRow(
-      # Left : shinyTree (output)
+      # Left : shinyTree (output) ====
       column(
         4, 
         tags$h3("Attributes list"),
@@ -32,7 +32,7 @@ AttributesUI <- function(id) {
           background-color: #e4e7ec;
         "
       ),
-      # Right: form
+      # Right: form ====
       column(
         5, offset = 1,
         tags$h3("Attribute description"),
@@ -48,7 +48,7 @@ AttributesUI <- function(id) {
             helpText(textOutput(ns("filename"))),
             # - attributeName (output)
             tags$h4(textOutput(ns("attributeName"))),
-            # - attributeDefinition ----
+            # * attributeDefinition ----
             textAreaInput(
               ns("attributeDefinition"), 
               "Description of the attribute",
@@ -56,19 +56,19 @@ AttributesUI <- function(id) {
               resize = "both"
             ) %>%
               shiny::tagAppendAttributes(style = 'width: initial;'),
-            # - class ----
+            # * class ----
             selectInput(
               ns("class"),
               "Dectected class (change if misdetected)",
               choices = c("numeric", "character", "Date", "categorical")
             ),
-            # - dateTimeFormatString ----
+            # * dateTimeFormatString ----
             selectInput(
               ns("dateTimeFormatString"),
               "Select a date format",
               choices = c(NA_character_)
             ),
-            # - unit ----
+            # * unit ----
             selectInput(
               ns("unit"),
               label = tagList(
@@ -77,12 +77,12 @@ AttributesUI <- function(id) {
               ),
               choices = c(NA_character_)
             ),
-            # - missingValueCode ----
+            # * missingValueCode ----
             textInput(
               ns("missingValueCode"),
               "Code for missing value (1 word)"
             ),
-            # - missingValueCodeExplanation ----
+            # * missingValueCodeExplanation ----
             textAreaInput(
               ns("missingValueCodeExplanation"),
               "Explain Missing Values",
@@ -187,13 +187,32 @@ Attributes <- function(id, main.env) {
     })
     
     # Render computed tree
+    rendered <- reactive({
+      req(main.env$EAL$page == 3)
+      "tree" %in% names(input)
+    })
+    
     output$tree <- shinyTree::renderTree({
+      req(main.env$EAL$page == 3)
+      req(isContentTruthy(treeContent()))
+      devmsg("create tree", tag = "attributes")
       treeContent()
+    })
+    
+    # Avoid creating a new tree: update it
+    observeEvent(main.env$EAL$page, {
+      req(main.env$EAL$page == 3)
+      req("tree" %in% names(input))
+      req(isContentTruthy(treeContent()))
+      devmsg("update tree", tag = "attributes")
+      browser()
+      shinyTree::updateTree(session = session, treeId = "tree", data = treeContent())
     })
     
     # * Get input from tree ----
     # shinyTree selection
     .selected <- reactive({
+      devmsg("selected", tag="attributes")
       if(isContentTruthy(input$tree)){
         get_selected(input$tree)
       } else {
@@ -203,6 +222,7 @@ Attributes <- function(id, main.env) {
     
     # shinyTree path exploration
     .ancestor <- reactive({
+      devmsg("ancestor", tag="attributes")
       if(isContentTruthy(.selected())){
         attr(.selected()[[1]], "ancestry")
       } else {
@@ -749,7 +769,8 @@ Attributes <- function(id, main.env) {
         as.character %>%
         enc2utf8 %>%
         as.data.frame %>%
-        setNames(nm = "Data preview")
+        unname
+        # setNames(nm = "Data preview")
     })
     
     # Completeness ====

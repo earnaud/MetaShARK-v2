@@ -478,6 +478,7 @@ setLocalRV <- function(main.env){
             .check,
             tag = "savevariable_functions.R # 475"
           )
+          return(.check)
         }
       ) %>%
         unlist() %>%
@@ -521,19 +522,16 @@ setLocalRV <- function(main.env){
         dplyr::mutate(
           code = gsub("^$","\"\"", code)
         )
+      makeReactiveBinding(
+        sprintf("main.env$local.rv$cv.tables$%s", file.name)
+      )
       
       # Set completed
       main.env$local.rv$completed[[file.name]] <- reactiveValues()
       attributes <- main.env$local.rv$cv.tables[[file.name]]$attributeName %>%
         unique
       lapply(attributes, function(attribute) {
-        main.env$local.rv$completed[[file.name]][[attribute]] <- reactiveValues()
-        codes <- main.env$local.rv$cv.tables[[file.name]] %>%
-          filter(attributeName == attribute) %>%
-          select(code) %>%
-          unlist
-        main.env$local.rv$completed[[file.name]][[attribute]] <- rep(FALSE, length(codes)) %>%
-          setNames(nm = codes)
+        main.env$local.rv$completed[[file.name]][[attribute]] <- FALSE
       })
       
       # Old 
