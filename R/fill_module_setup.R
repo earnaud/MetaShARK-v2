@@ -151,10 +151,11 @@ setLocalRV <- function(main.env){
     reactiveValues(
       md.tables = reactiveValues(),
       rv.tables = reactiveValues(),
-      checked = FALSE,
+      # checked = FALSE,
       completed = reactiveValues(),
       data.filepath = main.env$save.variable$DataFiles$datapath,
       md.filenames = basename(main.env$save.variable$DataFiles$metadatapath),
+      tree.content = c(),
       custom.units = reactiveValues(
         table = readDataTable(
           dir(
@@ -197,7 +198,8 @@ setLocalRV <- function(main.env){
       trigger = makeReactiveTrigger(),
       cv.files = character(),
       cv.tables = reactiveValues(),
-      completed = reactiveValues()
+      completed = reactiveValues(),
+      tree.content = c()
     ),
     # * GeoCov ----
     reactiveValues(
@@ -411,6 +413,9 @@ setLocalRV <- function(main.env){
               missingValueCodeExplanation = TRUE
             )
           }) # end lapply:row
+          
+          # Setup tree
+          main.env$local.rv$tree.content <- buildAttributesTree(main.env)
         }
       )
       
@@ -534,17 +539,55 @@ setLocalRV <- function(main.env){
         main.env$local.rv$completed[[file.name]][[attribute]] <- FALSE
       })
       
-      # Old 
-      # 
-      # main.env$local.rv$completed[[file.name]] <- reactiveValues()
-      # 
-      # lapply(seq(nrow(main.env$local.rv$cv.tables[[file.name]])), function(row.index) {
-      #   row <- main.env$local.rv$cv.tables[[file.name]][row.index,]
-      #   # Set completed per row by class
-      #   row.id <- paste(row[1:2], collapse = ":")
-      #   main.env$local.rv$completed[[file.name]][[row.id]] <- FALSE # one item per row
-      # }) # end lapply:row.index
-      
+      # Setup tree
+      main.env$local.rv$tree.content <- {
+        .tables <- isolate(main.env$local.rv$cv.tables)
+        
+        lapply(
+          names(.tables),
+          function(.file.name) {
+            # files
+            structure(lapply(
+              unique(.tables[[.file.name]]$attributeName),
+              file.name = .file.name,
+              function(.attribute.name, file.name){
+                codes <- .tables[[file.name]] %>% 
+                  filter(attributeName == .attribute.name) %>% 
+                  select(code) %>% 
+                  unlist
+                untruthy.codes <- which(!sapply(codes, isContentTruthy))
+                codes.names <- replace(
+                  codes, 
+                  untruthy.codes,
+                  sprintf("[%s:empty]", untruthy.codes)
+                )
+                structure(lapply(
+                  codes,
+                  function(.code) {
+                    return(
+                      structure(
+                        .code,
+                        # sttype="default",
+                        sticon=""
+                      )
+                    )
+                  }
+                ),
+                sticon = "fa fa-columns"
+                ) %>% 
+                  setNames(codes.names)
+              }
+            ) %>%
+              setNames(nm = unique(.tables[[.file.name]]$attributeName)), 
+            # sttype = "root",
+            sticon = "fa fa-file",
+            stopened = TRUE
+            )
+          }
+        ) %>% 
+          setNames(nm = names(.tables))
+        
+      }
     }) # end lapply:file
   }
   
@@ -701,5 +744,5 @@ setLocalRV <- function(main.env){
   
   # (End) ====
   
-  return(main.env$local.rv)
+  return(main.env)
 }

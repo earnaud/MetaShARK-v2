@@ -81,62 +81,72 @@ CatVars <- function(id, main.env) {
     # Tree ====
     
     # * Compute tree ----
-    treeContent <- eventReactive({
-      main.env$EAL$page
-      main.env$local.rv$cv.tables
-    }, {
-      req(main.env$EAL$page == 4)
-      .tables <- isolate(main.env$local.rv$cv.tables)
-      req(isContentTruthy(.tables))
-      
-      lapply(
-        names(.tables),
-        function(.file.name) {
-          # files
-          structure(lapply(
-            unique(.tables[[.file.name]]$attributeName),
-            file.name = .file.name,
-            function(.attribute.name, file.name){
-              codes <- .tables[[file.name]] %>% 
-                filter(attributeName == .attribute.name) %>% 
-                select(code) %>% 
-                unlist
-              untruthy.codes <- which(!sapply(codes, isContentTruthy))
-              codes.names <- replace(
-                codes, 
-                untruthy.codes,
-                sprintf("[%s:empty]", untruthy.codes)
-              )
-              structure(lapply(
-                codes,
-                function(.code) {
-                  return(
-                    structure(
-                      .code,
-                      sttype="default",
-                      sticon=""
-                    )
-                  )
-                }
-              ),
-              sticon = "fa fa-columns"
-              ) %>% 
-                setNames(codes.names)
-            }
-          ) %>%
-            setNames(nm = unique(.tables[[.file.name]]$attributeName)), 
-          sttype = "root", sticon = "fa fa-file", stopened = TRUE
-          )
-        }
-      ) %>% 
-        setNames(nm = names(.tables))
-      
-    })
+    # treeContent <- eventReactive({
+    #   main.env$EAL$page
+    #   main.env$local.rv$cv.tables
+    # }, {
+    #   req(main.env$EAL$page == 4)
+    #   .tables <- isolate(main.env$local.rv$cv.tables)
+    #   req(isContentTruthy(.tables))
+    #   
+    #   lapply(
+    #     names(.tables),
+    #     function(.file.name) {
+    #       # files
+    #       structure(lapply(
+    #         unique(.tables[[.file.name]]$attributeName),
+    #         file.name = .file.name,
+    #         function(.attribute.name, file.name){
+    #           codes <- .tables[[file.name]] %>% 
+    #             filter(attributeName == .attribute.name) %>% 
+    #             select(code) %>% 
+    #             unlist
+    #           untruthy.codes <- which(!sapply(codes, isContentTruthy))
+    #           codes.names <- replace(
+    #             codes, 
+    #             untruthy.codes,
+    #             sprintf("[%s:empty]", untruthy.codes)
+    #           )
+    #           structure(lapply(
+    #             codes,
+    #             function(.code) {
+    #               return(
+    #                 structure(
+    #                   .code,
+    #                   # sttype="default",
+    #                   sticon=""
+    #                 )
+    #               )
+    #             }
+    #           ),
+    #           sticon = "fa fa-columns"
+    #           ) %>% 
+    #             setNames(codes.names)
+    #         }
+    #       ) %>%
+    #         setNames(nm = unique(.tables[[.file.name]]$attributeName)), 
+    #       # sttype = "root",
+    #       sticon = "fa fa-file",
+    #       stopened = TRUE
+    #       )
+    #     }
+    #   ) %>% 
+    #     setNames(nm = names(.tables))
+    #   
+    # })
     
     # * Render tree ----
-    output$tree <- renderTree({
-      treeContent()
-    })
+    output$tree <- shinyTree::renderEmptyTree()
+    outputOptions(output, "tree", suspendWhenHidden = FALSE)
+    
+    observeEvent(main.env$EAL$page, {
+      req(main.env$EAL$page == 4)
+      req(isContentTruthy(main.env$local.rv$tree.content))
+      devmsg("update tree", tag = "catvars")
+      shinyTree::updateTree(session = session, treeId = "tree", data = main.env$local.rv$tree.content)
+    },
+    priority = -1,
+    label = "catvars update tree")
     
     # * Get tree input ----
     # shinyTree selection

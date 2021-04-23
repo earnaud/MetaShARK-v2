@@ -134,80 +134,28 @@ Attributes <- function(id, main.env) {
     
     # * Make tree ----
     # Compute tree
-    treeContent <- eventReactive({
-      main.env$EAL$page
-      main.env$local.rv$md.tables
-    }, {
-      req(main.env$EAL$page == 3)
-      .tables <- isolate(main.env$local.rv$md.tables)
-      req(isContentTruthy(.tables))
-      
-      lapply(
-        names(.tables),
-        # Files node
-        main.env = main.env,
-        function(file.name, main.env) {
-          structure(lapply(
-            .tables[[file.name]]$attributeName,
-            # Attributes leaves
-            main.env = main.env,
-            file.name = file.name,
-            function(attributeName, file.name, main.env){
-              # check completeness
-              # complete.color <- ifelse(
-              #   all(
-              #     unlist(
-              #       listReactiveValues(
-              #         main.env$local.rv$completed[[
-              #           file.name]][[
-              #             attributeName
-              #           ]]
-              #       )
-              #     )
-              #   ),
-              #   "green-node",
-              #   "red-node"
-              # )
-              
-              # Render leaf
-              structure(
-                attributeName,
-                sttype="default",
-                # sttype=complete.color,
-                sticon="fa fa-table"
-              )
-            }
-          ) %>%
-            setNames(nm = .tables[[file.name]]$attributeName), 
-          sttype = "root", sticon = "fa fa-file", stopened = TRUE
-          )
-        }
-      ) %>% 
-        setNames(nm = names(.tables))
-    })
+    # treeContent <- eventReactive({
+    #   main.env$EAL$page
+    #   main.env$local.rv$md.tables
+    # }, {
+    #   
+    # })
     
     # Render computed tree
-    rendered <- reactive({
-      req(main.env$EAL$page == 3)
-      "tree" %in% names(input)
-    })
+    # initialize empty tree
+    output$tree <- shinyTree::renderEmptyTree()
+    outputOptions(output, "tree", suspendWhenHidden = FALSE)
     
-    output$tree <- shinyTree::renderTree({
-      req(main.env$EAL$page == 3)
-      req(isContentTruthy(treeContent()))
-      devmsg("create tree", tag = "attributes")
-      treeContent()
-    })
-    
-    # Avoid creating a new tree: update it
     observeEvent(main.env$EAL$page, {
-      req(main.env$EAL$page == 3)
-      req("tree" %in% names(input))
-      req(isContentTruthy(treeContent()))
+      req(main.env$EAL$page == 3) 
+      req(isContentTruthy(main.env$local.rv$tree.content))
       devmsg("update tree", tag = "attributes")
-      browser()
-      shinyTree::updateTree(session = session, treeId = "tree", data = treeContent())
-    })
+      shinyTree::updateTree(
+        session = session, 
+        treeId = "tree",
+        data = main.env$local.rv$tree.content
+      )
+    }, priority = -1)
     
     # * Get input from tree ----
     # shinyTree selection
@@ -234,6 +182,9 @@ Attributes <- function(id, main.env) {
     selected.file <- reactive({
       req(isContentTruthy(.selected()) && 
             isContentTruthy(.ancestor()))
+      
+      devmsg("selected file", tag = "attributes")
+      
       if(length(.ancestor()) == 0)
         return(.selected()[[1]][1])
       else

@@ -190,7 +190,7 @@ fill <- function(id, main.env) {
           incProgress(1/7)
           
           # * Reset local.rv ----
-          main.env$local.rv <- setLocalRV(main.env)
+          main.env <- setLocalRV(main.env)
           incProgress(1/7)
           
           # * Change page ----
