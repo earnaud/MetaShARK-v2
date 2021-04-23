@@ -6,19 +6,12 @@ CatVarsUI <- function(id) {
   
   return(
     fluidPage(
-      # fluidRow(
-      # uiOutput(NS(id, "edit_catvar")) %>%
-      #   shinycssloaders::withSpinner()
-      # ),
       fluidRow(
         column(
           4,
           tags$h3("Variables list"),
           shinyTree::shinyTree(
-            # TODO add colors
-            ns("tree") #,
-            # types = "{ 'red-node': {'a_attr' : { 'style' : 'color:red' }},
-            #   'green-node': {'a_attr' : { 'style' : 'color:green' }} }"
+            ns("tree")
           ),
           style = "
             overflow: scroll;
@@ -45,7 +38,7 @@ CatVarsUI <- function(id) {
           ),
           shinyjs::hidden(
             tags$div(
-              id = "no_form",
+              id = ns("no_form"),
               helpText("Please select an attribute code first.")
             )
           )
@@ -227,6 +220,9 @@ CatVars <- function(id, main.env) {
           .table$code == .selected())
       .table[.row.id, "code"] <- input$description
       main.env$local.rv$cv.tables[[.ancestor()[1]]] <- .table
+      
+      # Check value
+      checkFeedback(input, "description")
     })
     
     # * Completed ----

@@ -223,6 +223,8 @@ Attributes <- function(id, main.env) {
         need(!is.null(selected.attribute()), "Not a valid attribute")
       )
       
+      # Disable temporarily next button
+      main.env$EAL$completed <- FALSE
       # Update values
       .row <- main.env$local.rv$md.tables[[selected.file()]] %>%
         filter(attributeName == selected.attribute())
