@@ -18,6 +18,7 @@ server <- function(input, output, session) {
     ),
     envir = session$userData
   )
+  
   assign(
     "contents",
     reactiveValues(
@@ -40,12 +41,13 @@ server <- function(input, output, session) {
     reactive(input$dev),
     envir = main.env
   )
+  
   if (main.env$dev){
     shinyjs::show("dev")
     observeEvent(input$dev, {
       if (main.env$current.tab() != "fill")
         browser()
-    })
+    }, label = "server: dev toggle")
   }
   
   # Update values ====
