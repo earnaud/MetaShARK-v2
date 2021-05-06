@@ -21,16 +21,16 @@ DataFilesUI <- function(id) {
       ),
       fluidRow(
         column(6,
-          div(
-            fileInput(
-              NS(id, "add_data_files"),
-              "Select data file(s) from your dataset",
-              buttonLabel = span("Load files", icon("plus-circle")),
-              multiple = TRUE,
-              width = "100%"
-            ),
-            style = "display: inline-block; vertical-align: top;"
-          )
+               div(
+                 fileInput(
+                   NS(id, "add_data_files"),
+                   "Select data file(s) from your dataset",
+                   buttonLabel = span("Load files", icon("plus-circle")),
+                   multiple = TRUE,
+                   width = "100%"
+                 ),
+                 style = "display: inline-block; vertical-align: top;"
+               )
         ),
         column(
           6,
@@ -67,7 +67,8 @@ DataFiles <- function(id, main.env) {
               main.env$EAL$page == 2) {
             browser()
           }
-        }
+        },
+        label = "EAL2: dev"
       )
     }
     
@@ -84,119 +85,121 @@ DataFiles <- function(id, main.env) {
           )
         })
       }
-    }, priority = -1)
+    }, 
+    priority = -1, 
+    label = "EAL2: setup UI"
+    )
     
     # Add data files ====
-    observeEvent(input$add_data_files,
-      {
-        # validity checks
-        req(isContentTruthy(input$add_data_files))
+    observeEvent(input$add_data_files, {
+      # validity checks
+      req(isContentTruthy(input$add_data_files))
+      
+      # * retrieve files info ----
+      .loaded.files <- input$add_data_files
+      
+      # remove spaces
+      file.rename(
+        .loaded.files$datapath,
+        gsub(" ", "_",.loaded.files$datapath)
+      )
+      .loaded.files$name <- gsub(" ", "_", .loaded.files$name)
+      .loaded.files$datapath <- gsub(" ", "_", .loaded.files$datapath)
+      # add URL, description and table name columns
+      .loaded.files$url <- rep("", dim(.loaded.files)[1])
+      .loaded.files$description <- rep("", dim(.loaded.files)[1])
+      .loaded.files$table.name <- rep("", dim(.loaded.files)[1])
+      
+      # Check for folders
+      .to.remove <- c()
+      sapply(1:nrow(.loaded.files), function(.ind) {
+        .loaded.file <- .loaded.files[.ind,]
+        filepath <- .loaded.file$datapath
+        if (fs::is_dir(filepath)) {
+          showNotification(
+            paste(filename, "is a folder."),
+            type = "warning"
+          )
+          .to.remove <<- c(.to.remove, .ind)
+        }
+      })
+      if(length(.to.remove) > 0)
+        .loaded.files <- .loaded.files[-.to.remove,]
+      
+      # Do not go further if no more files left
+      req(length(.loaded.files) > 0)
+      
+      # * bind into local.rv ----
+      # empty local.rv
+      if (isFALSE(
+        isContentTruthy(main.env$local.rv$data.files) && 
+        all(dim(main.env$local.rv$data.files) > 0)
+      )) {
+        # Bind data
+        main.env$local.rv$data.files <- cbind(
+          id = main.env$local.rv$counter + seq(nrow(.loaded.files)) - 1,
+          .loaded.files
+        )
+        # Add UI
+        sapply(
+          seq(nrow(.loaded.files)),
+          function(ind){
+            # Render
+            insertDataFileInput(
+              session$ns(main.env$local.rv$counter),
+              main.env
+            )
+            # Increase file counter
+            main.env$local.rv$counter <- main.env$local.rv$counter+1
+          }
+        )
+        # Copy new files to the server
+        destination <- sprintf(
+          "%s/%s",
+          main.env$PATHS$eal.tmp,
+          main.env$local.rv$data.files$name
+        )
+        file.copy(main.env$local.rv$data.files$datapath, destination)
+        main.env$local.rv$data.files$datapath <- destination
         
-            # * retrieve files info ----
-            .loaded.files <- input$add_data_files
-            
-            # remove spaces
-            file.rename(
-              .loaded.files$datapath,
-              gsub(" ", "_",.loaded.files$datapath)
+      } else {
+        # non-empty local.rv
+        sapply(.loaded.files$name, function(filename) {
+          filepath <- .loaded.files$datapath[.loaded.files$name == filename]
+          
+          if (!filename %in% main.env$local.rv$data.files$name) {
+            # Bind data
+            main.env$local.rv$data.files <- unique(rbind(
+              main.env$local.rv$data.files,
+              cbind(
+                id = main.env$local.rv$counter,
+                .loaded.files[.loaded.files$name == filename, ]
+              )
+            ))
+            # Render
+            insertDataFileInput(
+              session$ns(main.env$local.rv$counter),
+              main.env
             )
-            .loaded.files$name <- gsub(" ", "_", .loaded.files$name)
-            .loaded.files$datapath <- gsub(" ", "_", .loaded.files$datapath)
-            # add URL, description and table name columns
-            .loaded.files$url <- rep("", dim(.loaded.files)[1])
-            .loaded.files$description <- rep("", dim(.loaded.files)[1])
-            .loaded.files$table.name <- rep("", dim(.loaded.files)[1])
-            
-            # Check for folders
-            .to.remove <- c()
-            sapply(1:nrow(.loaded.files), function(.ind) {
-              .loaded.file <- .loaded.files[.ind,]
-              filepath <- .loaded.file$datapath
-              if (fs::is_dir(filepath)) {
-                showNotification(
-                  paste(filename, "is a folder."),
-                  type = "warning"
-                )
-                .to.remove <<- c(.to.remove, .ind)
-              }
-            })
-            if(length(.to.remove) > 0)
-              .loaded.files <- .loaded.files[-.to.remove,]
-            
-            # Do not go further if no more files left
-            req(length(.loaded.files) > 0)
-            
-            # * bind into local.rv ----
-            # empty local.rv
-            if (isFALSE(
-              isContentTruthy(main.env$local.rv$data.files) && 
-              all(dim(main.env$local.rv$data.files) > 0)
-            )) {
-              # Bind data
-              main.env$local.rv$data.files <- cbind(
-                id = main.env$local.rv$counter + seq(nrow(.loaded.files)) - 1,
-                .loaded.files
-              )
-              # Add UI
-              sapply(
-                seq(nrow(.loaded.files)),
-                function(ind){
-                  # Render
-                  insertDataFileInput(
-                    session$ns(main.env$local.rv$counter),
-                    main.env
-                  )
-                  # Increase file counter
-                  main.env$local.rv$counter <- main.env$local.rv$counter+1
-                }
-              )
-              # Copy new files to the server
-              destination <- sprintf(
-                "%s/%s",
-                main.env$PATHS$eal.tmp,
-                main.env$local.rv$data.files$name
-              )
-              file.copy(main.env$local.rv$data.files$datapath, destination)
-              main.env$local.rv$data.files$datapath <- destination
-              
-            } else {
-              # non-empty local.rv
-              sapply(.loaded.files$name, function(filename) {
-                filepath <- .loaded.files$datapath[.loaded.files$name == filename]
-
-                if (!filename %in% main.env$local.rv$data.files$name) {
-                  # Bind data
-                  main.env$local.rv$data.files <- unique(rbind(
-                    main.env$local.rv$data.files,
-                    cbind(
-                      id = main.env$local.rv$counter,
-                      .loaded.files[.loaded.files$name == filename, ]
-                    )
-                  ))
-                  # Render
-                  insertDataFileInput(
-                    session$ns(main.env$local.rv$counter),
-                    main.env
-                  )
-                  # Increase file counter
-                  main.env$local.rv$counter <- main.env$local.rv$counter + 1
-                }
-              })
-            }
-            
-            # * copy to the server ----
-            destination <- sprintf(
-              "%s/%s",
-              main.env$PATHS$eal.tmp,
-              main.env$local.rv$data.files$name
-            )
-            file.copy(main.env$local.rv$data.files$datapath, destination)
-            main.env$local.rv$data.files$datapath <- destination
-      },
-      ignoreInit = TRUE,
-      label = "EAL2: add files"
+            # Increase file counter
+            main.env$local.rv$counter <- main.env$local.rv$counter + 1
+          }
+        })
+      }
+      
+      # * copy to the server ----
+      destination <- sprintf(
+        "%s/%s",
+        main.env$PATHS$eal.tmp,
+        main.env$local.rv$data.files$name
+      )
+      file.copy(main.env$local.rv$data.files$datapath, destination)
+      main.env$local.rv$data.files$datapath <- destination
+    },
+    ignoreInit = TRUE,
+    label = "EAL2: add files"
     )
-
+    
     # Data size ----
     observeEvent(main.env$local.rv$data.files, {
       main.env$EAL$tag.list <- tagList()
@@ -207,7 +210,7 @@ DataFiles <- function(id, main.env) {
         0
       }
       files.size.max <- main.env$VALUES$thresholds$files.size.max
-
+      
       style <- if (files.size < 0.9 * files.size.max) {
         "color: green;"
       } else if (files.size >= 0.9 * files.size.max && files.size < files.size.max) {
@@ -215,7 +218,7 @@ DataFiles <- function(id, main.env) {
       } else {
         "color: red"
       }
-
+      
       main.env$EAL$tag.list <- tagList(
         "Files size:",
         tags$p(
@@ -231,7 +234,7 @@ DataFiles <- function(id, main.env) {
     },
     label = "EAL2: data files size"
     )
-
+    
     # Saves ----
     observe({
       req(main.env$EAL$page == 2)

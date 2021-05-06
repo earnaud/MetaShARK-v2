@@ -208,7 +208,5 @@ TaxCov <- function(id, main.env) {
     },
     label = "EAL6: set completed"
     )
-
-    # Process data (deprecated)
   })
 }

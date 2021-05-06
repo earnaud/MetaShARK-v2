@@ -173,7 +173,12 @@ fill <- function(id, main.env) {
         {
           # * Save  & Template ----
           if(main.env$EAL$old.page > 1)
-            saveReactive(main.env, main.env$EAL$old.page)
+            saveReactive(
+              main.env, 
+              main.env$EAL$old.page, 
+              # do not template on 'previous'
+              do.template = main.env$EAL$old.page < main.env$EAL$page
+            )
           incProgress(1/7)
           
           # * set EAL variables ----
