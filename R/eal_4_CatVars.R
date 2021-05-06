@@ -74,61 +74,6 @@ CatVars <- function(id, main.env) {
     
     # Tree ====
     
-    # * Compute tree ----
-    # treeContent <- eventReactive({
-    #   main.env$EAL$page
-    #   main.env$local.rv$cv.tables
-    # }, {
-    #   req(main.env$EAL$page == 4)
-    #   .tables <- isolate(main.env$local.rv$cv.tables)
-    #   req(isContentTruthy(.tables))
-    #   
-    #   lapply(
-    #     names(.tables),
-    #     function(.file.name) {
-    #       # files
-    #       structure(lapply(
-    #         unique(.tables[[.file.name]]$attributeName),
-    #         file.name = .file.name,
-    #         function(.attribute.name, file.name){
-    #           codes <- .tables[[file.name]] %>% 
-    #             filter(attributeName == .attribute.name) %>% 
-    #             select(code) %>% 
-    #             unlist
-    #           untruthy.codes <- which(!sapply(codes, isContentTruthy))
-    #           codes.names <- replace(
-    #             codes, 
-    #             untruthy.codes,
-    #             sprintf("[%s:empty]", untruthy.codes)
-    #           )
-    #           structure(lapply(
-    #             codes,
-    #             function(.code) {
-    #               return(
-    #                 structure(
-    #                   .code,
-    #                   # sttype="default",
-    #                   sticon=""
-    #                 )
-    #               )
-    #             }
-    #           ),
-    #           sticon = "fa fa-columns"
-    #           ) %>% 
-    #             setNames(codes.names)
-    #         }
-    #       ) %>%
-    #         setNames(nm = unique(.tables[[.file.name]]$attributeName)), 
-    #       # sttype = "root",
-    #       sticon = "fa fa-file",
-    #       stopened = TRUE
-    #       )
-    #     }
-    #   ) %>% 
-    #     setNames(nm = names(.tables))
-    #   
-    # })
-    
     # * Render tree ----
     output$tree <- shinyTree::renderEmptyTree()
     outputOptions(output, "tree", suspendWhenHidden = FALSE)
@@ -137,7 +82,11 @@ CatVars <- function(id, main.env) {
       req(main.env$EAL$page == 4)
       req(isContentTruthy(main.env$local.rv$tree.content))
       devmsg("update tree", tag = "catvars")
-      shinyTree::updateTree(session = session, treeId = "tree", data = main.env$local.rv$tree.content)
+      shinyTree::updateTree(
+        session = session, 
+        treeId = "tree", 
+        data = main.env$local.rv$tree.content
+      )
     },
     priority = -1,
     label = "EAL4: update tree")
@@ -201,11 +150,13 @@ CatVars <- function(id, main.env) {
         } else {
           .value <- main.env$local.rv$cv.tables[[.ancestor()[1]]] %>% 
             filter(attributeName == .ancestor()[2]) %>%
-            filter(code == .selected()) %>%
+            filter(code == .selected()[[1]][1]) %>%
             select(definition) %>% 
             unlist %>% 
             unname # important !
         }
+        if(!isContentTruthy(.value))
+          browser()
         updateTextAreaInput(
           session = session,
           "description",
@@ -224,7 +175,7 @@ CatVars <- function(id, main.env) {
       .row.id <- which(
         .table$attributeName == .ancestor()[2] &&
           .table$code == .selected())
-      .table[.row.id, "code"] <- input$description
+      .table[.row.id, "definition"] <- input$description
       main.env$local.rv$cv.tables[[.ancestor()[1]]] <- .table
       
       # Check value
