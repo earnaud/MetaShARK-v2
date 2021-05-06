@@ -126,26 +126,19 @@ Attributes <- function(id, main.env) {
               main.env$EAL$page == 3) {
             browser()
           }
-        }
+        },
+        label = "EAL3: dev"
       )
     }
     
     # Tree ====  
     
     # * Make tree ----
-    # Compute tree
-    # treeContent <- eventReactive({
-    #   main.env$EAL$page
-    #   main.env$local.rv$md.tables
-    # }, {
-    #   
-    # })
-    
-    # Render computed tree
     # initialize empty tree
     output$tree <- shinyTree::renderEmptyTree()
     outputOptions(output, "tree", suspendWhenHidden = FALSE)
     
+    # Update tree with content from setup step
     observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page == 3) 
       req(isContentTruthy(main.env$local.rv$tree.content))
@@ -155,7 +148,10 @@ Attributes <- function(id, main.env) {
         treeId = "tree",
         data = main.env$local.rv$tree.content
       )
-    }, priority = -1)
+    }, 
+    priority = -1,
+    label = "EAL3: update tree"
+    )
     
     # * Get input from tree ----
     # shinyTree selection
@@ -166,7 +162,8 @@ Attributes <- function(id, main.env) {
       } else {
         return(NULL)
       }
-    })
+    },
+    label = "EAL3: selected node")
     
     # shinyTree path exploration
     .ancestor <- reactive({
@@ -176,7 +173,8 @@ Attributes <- function(id, main.env) {
       } else {
         return(NULL)
       }
-    })
+    },
+    label = "EAL3: attribute ancestors")
     
     # get selected file from shinyTree
     selected.file <- reactive({
@@ -189,7 +187,8 @@ Attributes <- function(id, main.env) {
         return(.selected()[[1]][1])
       else
         return(.ancestor())
-    })
+    },
+    label = "EAL3: selected file")
     
     # Show selected filename
     output$filename <- renderText(selected.file())
@@ -197,7 +196,8 @@ Attributes <- function(id, main.env) {
     # Set shortcut reactive for table
     selected.table <- reactive({
       main.env$local.rv$md.tables[[selected.file()]]
-    })
+    },
+    label = "EAL3: selected table")
     
     # get selected attribute from shinyTree
     selected.attribute <- reactive({
@@ -206,7 +206,8 @@ Attributes <- function(id, main.env) {
         return(NULL)
       else
         return(.selected()[[1]][1])
-    })
+    },
+    label = "EAL3: selected attribute")
     
     # Show selected attributeName
     output$attributeName <- renderText({
@@ -215,9 +216,7 @@ Attributes <- function(id, main.env) {
     })
     
     # * Change attribute ----
-    observeEvent({
-      selected.attribute()
-    }, {
+    observeEvent({selected.attribute()}, {
       validate(
         need(isTruthy(selected.file()), "Not a valid file"),
         need(!is.null(selected.attribute()), "Not a valid attribute")
@@ -300,7 +299,8 @@ Attributes <- function(id, main.env) {
       checkFeedback(input, "missingValueCodeExplanation", type = "warning")
     }, 
     ignoreNULL = FALSE, 
-    ignoreInit = FALSE)
+    ignoreInit = FALSE,
+    label = "EAL3: update upon attribute change")
     
     # Form ====
     
@@ -334,7 +334,8 @@ Attributes <- function(id, main.env) {
       
       # Check validity
       checkFeedback(input, "attributeDefinition", type = "danger")
-    })
+    },
+    label = "EAL3: definition input")
     
     # * class ----
     observeEvent({
@@ -406,7 +407,8 @@ Attributes <- function(id, main.env) {
       
       # Check validity
       checkFeedback(input, "class", type = "danger")
-    })
+    },
+    label = "EAL3: class input")
     
     # * dateTimeFormatString ----
     observeEvent(input$dateTimeFormatString, {
@@ -422,6 +424,7 @@ Attributes <- function(id, main.env) {
       
       # Correct input value
       .value <- input$dateTimeFormatString
+      # TODO add date choices input
       if(isFALSE(.value %in% main.env$FORMATS$dates)) {
         .value <- main.env$FORMATS$dates[1] # YYYY-MM-DD
         updateSelectInput(
@@ -449,7 +452,8 @@ Attributes <- function(id, main.env) {
           TRUE,
         type = "danger"
       )
-    })
+    },
+    label = "EAL3: dateTimeFormatString input")
     
     # * unit ----
     unit.value <- reactive({
@@ -460,8 +464,9 @@ Attributes <- function(id, main.env) {
         need(!is.na(input$unit), "Unset unit input.")
       )
       input$unit
-    }) %>%
-      debounce(1000)
+    },
+    label = "EAL3: unit input") %>%
+      debounce(1000) # let 1s blank time before getting input
     
     observe({
       req(unit.value())
@@ -557,7 +562,10 @@ Attributes <- function(id, main.env) {
         choices = .tmp$unit.list,
         selected = .tmp$set.unit
       )
-    }, priority = -1)
+    },
+    priority = -1,
+    label = "EAL3: trigger CU"
+    )
     
     observeEvent({
       if(main.env$EAL$page == 3 &&
@@ -585,7 +593,9 @@ Attributes <- function(id, main.env) {
         choices = .tmp$unit.list,
         selected = .tmp$set.unit
       )
-    }, priority = -1)
+    }, 
+    priority = -1,
+    label = "EAL3: CU input")
     
     output$CUUI <- renderTable({
       main.env$local.rv$custom.units$reactive()
@@ -669,7 +679,8 @@ Attributes <- function(id, main.env) {
         checkFeedback(input, "missingValueCodeExplanation", type = "danger") else
           checkFeedback(input, "missingValueCodeExplanation", type = "warning")
       
-    })
+    },
+    label = "EAL3: missing value code")
     
     # * missingValueCodeExplanation ----
     observeEvent(input$missingValueCodeExplanation, {
@@ -704,7 +715,8 @@ Attributes <- function(id, main.env) {
           isContentTruthy(input$missingValueCode) || input$missingValueCode == ""
         )) "warning" else "danger"
       )
-    })
+    },
+    label = "EAL3: missing value code explanation")
     
     # Preview ====
     output$preview <- renderTable({
@@ -790,9 +802,9 @@ Attributes <- function(id, main.env) {
         
       }
     },
+    label = "EAL3: completeness",
     priority = -2)
     
     # (End of Attributes) ====
-    
   })
 }

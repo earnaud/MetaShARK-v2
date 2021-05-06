@@ -150,12 +150,13 @@ customUnitsUI <- function(id, values = rep(NA, 5), main.env) {
 customUnits <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
     #  * Cancel ----
-    shinyjs::onclick("modal_cancel", {
+    observeEvent(input$modal_cancel, {
       req(main.env$EAL$page == 3)
       .newCancel <- main.env$local.rv$custom.units$cancel() + 1
       main.env$local.rv$custom.units$cancel(.newCancel)
       removeModal()
-    })
+    },
+    label = "EAL3: CU cancel")
     
     # * Validate submit ----
     observe({
@@ -189,11 +190,11 @@ customUnits <- function(id, main.env) {
         )
       )
     },
-    label = "EAL3: Validate submit"
+    label = "EAL3: CU check submit"
     )
     
     # * Submit ----
-    shinyjs::onclick("modal_submit", {
+    observeEvent(input$modal_submit, {
       req(main.env$EAL$page == 3)
       
       # Close modal
@@ -218,7 +219,8 @@ customUnits <- function(id, main.env) {
         main.env$local.rv$custom.units$table[
           nrow(main.env$local.rv$custom.units$table) + 1, ] <- .values
       }
-    })
+    },
+    label = "EAL3 CU do submit")
     
   })
 }

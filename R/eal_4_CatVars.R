@@ -67,7 +67,8 @@ CatVars <- function(id, main.env) {
               main.env$EAL$page == 4) {
             browser()
           }
-        }
+        },
+        label = "EAL4: dev"
       )
     }
     
@@ -139,7 +140,7 @@ CatVars <- function(id, main.env) {
       shinyTree::updateTree(session = session, treeId = "tree", data = main.env$local.rv$tree.content)
     },
     priority = -1,
-    label = "catvars update tree")
+    label = "EAL4: update tree")
     
     # * Get tree input ----
     # shinyTree selection
@@ -150,7 +151,8 @@ CatVars <- function(id, main.env) {
       } else {
         return(NULL)
       }
-    })
+    },
+    label = "EAL4: selected node")
     
     # shinyTree path exploration
     .ancestor <- reactive({
@@ -160,7 +162,8 @@ CatVars <- function(id, main.env) {
       } else {
         return(NULL)
       }
-    })
+    },
+    label = "EAL4: ancestry node")
     
     # boolean to know if a code is selected in the tree
     .code.selected <- reactive({
@@ -169,7 +172,8 @@ CatVars <- function(id, main.env) {
         isContentTruthy(.selected()) &&
           length(.ancestor()) == 2
       )
-    })
+    },
+    label = "EAL4: selected code")
     
     output$code <- renderText({
       validate(
@@ -178,6 +182,7 @@ CatVars <- function(id, main.env) {
       paste("Description of", .selected()[[1]][1])
     })
     
+    # UI setup
     observe({
       req(main.env$EAL$page == 4)
       shinyjs::toggle("form", condition = .code.selected())
@@ -207,7 +212,8 @@ CatVars <- function(id, main.env) {
           value = .value
         )
       }
-    })
+    },
+    label = "EAL4: UI setup")
     
     # Form ====
     
@@ -223,7 +229,8 @@ CatVars <- function(id, main.env) {
       
       # Check value
       checkFeedback(input, "description")
-    })
+    },
+    label = "EAL4: get input")
     
     # * Completed ----
     observe({
@@ -247,7 +254,8 @@ CatVars <- function(id, main.env) {
           )
         }
       )
-    }, priority = -1)
+    }, priority = -1,
+    label = "EAL4: check completed")
     
   })
 }
