@@ -79,6 +79,7 @@ Collate:
     'utils_reactiveTrigger.R'
     'utils_reactiveDirReader.R'
     'utils_listReactiveValues.R'
+    'utils_listToStructure.R'
     'utils_isContentTruthy.R'
     'utils_insertModuleBox.R'
     'utils_followPath.R'
