@@ -26,6 +26,7 @@ initReactive <- function(sub.list = NULL, save.variable = NULL, main.env) {
         dp.name = NULL,
         dp.path = NULL,
         dp.metadata.path = NULL,
+        dp.data.path = NULL,
         dp.title = NULL
       ),
       DataFiles = data.frame(stringsAsFactors = FALSE),
@@ -61,6 +62,9 @@ initReactive <- function(sub.list = NULL, save.variable = NULL, main.env) {
           content = character(),
           file = character()
         )
+      ),
+      Annotations = reactiveValues(
+        annot.table = data.frame(stringsAsFactors = FALSE)
       )
     )
   }
