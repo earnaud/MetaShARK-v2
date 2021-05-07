@@ -172,6 +172,7 @@ fill <- function(id, main.env) {
       withProgress(
         {
           # * Save  & Template ----
+          devmsg(tag="fill_module.R", "save & template")
           if(main.env$EAL$old.page > 1)
             saveReactive(
               main.env, 
@@ -182,6 +183,7 @@ fill <- function(id, main.env) {
           incProgress(1/7)
           
           # * set EAL variables ----
+          devmsg(tag="fill_module.R", "set EAL variables")
           # left Data Files
           if (main.env$EAL$old.page == 2) 
             unlink(main.env$PATHS$eal.tmp)
@@ -195,24 +197,29 @@ fill <- function(id, main.env) {
           incProgress(1/7)
           
           # * Reset local.rv ----
+          devmsg(tag="fill_module.R", "set local rv")
           main.env <- setLocalRV(main.env)
           incProgress(1/7)
           
           # * Change page ----
           updateTabsetPanel(session, "wizard-wizard", selected = steps[main.env$EAL$page])
+          devmsg(tag="fill_module.R", "change pane")
           incProgress(1/7)
           
           # * Update history ----
           if (!main.env$EAL$current %in% main.env$EAL$history) {
             main.env$EAL$history <- c(main.env$EAL$history, main.env$EAL$current)
           }
+          devmsg(tag="fill_module.R", "update history")
           incProgress(1/7)
           
           # * Savevar changes ----
+          devmsg(tag="fill_module.R", "save variables change")
           main.env$save.variable$step <- main.env$EAL$page # save current location
           main.env$save.variable$history <- main.env$EAL$history # erase old save
           
           # Display accessory UI elements
+          devmsg(tag="fill_module.R", "display UI")
           if(main.env$EAL$page > 1) {
             shinyjs::show("help")
             shinyjs::show("save")
