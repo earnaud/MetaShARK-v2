@@ -87,6 +87,8 @@ Collate:
     'utils_collapsible.R'
     'utils_additional_HTML.R'
     'utils_grep.R'
+    'utils_listToXML.R'
+    'utils_xml_handling.R'
     'about_module.R'
     'about_module_functions.R'
     'documentation_module.R'
