@@ -142,43 +142,43 @@ pagesServer <- function(id, main.env) {
     })
     
     # * Annotation ====
-    annotation_modal <- annotationsUI(session$ns("annotations"))
-    annotations("annotations")
-    observeEvent(input$open_annotation, {
-      # only available on Attributes
-      req(main.env$EAL$page > 2) # Nothing to describe in data files 
-      # on first time, template
-      if(!isContentTruthy(main.env$save.variable$Annotations$annot.table)){
-        # template
-        EMLassemblyline::template_annotations(
-          path = main.env$save.variable$SelectDP$dp.path,
-          data.path = main.env$save.variable$SelectDP$dp.data.path,
-          data.table = main.env$save.variable$DataFiles$name,
-          eml.path = ifelse(
-            dir.exists(sprintf("%s/eml", main.env$save.variable$SelectDP$dp.path)),
-            sprintf("%s/eml", main.env$save.variable$SelectDP$dp.path),
-            NULL # EAL default
-          ),
-          eml = ifelse(
-            dir.exists(sprintf("%s/eml", main.env$save.variable$SelectDP$dp.path)),
-            dir(sprintf("%s/eml", main.env$save.variable$SelectDP$dp.path))[1],
-            NULL # EAL default
-          )
-        )
-        # read templated
-        main.env$local.annotations$annotation.table <- readDataTable(
-          sprintf(
-            "%s/annotations.txt",
-            main.env$save.variable$SelectDP$dp.metadata.path
-          )
-        )
-        # build tree for modal popup
-        main.env$local.annotations$tree.content <- buildAnnotationTree(main.env$local.annotations$annotation.table)
-      }
-      # show modal
-      showModal(annotation_modal)
-    },
-    label = "open annotation")
+    # annotation_modal <- annotationsUI(session$ns("annotations"))
+    # annotations("annotations")
+    # observeEvent(input$open_annotation, {
+    #   # only available on Attributes
+    #   req(main.env$EAL$page > 2) # Nothing to describe in data files 
+    #   # on first time, template
+    #   if(!isContentTruthy(main.env$save.variable$Annotations$annot.table)){
+    #     # template
+    #     EMLassemblyline::template_annotations(
+    #       path = main.env$save.variable$SelectDP$dp.path,
+    #       data.path = main.env$save.variable$SelectDP$dp.data.path,
+    #       data.table = main.env$save.variable$DataFiles$name,
+    #       eml.path = ifelse(
+    #         dir.exists(sprintf("%s/eml", main.env$save.variable$SelectDP$dp.path)),
+    #         sprintf("%s/eml", main.env$save.variable$SelectDP$dp.path),
+    #         NULL # EAL default
+    #       ),
+    #       eml = ifelse(
+    #         dir.exists(sprintf("%s/eml", main.env$save.variable$SelectDP$dp.path)),
+    #         dir(sprintf("%s/eml", main.env$save.variable$SelectDP$dp.path))[1],
+    #         NULL # EAL default
+    #       )
+    #     )
+    #     # read templated
+    #     main.env$local.annotations$annotation.table <- readDataTable(
+    #       sprintf(
+    #         "%s/annotations.txt",
+    #         main.env$save.variable$SelectDP$dp.metadata.path
+    #       )
+    #     )
+    #     # build tree for modal popup
+    #     main.env$local.annotations$tree.content <- buildAnnotationTree(main.env$local.annotations$annotation.table)
+    #   }
+    #   # show modal
+    #   showModal(annotation_modal)
+    # },
+    # label = "open annotation")
     
     # * Chain ====
     # TODO fun things to use: bsButton() bsTooltip()
