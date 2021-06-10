@@ -2,9 +2,9 @@
 #' @importFrom htmltools tagAppendAttributes
 #'
 #' @noRd
-MiscellaneousUI <- function(id) {
+MiscellaneousUI <- function(id, help.label = NULL) {
   tagList(
-    # file selection
+    # file selection ----
     tags$b(paste0("Select '", unns(id), "' file.")),
     tags$br(),
     div(
@@ -17,11 +17,25 @@ MiscellaneousUI <- function(id) {
       )
     ),
     tags$b("Selected file:"),
-    textOutput(NS(id, "selected")) %>% 
+    textOutput(NS(id, "selected")) %>%
       htmltools::tagAppendAttributes(class = "ellipsis"),
     tags$hr(),
-    # Content edition
-    uiOutput(NS(id, "content"))
+    # Content edition ----
+    tags$b(help.label),
+    SummeRnote::summernoteInput(
+      NS(id, "content"),
+      label = NULL,
+      # value = HTML(main.env$local.rv[[id]]$content),
+      height = 300,
+      toolbar = list(
+        list("style", c("bold", "italic", "underline")),
+        list("font", c("superscript", "subscript")),
+        list("para", c("style", "ul", "ol", "paragraph")),
+        list("insert", c("link", "table")),
+        list("Misc", c("codeview", "undo", "redo"))
+      )
+    )
+    # uiOutput(NS(id, "content"))
   ) # end of tagList
 }
 
@@ -30,45 +44,59 @@ MiscellaneousUI <- function(id) {
 #' @importFrom dplyr %>%
 #'
 #' @noRd
-Miscellaneous <- function(id, main.env, help.label = NULL) {
+Miscellaneous <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
     # Set UI ----
     output$content <- renderUI({
       req(main.env$EAL$page == 8)
-      SummeRnote::summernoteInput(
-        session$ns("content"),
-        label = help.label,
-        value = HTML(main.env$local.rv[[unns(id)]]$content),
-        height = 300,
-        toolbar = list(
-          list("style", c("bold", "italic", "underline")),
-          list("font", c("superscript", "subscript")),
-          list("para", c("style", "ul", "ol", "paragraph")),
-          list("insert", c("link", "table")),
-          list("Misc", c("codeview", "undo", "redo"))
-        )
-      )
     })
     
     # Get content ----
+    # Debounced input in two steps
     .content <- reactive({
       req(main.env$EAL$page == 8)
       req("content" %in% names(input))
+      
       input$content
-    }) %>% debounce(1000)
+    }) %>% 
+      debounce(1000)
     
     observe({
       req(main.env$EAL$page == 8)
+      
       main.env$local.rv[[id]]$content <- .content()
     })
     
     # Get file ----
     observeEvent(input$file, {
+      req(isTruthy(input$file))
+      
+      if(isContentTruthy(input$file))
+        main.env$local.rv[[id]]$file <- input$file$datapath
+    })
+    
+    observeEvent({
+      main.env$EAL$page
+      main.env$local.rv[[id]]$file
+    }, {
       req(main.env$EAL$page == 8)
-      req(input$file)
-      main.env$local.rv[[id]]$file <- input$file$datapath
+      
+      if(grepl(".md$", main.env$local.rv[[id]]$file)) {
+        main.env$local.rv[[id]]$content <- readHTMLfromMD(main.env$local.rv[[id]]$file)
+      } else # if(grepl(".txt$", main.env$local.rv[[id]]$file)) {
+        main.env$local.rv[[id]]$content <- main.env$local.rv[[id]]$file %>%
+          readtext %>%
+          select("text") %>%
+          unlist %>%
+          HTML
+      
+      SummeRnote::updateSummernoteInput(
+        session$ns("content"),
+        value = main.env$local.rv[[id]]$content,
+        session = session
+      )
     },
-    priority = 1
+    priority = -1
     )
     
     # Verbose file selection

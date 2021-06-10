@@ -82,7 +82,14 @@ MiscUI <- function(id) {
         shinyBS::bsCollapsePanel(
           title = "Additional Info - optional",
           value = 5,
-          MiscellaneousUI(NS(id, "additional.information"))
+          MiscellaneousUI(
+            NS(id, "additional_information"),
+            help.label = tags$p(
+              "If you have additional information that doesn't fall under the scope of
+              the abstract or methods (e.g. a list of research articles or thesis
+              derived from this dataset) about your dataset, you may share it here."
+            )
+          )
         )
       )
     ) # end of fluidPage
@@ -125,7 +132,6 @@ Misc <- function(id, main.env) {
     observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page == 8)
       req(nrow(main.env$local.rv$keywords) > 0)
-      
       sapply(seq(nrow(main.env$local.rv$keywords)), function(ind) {
         id <- main.env$local.rv$keywords$keyword.set[ind]
         
@@ -182,16 +188,22 @@ Misc <- function(id, main.env) {
     )
     
     # * Temporal coverage ====
-    if (!is.null(isolate(main.env$save.variable$Misc$temporal.coverage))) {
-      isolate(main.env$local.rv$temporal.coverage <- main.env$save.variable$Misc$temporal.coverage)
-      updateDateRangeInput(
-        session,
-        "temporal.coverage",
-        start = main.env$local.rv$temporal.coverage[1],
-        end = main.env$local.rv$temporal.coverage[2]
-      )
-    }
+    # ** Setup ----
+    observeEvent(main.env$EAL$page, {
+      req(main.env$EAL$page == 8)
+      
+      if (!is.null(isolate(main.env$save.variable$Misc$temporal.coverage))) {
+        isolate(main.env$local.rv$temporal.coverage <- main.env$save.variable$Misc$temporal.coverage)
+        updateDateRangeInput(
+          session,
+          "temporal.coverage",
+          start = main.env$local.rv$temporal.coverage[1],
+          end = main.env$local.rv$temporal.coverage[2]
+        )
+      }
+    })
     
+    # ** Get ----
     observeEvent(input$temporal_coverage, {
       main.env$local.rv$temporal.coverage <- input$temporal_coverage
     },
@@ -199,15 +211,7 @@ Misc <- function(id, main.env) {
     )
     
     # * Additional information ====
-    Miscellaneous(
-      "additional.information",
-      main.env,
-      help.label = tags$p(
-        "If you have additional information that doesn't fall under the scope of
-          the abstract or methods (e.g. a list of research articles or thesis
-          derived from this dataset) about your dataset, you may share it here."
-      )
-    )
+    Miscellaneous("additional_information", main.env)
     
     # Saves ----
     observe({

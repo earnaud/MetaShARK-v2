@@ -56,8 +56,8 @@ initReactive <- function(sub.list = NULL, save.variable = NULL, main.env) {
           keyword.thesaurus = character(),
           keyword.set = character()
         ),
-        temporal_coverage = NULL,
-        additional.information = reactiveValues(
+        temporal.coverage = c(NA, NA),
+        additional_information = reactiveValues(
           content = character(),
           file = character()
         )
@@ -167,26 +167,30 @@ setLocalRV <- function(main.env){
         )
       ),
       preview = {
-        out <- sapply(
+        browser()
+        out <- lapply(
           main.env$save.variable$DataFiles$datapath,
-          readDataTable,
-          stringsAsFactors = FALSE
-        ) %>% sapply(
-          function(df) {
-            lapply(df, function(col) {
-              out <- col[which(sapply(col, isContentTruthy))]
-              if(length(out) < 5){
-                out <- c(out, rep("", 5-length(out)))
+          function(file.path) {
+            table <- readDataTable(file.path, stringsAsFactors = FALSE)
+            out <- lapply(colnames(table), function(col) {
+              .out <- table[,col][which(sapply(table[,col], isContentTruthy))]
+              if(length(.out) < 5){
+                .out <- c(.out, rep("", 5-length(.out)))
               } else
-                out <- out[1:5]
-              return(out)
-            })
+                .out <- .out[1:5]
+              return(.out)
+            }) %>%
+              setNames(nm = colnames(table))
+            return(out)
           }
-        ) %>% 
-          setNames(
-            nm = basename(main.env$save.variable$DataFiles$metadatapath) %>%
-              gsub("attributes_", "", .)
+        ) %>%
+          setNames(nm = gsub(
+            "(.*)\\..*$",
+            "\\1.txt",
+            basename(main.env$save.variable$DataFiles$datapath)
+            )
           )
+        out
       }
     ),
     # * CatVars ----
@@ -280,7 +284,7 @@ setLocalRV <- function(main.env){
           kw <- data.frame(
             keyword = sapply(unique(kw$keyword.thesaurus), function(kwt) {
               paste(kw %>% 
-                      dplyr::filter(keyword.thesaurus == kwt) %>% 
+                      dplyr::filter(identical(keyword.thesaurus,kwt)) %>% 
                       dplyr::select(keyword) %>% 
                       unlist(),
                     collapse = ",")
@@ -716,30 +720,13 @@ setLocalRV <- function(main.env){
   
   # * Misc ----
   if (main.env$EAL$page == 8) {
-    readHTMLfromMD <- function(file) {
-      if(isFALSE(file.exists(file)))
-        return("<p></p>")
-      
-      .tmp.file <- tempfile(fileext = ".html")
-      rmarkdown::pandoc_convert(
-        file,
-        from = "markdown_strict",
-        to = "html",
-        output = .tmp.file
-      )
-      .out <- xml2::read_html(.tmp.file) %>% 
-        textutils::HTMLdecode()
-      .out <- ifelse(
-        grepl(pattern = "<body>.*</body>", .out),
-        gsub(".*<body>(.*)</body>.*", "\\1", .out),
-        gsub(".*", "", .out)
-      )
-      return(.out)
-    }
-    
+    # markdown files
     sapply(c("abstract", "methods", "additional.information"), function(x) {
       isolate({main.env$local.rv[[x]]$content <- readHTMLfromMD(main.env$local.rv[[x]]$file)})
     })
+    # temporal coverage
+    if(!identical(main.env$save.variable$Misc$temporal.coverage, c(NA, NA)))
+      main.env$local.rv$temporal.coverage <- main.env$save.variable$Misc$temporal.coverage
   }
   
   # (End) ====

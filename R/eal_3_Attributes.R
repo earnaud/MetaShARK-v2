@@ -710,7 +710,7 @@ Attributes <- function(id, main.env) {
     output$preview <- renderTable({
       req(isContentTruthy(selected.file()))
       req(isContentTruthy(selected.attribute()))
-      
+      browser()
       validate(
         need(
           isTruthy(main.env$local.rv$preview[[selected.file()]][selected.attribute()]),

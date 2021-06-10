@@ -422,29 +422,31 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
     }
   }
   
-  # save
+  # save local variable ----
+  content$abstract$file <- paste0(.sv$SelectDP$dp.metadata.path, "/abstract.md")
+  content$methods$file <- paste0(.sv$SelectDP$dp.metadata.path, "/methods.md")
+  content$additional_information$file <- paste0(
+    .sv$SelectDP$dp.metadata.path, 
+    "/additional_info.md"
+  )
   .sv$Misc <- content
   
-  # Fill template for abstract
+  # abstract ----
   saveHTMLasMD(content$abstract)
-  if(!is.character(content$abstract$file))
-    content$abstract$file <- paste0(.sv$SelectDP$dp.metadata.path, "/abstract.txt")
   removeDuplicateFiles(content$abstract$file)
   
-  # Fill template for methods
+  # methods ----
   saveHTMLasMD(content$methods)
-  if(!is.character(content$methods$file))
-    content$methods$file <- paste0(.sv$SelectDP$dp.metadata.path, "/abstract.txt")
   removeDuplicateFiles(content$methods$file)
   
-  # Fill template for keywords
+  # keywords ----
   .tmp <- lapply(unique(content$keywords$keyword.thesaurus), function(kwt) {
-    row.ind <- which(content$keywords$keyword.thesaurus == kwt)
+    row.ind <- which(identical(content$keywords$keyword.thesaurus, kwt))
     
     data.frame(
       keyword = strsplit(content$keywords$keyword[row.ind], ",") %>% 
         unlist(),
-      keyword.thesaurus = kwt
+      keyword.thesaurus = kwt # repeated as many times as necesary
     )
   })
   .keywords <- dplyr::bind_rows(.tmp)
@@ -456,22 +458,21 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
     ),
     sep = "\t"
   )
-  # Fill template for additional information
-  saveHTMLasMD(content$additional.information)
-  if(!is.character(content$additional.information$file))
-    content$additional.information$file <- paste0(.sv$SelectDP$dp.metadata.path, "/abstract.txt")
-  removeDuplicateFiles(content$additional.information$file)
+  
+  # additional information ----
+  saveHTMLasMD(content$additional_information)
+  removeDuplicateFiles(content$additional_information$file)
   
   # Remove non-md files
-  sapply(c("abstract", "methods", "additional.information"), function(x) {
-    file.remove(
-      dir(
-        main.env$save.variable$SelectDP$dp.metadata.path,
-        full.names = TRUE,
-        pattern = paste0("^.*", x, ".*\\.[^md]$")
-      )
-    )
-  })
+  # sapply(c("abstract", "methods", "additional_information"), function(x) {
+  #   file.remove(
+  #     dir(
+  #       main.env$save.variable$SelectDP$dp.metadata.path,
+  #       full.names = TRUE,
+  #       pattern = paste0("^.*", x, ".*\\.[^md]$")
+  #     )
+  #   )
+  # })
   
   # Output
   return(.sv)

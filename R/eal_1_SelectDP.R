@@ -380,6 +380,10 @@ SelectDP <- function(id, main.env) {
          isFALSE("use.catvars" %in% names(.tmp$Attributes))) # if attributes has been met
         .tmp$Attributes$use.catvars <- FALSE
       
+      # if("Miscellaneous" %in% .tmp$history &&
+      #    "additional.information" %in% names(.tmp$Misc))
+        
+      
       # Once prepared, properly merge tmp and save variables
       main.env$save.variable <- setSaveVariable(.tmp, main.env$save.variable)
 
@@ -424,10 +428,10 @@ SelectDP <- function(id, main.env) {
           main.env$PATHS$eal.dp,
           main.env$save.variable$Misc$methods
         )
-        main.env$save.variable$Misc$additional.information <- gsub(
+        main.env$save.variable$Misc$additional_information <- gsub(
           ".*/dataPackagesOutput/emlAssemblyLine/",
           main.env$PATHS$eal.dp,
-          main.env$save.variable$Misc$additional.information
+          main.env$save.variable$Misc$additional_information
         )
       }
 
