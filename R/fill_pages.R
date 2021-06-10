@@ -38,15 +38,15 @@ pagesUI <- function(id, parent.id) {
         title = page,
         ui = do.call(
           what = switch(i,
-            "SelectDPUI",
-            "DataFilesUI",
-            "AttributesUI",
-            "CatVarsUI",
-            "GeoCovUI",
-            "TaxCovUI",
-            "PersonnelUI",
-            "MiscUI",
-            "MakeEMLUI"
+                        "SelectDPUI",
+                        "DataFilesUI",
+                        "AttributesUI",
+                        "CatVarsUI",
+                        "GeoCovUI",
+                        "TaxCovUI",
+                        "PersonnelUI",
+                        "MiscUI",
+                        "MakeEMLUI"
           ),
           args = list(
             id = NS(parent.id, page)
@@ -56,6 +56,15 @@ pagesUI <- function(id, parent.id) {
           tagList(
             if (i != 2) prevTabButton(id, i),
             if (i != .nb) nextTabButton(id, i),
+            tags$br(),
+            # if(i > 2) # unused on Data Files selection
+            #   actionButton(
+            #     NS(id, "open_annotation"),
+            #     "Annotation",
+            #     icon = icon("project-diagram"),
+            #     width = "100%"
+            #   ),
+            tags$hr(),
             uiOutput(NS(id, paste0(page, "-tag_list")))
           )
         else
@@ -82,24 +91,23 @@ pagesServer <- function(id, main.env) {
     
     changePage <- function(from, to, input, main.env) {
       observeEvent(input[[paste(from, to, sep = "_")]], {
-        devmsg("fill_pages.R", sprintf("%s to %s", from, to))
+        devmsg(tag = "fill_pages.R", sprintf("%s to %s", from, to))
         
         main.env$EAL$old.page <- main.env$EAL$page
         
-        main.env$EAL$page <- main.env$EAL$page +
-          to - 
-          from +
-          ifelse(
-            main.env$EAL$page == 4 && 
-              isFALSE(main.env$save.variable$Attributes$use.catvars),
-            switch(
-              main.env$EAL$old.page,
-              `3` = 1,
-              `5` = -1
-            ),
-            0
-          )
-            
+        # Two times computing required for ifelse clause following
+        .tmp <- main.env$EAL$page + to - from
+        main.env$EAL$page <- .tmp + ifelse(
+          .tmp == 4 && 
+            isFALSE(main.env$save.variable$Attributes$use.catvars),
+          switch(
+            main.env$EAL$old.page,
+            `3` = 1,
+            `5` = -1
+          ),
+          0
+        )
+        
       },
       label = paste("changePage", from, to)
       )
@@ -128,9 +136,49 @@ pagesServer <- function(id, main.env) {
     })
     
     # * Side UI ====
+    # Fully functional? 
     sapply(isolate(main.env$VALUES$steps), function(page) {
       output[[paste0(page, "-tag_list")]] <- renderUI(main.env$EAL$tag.list)
     })
+    
+    # * Annotation ====
+    # annotation_modal <- annotationsUI(session$ns("annotations"))
+    # annotations("annotations")
+    # observeEvent(input$open_annotation, {
+    #   # only available on Attributes
+    #   req(main.env$EAL$page > 2) # Nothing to describe in data files 
+    #   # on first time, template
+    #   if(!isContentTruthy(main.env$save.variable$Annotations$annot.table)){
+    #     # template
+    #     EMLassemblyline::template_annotations(
+    #       path = main.env$save.variable$SelectDP$dp.path,
+    #       data.path = main.env$save.variable$SelectDP$dp.data.path,
+    #       data.table = main.env$save.variable$DataFiles$name,
+    #       eml.path = ifelse(
+    #         dir.exists(sprintf("%s/eml", main.env$save.variable$SelectDP$dp.path)),
+    #         sprintf("%s/eml", main.env$save.variable$SelectDP$dp.path),
+    #         NULL # EAL default
+    #       ),
+    #       eml = ifelse(
+    #         dir.exists(sprintf("%s/eml", main.env$save.variable$SelectDP$dp.path)),
+    #         dir(sprintf("%s/eml", main.env$save.variable$SelectDP$dp.path))[1],
+    #         NULL # EAL default
+    #       )
+    #     )
+    #     # read templated
+    #     main.env$local.annotations$annotation.table <- readDataTable(
+    #       sprintf(
+    #         "%s/annotations.txt",
+    #         main.env$save.variable$SelectDP$dp.metadata.path
+    #       )
+    #     )
+    #     # build tree for modal popup
+    #     main.env$local.annotations$tree.content <- buildAnnotationTree(main.env$local.annotations$annotation.table)
+    #   }
+    #   # show modal
+    #   showModal(annotation_modal)
+    # },
+    # label = "open annotation")
     
     # * Chain ====
     # TODO fun things to use: bsButton() bsTooltip()

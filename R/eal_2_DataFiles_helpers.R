@@ -109,7 +109,9 @@ DataFileInput <- function(id, main.env) {
           ifelse(input$collapse %% 2 == 0, "chevron-right", "chevron-down")
         )
       )
-    })
+    },
+    label = sprintf("EAL2 %s", unns(id))
+    )
     
     # [U] Verbose name ====
     output$name <- renderText({
@@ -136,7 +138,9 @@ DataFileInput <- function(id, main.env) {
       file.remove(main.env$local.rv$data.files[row(),"datapath"])
       # remove data from local variables
       main.env$local.rv$data.files <- main.env$local.rv$data.files[-row(),]
-    })
+    },
+    label = sprintf("EAL2: remove %s", unns(id))
+    )
     
     # [I] Inputs ====
     # Data name
@@ -150,8 +154,10 @@ DataFileInput <- function(id, main.env) {
       else
         shinyFeedback::showFeedbackSuccess("data.name")
     },
-    ignoreInit = FALSE
+    ignoreInit = FALSE,
+    label = sprintf("EAL2: input name %s", unns(id))
     )
+    
     # Data URL
     observeEvent(input$data.url, {
       isolate(
@@ -163,8 +169,10 @@ DataFileInput <- function(id, main.env) {
       else
         shinyFeedback::showFeedbackSuccess("data.url")
     },
-    ignoreInit = FALSE
+    ignoreInit = FALSE,
+    label = sprintf("EAL2: input url %s", unns(id))
     )
+    
     # Description
     observeEvent(input$data.description, {
       isolate(
@@ -176,7 +184,8 @@ DataFileInput <- function(id, main.env) {
       else
         shinyFeedback::showFeedbackSuccess("data.description")
     },
-    ignoreInit = FALSE
+    ignoreInit = FALSE,
+    label = sprintf("EAL2: input description %s", unns(id))
     )
     
   })

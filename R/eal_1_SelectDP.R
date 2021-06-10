@@ -32,7 +32,7 @@ SelectDPUI <- function(id) {
                 filling. It will bring you to the next step."),
               tags$li(tags$b("Previous:"), "click this to come back to the
                 previous step."
-                # You can also use the steps", tags$span(icon("circle"),style = "color: dodgerblue;"), " markers to get to the desired step.")
+                      # You can also use the steps", tags$span(icon("circle"),style = "color: dodgerblue;"), " markers to get to the desired step.")
               )
             )
           )
@@ -43,7 +43,7 @@ SelectDPUI <- function(id) {
         column(
           6,
           tags$h4("Edit existing data package",
-            style = "text-align:center"
+                  style = "text-align:center"
           ),
           shinyjs::hidden(
             tags$div(
@@ -83,7 +83,7 @@ SelectDPUI <- function(id) {
         column(
           6,
           tags$h4("Create new data package",
-            style = "text-align:center"
+                  style = "text-align:center"
           ),
           checkboxInput(
             NS(id, "quick"),
@@ -152,13 +152,14 @@ SelectDP <- function(id, main.env) {
               main.env$EAL$page == 1) {
             browser()
           }
-        }
+        },
+        label = "EAL1: dev"
       )
     }
     
     # Help server
     collapsible("usage")
-
+    
     # variable initialization ----
     observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page == 1)
@@ -245,7 +246,7 @@ SelectDP <- function(id, main.env) {
       },
       contentType = "application/zip"
     )
-
+    
     # DP create ----
     # * Check name ----
     observeEvent(input$dp_name, {
@@ -258,10 +259,10 @@ SelectDP <- function(id, main.env) {
           "Not enough characters."
         )
       } else if(isFALSE(grepl("^[[:alnum:]_-]+$", input$dp_name))) {
-          shinyFeedback::showFeedbackDanger(
-            "dp_name",
-            "Only use alphanumeric, '_' and '-' characters."
-          )
+        shinyFeedback::showFeedbackDanger(
+          "dp_name",
+          "Only use alphanumeric, '_' and '-' characters."
+        )
       } else if(input$dp_name %in% main.env$local.rv$dp.list) {
         shinyFeedback::showFeedbackDanger(
           "dp_name",
@@ -271,7 +272,9 @@ SelectDP <- function(id, main.env) {
         shinyFeedback::showFeedbackSuccess("dp_name")
         shinyjs::enable("dp_create")
       }
-    })
+    },
+    label = "EAL1: dp name input"
+    )
     
     # * Check title ----
     observeEvent(input$dp_title, {
@@ -296,26 +299,27 @@ SelectDP <- function(id, main.env) {
         )
         shinyjs::enable("dp_create")
       }
-    })
-
-    observeEvent(input$quick,
-      {
-        req(input$dp_name %in% c("", paste0(Sys.Date(), "_project"))) # Do not change a yet changed name
-        if (input$quick) {
-          updateTextInput(session, "dp_name", value = paste0(Sys.Date(), "_project"))
-        } else {
-          updateTextInput(session, "dp_name", placeholder = paste0(Sys.Date(), "_project"))
-        }
-      },
-      label = "EAL1: quick"
+    },
+    label = "EAL1: dp title input"
     )
-
+    
+    observeEvent(input$quick, {
+      req(input$dp_name %in% c("", paste0(Sys.Date(), "_project"))) # Do not change a yet changed name
+      if (input$quick) {
+        updateTextInput(session, "dp_name", value = paste0(Sys.Date(), "_project"))
+      } else {
+        updateTextInput(session, "dp_name", placeholder = paste0(Sys.Date(), "_project"))
+      }
+    },
+    label = "EAL1: quick"
+    )
+    
     # DP management - on clicks ----
     # * Create DP ----
-    shinyjs::onclick("dp_create", {
+    observeEvent(input$dp_create, {
       req(input$dp_create)
       req(main.env$local.rv$dp.name())
-
+      
       # save in empty dedicated variable
       main.env$save.variable <- initReactive(
         "emlal", 
@@ -324,26 +328,28 @@ SelectDP <- function(id, main.env) {
       )
       # Next page triggered in this particular saveReactive
       saveReactive(main.env, main.env$EAL$page) # page = 1
-    })
-
+    },
+    label = "EAL1: create DP"
+    )
+    
     # * Load DP ----
-    shinyjs::onclick("dp_load", {
+    observeEvent(input$dp_load, {
       req(input$dp_list)
       shinyjs::disable("dp_load")
       
       # variable operation - legibility purpose
       dp <- input$dp_list
       path <- paste0(main.env$PATHS$eal.dp, dp, "_emldp")
-
+      
       # verbose
       showNotification(
         paste("Loading:", dp),
         type = "message"
       )
-
+      
       # read variables
       main.env$save.variable <- initReactive("emlal", main.env$save.variable, main.env)
-
+      
       .tmp <- jsonlite::read_json(paste0(path, "/", dp, ".json"))[[1]] %>%
         jsonlite::unserializeJSON()
       
@@ -386,7 +392,7 @@ SelectDP <- function(id, main.env) {
       
       # Once prepared, properly merge tmp and save variables
       main.env$save.variable <- setSaveVariable(.tmp, main.env$save.variable)
-
+      
       # Update paths from another file system
       # * selectDP
       sapply(
@@ -399,7 +405,7 @@ SelectDP <- function(id, main.env) {
           )
         }
       )
-
+      
       # * datafiles
       if (isContentTruthy(main.env$save.variable$DataFiles)) {
         sapply(names(main.env$save.variable$DataFiles), function(col) {
@@ -415,7 +421,7 @@ SelectDP <- function(id, main.env) {
           }
         })
       }
-
+      
       # * miscellaneous
       if (isContentTruthy(main.env$save.variable$Misc$abstract)) {
         main.env$save.variable$Misc$abstract <- gsub(
@@ -434,7 +440,7 @@ SelectDP <- function(id, main.env) {
           main.env$save.variable$Misc$additional_information
         )
       }
-
+      
       # resume at saved page
       if(main.env$save.variable$step == 1) { # crashed on going to next
         main.env$EAL$page <- main.env$save.variable$step+1
@@ -446,15 +452,17 @@ SelectDP <- function(id, main.env) {
       main.env$EAL$old.page <- 1
       
       shinyjs::enable("dp_load")
-    })
-
+    },
+    label = "EAL1: load DP"
+    )
+    
     # * Delete DP ----
     observeEvent(input$dp_delete, {
       req(isTruthy(input$dp_list))
-
+      
       # variable operation - legibility purpose
       dp <- input$dp_list
-
+      
       # actions
       showModal(
         modalDialog(
@@ -473,19 +481,19 @@ SelectDP <- function(id, main.env) {
     },
     label = "EAL1: delete DP"
     )
-
+    
     # If deletion is confirmed
     observeEvent(input$delete_confirm, {
       # variable operation - legibility purpose
       dp <- gsub(" \\(public\\)", "", input$dp_list)
       path <- paste0(main.env$PATHS$eal.dp, dp, "_emldp")
-
+      
       # verbose
       removeModal()
       showNotification(
         paste("Deleting:", dp, sep = "")
       )
-
+      
       # actions
       unlink(path, recursive = TRUE)
     },

@@ -56,6 +56,7 @@ Imports:
   tagsinput,
   taxonomyCleanr,
   utils,
+  XML,
   xml2
 Remotes:
     ThinkR-open/tagsinput,
@@ -75,10 +76,12 @@ Collate:
     'utils_writeText.R'
     'utils_URL_Input.R'
     'utils_readPlaintext.R'
+    'utils_readHTMLFromMD.R'
     'utils_readDataTable.R'
     'utils_reactiveTrigger.R'
     'utils_reactiveDirReader.R'
     'utils_listReactiveValues.R'
+    'utils_listToStructure.R'
     'utils_isContentTruthy.R'
     'utils_insertModuleBox.R'
     'utils_followPath.R'
@@ -86,6 +89,8 @@ Collate:
     'utils_collapsible.R'
     'utils_additional_HTML.R'
     'utils_grep.R'
+    'utils_listToXML.R'
+    'utils_xml_handling.R'
     'about_module.R'
     'about_module_functions.R'
     'documentation_module.R'

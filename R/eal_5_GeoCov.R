@@ -64,7 +64,8 @@ GeoCov <- function(id, main.env) {
               main.env$EAL$page == 5) {
             browser()
           }
-        }
+        },
+        label = "EAL5: dev"
       )
     }
     
@@ -100,7 +101,8 @@ GeoCov <- function(id, main.env) {
         "custom_input", 
         condition = main.env$local.rv$method == "custom"
       )
-    })
+    },
+    label = "EAL4: switch method")
     
     output$selected_method <- renderText(main.env$local.rv$method)
     

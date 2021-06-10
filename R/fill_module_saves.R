@@ -16,15 +16,16 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
       setProgress(1 / 3, "Save metadata")
       if(page != 9) {
         main.env$save.variable <- do.call(
-          what = switch(page,
-                        ".saveSelectDP",
-                        ".saveDataFiles",
-                        ".saveAttributes",
-                        ".saveCatVars",
-                        ".saveGeoCov",
-                        ".saveTaxCov",
-                        ".savePersonnel",
-                        ".saveMisc"
+          what = switch(
+            page,
+            ".saveSelectDP",
+            ".saveDataFiles",
+            ".saveAttributes",
+            ".saveCatVars",
+            ".saveGeoCov",
+            ".saveTaxCov",
+            ".savePersonnel",
+            ".saveMisc"
           ),
           args = list(main.env)
         )
@@ -198,9 +199,6 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
     
     # Save
     main.env$save.variable$CatVars[[file.name]] <- content$cv.tables[[file.name]]
-    # .tmp <- main.env$save.variable$CatVars[[file.name]]$code == ""
-    # browser()
-    # main.env$save.variable$CatVars[[file.name]]$code[.tmp] <- NA_character_
 
     # Overwrite
     file.remove(file.path)
@@ -208,7 +206,8 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
       main.env$save.variable$CatVars[[file.name]],
       file.path,
       sep = "\t",
-      na = "NA"
+      na = "NA",
+      quote = FALSE
     )
   })
 

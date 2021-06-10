@@ -67,66 +67,12 @@ CatVars <- function(id, main.env) {
               main.env$EAL$page == 4) {
             browser()
           }
-        }
+        },
+        label = "EAL4: dev"
       )
     }
     
     # Tree ====
-    
-    # * Compute tree ----
-    # treeContent <- eventReactive({
-    #   main.env$EAL$page
-    #   main.env$local.rv$cv.tables
-    # }, {
-    #   req(main.env$EAL$page == 4)
-    #   .tables <- isolate(main.env$local.rv$cv.tables)
-    #   req(isContentTruthy(.tables))
-    #   
-    #   lapply(
-    #     names(.tables),
-    #     function(.file.name) {
-    #       # files
-    #       structure(lapply(
-    #         unique(.tables[[.file.name]]$attributeName),
-    #         file.name = .file.name,
-    #         function(.attribute.name, file.name){
-    #           codes <- .tables[[file.name]] %>% 
-    #             filter(attributeName == .attribute.name) %>% 
-    #             select(code) %>% 
-    #             unlist
-    #           untruthy.codes <- which(!sapply(codes, isContentTruthy))
-    #           codes.names <- replace(
-    #             codes, 
-    #             untruthy.codes,
-    #             sprintf("[%s:empty]", untruthy.codes)
-    #           )
-    #           structure(lapply(
-    #             codes,
-    #             function(.code) {
-    #               return(
-    #                 structure(
-    #                   .code,
-    #                   # sttype="default",
-    #                   sticon=""
-    #                 )
-    #               )
-    #             }
-    #           ),
-    #           sticon = "fa fa-columns"
-    #           ) %>% 
-    #             setNames(codes.names)
-    #         }
-    #       ) %>%
-    #         setNames(nm = unique(.tables[[.file.name]]$attributeName)), 
-    #       # sttype = "root",
-    #       sticon = "fa fa-file",
-    #       stopened = TRUE
-    #       )
-    #     }
-    #   ) %>% 
-    #     setNames(nm = names(.tables))
-    #   
-    # })
     
     # * Render tree ----
     output$tree <- shinyTree::renderEmptyTree()
@@ -136,10 +82,14 @@ CatVars <- function(id, main.env) {
       req(main.env$EAL$page == 4)
       req(isContentTruthy(main.env$local.rv$tree.content))
       devmsg("update tree", tag = "catvars")
-      shinyTree::updateTree(session = session, treeId = "tree", data = main.env$local.rv$tree.content)
+      shinyTree::updateTree(
+        session = session, 
+        treeId = "tree", 
+        data = main.env$local.rv$tree.content
+      )
     },
     priority = -1,
-    label = "catvars update tree")
+    label = "EAL4: update tree")
     
     # * Get tree input ----
     # shinyTree selection
@@ -150,7 +100,8 @@ CatVars <- function(id, main.env) {
       } else {
         return(NULL)
       }
-    })
+    },
+    label = "EAL4: selected node")
     
     # shinyTree path exploration
     .ancestor <- reactive({
@@ -160,7 +111,8 @@ CatVars <- function(id, main.env) {
       } else {
         return(NULL)
       }
-    })
+    },
+    label = "EAL4: ancestry node")
     
     # boolean to know if a code is selected in the tree
     .code.selected <- reactive({
@@ -169,7 +121,8 @@ CatVars <- function(id, main.env) {
         isContentTruthy(.selected()) &&
           length(.ancestor()) == 2
       )
-    })
+    },
+    label = "EAL4: selected code")
     
     output$code <- renderText({
       validate(
@@ -178,6 +131,7 @@ CatVars <- function(id, main.env) {
       paste("Description of", .selected()[[1]][1])
     })
     
+    # UI setup
     observe({
       req(main.env$EAL$page == 4)
       shinyjs::toggle("form", condition = .code.selected())
@@ -196,18 +150,21 @@ CatVars <- function(id, main.env) {
         } else {
           .value <- main.env$local.rv$cv.tables[[.ancestor()[1]]] %>% 
             filter(attributeName == .ancestor()[2]) %>%
-            filter(code == .selected()) %>%
+            filter(code == .selected()[[1]][1]) %>%
             select(definition) %>% 
             unlist %>% 
             unname # important !
         }
+        if(!isContentTruthy(.value))
+          browser()
         updateTextAreaInput(
           session = session,
           "description",
           value = .value
         )
       }
-    })
+    },
+    label = "EAL4: UI setup")
     
     # Form ====
     
@@ -218,12 +175,13 @@ CatVars <- function(id, main.env) {
       .row.id <- which(
         .table$attributeName == .ancestor()[2] &&
           .table$code == .selected())
-      .table[.row.id, "code"] <- input$description
+      .table[.row.id, "definition"] <- input$description
       main.env$local.rv$cv.tables[[.ancestor()[1]]] <- .table
       
       # Check value
       checkFeedback(input, "description")
-    })
+    },
+    label = "EAL4: get input")
     
     # * Completed ----
     observe({
@@ -247,7 +205,8 @@ CatVars <- function(id, main.env) {
           )
         }
       )
-    }, priority = -1)
+    }, priority = -1,
+    label = "EAL4: check completed")
     
   })
 }

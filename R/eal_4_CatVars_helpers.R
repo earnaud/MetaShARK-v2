@@ -54,7 +54,6 @@ CatVarsInputUI <- function(id, attribute, table.name, main.env) {
 CatVarsInput <- function(id, attribute, table.name, main.env) {
   moduleServer(id, function(input, output, session){
     # Shortcuts
-    # .file.name <- main.env$local.rv$current$file
     .tables <- main.env$local.rv$cv.tables
     
     codes <- .tables[[table.name]] %>%

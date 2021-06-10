@@ -85,6 +85,10 @@ textarea {
   padding: 20px;
 }
 
+.modal-lg {
+  width: 80%; 
+}
+
 .navSidebar {
   max-width: 75px;
   max-width: 100px;
