@@ -107,7 +107,7 @@ rightSidebarSettings <- function(id) {
 #' @description server part of the settings module. Allow the user to change several settings in the app.
 #'
 #' @import shiny
-#' @importFrom cedarr accessOntology
+# @importFrom cedarr accessOntology
 #' 
 #' @noRd
 settings <- function(id, main.env) {
@@ -140,7 +140,7 @@ settings <- function(id, main.env) {
       {
         req(input$cedar_token)
         .SETTINGS$cedar.token <- input$cedar_token
-        main.env$SEMANTICS$ontologies <- cedarr::accessOntology(.SETTINGS$cedar.token)
+        # main.env$SEMANTICS$ontologies <- cedarr::accessOntology(.SETTINGS$cedar.token)
       }
     )
   })

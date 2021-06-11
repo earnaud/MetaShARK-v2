@@ -75,7 +75,7 @@ RUN Rscript -e 'remotes::install_version("tippy",upgrade="never", version = "0.0
 RUN Rscript -e 'remotes::install_github("EDIorg/taxonomyCleanr@fc4d758c075d596013a18c1ae1e2cff4f5f8c2ae")'
 RUN Rscript -e 'remotes::install_github("ThinkR-open/tagsinput@9aa70ec34c6fa60ef317446daef4cfaf3b682d1d")'
 RUN Rscript -e 'remotes::install_github("ropenscilabs/emldown@8d98c8fc708dc1f2ecc8eec3d23a66e4f487e658")'
-RUN Rscript -e 'remotes::install_github("earnaud/cedarr@dece7479cac3689e36283df74fe0514748e67f18")'
+# RUN Rscript -e 'remotes::install_github("earnaud/cedarr@dece7479cac3689e36283df74fe0514748e67f18")'
 RUN Rscript -e 'remotes::install_github("trestletech/shinyAce@6f8f7c9976b44246e91bb5dbaef1b87d6bbb7b77")'
 RUN Rscript -e 'remotes::install_github("EDIorg/EMLassemblyline@6c3247cb950b334b1f125ed485fa778bc80ec05f")'
 RUN Rscript -e 'remotes::install_github("LukasK13/SummeRnote@7c404e1578ab3567fdb331716ca831913ccf645a")'
@@ -85,7 +85,7 @@ RUN mkdir -p /dataPackagesOutput/emlassemblyline
 RUN echo ls ~
 ADD . /build_zone
 WORKDIR /build_zone
-RUN R -e 'remotes::install_local("MetaShARK_1.5.1.tar.gz", upgrade="never")'
+RUN R -e 'remotes::install_local("MetaShARK_1.5.2.tar.gz", upgrade="never")'
 EXPOSE 3838
 
 CMD R -e "options('shiny.port'=3838,'shiny.host'='0.0.0.0'); MetaShARK::runMetashark(dev=FALSE)"

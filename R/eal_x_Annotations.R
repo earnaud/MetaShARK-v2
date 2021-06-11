@@ -45,7 +45,7 @@ annotations <- function(id, label, main.env) {
 #'   ) # end of return
 #' }
 #'
-#' #' @importFrom cedarr search
+# @importFrom cedarr search
 #' #' @importFrom shinyjs disabled enable disable
 #' annotations <- function(input, output, session, save.variable, main.env) {
 #'   ns <- session$ns
