@@ -171,7 +171,6 @@ setLocalRV <- function(main.env){
         )
       ),
       preview = {
-        browser()
         out <- lapply(
           main.env$save.variable$DataFiles$datapath,
           function(file.path) {
@@ -645,7 +644,7 @@ setLocalRV <- function(main.env){
         if (lat.col %grep% main.env$local.rv$columns$choices$coords) {
           main.env$local.rv$columns$lat$col <- main.env$save.variable$GeoCov$columns$lat$col
           main.env$local.rv$columns$lat$file <- main.env$save.variable$GeoCov$columns$lat$file
-        }
+        } 
         if (lon.col %grep% main.env$local.rv$columns$choices$coords) {
           main.env$local.rv$columns$lon$col <- main.env$save.variable$GeoCov$columns$lon$col
           main.env$local.rv$columns$lon$file <- main.env$save.variable$GeoCov$columns$lon$file
