@@ -85,7 +85,10 @@ RUN mkdir -p /dataPackagesOutput/emlassemblyline
 RUN echo ls ~
 ADD . /build_zone
 WORKDIR /build_zone
-RUN R -e 'remotes::install_local("MetaShARK_1.5.2.tar.gz", upgrade="never")'
+RUN R -e 'remotes::install_local(\
+  dir(".", pattern = "MetaShARK_.*\\.tar.gz"),\
+  upgrade="never"\
+)'
 EXPOSE 3838
 
 CMD R -e "options('shiny.port'=3838,'shiny.host'='0.0.0.0'); MetaShARK::runMetashark(dev=FALSE)"
