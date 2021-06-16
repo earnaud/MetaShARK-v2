@@ -16,9 +16,9 @@ MiscellaneousUI <- function(id, help.label = NULL) {
         placeholder = ""
       )
     ),
-    tags$b("Selected file:"),
-    textOutput(NS(id, "selected")) %>%
-      htmltools::tagAppendAttributes(class = "ellipsis"),
+    # tags$b("Selected file:"),
+    # textOutput(NS(id, "selected")) %>%
+    #   htmltools::tagAppendAttributes(class = "ellipsis"),
     tags$hr(),
     # Content edition ----
     tags$b(help.label),
@@ -47,9 +47,9 @@ MiscellaneousUI <- function(id, help.label = NULL) {
 Miscellaneous <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
     # Set UI ----
-    output$content <- renderUI({
-      req(main.env$EAL$page == 8)
-    })
+    # output$content <- renderUI({
+    #   req(main.env$EAL$page == 8)
+    # })
     
     # Get content ----
     # Debounced input in two steps
@@ -63,7 +63,7 @@ Miscellaneous <- function(id, main.env) {
     
     observe({
       req(main.env$EAL$page == 8)
-      
+      devmsg(tag="Misc", "save %s content", id)
       main.env$local.rv[[id]]$content <- .content()
     })
     
@@ -81,31 +81,42 @@ Miscellaneous <- function(id, main.env) {
     }, {
       req(main.env$EAL$page == 8)
       
-      if(grepl(".md$", main.env$local.rv[[id]]$file)) {
-        main.env$local.rv[[id]]$content <- readHTMLfromMD(main.env$local.rv[[id]]$file)
+      # main.env$local.rv[[id]]$content <- if(grepl(".md$", main.env$local.rv[[id]]$file)) {
+      .tmp <- if(grepl(".md$", main.env$local.rv[[id]]$file)) {
+        readHTMLfromMD(main.env$local.rv[[id]]$file)
       } else # if(grepl(".txt$", main.env$local.rv[[id]]$file)) {
-        main.env$local.rv[[id]]$content <- main.env$local.rv[[id]]$file %>%
-          readtext %>%
-          select("text") %>%
-          unlist %>%
-          HTML
+        main.env$local.rv[[id]]$file %>%
+        readtext %>%
+        select("text") %>%
+        unlist %>%
+        HTML
+      
+      devmsg(tag = "Misc", "update note input %s (%s)", id, main.env$local.rv[[id]]$file)
+      # },
+      # label = session$ns("Misc read file"),
+      # priority = -1
+      # )
+      #  
+      # observe({
+      #   req(main.env$EAL$page == 8)
       
       SummeRnote::updateSummernoteInput(
         session$ns("content"),
-        value = main.env$local.rv[[id]]$content,
+        value = .tmp,
         session = session
       )
     },
+    label = session$ns("Misc update note"),
     priority = -1
     )
     
     # Verbose file selection
-    output$selected <- renderText({
-      paste(
-        basename(main.env$local.rv[[id]]$file),
-        "\n(in:", dirname(main.env$local.rv[[id]]$file), ")"
-      )
-    })
+    # output$selected <- renderText({
+    #   paste(
+    #     basename(main.env$local.rv[[id]]$file),
+    #     "\n(in:", dirname(main.env$local.rv[[id]]$file), ")"
+    #   )
+    # })
   })
 }
 
@@ -158,15 +169,15 @@ keywordSetUI <- function(id, kwt.value = NULL) {
     fluidRow(
       # Remove UI
       column(1,
-        actionButton(NS(id, "remove"), "", icon("trash"), class = "redButton")
+             actionButton(NS(id, "remove"), "", icon("trash"), class = "redButton")
       ),
       column(5, textInput(NS(id, "kwt"), "Keyword thesaurus", value = kwt.value)),
       column(5,
-        shinyWidgets::searchInput(
-          NS(id, "add_kw"),
-          "Add keyword",
-          btnSearch = icon("plus")
-        )
+             shinyWidgets::searchInput(
+               NS(id, "add_kw"),
+               "Add keyword",
+               btnSearch = icon("plus")
+             )
       )
     ),
     tags$div(id=paste0("inserthere_eal8_", unns(id)), class = "tag_sequence")
@@ -263,9 +274,9 @@ insertKeywordTag <- function(id, kws, main.env) {
   if(
     isFALSE(
       main.env$local.rv$keywords %>%
-        dplyr::filter(keyword.set == kws) %>% 
-        dplyr::select(keyword) %>%
-        grepl(pattern = new.kw)
+      dplyr::filter(keyword.set == kws) %>% 
+      dplyr::select(keyword) %>%
+      grepl(pattern = new.kw)
     )
   ) {
     main.env$local.rv$keywords <- 

@@ -36,13 +36,15 @@ GeoCovUI <- function(id) {
           )
         ), # end of columns
         # Custom ====
-        tags$div(
-          id = NS(id, "custom_input"),
-          fluidRow(
-            column(1, actionButton(NS(id, "addui"), "", icon("plus"))),
-            column(11, tags$div(id = "inserthere_eal5"))
-          )
-        ) # end of custom
+        shinyjs::hidden(
+          tags$div(
+            id = NS(id, "custom_input"),
+            fluidRow(
+              column(1, actionButton(NS(id, "addui"), "", icon("plus"))),
+              column(11, tags$div(id = "inserthere_eal5"))
+            )
+          ) 
+        )# end of custom
       )
     ) # end of fluidPage
   ) # end of return
@@ -118,9 +120,8 @@ GeoCov <- function(id, main.env) {
         session$ns("site"),
         "Choose a column for site descriptions",
         choices = c("None" = "", main.env$local.rv$columns$choices$sites),
-        selected = if(main.env$save.variable$GeoCov %>% 
-                      listReactiveValues() %>%
-                      isContentTruthy())
+        selected = if(isTruthy(main.env$local.rv$columns$site$file) &&
+                      isTruthy(main.env$local.rv$columns$site$col))
           main.env$local.rv$columns$choices$sites[[
             main.env$local.rv$columns$site$file
           ]][main.env$local.rv$columns$site$col]
@@ -136,9 +137,8 @@ GeoCov <- function(id, main.env) {
         session$ns("latitude"),
         "Choose a column for latitude values",
         choices = c("None" = "", main.env$local.rv$columns$choices$coords),
-        selected = if(main.env$save.variable$GeoCov %>% 
-                      listReactiveValues() %>%
-                      isContentTruthy())
+        selected = if(isTruthy(main.env$local.rv$columns$lat$file) &&
+                      isTruthy(main.env$local.rv$columns$lat$col))
           main.env$local.rv$columns$choices$coords[[
             main.env$local.rv$columns$lat$file
           ]][main.env$local.rv$columns$lat$col],
@@ -155,9 +155,8 @@ GeoCov <- function(id, main.env) {
         session$ns("longitude"),
         "Choose a column for longitude values",
         choices = c("None" = "", main.env$local.rv$columns$choices$coords),
-        selected = if(main.env$save.variable$GeoCov %>% 
-                      listReactiveValues() %>%
-                      isContentTruthy())
+        selected = if(isTruthy(main.env$local.rv$columns$lon$file) &&
+                      isTruthy(main.env$local.rv$columns$lon$col))
           main.env$local.rv$columns$choices$coords[[
             main.env$local.rv$columns$lon$file
           ]][main.env$local.rv$columns$lon$col],

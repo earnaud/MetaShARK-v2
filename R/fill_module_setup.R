@@ -345,7 +345,10 @@ setLocalRV <- function(main.env){
     # * Make EML ----
     # empty RV to be able at last to save the step
     {
-      reactiveValues(empty = NULL)
+      reactiveValues(
+        # empty = NULL,
+        eml.written = length(dir(main.env$save.variable$SelectDP$dp.eml.path)) > 0
+      )
     }
   )
   
@@ -392,14 +395,14 @@ setLocalRV <- function(main.env){
           if(any(.degree.attributes))
             .table$unit[.degree.attributes] <- "degree"
           main.env$local.rv$md.tables[[.rv.name]] <<- .table
-          # Add reactivity to each table (test)
+          # Add reactivity to each table
           makeReactiveBinding(
             sprintf(
               "main.env$local.rv$md.tables$%s", 
               .rv.name
             )
           )
-          # Add a reactive to read each table (test)
+          # Add a reactive to read each table
           main.env$local.rv$rv.tables[[.rv.name]] <- reactive({
             .table
           })
@@ -409,16 +412,8 @@ setLocalRV <- function(main.env){
           lapply(seq(nrow(.table)), function(row.index) {
             # Set completed per row by class
             .attribute <- .table[row.index, 1]
-            main.env$local.rv$completed[[.rv.name]][[.attribute]] <- reactiveValues(
-              # default is TRUE because it is re-evaluated as user reaches Attributes
-              attributeName = TRUE,
-              attributeDefinition = TRUE,
-              class = TRUE,
-              dateTimeFormatString = TRUE,
-              unit = TRUE,
-              missingValueCode = TRUE,
-              missingValueCodeExplanation = TRUE
-            )
+            # Just use the attribute since checking the attribute makes checking all fields
+            main.env$local.rv$completed[[.rv.name]][[.attribute]] <- TRUE
           }) # end lapply:row
           
           # Setup tree
@@ -484,12 +479,6 @@ setLocalRV <- function(main.env){
           # check for direction: CustomUnits or CatVars
           .table <- main.env$local.rv$rv.tables[[md.table]]()
           .check <- isTRUE("categorical" %in% .table[,"class"])
-          devmsg(
-            "%s contains catvars: %s",
-            md.table, 
-            .check,
-            tag = "savevariable_functions.R # 475"
-          )
           return(.check)
         }
       ) %>%
@@ -497,6 +486,14 @@ setLocalRV <- function(main.env){
         any()
     })
     
+    # Check completeness
+    main.env$EAL$completed <- main.env$local.rv$completed %>%
+      listReactiveValues %>%
+      unlist %>%
+      all
+    
+    # Add side tag list rv
+    main.env$local.rv$tag.list <- reactiveValues()
   }
   # * Catvars ----
   if(main.env$EAL$page == 4) {
@@ -633,7 +630,8 @@ setLocalRV <- function(main.env){
       main.env$local.rv$method <- main.env$save.variable$GeoCov$method
       
       # * Columns
-      if(main.env$local.rv$method == "columns") {
+      if(main.env$local.rv$method == "columns" && 
+         isContentTruthy(main.env$save.variable$GeoCov$columns)) {
         site.name <- main.env$save.variable$GeoCov$columns$site$col
         lat.col <- main.env$save.variable$GeoCov$columns$lat$col
         lon.col <- main.env$save.variable$GeoCov$columns$lon$col
@@ -651,7 +649,8 @@ setLocalRV <- function(main.env){
         }
       }
       # * Custom
-      if (main.env$local.rv$method == "custom") {
+      if (main.env$local.rv$method == "custom" &&
+          isContentTruthy(main.env$save.variable$GeoCov$custom)) {
         saved_table <- main.env$save.variable$GeoCov$custom$coordinates
         if (isContentTruthy(saved_table)) 
           main.env$local.rv$custom$coordinates <- saved_table
@@ -664,7 +663,9 @@ setLocalRV <- function(main.env){
         isTruthy(main.env$local.rv$columns$lat$col) &&
         isTruthy(main.env$local.rv$columns$lon$col)
     )
-    main.env$local.rv$custom$complete <-reactive(isContentTruthy(main.env$local.rv$custom$coordinates))
+    main.env$local.rv$custom$complete <-reactive(
+      isContentTruthy(main.env$local.rv$custom$coordinates)
+    )
   }
   
   # * TaxCov ----

@@ -91,22 +91,26 @@ pagesServer <- function(id, main.env) {
     
     changePage <- function(from, to, input, main.env) {
       observeEvent(input[[paste(from, to, sep = "_")]], {
-        devmsg(tag = "fill_pages.R", sprintf("%s to %s", from, to))
         
         main.env$EAL$old.page <- main.env$EAL$page
         
         # Two times computing required for ifelse clause following
         .tmp <- main.env$EAL$page + to - from
-        main.env$EAL$page <- .tmp + ifelse(
-          .tmp == 4 && 
-            isFALSE(main.env$save.variable$Attributes$use.catvars),
+        main.env$EAL$page <- .tmp + if(
+          # want to reach categorical variables
+          # but no catvar is to be found ..
+          .tmp == 4 && isFALSE(main.env$save.variable$Attributes$use.catvars)
+        ) {
+          # .. avoid step ..
           switch(
-            main.env$EAL$old.page,
-            `3` = 1,
-            `5` = -1
-          ),
+            as.character(main.env$EAL$old.page),
+            "3" = 1,
+            "5" = -1
+          )
+        } else {
+          # .. else let step be reached
           0
-        )
+        }
         
       },
       label = paste("changePage", from, to)

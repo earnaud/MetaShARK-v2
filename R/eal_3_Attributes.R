@@ -271,8 +271,8 @@ Attributes <- function(id, main.env) {
       )
       
       # ** Check validity ----
-      # at least check one attribute
-      main.env$local.rv$checked <- TRUE
+      # # at least check one attribute
+      # main.env$local.rv$checked <- TRUE
       
       # ShinyFeedBack
       checkFeedback(input, "attributeDefinition", type = "danger")
@@ -735,7 +735,7 @@ Attributes <- function(id, main.env) {
         enc2utf8 %>%
         as.data.frame %>%
         unname
-        # setNames(nm = "Data preview")
+      # setNames(nm = "Data preview")
     })
     
     # Completeness ====
@@ -782,28 +782,52 @@ Attributes <- function(id, main.env) {
       )
       
       # Update whole completeness
-      main.env$EAL$completed <- isTRUE(main.env$local.rv$checked) &&
-        all(
-          unlist(
-            listReactiveValues(
-              main.env$local.rv$completed
-            )
-          )
-        )
-      
-      # If any problem, tell the user
-      # TODO add lacking attributes completion
-      if(!main.env$EAL$completed) {
-        main.env$EAL$tag.list <- tagList()
-        
-      } else {
-        # Else, allow next
-        main.env$EAL$tag.list <- tagList()
-        
-      }
+      main.env$EAL$completed <- main.env$local.rv$completed %>%
+        listReactiveValues %>%
+        unlist %>%
+        all
     },
     label = "EAL3: completeness",
     priority = -2)
+    
+    # Update main.env tag.list ----
+    observe({
+      req(main.env$EAL$page == 3)
+      # make a call
+      main.env$EAL$completed
+      
+      # If any problem, tell the user
+      checked.attributes <- which(
+        !main.env$local.rv$completed %>%
+          listReactiveValues() %>%
+          unlist
+        ) %>%
+        names %>%
+        gsub(pattern = "\\.txt\\.", replacement = ".txt: ") %>%
+        paste(collapse = "\n", sep = "\n")
+      if(checked.attributes != "")
+        checked.attributes <- tagList(
+          tags$b("Invalid attributes:"),
+          tags$br(),
+          checked.attributes
+        )
+      main.env$local.rv$tag.list$completed <- checked.attributes
+      
+      # next step tag
+      if(main.env$local.rv$use.catvars()){
+        main.env$local.rv$tag.list$next.step <- tagList()
+      } else {
+        main.env$local.rv$tag.list$next.step <- tagList(
+          tags$hr(), 
+          "No categorical variables found: will skip to geographic coverage"
+        )
+      }
+      
+      # assemble
+      main.env$EAL$tag.list <- tagList(listReactiveValues(main.env$local.rv$tag.list))
+    },
+    priority = -1,
+    label = "tag.list update")
     
     # (End of Attributes) ====
   })

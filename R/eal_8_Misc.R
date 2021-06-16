@@ -83,7 +83,7 @@ MiscUI <- function(id) {
           title = "Additional Info - optional",
           value = 5,
           MiscellaneousUI(
-            NS(id, "additional_information"),
+            NS(id, "additional.information"),
             help.label = tags$p(
               "If you have additional information that doesn't fall under the scope of
               the abstract or methods (e.g. a list of research articles or thesis
@@ -211,7 +211,7 @@ Misc <- function(id, main.env) {
     )
     
     # * Additional information ====
-    Miscellaneous("additional_information", main.env)
+    Miscellaneous("additional.information", main.env)
     
     # Saves ----
     observe({
