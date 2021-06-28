@@ -107,6 +107,10 @@
 
   # Unit types
   .all.units <- EML::get_unitList()
+  .some.units <- .all.units$units[-which(!is.na(.all.units$units$deprecatedInFavorOf)),]
+  if(anyDuplicated(.some.units$id))
+    .some.units <- .some.units[-anyDuplicated(.some.units$id),]
+  .all.units$units <- .some.units
   .units <- "custom"
   .names <- "custom/custom"
   invisible(apply(.all.units$units[c("unitType", "name")], 1, function(row) {
