@@ -84,7 +84,7 @@ MakeEML <- function(id, main.env) {
     
     # Make eml ----
     observeEvent(input$make_eml, {
-      shinyjs::hide("bug_report")
+      # shinyjs::hide("bug_report")
       req(input$make_eml)
       withProgress(
         {
