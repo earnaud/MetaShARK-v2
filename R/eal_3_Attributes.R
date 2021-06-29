@@ -456,20 +456,24 @@ Attributes <- function(id, main.env) {
     label = "EAL3: dateTimeFormatString input")
     
     # * unit ----
-    unit.value <- reactive({
+    unit.value <- eventReactive(input$unit, {
       validate(
         need(isTruthy(selected.file()), "No file selected"),
         need(isTruthy(selected.attribute()), "No attribute selected"),
         need(input$class == "numeric", "Not a number"),
         need(!is.na(input$unit), "Unset unit input.")
       )
+      devmsg(tag = "attributes", "unit change")
+      
       input$unit
     },
     label = "EAL3: unit input") %>%
-      debounce(1000) # let 1s blank time before getting input
+      debounce(1000, priority = -1) # let 1s blank time before getting input
     
     observe({
       req(unit.value())
+      
+      devmsg(tag = "attributes", "unit set")
       
       # Correct input value
       .value <- unit.value()
@@ -532,8 +536,6 @@ Attributes <- function(id, main.env) {
           (.value %grep% main.env$FORMATS$units ||
              .value %in% main.env$local.rv$custom.units$table$id)
       } else TRUE
-      if(main.env$dev)
-        devmsg("%s", as.character(.condition))
       checkFeedback(
         input, 
         "unit",
