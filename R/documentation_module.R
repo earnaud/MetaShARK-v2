@@ -15,6 +15,11 @@ docUI <- function(id) {
       )
     ),
     fluidRow(
+      # original documentation
+      tags$h5(
+        "Original documentation is available ", 
+        tags$a("here.", href="https://eml.ecoinformatics.org/schema/")
+      ),
       # search sidebar
       column(
         5,

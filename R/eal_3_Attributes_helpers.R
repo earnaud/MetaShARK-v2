@@ -62,9 +62,8 @@ setUnitList <- function(main.env, set = NULL) {
   out <- list()
   
   sapply(types, function(type){
-    out[[type]] <<- c(unname(choices[grepl(paste0("^", type), names(choices))]))
+    out[[type]] <<- c(unname(choices[grepl(paste0("^", type, "/"), names(choices))]))
   })
-  
   # Correct value set for updates
   if(!is.null(set)) {
     set <- set %>%

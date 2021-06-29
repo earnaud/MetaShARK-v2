@@ -69,7 +69,9 @@ DataFileInputUI <- function(id, main.env) {
               textAreaInput(
                 NS(id, "data.description"),
                 "Data Table Description",
-                value = sprintf("Content of %s", .value$name),
+                value = if(isTruthy(.value$description)) 
+                  .value$description else
+                    sprintf("Content of %s", .value$name),
                 width = "100%"
               )
             )
