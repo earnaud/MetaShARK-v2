@@ -192,16 +192,16 @@ Misc <- function(id, main.env) {
     observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page == 8)
       
-      if (!is.null(isolate(main.env$save.variable$Misc$temporal.coverage))) {
-        isolate(main.env$local.rv$temporal.coverage <- main.env$save.variable$Misc$temporal.coverage)
+      if (!is.null(main.env$local.rv$temporal.coverage)) {
         updateDateRangeInput(
           session,
-          "temporal.coverage",
+          "temporal_coverage",
           start = main.env$local.rv$temporal.coverage[1],
           end = main.env$local.rv$temporal.coverage[2]
         )
       }
-    })
+    }, 
+    priority = -1)
     
     # ** Get ----
     observeEvent(input$temporal_coverage, {

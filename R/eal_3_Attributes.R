@@ -371,10 +371,16 @@ Attributes <- function(id, main.env) {
           selected = ""
         )
       } else {
+        .dtfs <- selected.table()[
+          which(selected.table()$attributeName == selected.attribute()),
+          "dateTimeFormatString"
+        ]
+        if(isFALSE(.dtfs %in% main.env$FORMATS$dates))
+          .dtfs <- main.env$FORMATS$dates[1] # YYYY-MM-DD
         updateSelectInput(
           session,
           "dateTimeFormatString",
-          selected = main.env$FORMATS$dates[1] # YYYY-MM-DD
+          selected = .dtfs
         )
       }
       

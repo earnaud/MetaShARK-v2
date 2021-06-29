@@ -440,7 +440,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
   
   # keywords ----
   .tmp <- lapply(unique(content$keywords$keyword.thesaurus), function(kwt) {
-    row.ind <- which(identical(content$keywords$keyword.thesaurus, kwt))
+    row.ind <- which(content$keywords$keyword.thesaurus == kwt)
     
     data.frame(
       keyword = strsplit(content$keywords$keyword[row.ind], ",") %>% 

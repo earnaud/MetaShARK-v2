@@ -729,7 +729,7 @@ setLocalRV <- function(main.env){
       isolate({main.env$local.rv[[x]]$content <- readHTMLfromMD(main.env$local.rv[[x]]$file)})
     })
     # temporal coverage
-    if(!identical(main.env$save.variable$Misc$temporal.coverage, c(NA, NA)))
+    if(isContentTruthy(main.env$save.variable$Misc$temporal.coverage))
       main.env$local.rv$temporal.coverage <- main.env$save.variable$Misc$temporal.coverage
   }
   
