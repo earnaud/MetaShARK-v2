@@ -100,7 +100,8 @@ server <- function(input, output, session) {
   
   # Version ----
   output$version <- renderText({
-    system("git describe --tags `git rev-list --tags --max-count=1`", intern=TRUE)
+    dir(".", pattern = "MetaShARK_.*.tar.gz") %>%
+      gsub(pattern = "MetaShARK_(.*).tar.gz", replacement = "\\1")
   })
 }
 
