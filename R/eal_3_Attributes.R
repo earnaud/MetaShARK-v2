@@ -401,7 +401,7 @@ Attributes <- function(id, main.env) {
         ]
         .tmp <- setUnitList(
           main.env, 
-          set = optional(.unit, "dimensionless")
+          set = optional(.unit, default = "dimensionless")
         )
         updateSelectInput(
           session,

@@ -51,18 +51,18 @@ setUnitList <- function(main.env, set = NULL) {
     {
       .tmp <- main.env$local.rv$custom.units$table$id
       if(isTruthy(.tmp))
-        names(.tmp) <- paste0("custom/", .tmp)
+        names(.tmp) <- "custom"
       .tmp
     },
     main.env$FORMATS$units
   )
   
   # Input format
-  types <- gsub("/.+", "", names(choices)) %>% unique()
+  types <- unique(names(choices))
   out <- list()
   
   sapply(types, function(type){
-    out[[type]] <<- c(unname(choices[grepl(paste0("^", type, "/"), names(choices))]))
+    out[[type]] <<- unname(choices[which(names(choices) == type)])
   })
   # Correct value set for updates
   if(!is.null(set)) {
@@ -114,14 +114,17 @@ customUnitsUI <- function(id, values = rep(NA, 5), main.env) {
           selectInput(
             NS(id, "modal_parentSI"),
             label = "Parent unit in SI",
-            choices = main.env$FORMATS$units[-1],
+            choices = split(
+              unname(main.env$FORMATS$units[-1]),
+              as.factor(names(main.env$FORMATS$units[-1]))
+            ),
             selected = optional(values[3])
           ),
           # MultiplierToSI
           numericInput(
             NS(id, "modal_multiplier"),
             label = "Numeric multiplier computed from Parent unit in SI",
-            value = optional(values[4], type = 1),
+            value = optional(values[4], default = 1),
           ),
           # Description
           textAreaInput(

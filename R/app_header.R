@@ -106,20 +106,29 @@
   .TAXA.AUTHORITIES <- data.table::fread(wwwPaths$taxaAuthorities.txt)
 
   # Unit types
-  .all.units <- EML::get_unitList()
-  .some.units <- .all.units$units[-which(!is.na(.all.units$units$deprecatedInFavorOf)),]
-  if(anyDuplicated(.some.units$id))
-    .some.units <- .some.units[-anyDuplicated(.some.units$id),]
-  .all.units$units <- .some.units
+  .all.units <- EML::get_unitList()$units
+  .ind <- seq_along(.all.units$name)[-anyDuplicated(.all.units$name)]
+  .units <- .all.units$name[.ind]
+  .unitTypes <- .all.units$unitType[.ind] 
+  .unitTypes <- replace(
+    .unitTypes,
+    which(.unitTypes %in% c("", "NA", NA)), 
+    "unsorted"
+  )
+  .unitList <- sort(paste(.unitTypes, .units, sep = "/"))
+  
   .units <- "custom"
-  .names <- "custom/custom"
-  invisible(apply(.all.units$units[c("unitType", "name")], 1, function(row) {
-    .units <<- c(.units, row["name"])
-    if(row["unitType"] %in% c("", "NA") || is.na(row["unitType"])) 
-      row["unitType"] <- "unsorted"
-    .names <<- c(.names, paste(row, collapse = "/"))
-  }))
-  names(.units) <- .names
+  names(.units) <- "custom"
+  
+  sapply(.unitList, function(unit) {
+    .units <<- c(
+      .units, 
+      setNames(
+        gsub("^.*/(.*)$", "\\1", unit),
+        gsub("^(.*)/.*$", "\\1", unit)
+      )
+    )
+  })
 
   assign(
     "FORMATS",

@@ -7,7 +7,7 @@ orcidInputUI <- function(id, val) {
   
   textInput(
     NS(id, "orcid"),
-    tags$span("ORCID", icon("orcid")),
+    tags$span("ORCID", icon("orcid"), "- facultative"),
     value = val
   )
 }

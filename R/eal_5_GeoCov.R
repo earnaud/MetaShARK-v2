@@ -13,15 +13,18 @@ GeoCovUI <- function(id) {
         # Method ====
         # - method choice itself
         tags$span(
+          "columns",
           shinyWidgets::materialSwitch(
             NS(id, "method"),
             tags$h5("Method"),
             inline = TRUE
           ),
-          textOutput(
-            NS(id, "selected_method"),
-            inline = TRUE
-          )
+          "custom"
+          #,
+          # textOutput(
+          #   NS(id, "selected_method"),
+          #   inline = TRUE
+          # )
         ), # end of method
         # Columns ====
         tags$div(
@@ -106,7 +109,7 @@ GeoCov <- function(id, main.env) {
     },
     label = "EAL4: switch method")
     
-    output$selected_method <- renderText(main.env$local.rv$method)
+    # output$selected_method <- renderText(main.env$local.rv$method)
     
     # Variables input ====
     # * Set inputs ----
