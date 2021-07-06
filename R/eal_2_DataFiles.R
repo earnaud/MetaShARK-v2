@@ -97,6 +97,8 @@ DataFiles <- function(id, main.env) {
       
       # * retrieve files info ----
       .loaded.files <- input$add_data_files
+      # clean file input
+      shinyjs::reset(input$add_data_files)
       
       # remove spaces
       file.rename(
