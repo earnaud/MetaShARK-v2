@@ -21,7 +21,6 @@ Imports:
   DT,
   EML,
   EMLassemblyline,
-  emldown,
   fs,
   gdata,
   glue,

@@ -30,7 +30,7 @@ MakeEMLUI <- function(id) {
         tags$br(),
         fluidRow(
           column(
-            6,
+            6, offset = 3,
             tags$div(
               id = "publish",
               tags$h4("Publish data package"),
@@ -42,18 +42,18 @@ MakeEMLUI <- function(id) {
                 icon("file-export")
               ))
             )
-          ),
-          column(
-            6,
-            tags$h4("Generate a summary"),
-            tags$i("(clicking on the below button will open a preview)"),
-            tags$br(),
-            shinyjs::disabled(downloadButton(
-              NS(id, "download_emldown"),
-              "Download emldown",
-              width = "50%"
-            ))
-          ) # End of emldown
+          )
+          # , column(
+          #   6,
+          #   tags$h4("Generate a summary"),
+          #   tags$i("(clicking on the below button will open a preview)"),
+          #   tags$br(),
+          #   shinyjs::disabled(downloadButton(
+          #     NS(id, "download_emldown"),
+          #     "Download emldown",
+          #     width = "50%"
+          #   ))
+          # ) # End of emldown
         )
       )
     ) # end of fluidPage
@@ -157,28 +157,28 @@ MakeEML <- function(id, main.env) {
       
       showNotification("EML written.", type = "message")
       
-      # emldown
-      out.file <- paste0(
-        isolate(main.env$save.variable$SelectDP$dp.path),
-        "/emldown/emldown.html"
-      )
-      eml.file <- dir(
-        main.env$save.variable$SelectDP$dp.eml.path,
-        full.names = TRUE,
-        pattern = main.env$save.variable$SelectDP$dp.title
-      )
-      dir.create(dirname(out.file), recursive = TRUE)
-      old.wd <- getwd()
-      setwd(dirname(out.file))
-      emldown::render_eml(
-        file = eml.file,
-        open = TRUE,
-        outfile = out.file,
-        publish_mode = TRUE
-      )
-      setwd(old.wd)
-      if (file.exists(out.file))
-        showNotification("emldown generated", type = "message")
+      # # emldown
+      # out.file <- paste0(
+      #   isolate(main.env$save.variable$SelectDP$dp.path),
+      #   "/emldown/emldown.html"
+      # )
+      # eml.file <- dir(
+      #   main.env$save.variable$SelectDP$dp.eml.path,
+      #   full.names = TRUE,
+      #   pattern = main.env$save.variable$SelectDP$dp.title
+      # )
+      # dir.create(dirname(out.file), recursive = TRUE)
+      # old.wd <- getwd()
+      # setwd(dirname(out.file))
+      # emldown::render_eml(
+      #   file = eml.file,
+      #   open = TRUE,
+      #   outfile = out.file,
+      #   publish_mode = TRUE
+      # )
+      # setwd(old.wd)
+      # if (file.exists(out.file))
+      #   showNotification("emldown generated", type = "message")
     },
     label = "EAL9: make eml"
     )
@@ -189,7 +189,7 @@ MakeEML <- function(id, main.env) {
       req(isTRUE(main.env$local.rv$eml.written))
       
       shinyjs::enable("publish")
-      shinyjs::enable("download_emldown")
+      # shinyjs::enable("download_emldown")
     })
     
     # Bug report ----
@@ -199,34 +199,34 @@ MakeEML <- function(id, main.env) {
     label = "EAL9: bug report"
     )
 
-    # emldown ----
-    output$download_emldown <- downloadHandler(
-      filename = function() {
-        paste0(
-          main.env$save.variable$SelectDP$dp.name,
-          "_emldown.zip"
-        )
-      },
-      content = function(file) {
-        old.wd <- getwd()
-        setwd(paste0(main.env$save.variable$SelectDP$dp.path,"/emldown"))
-        
-        zip::zip(
-          zipfile = file,
-          files = dir(
-            paste0(
-              main.env$save.variable$SelectDP$dp.path,
-              "/emldown"
-            ),
-            # full.names = TRUE,
-            recursive = TRUE
-          )
-        )
-        
-        setwd(old.wd)
-      }
-    )
-    
+    # # emldown ----
+    # output$download_emldown <- downloadHandler(
+    #   filename = function() {
+    #     paste0(
+    #       main.env$save.variable$SelectDP$dp.name,
+    #       "_emldown.zip"
+    #     )
+    #   },
+    #   content = function(file) {
+    #     old.wd <- getwd()
+    #     setwd(paste0(main.env$save.variable$SelectDP$dp.path,"/emldown"))
+    #     
+    #     zip::zip(
+    #       zipfile = file,
+    #       files = dir(
+    #         paste0(
+    #           main.env$save.variable$SelectDP$dp.path,
+    #           "/emldown"
+    #         ),
+    #         # full.names = TRUE,
+    #         recursive = TRUE
+    #       )
+    #     )
+    #     
+    #     setwd(old.wd)
+    #   }
+    # )
+    # 
     # Post-end ====
     observe({
       req(main.env$EAL$page == 9)
@@ -249,17 +249,17 @@ MakeEML <- function(id, main.env) {
       )
       shinyjs::toggleState("publish", valid)
       
-      # Allow to access emldown or not
-      shinyjs::toggleState(
-        "download_emldown",
-        valid && 
-          file.exists(
-            paste0(
-              isolate(main.env$save.variable$SelectDP$dp.path),
-              "/emldown/emldown.html"
-            )
-          )
-      )
+      # # Allow to access emldown or not
+      # shinyjs::toggleState(
+      #   "download_emldown",
+      #   valid && 
+      #     file.exists(
+      #       paste0(
+      #         isolate(main.env$save.variable$SelectDP$dp.path),
+      #         "/emldown/emldown.html"
+      #       )
+      #     )
+      # )
       
     })
   })
