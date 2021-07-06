@@ -15,7 +15,7 @@ renderBibliography <- function(bib) {
   RefManageR::NoCite(.bib, "*")
 
   renderUI(
-    withProgress(message = "Loading bibtex ...", value = 0, {
+    withProgress(message = "Loading bibliography entry ...", value = 0, {
       HTML(
         paste(
           utils::capture.output(

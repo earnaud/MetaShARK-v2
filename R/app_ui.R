@@ -3,7 +3,7 @@
 #' @importFrom shinyjs useShinyjs inlineCSS hidden
 #' @importFrom shinyFeedback useShinyFeedback
 #' @importFrom htmltools includeCSS
-#' @importFrom shinydashboardPlus loadingState dashboardPagePlus dashboardHeaderPlus
+#' @importFrom shinydashboardPlus loadingState dashboardPage dashboardHeader
 #' 
 #' @noRd
 ui <- function() {
@@ -51,10 +51,10 @@ ui <- function() {
     shinyjs::hidden(
       div(
         id = "app-content",
-        shinydashboardPlus::dashboardPagePlus(
+        shinydashboardPlus::dashboardPage(
           title = "MetaShARK",
           ## Header ====
-          header = shinydashboardPlus::dashboardHeaderPlus(
+          header = shinydashboardPlus::dashboardHeader(
             title = tagList(
               span(
                 class = "logo-lg",
@@ -70,9 +70,7 @@ ui <- function() {
                 height = "40px"
               )
             ),
-            titleWidth = "250px",
-            enable_rightsidebar = TRUE,
-            rightSidebarIcon = "gears"
+            titleWidth = "250px"
           ),
           ## Menus ====
           ## * Tools ----
@@ -107,9 +105,7 @@ ui <- function() {
               tagList(
                 tags$hr(),
                 shinyjs::hidden(
-                  actionButton(
-                    "dev", "DEV CHECK"
-                  )
+                  actionButton("dev", "DEV CHECK")
                 ),
                 tags$p(uiOutput("version"))
               )
@@ -117,7 +113,7 @@ ui <- function() {
             width = "250px"
           ), # end sidebar
           # * Settings ----
-          rightsidebar = rightSidebarSettings(
+          controlbar = rightSidebarSettings(
             "settings"
           ),
           ## Content ====

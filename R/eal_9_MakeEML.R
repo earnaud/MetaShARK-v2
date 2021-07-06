@@ -64,7 +64,7 @@ MakeEMLUI <- function(id) {
 #' @importFrom shinyjs hide toggleState
 #' @importFrom EMLassemblyline template_arguments make_eml
 #' @importFrom EML eml_validate
-#' @importFrom emldown render_eml
+# @importFrom emldown render_eml
 #' @importFrom utils browseURL zip
 #'
 #' @noRd
