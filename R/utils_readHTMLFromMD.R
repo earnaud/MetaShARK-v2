@@ -10,7 +10,7 @@ readHTMLfromMD <- function(file) {
     to = "html",
     output = .tmp.file
   )
-  .out <- xml2::read_html(.tmp.file) %>% 
+  .out <- xml2::read_html(.tmp.file, encoding = "UTF-8") |> 
     textutils::HTMLdecode()
   .out <- ifelse(
     grepl(pattern = "<body>.*</body>", .out),
