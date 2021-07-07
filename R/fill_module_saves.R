@@ -148,7 +148,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
   return(.sv)
 }
 
-#' @importFrom dplyr filter select %>%
+#' @importFrom dplyr filter select
 #' @importFrom data.table fwrite
 #' 
 #' @noRd
@@ -164,9 +164,9 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
     names(content$md.tables),
     function(tablename) {
       # write filled tables
-      path <- .sv$DataFiles %>%
-        dplyr::filter(grepl(tablename, metadatapath)) %>%
-        dplyr::select(metadatapath) %>%
+      path <- .sv$DataFiles |>
+        dplyr::filter(grepl(tablename, metadatapath)) |>
+        dplyr::select(metadatapath) |>
         unlist()
       table <- content$md.tables[[tablename]]
       data.table::fwrite(table, path, sep = "\t")
@@ -339,7 +339,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
 }
 
 #' @importFrom data.table fwrite
-#' @importFrom dplyr %>% mutate
+#' @importFrom dplyr mutate
 #'
 #' @noRd
 .savePersonnel <- function(main.env){
@@ -367,7 +367,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
       lapply(seq(roles), function(ind) 
         .personnel <<- rbind(
           .personnel, 
-          row %>% dplyr::mutate(role = roles[ind])
+          row |> dplyr::mutate(role = roles[ind])
         )
       )
     })
@@ -391,7 +391,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
 #' @importFrom data.table fwrite
 #' @importFrom htmltools save_html HTML
 #' @importFrom rmarkdown pandoc_convert
-#' @importFrom dplyr %>% bind_rows
+#' @importFrom dplyr bind_rows
 #' 
 #' @noRd
 .saveMisc <- function(main.env){
@@ -443,7 +443,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
     row.ind <- which(content$keywords$keyword.thesaurus == kwt)
     
     data.frame(
-      keyword = strsplit(content$keywords$keyword[row.ind], ",") %>% 
+      keyword = strsplit(content$keywords$keyword[row.ind], ",") |> 
         unlist(),
       keyword.thesaurus = kwt # repeated as many times as necesary
     )

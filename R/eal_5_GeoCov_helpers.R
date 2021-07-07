@@ -1,7 +1,6 @@
 # Columns ====
 
 #' @importFrom stringr str_extract_all
-#' @importFrom dplyr %>%
 #' 
 #' @noRd
 extractCoordinates <- function(main.env, coord.cols, .pattern, files.data) {
@@ -16,11 +15,11 @@ extractCoordinates <- function(main.env, coord.cols, .pattern, files.data) {
   }
   
   # Extract proper coordinates
-  coordinates <- files.data[[coord.cols$file]][[coord.cols$col]] %>% # uniformize decimal separators
+  coordinates <- files.data[[coord.cols$file]][[coord.cols$col]] |> # uniformize decimal separators
     sapply(., gsub, pattern = ",", replacement = ".")
   coord.index <- which(grepl(.pattern, coordinates))
-  coordinates <- coordinates[coord.index] %>%
-    unname() %>%
+  coordinates <- coordinates[coord.index] |>
+    unname() |>
     as.numeric()
   
   if (!is.data.frame(coordinates)) {

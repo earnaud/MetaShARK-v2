@@ -1,7 +1,7 @@
 # UI ====
 
 #' @import shiny
-#' @importFrom dplyr %>% select filter
+#' @importFrom dplyr select filter
 #' @importFrom shinyBS bsCollapsePanel
 #'
 #' @noRd
@@ -10,8 +10,8 @@ CatVarsInputUI <- function(id, attribute, table.name, main.env) {
   # .file.name <- main.env$local.rv$current$file
   .tables <- main.env$local.rv$cv.tables
   
-  codes <- .tables[[table.name]] %>%
-    dplyr::filter(attributeName == attribute) %>%
+  codes <- .tables[[table.name]] |>
+    dplyr::filter(attributeName == attribute) |>
     dplyr::select(code)
   
   shinyBS::bsCollapsePanel(
@@ -20,10 +20,10 @@ CatVarsInputUI <- function(id, attribute, table.name, main.env) {
     ... = tagList(
       lapply(unlist(codes), function(.code) {
         # Correct value for NAs
-        .value <- .tables[[table.name]] %>%
-          dplyr::filter(attributeName == attribute & identical(code, .code)) %>%
-          dplyr::select(definition) %>%
-          unique() %>% 
+        .value <- .tables[[table.name]] |>
+          dplyr::filter(attributeName == attribute & identical(code, .code)) |>
+          dplyr::select(definition) |>
+          unique() |> 
           unlist()
         if (is.na(.code) || .code == "") {
           .code <- "NA"
@@ -48,7 +48,7 @@ CatVarsInputUI <- function(id, attribute, table.name, main.env) {
 # Server ====
 
 #' @import shiny
-#' @importFrom dplyr %>% select filter
+#' @importFrom dplyr select filter
 #'
 #' @noRd
 CatVarsInput <- function(id, attribute, table.name, main.env) {
@@ -56,8 +56,8 @@ CatVarsInput <- function(id, attribute, table.name, main.env) {
     # Shortcuts
     .tables <- main.env$local.rv$cv.tables
     
-    codes <- .tables[[table.name]] %>%
-      dplyr::filter(attributeName == attribute) %>%
+    codes <- .tables[[table.name]] |>
+      dplyr::filter(attributeName == attribute) |>
       dplyr::select(code)
     
     sapply(unlist(codes), function(.code) {
@@ -79,8 +79,8 @@ CatVarsInput <- function(id, attribute, table.name, main.env) {
         if(isTRUE(.valid)) {
           shinyFeedback::showFeedbackSuccess(input.id)
           # set value
-          main.env$local.rv$cv.tables[[table.name]] %>%
-            dplyr::filter(attributeName == attribute, code == .code) %>%
+          main.env$local.rv$cv.tables[[table.name]] |>
+            dplyr::filter(attributeName == attribute, code == .code) |>
             dplyr::mutate(definition = input[[input.id]])
         }
         else {

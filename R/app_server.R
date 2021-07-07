@@ -100,18 +100,17 @@ server <- function(input, output, session) {
   
   # Version ----
   output$version <- renderText({
-    dir(".", pattern = "MetaShARK_.*.tar.gz") %>%
+    dir(".", pattern = "MetaShARK_.*.tar.gz") |>
       gsub(pattern = "MetaShARK_(.*).tar.gz", replacement = "\\1")
   })
 }
 
-#' @importFrom dplyr %>% 
-#'
 #' @noRd
 listDP <- function(main.env) {
   list.files(
     main.env$PATHS$eal.dp,
     pattern = "_emldp$",
     full.names = FALSE
-  ) %>% gsub(pattern = "_emldp$", replacement = "")
+  ) |> 
+    gsub(pattern = "_emldp$", replacement = "")
 }

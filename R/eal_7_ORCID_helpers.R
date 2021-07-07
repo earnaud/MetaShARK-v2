@@ -241,7 +241,7 @@ orcid <- function(id, main.env) {
     # reso <- orcid$get(
     #   "signin/auth.json"
     # )
-    # cookie <- curl::handle_cookies(reso$handle) %>%
+    # cookie <- curl::handle_cookies(reso$handle) |>
     #   filter(name == "XSRF-TOKEN")
     #
     #

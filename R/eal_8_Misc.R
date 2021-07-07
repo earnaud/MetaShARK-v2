@@ -14,9 +14,9 @@ MiscUI <- function(id) {
   #     paste0(.metadata.path, "/keywords.txt"),
   #     data.table = FALSE, stringsAsFactors = FALSE
   #   )
-  #   keywords <- keywords$keyword %>%
-  #     strsplit(split = ",") %>%
-  #     unlist() %>%
+  #   keywords <- keywords$keyword |>
+  #     strsplit(split = ",") |>
+  #     unlist() |>
   #     paste(collapse = ",")
   # } else {
   #   keywords <- ""
@@ -146,8 +146,8 @@ Misc <- function(id, main.env) {
     observeEvent(input$keywords, {
       req(input$keywords)
       
-      main.env$local.rv$keywords$keyword <- unique(input$keywords) %>%
-        strsplit(",") %>%
+      main.env$local.rv$keywords$keyword <- unique(input$keywords) |>
+        strsplit(",") |>
         unlist()
       
       output$thesaurus <- renderUI({

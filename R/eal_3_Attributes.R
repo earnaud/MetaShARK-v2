@@ -54,7 +54,7 @@ AttributesUI <- function(id) {
               "Description of the attribute",
               value = "!Add description here!",
               resize = "both"
-            ) %>%
+            ) |>
               shiny::tagAppendAttributes(style = 'width: initial;'),
             # * class ----
             selectInput(
@@ -225,7 +225,7 @@ Attributes <- function(id, main.env) {
       # Disable temporarily next button
       main.env$EAL$completed <- FALSE
       # Update values
-      .row <- main.env$local.rv$md.tables[[selected.file()]] %>%
+      .row <- main.env$local.rv$md.tables[[selected.file()]] |>
         filter(attributeName == selected.attribute())
       # Set attributeDefinition
       updateTextAreaInput(
@@ -473,7 +473,7 @@ Attributes <- function(id, main.env) {
       
       input$unit
     },
-    label = "EAL3: unit input") %>%
+    label = "EAL3: unit input") |>
       debounce(1000, priority = -1) # let 1s blank time before getting input
     
     observe({
@@ -511,17 +511,17 @@ Attributes <- function(id, main.env) {
         )
       } else { # Custom unit
         # Check if currently worked unit is a custom one
-        saved <- main.env$local.rv$md.tables[[selected.file()]] %>%
-          filter(attributeName == selected.attribute()) %>%
-          select(unit) %>%
+        saved <- main.env$local.rv$md.tables[[selected.file()]] |>
+          filter(attributeName == selected.attribute()) |>
+          select(unit) |>
           unlist()
         # Set default value for input module
         if(isTRUE(saved %in% main.env$local.rv$custom.units$table$unit.id)) {
-          .values <- main.env$local.rv$custom.units$table %>%
-            dplyr::filter(id == saved) %>%
+          .values <- main.env$local.rv$custom.units$table |>
+            dplyr::filter(id == saved) |>
             unlist(use.names = T)
         } else { # New custom unit - empty UI
-          .values <- rep(NA, 5) %>%
+          .values <- rep(NA, 5) |>
             setNames(nm = names(main.env$local.rv$custom.units$table))
         }
         
@@ -612,7 +612,7 @@ Attributes <- function(id, main.env) {
     # Check if a custom unit has been removed
     observe({
       # Trigger observe
-      .row <- main.env$local.rv$md.tables[[selected.file()]] %>% 
+      .row <- main.env$local.rv$md.tables[[selected.file()]] |> 
         filter(attributeName == selected.attribute())
       # Get list of CU id
       .cuids <- main.env$local.rv$custom.units$table$id
@@ -738,11 +738,11 @@ Attributes <- function(id, main.env) {
         )
       )
       
-      main.env$local.rv$preview[[selected.file()]][[selected.attribute()]] %>%
-        as.character %>%
-        enc2utf8 %>%
-        as.data.frame %>%
-        unname
+      main.env$local.rv$preview[[selected.file()]][[selected.attribute()]] |>
+        as.character() |>
+        enc2utf8() |>
+        as.data.frame() |>
+        unname()
       # setNames(nm = "Data preview")
     })
     
@@ -790,10 +790,10 @@ Attributes <- function(id, main.env) {
       )
       
       # Update whole completeness
-      main.env$EAL$completed <- main.env$local.rv$completed %>%
-        listReactiveValues %>%
-        unlist %>%
-        all
+      main.env$EAL$completed <- main.env$local.rv$completed |>
+        listReactiveValues() |>
+        unlist() |>
+        all()
     },
     label = "EAL3: completeness",
     priority = -2)
@@ -806,12 +806,12 @@ Attributes <- function(id, main.env) {
       
       # If any problem, tell the user
       checked.attributes <- which(
-        !main.env$local.rv$completed %>%
-          listReactiveValues() %>%
-          unlist
-        ) %>%
-        names %>%
-        gsub(pattern = "\\.txt\\.", replacement = ".txt: ") %>%
+        !main.env$local.rv$completed |>
+          listReactiveValues() |>
+          unlist()
+        ) |>
+        names() |>
+        gsub(pattern = "\\.txt\\.", replacement = ".txt: ") |>
         paste(collapse = "\n", sep = "\n")
       if(checked.attributes != "")
         checked.attributes <- tagList(

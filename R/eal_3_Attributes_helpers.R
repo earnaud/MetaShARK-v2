@@ -22,14 +22,14 @@ buildAttributesTree <- function(main.env) {
               sticon="fa fa-table"
             )
           }
-        ) %>%
+        ) |>
           setNames(nm = .tables[[file.name]]$attributeName),
         stopened = TRUE,
         # sttype = "root",
         sticon = "fa fa-file"
         )
       }
-    ) %>% 
+    ) |> 
       setNames(nm = names(.tables))
   } else {
     list()
@@ -66,15 +66,15 @@ setUnitList <- function(main.env, set = NULL) {
   })
   # Correct value set for updates
   if(!is.null(set)) {
-    set <- set %>%
+    set <- set |>
       setNames(nm = names(out)[
         which(sapply(
           out,
           function(.ul) 
             set %in% .ul
         ))
-      ]) %>%
-      as.list
+      ]) |>
+      as.list()
   }
   
   # Output
@@ -208,14 +208,14 @@ customUnits <- function(id, main.env) {
         input$modal_parentSI,
         input$modal_multiplier,
         input$modal_description
-      ) %>%
+      ) |>
         setNames(nm = colnames(main.env$local.rv$custom.units$table))
       
       # CU table is exected to have been made reactive at savevariable_functions.R#392
       # Update CU values ...
       if (.values[1] %in% main.env$local.rv$custom.units$table$id) {
-        main.env$local.rv$custom.units$table <- main.env$local.rv$custom.units$table %>%
-          dplyr::filter(id = .values[1]) %>%
+        main.env$local.rv$custom.units$table <- main.env$local.rv$custom.units$table |>
+          dplyr::filter(id = .values[1]) |>
           base::replace(values = .values)
       } else { # ... or add CU values
         main.env$local.rv$custom.units$table[

@@ -113,7 +113,6 @@ templateModules <- function(main.env, page){
 }
 
 #' @import shiny
-#' @importFrom dplyr %>%
 #' @importFrom EMLassemblyline template_categorical_variables template_geographic_coverage
 #' 
 #' @noRd
@@ -190,12 +189,12 @@ templateModules <- function(main.env, page){
           tags$h3("Taxonomic coverage is being processed"),
           "Please wait until completion. This might take minutes.",
           "Selected authorities being queried:",
-          main.env$FORMATS$taxa.authorities %>%
-            filter(id == main.env$local.rv$taxa.authority) %>%
-            select(authority) %>%
-            unlist %>% 
-            lapply(tags$li) %>% 
-            tagList %>% 
+          main.env$FORMATS$taxa.authorities |>
+            filter(id == main.env$local.rv$taxa.authority) |>
+            select(authority) |>
+            unlist() |> 
+            lapply(tags$li) |> 
+            tagList() |> 
             tags$ul()
           
         ),

@@ -20,22 +20,22 @@ setDateSelection <- function(dates.sample){
   
   # Try to guess
   guessed.formats <- try({
-    sapply(dates.sample, guessDateTimeFormat) %>%
-      unlist %>% 
+    sapply(dates.sample, guessDateTimeFormat) |>
+      unlist |> 
       table
   })
   # If failed, return raw format choices
   if(class(guessed.formats) == "try-error")
     return(choices)
   guessed.formats <- guessed.formats[guessed.formats == max(guessed.formats)]
-  coded.finds <- names(guessed.formats) %>%
-    gsub(pattern = "YYYY", replacement = "YY") %>%
-    gsub(pattern = "-", replacement = "") %>%
-    gsub(pattern = "YY", replacement = "4") %>%
-    gsub(pattern = "MM", replacement = "5") %>%
-    gsub(pattern = "DD", replacement = "6") %>%
-    gsub(pattern = "hh", replacement = "3") %>%
-    gsub(pattern = "mm", replacement = "2") %>%
+  coded.finds <- names(guessed.formats) |>
+    gsub(pattern = "YYYY", replacement = "YY") |>
+    gsub(pattern = "-", replacement = "") |>
+    gsub(pattern = "YY", replacement = "4") |>
+    gsub(pattern = "MM", replacement = "5") |>
+    gsub(pattern = "DD", replacement = "6") |>
+    gsub(pattern = "hh", replacement = "3") |>
+    gsub(pattern = "mm", replacement = "2") |>
     gsub(pattern = "ss", replacement = "1")
   guessed.formats <- names(guessed.formats)[order(coded.finds, decreasing = TRUE)]
   choices <- list(
@@ -102,29 +102,29 @@ guessDateTimeFormat <- function(date) {
   out <- out[tokeep,]
   
   # format output
-  rev.types <- rev(types) %>% setNames(names(types))
+  rev.types <- rev(types) |> setNames(names(types))
   out <- sapply(1:nrow(out), function(ind) {
     row <- unlist(out[ind,])
     paste(row, collapse = "-")
-  }) %>% 
-    data.frame(stringsAsFactors = FALSE) %>%
+  }) |> 
+    data.frame(stringsAsFactors = FALSE) |>
     setNames(paste(compos, collapse = "-"))
   
   # set ordered results as first
   sorted <- sapply(1:nrow(out), function(ind) {
-    .out <- out[ind,] %>%
-      unlist %>% 
-      as.character %>%
-      strsplit("-") %>%
+    .out <- out[ind,] |>
+      unlist |> 
+      as.character |>
+      strsplit("-") |>
       unlist 
     any(
-      sapply(.out, function(i) types[i]) %>%
-        unname %>% 
-        is.unsorted() %>% 
+      sapply(.out, function(i) types[i]) |>
+        unname |> 
+        is.unsorted() |> 
         isFALSE,
-      sapply(.out, function(i) rev.types[i]) %>%
-        unname %>% 
-        is.unsorted() %>% 
+      sapply(.out, function(i) rev.types[i]) |>
+        unname |> 
+        is.unsorted() |> 
         isFALSE
     )
   })
@@ -132,7 +132,7 @@ guessDateTimeFormat <- function(date) {
     out <- data.frame(
       c(sort(out[sorted,]), sort(out[!sorted,])),
       stringsAsFactors = FALSE
-    ) %>%
+    ) |>
       setNames(paste(compos, collapse = "-"))
   }
   

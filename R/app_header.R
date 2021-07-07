@@ -1,7 +1,6 @@
 #' @import shiny
 #' @importFrom EML get_unitList
 #' @importFrom data.table fread
-#' @importFrom dplyr %>%
 #'
 #' @noRd
 .globalScript <- function(.args = list(dev = FALSE, wip = FALSE), envir) {
@@ -17,8 +16,8 @@
   assign("wip", .args$wip, main.env)
 
   # Paths ====
-  wwwPaths <- system.file("resources", package = "MetaShARK") %>%
-    paste(., dir(.), sep = "/") %>%
+  wwwPaths <- system.file("resources", package = "MetaShARK") |>
+    paste(., dir(.), sep = "/") |>
     as.list()
   names(wwwPaths) <- basename(unlist(wwwPaths))
   PATHS <- reactiveValues(
@@ -37,7 +36,7 @@
   
   if (isTRUE(file.exists(isolate(PATHS$eal.dp.index)))) {
     DP.LIST <- data.table::fread(isolate(PATHS$eal.dp.index), sep = "\t")
-    DP.LIST$path <- DP.LIST$path %>%
+    DP.LIST$path <- DP.LIST$path |>
       gsub("//+", "/", .)
   } else {
     DP.LIST <- data.frame(
@@ -48,7 +47,7 @@
       stringsAsFactors = FALSE
     )
     # Fill DP.LIST for first-time runs
-    .files <- dir(isolate(PATHS$eal.dp), full.names = TRUE) %>%
+    .files <- dir(isolate(PATHS$eal.dp), full.names = TRUE) |>
       gsub(pattern = "//", replacement = "/")
     if(length(.files) > 0) {
       sapply(.files, function(.file) {
@@ -56,10 +55,10 @@
           sprintf(
             "%s/%s.json", 
             .file, 
-            basename(.file) %>%
+            basename(.file) |>
               gsub(pattern = "_emldp$", replacement = "")
           )
-        )[[1]] %>%
+        )[[1]] |>
           jsonlite::unserializeJSON()
         
         .row <- c(
@@ -79,7 +78,7 @@
     isolate(main.env$PATHS$eal.dp),
     pattern = "_emldp$",
     full.names = TRUE
-  ) %>% gsub("//+", "/", .)
+  ) |> gsub("//+", "/", .)
   DP.LIST <- dplyr::filter(DP.LIST, path %in% .actual.index)
 
   data.table::fwrite(DP.LIST, isolate(PATHS$eal.dp.index), sep = "\t")

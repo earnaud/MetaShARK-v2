@@ -56,7 +56,6 @@ GeoCovUI <- function(id) {
 #' @import shiny
 #' @importFrom shinyWidgets updateMaterialSwitch
 #' @importFrom shinyjs toggle
-#' @importFrom dplyr %>% 
 #'
 #' @noRd
 GeoCov <- function(id, main.env) {
@@ -176,8 +175,8 @@ GeoCov <- function(id, main.env) {
         main.env$local.rv$columns$site$col <- ""
         main.env$local.rv$columns$site$file <- ""
       } else {
-        .tmp <- input$site %>%
-          strsplit(., "/", TRUE) %>%
+        .tmp <- input$site |>
+          strsplit(., "/", TRUE) |>
           unlist()
         main.env$local.rv$columns$site$col <- .tmp[2]
         main.env$local.rv$columns$site$file <- 
@@ -200,8 +199,8 @@ GeoCov <- function(id, main.env) {
         main.env$local.rv$columns$lat$col <- ""
         main.env$local.rv$columns$lat$file <- ""
       } else {
-        .tmp <- input$latitude %>%
-          strsplit(., "/", TRUE) %>%
+        .tmp <- input$latitude |>
+          strsplit(., "/", TRUE) |>
           unlist()
         main.env$local.rv$columns$lat$col <- .tmp[2]
         main.env$local.rv$columns$lat$file <-
@@ -225,8 +224,8 @@ GeoCov <- function(id, main.env) {
         main.env$local.rv$columns$lon$col <- ""
         main.env$local.rv$columns$lon$file <- ""
       } else {
-        .tmp <- input$longitude %>%
-          strsplit(., "/", TRUE) %>%
+        .tmp <- input$longitude |>
+          strsplit(., "/", TRUE) |>
           unlist()
         main.env$local.rv$columns$lon$col <- .tmp[2]
         main.env$local.rv$columns$lon$file <-

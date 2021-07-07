@@ -149,7 +149,7 @@ uploadUI <- function(id) {
 #' @param main.env inner global environment
 #'
 #' @import shiny
-#' @importFrom dplyr filter select %>%
+#' @importFrom dplyr filter select
 #' @importFrom shinyjs enable disable click
 #' @importFrom data.table fread fwrite
 #' @importFrom mime guess_type
@@ -170,8 +170,8 @@ upload <- function(id, main.env) {
     
     memberNode <- reactive({
       if (endpoint() != "Other") {
-        registeredEndpoints %>%
-          dplyr::filter(mn == endpoint()) %>%
+        registeredEndpoints |>
+          dplyr::filter(mn == endpoint()) |>
           dplyr::select(URL)
       } else {
         input$other_endpoint
@@ -234,8 +234,8 @@ upload <- function(id, main.env) {
     
     observeEvent(input$DP, {
       .dir <- gsub("/+", "/", input$DP)
-      .id <- basename(.dir) %>% sub("_emldp$", "", .)
-      .eml.files <- sprintf("%s/%s/eml", .dir, .id) %>%
+      .id <- basename(.dir) |> sub("_emldp$", "", .)
+      .eml.files <- sprintf("%s/%s/eml", .dir, .id) |>
         dir(full.names = TRUE)
       rv$md <- data.frame(
         name = basename(.eml.files),
@@ -244,7 +244,7 @@ upload <- function(id, main.env) {
         datapath = .eml.files
       )
       
-      .data.files <- sprintf("%s/%s/data_objects", .dir, .id) %>%
+      .data.files <- sprintf("%s/%s/data_objects", .dir, .id) |>
         dir(full.names = TRUE)
       rv$data <- data.frame(
         name = basename(.data.files),
@@ -358,19 +358,19 @@ upload <- function(id, main.env) {
     observeEvent(input$process, {
       disable("process")
       
-      md.format <- EML::read_eml(as.character(rv$md$datapath))$schemaLocation %>%
-        strsplit(split = " ") %>%
-        unlist() %>%
+      md.format <- EML::read_eml(as.character(rv$md$datapath))$schemaLocation |>
+        strsplit(split = " ") |>
+        unlist() |>
         utils::head(n = 1)
 
       out <- uploadDP(
-        mn = registeredEndpoints %>%
-          dplyr::filter(mn == endpoint()) %>%
-          dplyr::select(URL) %>%
+        mn = registeredEndpoints |>
+          dplyr::filter(mn == endpoint()) |>
+          dplyr::select(URL) |>
           as.character(),
-        cn = registeredEndpoints %>%
-          dplyr::filter(mn == endpoint()) %>%
-          dplyr::select(cn) %>%
+        cn = registeredEndpoints |>
+          dplyr::filter(mn == endpoint()) |>
+          dplyr::select(cn) |>
           as.character(),
         token = list(
           test = main.env$SETTINGS$metacat.test,

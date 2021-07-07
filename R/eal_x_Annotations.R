@@ -87,7 +87,7 @@ annotations <- function(id, label, main.env) {
 #'         actionButton(
 #'           NS(id, "insert"),
 #'           "New annotation"
-#'         ) %>% disabled
+#'         ) |> disabled
 #'       )
 #'     )
 #'
@@ -274,7 +274,7 @@ annotations <- function(id, label, main.env) {
 #'     onclick(rmv_id, {
 #'       # unload the RV
 #'       ind <- match(ref, rv$Personnel$id)
-#'       rv$Personnel <- rv$Personnel %>% slice(-ind)
+#'       rv$Personnel <- rv$Personnel |> slice(-ind)
 #'
 #'       # remove the UI
 #'       removeUI(selector = paste0("#", site_id), immediate = TRUE)

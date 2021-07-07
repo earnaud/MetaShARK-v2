@@ -62,7 +62,7 @@ wipRow <- function(...) {
 }
 
 unns <- function(id) {
-  strsplit(id, "-") %>% unlist %>% tail(., 1)
+  strsplit(id, "-") |> unlist() |> tail(., 1)
 }
 
 #' @title checkFeedback

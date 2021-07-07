@@ -17,9 +17,9 @@ customGeoCov <- function(id, additional_arguments) {
   moduleServer(id, function(input, output, session) {
     
     output$leaflet <- renderLeaflet({
-      leaflet() %>% 
-        addTiles() %>%
-        leaflet::removeShape(session$ns("area")) %>%
+      leaflet() |> 
+        addTiles() |>
+        leaflet::removeShape(session$ns("area")) |>
         leaflet::addRectangles(
           input$longitude[1],
           input$latitude[1],
