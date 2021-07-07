@@ -14,6 +14,7 @@
 #' arguments provided as a list (empty list by default).
 #' 
 #' FIXME finish this module
+#' @import shiny.grid
 insertModuleBox <- function(
   id, name = NULL, selector, 
   moduleUI, moduleUI.args = list(), 
@@ -35,7 +36,7 @@ insertModuleBox <- function(
     class = "inputBox",
     shiny.grid::gridPanel(
       class = "topInputRow",
-      areas = c("collapse name remove"),
+      areas = c("collapse collapse remove"),
       columns = c("50px 1fr 50px"),
       
       # Collapse
