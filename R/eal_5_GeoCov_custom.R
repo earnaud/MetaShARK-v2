@@ -1,32 +1,36 @@
-customGeoCov_UI <- function(id, lat = c(0,0), lon = c(0,0)) {
+customGeoCov_UI <- function(id, lat = c(30,60), lon = c(-15,35)) {
   ns <- NS(id)
-  fluidRow(
-    column(
-      5,
-      shiny::sliderInput(ns("latitude"), "Latitude", min = -90, max = 90, value = lat),
-      shiny::sliderInput(ns("longitude"), "Longitude", min = -180, max = 180, value = lon)
-    ),
-    column(
-      7,
-      leaflet::leafletOutput(ns("leaflet"))
-    )
+  
+  tagList(
+    shinyWidgets::numericRangeInput(ns("latitude"), "Latitude", value = lat),
+    shinyWidgets::numericRangeInput(ns("longitude"), "Longitude", value = lon),
+    colorPickerInput(ns("color"))
+    #, column(
+    #   7,
+    #   leaflet::leafletOutput(ns("leaflet"))
+    # )
   )
 }
 
-customGeoCov <- function(id, additional_arguments) {
+customGeoCov <- function(id) {
   moduleServer(id, function(input, output, session) {
-    
-    output$leaflet <- renderLeaflet({
-      leaflet() |> 
-        addTiles() |>
-        leaflet::removeShape(session$ns("area")) |>
-        leaflet::addRectangles(
-          input$longitude[1],
-          input$latitude[1],
-          input$longitude[2],
-          input$latitude[2],
-          layerId = session$ns("area")
-        )
-    })
+   
   })
+}
+
+#' @importFrom scales brewer_pal
+colorPickerInput <- function(inputId) {
+  shinyWidgets::spectrumInput(
+    inputId = inputId,
+    label = "Pick a color:",
+    choices = list(
+      list('black', 'white', 'blanchedalmond', 'steelblue', 'forestgreen'),
+      as.list(brewer_pal(palette = "Blues")(9)),
+      as.list(brewer_pal(palette = "Greens")(9)),
+      as.list(brewer_pal(palette = "Spectral")(11)),
+      as.list(brewer_pal(palette = "Dark2")(8))
+    ),
+    selected = "#03F",
+    options = list(`toggle-palette-more-text` = "Show more")
+  )
 }
