@@ -21,8 +21,8 @@ setDateSelection <- function(dates.sample){
   # Try to guess
   guessed.formats <- try({
     sapply(dates.sample, guessDateTimeFormat) |>
-      unlist |> 
-      table
+      unlist() |> 
+      table()
   })
   # If failed, return raw format choices
   if(class(guessed.formats) == "try-error")
@@ -113,19 +113,19 @@ guessDateTimeFormat <- function(date) {
   # set ordered results as first
   sorted <- sapply(1:nrow(out), function(ind) {
     .out <- out[ind,] |>
-      unlist |> 
-      as.character |>
+      unlist() |> 
+      as.character() |>
       strsplit("-") |>
-      unlist 
+      unlist() 
     any(
       sapply(.out, function(i) types[i]) |>
-        unname |> 
+        unname() |> 
         is.unsorted() |> 
-        isFALSE,
+        isFALSE(),
       sapply(.out, function(i) rev.types[i]) |>
-        unname |> 
+        unname() |> 
         is.unsorted() |> 
-        isFALSE
+        isFALSE()
     )
   })
   if(any(sorted)){
