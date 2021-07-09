@@ -439,6 +439,13 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
   removeDuplicateFiles(content$methods$file)
   
   # keywords ----
+  # Merge NA thesaurus with "" thesaurus
+  content$keywords$keyword.thesaurus <- replace(
+    content$keywords$keyword.thesaurus, 
+    which(is.na(content$keywords$keyword.thesaurus)),
+    ""
+  )
+  # build keywords data.frame
   .tmp <- lapply(unique(content$keywords$keyword.thesaurus), function(kwt) {
     row.ind <- which(content$keywords$keyword.thesaurus == kwt)
     

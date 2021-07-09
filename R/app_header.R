@@ -16,8 +16,8 @@
   assign("wip", .args$wip, main.env)
 
   # Paths ====
-  wwwPaths <- system.file("resources", package = "MetaShARK") |>
-    paste(., dir(.), sep = "/") |>
+  wwwPaths <- system.file("resources", package = "MetaShARK")
+  wwwPaths <- paste(wwwPaths, dir(wwwPaths), sep = "/") |>
     as.list()
   names(wwwPaths) <- basename(unlist(wwwPaths))
   PATHS <- reactiveValues(
@@ -37,7 +37,7 @@
   if (isTRUE(file.exists(isolate(PATHS$eal.dp.index)))) {
     DP.LIST <- data.table::fread(isolate(PATHS$eal.dp.index), sep = "\t")
     DP.LIST$path <- DP.LIST$path |>
-      gsub("//+", "/", .)
+      gsub(pattern = "//+", replacement = "/")
   } else {
     DP.LIST <- data.frame(
       creator.orcid = character(),
@@ -78,7 +78,7 @@
     isolate(main.env$PATHS$eal.dp),
     pattern = "_emldp$",
     full.names = TRUE
-  ) |> gsub("//+", "/", .)
+  ) |> gsub(pattern = "//+", replacement = "/")
   DP.LIST <- dplyr::filter(DP.LIST, path %in% .actual.index)
 
   data.table::fwrite(DP.LIST, isolate(PATHS$eal.dp.index), sep = "\t")
