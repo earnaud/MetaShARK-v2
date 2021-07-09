@@ -64,7 +64,7 @@ welcomeUI <- function(id) {
           4,
           tags$h3("Authorship"),
           tags$p(
-            HTML("The `EML Assembly Line` package used in this module and its
+            HTML("The `EML Assembly Line` package used in this app and its
             children is the intellectual property of the Environment Data 
             Initiative (EDI). You can find further details on their 
             <a href=https://github.com/EDIorg/EMLassemblyline>git repository</a>.")
@@ -73,7 +73,19 @@ welcomeUI <- function(id) {
             src = "media/edi_logo_small.png",
             width = "100px",
             height = "100px"
+          ),
+          tags$p(
+            HTML("The `MetaShARK` package is written and maintained by the French
+                 National Biodiversity Data Hub (PNDB). You can interact with the 
+                 development team on their
+                 <a href=https://github.com/earnaud/MetaShARK-v2>git repository</a>.")
+          ),
+          tags$img(
+            src = "media/logo_pndb.png",
+            width = "139px",
+            height = "104px"
           )
+          
         ),
         column(
           8,
