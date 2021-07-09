@@ -15,7 +15,7 @@ welcomeUI <- function(id) {
             with this color code are not meant to be fully functional.")
         ),
         column(
-          4,
+          6,
           tags$h3("MetaShARK"),
           tags$p(
             tags$b("MetaShARK"), HTML("(<b>Meta</b>data 
@@ -27,11 +27,22 @@ welcomeUI <- function(id) {
             in metadata for its dataset to permit the understanding, resusability
             and reproducibility of his work. But as metadata is becoming more and
             more complex, this tool is trying to get as <i>user-friendly</i> as
-            possible.")
+            possible."),
+            tags$p(
+              HTML("`MetaShARK` is written and maintained by the French
+                 National Biodiversity Data Hub (PNDB). You can interact with the 
+                 development team on their
+                 <a href=https://github.com/earnaud/MetaShARK-v2>git repository</a>.")
+            ),
+            tags$img(
+              src = "media/logo_pndb.png",
+              width = "139px",
+              height = "104px"
+            )
           )
         ),
         column(
-          4,
+          3,
           tags$h3("EML"),
           tags$p(
             "The", tags$b("Ecological Metadata Language"), HTML("has been 
@@ -44,7 +55,7 @@ welcomeUI <- function(id) {
           )
         ),
         column(
-          4,
+          3,
           tags$h3("MetaCat & MetaShark"),
           tags$p(
             HTML("The application you are currently using is a front-end
@@ -73,19 +84,7 @@ welcomeUI <- function(id) {
             src = "media/edi_logo_small.png",
             width = "100px",
             height = "100px"
-          ),
-          tags$p(
-            HTML("The `MetaShARK` package is written and maintained by the French
-                 National Biodiversity Data Hub (PNDB). You can interact with the 
-                 development team on their
-                 <a href=https://github.com/earnaud/MetaShARK-v2>git repository</a>.")
-          ),
-          tags$img(
-            src = "media/logo_pndb.png",
-            width = "139px",
-            height = "104px"
           )
-          
         ),
         column(
           8,
