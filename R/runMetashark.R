@@ -39,6 +39,8 @@
 #' 
 #' @import shiny
 #' 
+#' @include about_module_functions.R about_module.R app_header.R app_server.R app_ui.R clean_modules.R documentation_module.R eal_1_SelectDP.R eal_2_DataFiles_helpers.R eal_2_DataFiles.R eal_3_Attributes_dates.R eal_3_Attributes_helpers.R eal_3_Attributes.R eal_4_CatVars_helpers.R eal_4_CatVars.R eal_5_GeoCov_custom.R eal_5_GeoCov_helpers.R eal_5_GeoCov.R eal_6_TaxCov.R eal_7_ORCID_helpers.R eal_7_Personnel_helpers.R eal_7_Personnel.R eal_7_roleInput.R eal_8_Misc_helpers.R eal_8_Misc.R eal_9_MakeEML.R eal_x_Annotations_helpers.R eal_x_Annotations.R fill_module_saves.R fill_module_setup.R fill_module.R fill_pages.R metafin.R runMetashark.R settings_rightSideBar.R template_functions.R upload_module_functions.R upload_module.R utils_additional_HTML.R utils_collapsible.R utils_devmsg.R utils_followPath.R utils_grep.R utils_insertModule.R utils_insertModuleBox.R utils_isContentTruthy.R utils_listReactiveValues.R utils_listToStructure.R utils_listToXML.R utils_reactiveDirReader.R utils_reactiveTrigger.R utils_readDataTable.R utils_readHTMLFromMD.R utils_readPlaintext.R utils_rebuild.R utils_URL_Input.R utils_writeText.R utils_xml_handling.R welcome_module.R
+#' 
 #' @export
 runMetashark <- function(...) {
 
