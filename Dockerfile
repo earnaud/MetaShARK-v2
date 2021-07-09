@@ -1,4 +1,4 @@
-FROM rocker/shiny:3.6.3
+FROM rocker/shiny:4.1.0
 
 RUN apt update --fix-missing -y \
     && apt upgrade -y \
