@@ -87,11 +87,15 @@ TaxCov <- function(id, main.env) {
       
       file <- main.env$save.variable$DataFiles$datapath |>
         as.data.frame() |>
-        dplyr::filter(grepl(main.env$local.rv$taxa.table, .)) |>
+        setNames(nm = "filenames")
+      file <- dplyr::filter(
+        file,
+        grepl(pattern = main.env$local.rv$taxa.table, filenames)
+      ) |>
         unlist()
+      
       data <- data.table::fread(
-        file, 
-        nrows = 5,
+        file, nrows = 5,
         data.table = FALSE
       )[main.env$local.rv$taxa.col]
       
@@ -145,7 +149,7 @@ TaxCov <- function(id, main.env) {
       {
         # save
         .tmp <- input$taxa.table |> 
-          strsplit(., split = "/", fixed = TRUE) |>
+          strsplit(split = "/", fixed = TRUE) |>
           unlist()
         main.env$local.rv$taxa.table <- .tmp[1]
         main.env$local.rv$taxa.col <- .tmp[2]

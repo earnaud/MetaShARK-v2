@@ -30,19 +30,39 @@ MakeEMLUI <- function(id) {
         tags$br(),
         fluidRow(
           column(
-            6, offset = 3,
-            tags$div(
-              id = "publish",
-              tags$h4("Publish data package"),
-              "You can head to the Upload tab and publish 
-                your data package to a metacat repository.",
-              shinyjs::disabled(actionButton(
-                NS(id, "publish"),
-                "Publish",
-                icon("file-export")
-              ))
+            6, #offset = 3,
+            wipRow(
+              tags$div(
+                id = "publish",
+                tags$h4("Publish data package"),
+                "You can head to the Upload tab and publish 
+                your data package to a metacat repository."
+              ),
+              shinyjs::disabled(
+                actionButton(
+                  NS(id, "publish"),
+                  "Publish",
+                  icon("file-export")
+                )
+              )
             )
-          )
+          ),
+          column(
+            6,
+            tags$div(
+              tags$h4("Download your data package"),
+              "Get a local version containing MetaShARK files, EML Assembly Lines 
+              templates and the written metadata at xml format. Compressed in a zip
+              archive."
+            ),
+            shinyjs::disabled(
+              downloadButton(
+                NS(id, "download_data_package"),
+                "Download Data Package",
+                width = "50%"
+              )
+            )
+          ) # End of DP download 
           # , column(
           #   6,
           #   tags$h4("Generate a summary"),
@@ -90,7 +110,7 @@ MakeEML <- function(id, main.env) {
         {
           . <- main.env$save.variable
           fileName <- .$SelectDP$dp.title
-
+          
           x <- try(
             EMLassemblyline::template_arguments(
               path = .$SelectDP$dp.metadata.path,
@@ -98,14 +118,14 @@ MakeEML <- function(id, main.env) {
               data.table = dir(.$SelectDP$dp.data.path)
             )
           )
-
+          
           if (class(x) == "try-error") {
             out <- x
             out[1] <- paste("Upon templating arguments: ", x)
             incProgress(0.9)
           } else {
             incProgress(0.3)
-
+            
             x$path <- .$SelectDP$dp.metadata.path
             x$data.path <- .$SelectDP$dp.data.path
             x$eml.path <- .$SelectDP$dp.eml.path
@@ -132,9 +152,9 @@ MakeEML <- function(id, main.env) {
             x$package.id = x$dataset.title # is set as UUID (default)
             x$write.file <- TRUE
             x$return.obj <- TRUE
-
+            
             incProgress(0.2)
-
+            
             # Remove potential file before re-writing
             file.remove(
               dir(
@@ -182,13 +202,14 @@ MakeEML <- function(id, main.env) {
     },
     label = "EAL9: make eml"
     )
-
+    
     # already written ----
     observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page == 9)
       req(isTRUE(main.env$local.rv$eml.written))
       
       shinyjs::enable("publish")
+      shinyjs::enable("download_data_package")
       # shinyjs::enable("download_emldown")
     })
     
@@ -198,7 +219,29 @@ MakeEML <- function(id, main.env) {
     },
     label = "EAL9: bug report"
     )
-
+    
+    # Download Data Package ----
+    output$download_data_package <- downloadHandler(
+      filename = function() {
+        paste0(main.env$save.variable$SelectDP$dp.name, ".zip")
+      },
+      content = function(file) {
+        old.wd <- getwd()
+        setwd(main.env$save.variable$SelectDP$dp.path)
+        
+        zip::zip(
+          zipfile = file,
+          files = dir(
+            main.env$save.variable$SelectDP$dp.path,
+            # full.names = TRUE,
+            recursive = TRUE
+          )
+        )
+        
+        setwd(old.wd)
+      }
+    )
+    
     # # emldown ----
     # output$download_emldown <- downloadHandler(
     #   filename = function() {
@@ -248,6 +291,7 @@ MakeEML <- function(id, main.env) {
         )
       )
       shinyjs::toggleState("publish", valid)
+      shinyjs::toggleState("download_data_package", valid)
       
       # # Allow to access emldown or not
       # shinyjs::toggleState(

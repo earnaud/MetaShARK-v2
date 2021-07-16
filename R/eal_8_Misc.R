@@ -6,22 +6,6 @@
 MiscUI <- function(id) {
   ns <- NS(id)
   
-  #FIXME set this to server with an update*
-  # .metadata.path <- isolate(main.env$save.variable$SelectDP$dp.metadata.path)
-  # 
-  # if (file.exists(paste0(.metadata.path, "/keywords.txt"))) {
-  #   keywords <- data.table::fread(
-  #     paste0(.metadata.path, "/keywords.txt"),
-  #     data.table = FALSE, stringsAsFactors = FALSE
-  #   )
-  #   keywords <- keywords$keyword |>
-  #     strsplit(split = ",") |>
-  #     unlist() |>
-  #     paste(collapse = ",")
-  # } else {
-  #   keywords <- ""
-  # }
-  
   return(
     fluidPage(
       HTML("

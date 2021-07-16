@@ -176,7 +176,7 @@ GeoCov <- function(id, main.env) {
         main.env$local.rv$columns$site$file <- ""
       } else {
         .tmp <- input$site |>
-          strsplit(., "/", TRUE) |>
+          strsplit("/", TRUE) |>
           unlist()
         main.env$local.rv$columns$site$col <- .tmp[2]
         main.env$local.rv$columns$site$file <- 
@@ -200,7 +200,7 @@ GeoCov <- function(id, main.env) {
         main.env$local.rv$columns$lat$file <- ""
       } else {
         .tmp <- input$latitude |>
-          strsplit(., "/", TRUE) |>
+          strsplit("/", TRUE) |>
           unlist()
         main.env$local.rv$columns$lat$col <- .tmp[2]
         main.env$local.rv$columns$lat$file <-
@@ -225,7 +225,7 @@ GeoCov <- function(id, main.env) {
         main.env$local.rv$columns$lon$file <- ""
       } else {
         .tmp <- input$longitude |>
-          strsplit(., "/", TRUE) |>
+          strsplit("/", TRUE) |>
           unlist()
         main.env$local.rv$columns$lon$col <- .tmp[2]
         main.env$local.rv$columns$lon$file <-

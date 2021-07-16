@@ -8,6 +8,12 @@ fillUI <- function(id) {
       "EAL",
       fluidPage(
         style = "padding-top:2.5%;",
+        # App business spinner
+        shinybusy::add_busy_spinner(
+          spin = "spring",
+          position = "bottom-left",
+          color = "#3c8dbc"
+        ),
         # * Top row ----
         tags$span(
           fluidRow(

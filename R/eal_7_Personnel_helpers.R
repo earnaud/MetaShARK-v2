@@ -193,7 +193,6 @@ PersonnelInput <- function(id, main.env) {
     # Toggle PI fields
     observeEvent(input$`role-role`, {
       req(main.env$EAL$page == 7)
-      #FIXME toggle bugs here, no idea why      
       if("PI" %grep% main.env$local.rv$Personnel$role[row()])
         shinyjs::show("PI") else
           shinyjs::hide("PI")
@@ -212,8 +211,8 @@ PersonnelInput <- function(id, main.env) {
         main.env$local.rv$Personnel$surName[row()],
         collapse = " "
       ) |>
-        gsub(" +", " ", x = .) |>
-        gsub("^ +$", "", x = .)
+        gsub(pattern = " +", replacement =  " ") |>
+        gsub(pattern = "^ +$", replacement = "")
       
       validate(
         need(.name != "", "No provided name")

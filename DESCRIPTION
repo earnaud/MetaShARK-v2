@@ -69,6 +69,7 @@ VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)
 Collate: 
+    'DataFiles_helpers2.R'
     'about_module.R'
     'about_module_functions.R'
     'app_header.R'

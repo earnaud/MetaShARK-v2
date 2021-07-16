@@ -38,9 +38,13 @@ buildAttributesTree <- function(main.env) {
 
 #' @noRd
 replaceValue <- function(table, attribute.name, field, new.value) {
-  row <- which(table$attributeName == attribute.name)
-  col <- field
-  table[row, col] <- new.value
+  
+  x <- try({
+    row <- which(table$attributeName == attribute.name)
+    col <- field
+    table[row, col] <- new.value
+  })
+  
   return(table)
 }
 

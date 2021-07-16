@@ -12,6 +12,9 @@ ui <- function() {
   
   # prepare variable
   .menu.width <- "250px"
+  # ShinyJS extension -- unused
+  # From: https://community.rstudio.com/t/where-is-updatefileinput/11999/4
+  # jsCode = "shinyjs.clearUpload = function() $('#upload').parent().parent().next()[0].value = ''}"
   
   tagList(
     shinyjs::useShinyjs(),

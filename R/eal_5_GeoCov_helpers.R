@@ -16,7 +16,7 @@ extractCoordinates <- function(main.env, coord.cols, .pattern, files.data) {
   
   # Extract proper coordinates
   coordinates <- files.data[[coord.cols$file]][[coord.cols$col]] |> # uniformize decimal separators
-    sapply(., gsub, pattern = ",", replacement = ".")
+    sapply(gsub, pattern = ",", replacement = ".")
   coord.index <- which(grepl(.pattern, coordinates))
   coordinates <- coordinates[coord.index] |>
     unname() |>

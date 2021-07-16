@@ -7,24 +7,24 @@
 #' 
 #' @param id The id to use for the modules. If you call `insertModule` from another
 #' module, make sure `id` is namespaced. 
+#' @param selector A JS selector targetting the element after which the UI shall
+#' be inserted (see `shiny::insertUI`).
 #' @param moduleUI,moduleUI.args The module UI definition and its arguments OTHER
 #' THAN `inputID`. Prepare them to be input in a `do.call` call.
 #' @param module,module.args The module server definition and its arguments OTHER
 #' THAN `inputID`. Prepare them to be input in a `do.call` call.
-#' @param selector A JS selector targetting the element after which the UI shall
-#' be inserted (see `shiny::insertUI`).
 #' @param ui.class,ui.style CSS class and style to be applied to the module UI
 #' container.
 #' 
 #' @export
 insertModule <- function(
   id, selector,
-  moduleUI, moduleUI.args, 
-  module, module.args,
+  moduleUI, moduleUI.args = list(), 
+  module, module.args = list(),
   ui.class = NULL,
   ui.style = "border: 1px solid lightgrey; border-radius: 10px; padding: 3px;
 	margin: 3px;"
-  ) {
+) {
   stopifnot(is.function(moduleUI))
   stopifnot(is.list(moduleUI.args))
   stopifnot(is.function(module))
@@ -40,20 +40,21 @@ insertModule <- function(
     id = NS(id, "container"),
     class = ui.class,
     style = ui.style,
-    shiny.grid::gridPanel(
-      areas = c("content remove"),
-      rows = c("1fr"),
-      columns = c("1fr 50px"),
-      # inserted module
-      div(
-        do.call(moduleUI, c(id, moduleUI.args)),
-        class = "content"
-      ),
+    tags$span(
+      # class = "content",
+      style="margin: 0 5px 0; display: inline-flex; width: 100%;",
+      do.call(moduleUI, c(id, moduleUI.args)),
       # removal button
-      div(
-        actionButton(NS(id, "remove_module"), "", icon = icon("trash")),
-        class = "remove"
-      )
+      tags$div(
+        style="height: min-content; padding: 7px;",
+        actionButton(
+          NS(id, "remove_module"), 
+          "",
+          icon = icon("trash"),
+          class = "redButton"
+        )
+      ),
+      class = "remove"
     )
   )
   
@@ -61,9 +62,9 @@ insertModule <- function(
   insertUI(selector = selector, ui = new.ui, immediate = TRUE)
   
   # create the server
-  do.call(module, c(id, module.args))
+  do.call(module, c(.id, module.args))
   do.call(
-    args = list(id = id),
+    args = list(id = .id),
     function(id) {
       moduleServer(id, function(input, output, session) {
         message(sprintf("Looking for %s removal", session$ns("container")))

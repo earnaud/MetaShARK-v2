@@ -8,7 +8,8 @@
   if(any(toset)) options(op.metashark[toset])
 
   # increase shiny file input limit size to 100 MB
-  options(shiny.maxRequestSize = 100*1024^2)
+  options(shiny.maxRequestSize = 100*(1024^2))
+  options(shiny.deprecation.messages=FALSE)
   
   # Required packages
   invisible(require("shinyBS"))

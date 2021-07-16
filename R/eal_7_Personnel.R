@@ -96,7 +96,7 @@ Personnel <- function(id, main.env) {
       .roles <- if(isTruthy(main.env$local.rv$Personnel$role))
         table(
           .tmp <- main.env$local.rv$Personnel$role |>
-            strsplit(., ",") |>
+            strsplit(split = ",") |>
             unlist()
         ) else
           c()

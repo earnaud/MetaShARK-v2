@@ -8,9 +8,9 @@ insertModule(
   id,
   selector,
   moduleUI,
-  moduleUI.args,
+  moduleUI.args = list(),
   module,
-  module.args,
+  module.args = list(),
   ui.class = NULL,
  
     ui.style = "border: 1px solid lightgrey; border-radius: 10px; padding: 3px;\\n\\tmargin: 3px;"
