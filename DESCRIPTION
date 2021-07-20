@@ -1,6 +1,6 @@
 Package: MetaShARK
 Title: metashark
-Version: 1.5.4
+Version: 1.6.0
 Authors@R: person('Elie', 'ARNAUD', email = 'earnaud@outlook.com', role = c('cre', 'aut'))
 Author: Elie ARNAUD ([aut,cre])
 Maintainer: Elie ARNAUD <earnaud@outlook.com>
@@ -117,7 +117,6 @@ Collate:
     'utils_listToStructure.R'
     'utils_listReactiveValues.R'
     'utils_isContentTruthy.R'
-    'utils_insertModuleBox.R'
     'utils_insertModule.R'
     'utils_grep.R'
     'utils_followPath.R'
