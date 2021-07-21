@@ -72,9 +72,11 @@ RUN Rscript -e 'remotes::install_version("DT",upgrade="never", version = "0.18")
 RUN Rscript -e 'remotes::install_version("golem",upgrade="never", version = "0.3.1")'
 RUN Rscript -e 'remotes::install_version("textutils",upgrade="never", version = "0.2-1")'
 RUN Rscript -e 'remotes::install_version("tippy",upgrade="never", version = "0.1.0")'
+RUN Rscript -e 'remotes::install_version("shinybusy",upgrade="never", version = "0.2.2")'
 RUN Rscript -e 'remotes::install_github("EDIorg/EMLassemblyline@ad838f970ee259eda7f96d6a0bbe7f9fa509c66e")'
 RUN Rscript -e 'remotes::install_github("EDIorg/taxonomyCleanr@ea60ad94979ada8c68808f3c3e3d1fbbbd4855b3")'
 RUN Rscript -e 'remotes::install_github("LukasK13/SummeRnote@7c404e1578ab3567fdb331716ca831913ccf645a")'
+
 # RUN Rscript -e 'remotes::install_github("ThinkR-open/tagsinput@9aa70ec34c6fa60ef317446daef4cfaf3b682d1d")'
 # RUN Rscript -e 'remotes::install_github("ropenscilabs/emldown@8d98c8fc708dc1f2ecc8eec3d23a66e4f487e658")'
 # RUN Rscript -e 'remotes::install_github("earnaud/cedarr@dece7479cac3689e36283df74fe0514748e67f18")'

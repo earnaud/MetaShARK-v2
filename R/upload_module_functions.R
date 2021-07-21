@@ -6,33 +6,34 @@
 #' @noRd
 # FIXME rework this module
 uploadDP <- function(
-                     # essential
-                     mn,
-                     cn,
-                     token,
-                     eml,
-                     data,
-                     # facultative
-                     scripts = c(),
-                     formats,
-                     use.doi = FALSE) {
+  # essential
+  mn,
+  cn,
+  token,
+  eml,
+  data,
+  # facultative
+  scripts = c(),
+  # formats,
+  use.doi = FALSE
+) {
   # Set variables ----
-
+  
   message("Init")
-
+  
   cn <- dataone::CNode(cn)
   mn <- dataone::MNode(mn)
   if (use.doi) {
     doi <- dataone::generateIdentifier(mn, "DOI")
   } # TODO check this feature
-
+  
   # # Write DP ----
-
+  
   # set data package
   dp <- methods::new("DataPackage")
-
+  
   message("Metadata")
-
+  
   # Add metadata to the data package
   metadataObj <- methods::new(
     "DataObject",
@@ -41,9 +42,9 @@ uploadDP <- function(
     filename = eml$file
   )
   dp <- datapack::addMember(dp, metadataObj)
-
+  
   message("Data")
-
+  
   # Add data to the data package
   dataObjs <- sapply(
     seq(data$file),
@@ -58,9 +59,9 @@ uploadDP <- function(
       return(dataObj)
     }
   )
-
+  
   message("Scripts")
-
+  
   # Add scripts to the data package
   if (length(scripts) != 0) {
     progObjs <- sapply(
@@ -72,27 +73,27 @@ uploadDP <- function(
           filename = scripts$file[s]
         )
         dp <- datapack::addMember(dp, progObj, metadataObj)
-
+        
         return(progObj)
       }
     )
   }
-
+  
   # # Access rules ----
-
+  
   message("Access")
-
+  
   accessRules <- NA # TODO allow customized access rules
-
+  
   # # Upload ----
-
+  
   d1c <- dataone::D1Client(cn, mn)
-
+  
   message("Upload")
-
+  
   options(dataone_test_token = token$test)
   options(dataone_token = token$prod)
-
+  
   packageId <- try(
     dataone::uploadDataPackage(
       d1c,
@@ -102,12 +103,12 @@ uploadDP <- function(
       quiet = FALSE
     )
   )
-
+  
   if (class(packageId) == "try-error") browser()
-
+  
   options(dataone_test_token = NULL)
   options(dataone_token = NULL)
-
+  
   return(packageId)
 }
 
@@ -116,15 +117,15 @@ uploadDP <- function(
 #' @noRd
 describeWorkflowUI <- function(id, sources, targets) {
   ns <- NS(id)
-
+  
   span(
     id = NS(id, "span"),
     div(selectInput(NS(id, "script"), "Source script", sources),
-      style = "display: inline-block; vertical-align: middle;"
+        style = "display: inline-block; vertical-align: middle;"
     ),
     "describes",
     div(selectInput(NS(id, "data"), "Target data file", targets),
-      style = "display: inline-block; vertical-align: middle;"
+        style = "display: inline-block; vertical-align: middle;"
     ),
     actionButton(NS(id, "remove"), "", icon("minus"), class = "redButton"),
     style = "display: inline-block;"
@@ -137,11 +138,11 @@ describeWorkflowUI <- function(id, sources, targets) {
 describeWorkflow <- function(input, output, session) {
   ns <- session$ns
   rv <- reactiveValues()
-
+  
   # Get
   rv$source <- reactive(input$script)
   rv$target <- reactive(input$data)
-
+  
   # Remove
   observeEvent(input$remove, {
     removeUI(
@@ -149,7 +150,7 @@ describeWorkflow <- function(input, output, session) {
     )
     rv <- NULL
   })
-
+  
   # Output
   return(
     rv
