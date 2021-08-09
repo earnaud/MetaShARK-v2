@@ -45,7 +45,8 @@ server <- function(input, output, session) {
   if (main.env$dev){
     shinyjs::show("dev")
     observeEvent(input$dev, {
-      if (main.env$current.tab() != "fill")
+      if (main.env$current.tab() != "fill" &&
+          main.env$current.tab() != "upload")
         browser()
     }, label = "server: dev toggle")
   }
@@ -77,7 +78,7 @@ server <- function(input, output, session) {
     # Ontology list
     .ONTOLOGIES <- data.table::fread(
       system.file(
-        "resources/bioportal_ontologies_list.csv",
+        "resources/ontologies_list.tsv",
         package = "MetaShARK"
       )
     )

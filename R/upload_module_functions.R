@@ -18,11 +18,8 @@ uploadDP <- function(
   use.doi = FALSE
 ) {
   # Set variables ----
-  
-  message("Init")
-  
   cn <- dataone::CNode(cn)
-  mn <- dataone::MNode(mn)
+  mn <- dataone::getMNode(cn, mn)
   if (use.doi) {
     doi <- dataone::generateIdentifier(mn, "DOI")
   } # TODO check this feature
@@ -32,9 +29,9 @@ uploadDP <- function(
   # set data package
   dp <- methods::new("DataPackage")
   
-  message("Metadata")
-  
   # Add metadata to the data package
+  devmsg(tag = "upload", "* Set metadata")
+  
   metadataObj <- methods::new(
     "DataObject",
     # id = if(use.doi) doi else NULL,
@@ -43,9 +40,9 @@ uploadDP <- function(
   )
   dp <- datapack::addMember(dp, metadataObj)
   
-  message("Data")
-  
   # Add data to the data package
+  devmsg(tag = "upload", "* Set data")
+  
   dataObjs <- sapply(
     seq(data$file),
     function(d, metadataObj = metadataObj) {
@@ -55,14 +52,14 @@ uploadDP <- function(
         format = data$format[d],
         filename = data$file[d]
       )
-      dp <- datapack::addMember(dp, dataObj, metadataObj)
+      dp <<- datapack::addMember(dp, dataObj, metadataObj)
       return(dataObj)
     }
   )
   
-  message("Scripts")
-  
   # Add scripts to the data package
+  devmsg(tag = "upload", "* Set scripts")
+  
   if (length(scripts) != 0) {
     progObjs <- sapply(
       seq(scripts$file),
@@ -72,7 +69,7 @@ uploadDP <- function(
           format = scripts$format[s],
           filename = scripts$file[s]
         )
-        dp <- datapack::addMember(dp, progObj, metadataObj)
+        dp <<- datapack::addMember(dp, progObj, metadataObj)
         
         return(progObj)
       }
@@ -80,19 +77,19 @@ uploadDP <- function(
   }
   
   # # Access rules ----
+  # devmsg(tag = "upload", "* Set access")
   
-  message("Access")
-  
-  accessRules <- NA # TODO allow customized access rules
+  # TODO allow customized access rules
+  accessRules <- NA 
   
   # # Upload ----
   
   d1c <- dataone::D1Client(cn, mn)
   
-  message("Upload")
+  devmsg(tag = "upload", "* Upload")
   
-  options(dataone_test_token = token$test)
-  options(dataone_token = token$prod)
+  options(dataone_test_token = token)
+  options(dataone_token = token)
   
   packageId <- try(
     dataone::uploadDataPackage(
@@ -100,14 +97,19 @@ uploadDP <- function(
       dp,
       public = TRUE,
       accessRules = accessRules,
-      quiet = FALSE
+      quiet = FALSE,
+      packageId = paste0("urn:uuid:", uuid::UUIDgenerate())
     )
   )
   
-  if (class(packageId) == "try-error") browser()
+  if (class(packageId) == "try-error")
+    browser()
   
   options(dataone_test_token = NULL)
   options(dataone_token = NULL)
+  
+  if (class(packageId) != "try-error")
+    devmsg(tag = "upload", "* Success: %s", packageId)
   
   return(packageId)
 }

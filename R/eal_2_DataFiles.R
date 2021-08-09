@@ -1,20 +1,20 @@
-#' @param id character. An ID string that corresponds with the ID used to call 
-#' the module's UI function.
-#' @param main.env environment. An internal environment for MetaShARK save 
-#' variables.
-#' 
+# @param id character. An ID string that corresponds with the ID used to call 
+# the module's UI function.
+# @param main.env environment. An internal environment for MetaShARK save 
+# variables.
+# 
+# insertModule(
+# session$ns("_1111"),
+# "#inserthere_eal2",
+# moduleUI = DataFileInputUI2,
+# moduleUI.args = list(main.env = main.env),
+# module = DataFileInput2,
+# module.args = list(main.env = main.env)
+# )
 #' @import shiny
 #' @importFrom shinyFiles shinyFilesButton
 #'
 #' @noRd
-#' insertModule(
-#' session$ns("_1111"),
-#' "#inserthere_eal2",
-#' moduleUI = DataFileInputUI2,
-#' moduleUI.args = list(main.env = main.env),
-#' module = DataFileInput2,
-#' module.args = list(main.env = main.env)
-#' )
 DataFilesUI <- function(id) {
   return(
     fluidPage(

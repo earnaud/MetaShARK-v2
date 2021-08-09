@@ -53,7 +53,7 @@ uploadUI <- function(id) {
             ),
             class = "leftMargin inputBox"
           ),
-          tags$hr(),
+          
           # check authentication token ----
           tags$h3("Get your authentication token"),
           tags$div(
@@ -65,13 +65,37 @@ uploadUI <- function(id) {
             class = "leftMargin inputBox"
           ),
           
+          # Upload or update ----
+          tags$h3("Action to take"),
+          tags$div(
+            tags$p("Please point out whether this data package was never published
+                   (prime upload) or this is meant to be updated (update). If you
+                   are updating your data package, you will be asked to identify
+                   the previous version of the data package."),
+            radioButtons(
+              NS(id, "action"),
+              "(required)",
+              choiceNames = c("upload (first time)", "update"),
+              choiceValues = c("upload", "update"),
+              inline = TRUE
+            ),
+            shinyjs::hidden(
+              selectInput(
+                NS(id, "online_dp"),
+                "Online available data packages",
+                c()
+              )
+            ),
+            class = "leftMargin inputBox"
+          ),
+          
           # files input ----
           tags$h3("Select your data package files"),
           tags$div(
             # data package input
             tags$p("You can either select a data package from 
-          ~/dataPackagesOutput/emlAssemblyLine/ or pick up the files one by one. 
-          Selecting a data package will erase any previous selection."),
+            ~/dataPackagesOutput/emlAssemblyLine/ or pick up the files one by one. 
+            Selecting a data package will erase any previous selection."),
             fluidRow(
               column(
                 9,
@@ -157,6 +181,20 @@ uploadUI <- function(id) {
 #' @importFrom mime guess_type
 upload <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
+    # dev
+    if (main.env$dev){
+      observeEvent(
+        main.env$dev.browse(),
+        {
+          if (main.env$current.tab() == "upload") {
+            browser()
+          }
+        },
+        label = "Upload: dev"
+      )
+    }
+    
+    
     registeredEndpoints <- readDataTable(
       isolate(main.env$PATHS$resources)$registeredEndpoints.txt
     )
@@ -168,6 +206,7 @@ upload <- function(id, main.env) {
       "endpoint",
       choices = c(registeredEndpoints$mn, "Other")
     )
+    
     endpoint <- reactive(input$endpoint)
     
     memberNode <- reactive({
@@ -192,11 +231,14 @@ upload <- function(id, main.env) {
     })
     
     # Token input ----
-    observeEvent(input$toSettings,
-                 {
-                   shinyjs::click("appOptions", asis = TRUE)
-                 },
-                 ignoreInit = TRUE
+    observeEvent(input$toSettings, {
+      # shinyjs::click("appOptions", asis = TRUE)
+      shinyjs::addClass(
+        selector = "aside.control-sidebar",
+        class = "control-sidebar-open"
+      )
+    },
+    ignoreInit = TRUE
     )
     
     observe({
@@ -207,36 +249,87 @@ upload <- function(id, main.env) {
         output$token_status <- renderUI({
           tags$div("UNFILLED", class = "danger")
         })
-        shinyjs::disable("process")
+        # shinyjs::disable("process")
       }
       else {
         output$token_status <- renderUI({
           tags$div("FILLED", class = "valid")
         })
-        shinyjs::enable("process")
+        # shinyjs::enable("process")
       }
     })
     
-    # Files input ----
-    dp.list <- list.files(
-      isolate(main.env$PATHS$eal.dp),
+    # Update or upload ====
+    # get list of DP
+    
+    observeEvent(input$action, {
+      req(isTruthy(input$action))
+      
+      shinyjs::toggle(
+        "online_dp",
+        condition = input$action == "update"
+      )
+    })
+    
+    # Files input ====
+    # * DP list ----
+    .files.poll <- reactiveDirReader(
+      main.env$PATHS$eal.dp,
+      session,
       pattern = "_emldp$",
       full.names = TRUE
     )
-    names(dp.list) <- sub(
-      "_emldp", "",
-      basename(dp.list)
-    )
     
+    observe({
+      validate(
+        need(isTruthy(.files.poll()), "No files found")
+      )
+      
+      dp.list <- .files.poll() |>
+        basename() |>
+        gsub(pattern = "_emldp$", replacement = "") |>
+        gsub(pattern = "//", replacement = "/")
+      
+      # update list
+      updateSelectInput(
+        session,
+        "DP",
+        # choiceNames = c("None selected", dp.list),
+        choice = c("---", gsub(" \\(.*\\)$", "", dp.list))
+      )
+    },
+    label = "Upload: dp list")
+    
+    
+    # dp.list <- list.files(
+    #   isolate(main.env$PATHS$eal.dp),
+    #   pattern = "_emldp$",
+    #   full.names = TRUE
+    # )
+    # names(dp.list) <- sub(
+    #   "_emldp", "",
+    #   basename(dp.list)
+    # )
+    
+    # * Get files ----
     rv <- reactiveValues(
       md = data.frame(stringsAsFactors = FALSE),
       data = data.frame(stringsAsFactors = FALSE),
       scr = data.frame(stringsAsFactors = FALSE)
     )
+    makeReactiveBinding("rv$md")
+    makeReactiveBinding("rv$data")
+    makeReactiveBinding("rv$scr")
     
     observeEvent(input$DP, {
-      .dir <- gsub("/+", "/", input$DP)
-      .id <- basename(.dir) |> sub("_emldp$", "", .)
+      validate(
+        need(input$DP != "---", "No dp selected")
+      )
+      
+      .dir <- .files.poll()[grepl(input$DP, .files.poll())]|>
+        gsub(pattern = "//", replacement = "/")
+      .id <- input$DP
+      # grab metadata files
       .eml.files <- sprintf("%s/%s/eml", .dir, .id) |>
         dir(full.names = TRUE)
       rv$md <- data.frame(
@@ -245,7 +338,7 @@ upload <- function(id, main.env) {
         type = mime::guess_type(.eml.files),
         datapath = .eml.files
       )
-      
+      # grab data files
       .data.files <- sprintf("%s/%s/data_objects", .dir, .id) |>
         dir(full.names = TRUE)
       rv$data <- data.frame(
@@ -254,28 +347,32 @@ upload <- function(id, main.env) {
         type = mime::guess_type(.data.files),
         datapath = .data.files
       )
+      # no script directory -> do not grab scripts
     },
     ignoreInit = TRUE,
     label = "DPinput"
     )
     
     observeEvent(input$metadata, {
+      if(nrow(rv$md) > 0)
+        showNotification(
+          "Only one metadata file allowed. Replacing with new one.",
+          type = "message"
+        )
       rv$md <- input$metadata
-      showNotification(
-        "Only one metadata file allowed",
-        type = "message"
-      )
     })
+    
     observeEvent(input$data, {
       .add <- input$data
       req(isContentTruthy(.add))
-      browser() # Update list instead of erasing
+      # browser() # Update list instead of erasing
       rv$data <- rbind(rv$data, .add)
     })
+    
     observeEvent(input$scripts, {
       .add <- input$scripts
       req(isContentTruthy(.add))
-      browser() # Update list instead of erasing
+      # browser() # Update list instead of erasing
       rv$scr <- rbind(input$scripts, .add)
     })
     
@@ -315,37 +412,27 @@ upload <- function(id, main.env) {
       )
     })
     
-    observeEvent(input$rmv,
-                 {
-                   .rmv <- input$`md-files`
-                   if (isContentTruthy(.rmv)) {
-                     .ind <- match(.rmv, rv$md$name)
-                     rv$md <- rv$md[-.ind, ]
-                   }
-                   .rmv <- input$`data-files`
-                   if (isContentTruthy(.rmv)) {
-                     .ind <- match(.rmv, rv$data$name)
-                     rv$data <- rv$data[-.ind, ]
-                   }
-                   .rmv <- input$`scr-files`
-                   if (isContentTruthy(.rmv)) {
-                     .ind <- match(.rmv, rv$scr$name)
-                     rv$scr <- rv$scr[-.ind, ]
-                   }
-                 },
-                 ignoreInit = TRUE
+    observeEvent(input$rmv, {
+      .rmv <- input$`md-files`
+      if (isContentTruthy(.rmv)) {
+        .ind <- match(.rmv, rv$md$name)
+        rv$md <- rv$md[-.ind, ]
+      }
+      .rmv <- input$`data-files`
+      if (isContentTruthy(.rmv)) {
+        .ind <- match(.rmv, rv$data$name)
+        rv$data <- rv$data[-.ind, ]
+      }
+      .rmv <- input$`scr-files`
+      if (isContentTruthy(.rmv)) {
+        .ind <- match(.rmv, rv$scr$name)
+        rv$scr <- rv$scr[-.ind, ]
+      }
+    },
+    ignoreInit = TRUE
     )
     
     observe({
-      if (
-        dim(rv$md)[1] != 1 ||
-        dim(rv$data)[1] < 1
-      ) {
-        shinyjs::disable("process")
-      } else {
-        shinyjs::enable("process")
-      }
-      
       if (
         dim(rv$scr)[1] == 0 ||
         dim(rv$data)[1] == 0
@@ -357,8 +444,24 @@ upload <- function(id, main.env) {
     })
     
     # Process ----
+    # * completeness ----    
+    observe({
+      shinyjs::toggleState(
+        "process",
+        condition = (
+          dim(rv$md)[1] == 1 && dim(rv$data)[1] > 0
+        ) && (
+          is.character(main.env$SETTINGS$metacat.token) &&
+            !is.null(main.env$SETTINGS$metacat.token)
+        ) && (
+          input$action %in% c("upload", "update")
+        )
+      )
+    })
+    
+    # * pressed ----
     observeEvent(input$process, {
-      disable("process")
+      shinyjs::disable("process")
       
       md.format <- EML::read_eml(as.character(rv$md$datapath))$schemaLocation |>
         strsplit(split = " ") |>
@@ -374,10 +477,7 @@ upload <- function(id, main.env) {
           dplyr::filter(mn == endpoint()) |>
           dplyr::select(cn) |>
           as.character(),
-        token = list(
-          test = main.env$SETTINGS$metacat.test,
-          prod = main.env$SETTINGS$metacat.token
-        ),
+        token = main.env$SETTINGS$metacat.token,
         eml = list(
           file = rv$md$datapath,
           format = md.format
@@ -394,7 +494,7 @@ upload <- function(id, main.env) {
         } else {
           c()
         },
-        formats = main.env$FORMAT$dataone.list$MediaType,
+        # formats = main.env$FORMAT$dataone.list$MediaType,
         use.doi = FALSE
       )
       

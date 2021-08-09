@@ -1,73 +1,80 @@
 Package: MetaShARK
 Title: metashark
 Version: 1.6.0
-Authors@R: person('Elie', 'ARNAUD', email = 'earnaud@outlook.com', role = c('cre', 'aut'))
+Authors@R: 
+    person(given = "Elie",
+           family = "ARNAUD",
+           role = c("cre", "aut"),
+           email = "earnaud@outlook.com")
 Author: Elie ARNAUD ([aut,cre])
 Maintainer: Elie ARNAUD <earnaud@outlook.com>
-Description: MetaShARK is a Shiny application allowing its
-                    user to fill metadata for a given ecological
-                    dataset of his owns. The data description relies
-                    on Ecological Metadata Language (EML).
+Description: MetaShARK is a Shiny application allowing its user to fill
+    metadata for a given ecological dataset of his owns. The data
+    description relies on Ecological Metadata Language (EML).
 License: MIT
-Encoding: UTF-8
-LazyData: true
-Imports: 
-  attempt,
-  config,
-  data.table,
-  dataone,
-  datapack,
-  dplyr,
-  DT,
-  EML,
-  EMLassemblyline,
-  fs,
-  gdata,
-  glue,
-  golem,
-  htmltools,
-  jsonlite,
-  markdown,
-  methods,
-  mime,
-  processx,
-  RCurl,
-  readtext,
-  RefManageR,
-  rmarkdown,
-  rorcid,
-  shinyAce,
-  shinyBS,
-  shinycssloaders,
-  shinydashboard,
-  shinyFiles,
-  shinyjs,
-  shinydashboardPlus,
-  shinyFeedback,
-  shinyWidgets,
-  shiny (>= 1.5.0),
-  shinyTree,
-  stringr,
-  SummeRnote,
-  textutils,
-  tippy,
-  tagsinput,
-  taxonomyCleanr,
-  utils,
-  XML,
-  xml2
-Remotes:
-    ThinkR-open/tagsinput
-RoxygenNote: 7.1.1
-Roxygen: list(markdown = TRUE)
 URL: https://github.com/earnaud/MetaShARK-v2.git
 BugReports: https://github.com/earnaud/MetaShARK-v2.git/issues
-Suggests: 
-    testthat (>= 3.0.0),
-    knitr
-VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)
+Imports: 
+    data.table,
+    dataone,
+    datapack,
+    devtools,
+    dplyr,
+    EML,
+    EMLassemblyline,
+    fs,
+    gdata,
+    htmltools,
+    httr,
+    jsonlite,
+    methods,
+    mime,
+    profvis,
+    RCurl,
+    readtext,
+    readxl,
+    RefManageR,
+    rmarkdown,
+    scales,
+    shiny (>= 1.5.0),
+    shinyBS,
+    shinybusy,
+    shinycssloaders,
+    shinydashboard,
+    shinydashboardPlus,
+    shinyFeedback,
+    shinyFiles,
+    shinyjs,
+    shinyTree,
+    shinyWidgets,
+    stringr,
+    SummeRnote,
+    taxonomyCleanr,
+    textutils,
+    tippy,
+    utils,
+    uuid,
+    XML,
+    xml2,
+    zip
+Suggests: 
+    golem,
+    here,
+    knitr,
+    pkgload,
+    processx,
+    testthat (>= 3.0.0)
+VignetteBuilder: 
+    knitr
+Remotes:
+    ThinkR-open/tagsinput
+Config/testthat/edition: 3
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
 Collate: 
     'DataFiles_helpers2.R'
     'about_module.R'
@@ -129,4 +136,3 @@ Collate:
     'settings_rightSideBar.R'
     'runMetashark.R'
     'zzz.R'
-Config/testthat/edition: 3

@@ -5,6 +5,8 @@
 #' @noRd
 rightSidebarSettings <- function(id) {
   shinydashboardPlus::dashboardControlbar(
+    id = "settings_menu",
+    width = 300,
 
     # #### MAX 5 PANELS !!!! due to AdminLTE2 ### #
 
@@ -39,15 +41,15 @@ rightSidebarSettings <- function(id) {
             NS(id, "metacat_token"),
             "Authentication token"
           ),
-          tags$span(
-            shinyWidgets::prettySwitch(
-              NS(id, "test_metacat"),
-              "Test MetaCat",
-              value = TRUE
-            ),
-            actionButton(NS(id, "metacat_save"), "Save"),
-            style = "display: inline-block;"
-          ),
+          # tags$span(
+          #   shinyWidgets::prettySwitch(
+          #     NS(id, "test_metacat"),
+          #     "Test MetaCat",
+          #     value = TRUE
+          #   ),
+          #   actionButton(NS(id, "metacat_save"), "Save"),
+          #   style = "display: inline-block;"
+          # ),
           textOutput(NS(id, "verbose_token")),
           collapsibleUI(
             NS(id, "help-metacat"),
@@ -96,9 +98,7 @@ rightSidebarSettings <- function(id) {
         ),
         # icon = "tree",
         value = 3
-      ),
-      id = "settings_menu",
-      selected = 1
+      )
     )
   )
 }
@@ -120,12 +120,12 @@ settings <- function(id, main.env) {
     # Metacat token ====
     collapsible("help-metacat")
 
-    observeEvent(input$test_metacat, {
-      req(input$test_metacat)
-      main.env$SETTINGS$metacat.test <- input$test_metacat
-    })
+    # observeEvent(input$test_metacat, {
+    #   req(input$test_metacat)
+    #   main.env$SETTINGS$metacat.test <- input$test_metacat
+    # })
 
-    observeEvent(input$metacat_save, {
+    observeEvent(input$metacat_token, {
       main.env$SETTINGS$metacat.token <- input$metacat_token
       showNotification(id = "metacat_set", "Dataone token set.", type = "message")
     })

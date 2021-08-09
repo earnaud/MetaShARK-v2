@@ -13,8 +13,8 @@ insertDataFileInput <- function(id, main.env){
 }
 
 #' @import shiny
-#' @importFrom shinyjs hidden 
-#'
+#' @importFrom shinyjs hidden
+#' 
 #' @noRd
 DataFileInputUI <- function(id, main.env) {
   # Setup

@@ -3,7 +3,10 @@
 #' @importFrom data.table fread
 #'
 #' @noRd
-.globalScript <- function(.args = list(dev = FALSE, wip = FALSE), envir) {
+.globalScript <- function(
+  .args = list(dev = FALSE, wip = FALSE, reactlog = TRUE), 
+  envir
+) {
 
   # Options setup ====
   options(stringsAsFactors = FALSE)
@@ -162,8 +165,8 @@
       user = "public",
       orcid.token = character(),
       cedar.token = character(),
-      metacat.token = character(),
-      metacat.test = FALSE
+      metacat.token = character()
+      # , metacat.test = FALSE
     ),
     envir = main.env
   )
