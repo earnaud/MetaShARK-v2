@@ -50,7 +50,7 @@ runMetashark <- function(...) {
   args$launch.browser <- isTRUE(args$launch.browser)
   
   # Dev - debug options
-  args$dev <- isTRUE(args$dev) 
+  args$dev <- isTRUE(args$dev)
   args$reactlog <- isTRUE(args$reactlog) || isTRUE(args$dev)
   args$use.profvis <- isTRUE(args$use.profvis)
   args$use.test <- isTRUE(args$use.test)
@@ -85,21 +85,22 @@ runMetashark <- function(...) {
   options(shiny.maxRequestSize = 50*1024^2)
   
   # Set window values
-  options(shiny.port = 3838)
+  if(isFALSE(args$use.test))
+    options(shiny.port = 3838)
   
   if(isTRUE(args$use.profvis)) {
     profvis::profvis({
       runApp(
         shinyApp(ui = ui, server = server), 
-        launch.browser = args$launch.browser,
-        test.mode = args$use.test
+        launch.browser = args$launch.browser
       )
     })
+  } else if(isTRUE(args$use.test)) {
+    shinyApp(ui = ui, server = server)
   } else {
     runApp(
       shinyApp(ui = ui, server = server), 
-      launch.browser = args$launch.browser,
-      test.mode = args$use.test
+      launch.browser = args$launch.browser
     )
   }
 }

@@ -1,4 +1,4 @@
-path <- "~/Documents/Test_data/EAL/2021-04-23_Kakila_emldp/2021-04-23_Kakila/eml/Kakila database of marine mammal observation data in the AGOA sanctuary - French Antilles.xml"
+# path <- "~/Documents/Test_data/EAL/2021-04-23_Kakila_emldp/2021-04-23_Kakila/eml/Kakila database of marine mammal observation data in the AGOA sanctuary - French Antilles.xml"
 
 # read ----
 # {

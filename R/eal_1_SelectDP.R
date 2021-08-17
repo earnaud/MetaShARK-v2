@@ -136,7 +136,7 @@ SelectDPUI <- function(id) {
 }
 
 #' @import shiny
-#' @import shinyjs
+#' @importFrom shinyjs toggle toggleState disable enable
 #' @importFrom shinyFeedback hideFeedback showFeedbackDanger showFeedbackSuccess
 #' @importFrom utils zip
 #' @importFrom jsonlite read_json unserializeJSON 

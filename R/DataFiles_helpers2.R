@@ -16,14 +16,14 @@
 #' @importFrom shinyjs hidden 
 #'
 #' @noRd
-#' insertModule(
-#'   session$ns("2"),
-#'   "#inserthere_eal2",
-#'   moduleUI = DataFileInputUI2,
-#'   moduleUI.args = list(main.env = main.env),
-#'   module = DataFileInput2,
-#'   module.args = list(main.env = main.env)
-#' )
+# insertModule(
+#   session$ns("2"),
+#   "#inserthere_eal2",
+#   moduleUI = DataFileInputUI2,
+#   moduleUI.args = list(main.env = main.env),
+#   module = DataFileInput2,
+#   module.args = list(main.env = main.env)
+# )
 DataFileInputUI2 <- function(id, main.env) {
   # Setup
   ref <- unns(id)

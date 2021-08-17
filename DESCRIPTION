@@ -61,6 +61,7 @@ Imports:
     zip
 Suggests: 
     golem,
+    shinytest,
     here,
     knitr,
     pkgload,
@@ -135,4 +136,3 @@ Collate:
     'template_functions.R'
     'settings_rightSideBar.R'
     'runMetashark.R'
-    'zzz.R'
