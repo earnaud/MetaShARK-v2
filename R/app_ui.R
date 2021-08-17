@@ -1,5 +1,5 @@
 #' @import shiny
-#' @import shinydashboard
+#' @importFrom shinydashboard dashboardSidebar sidebarMenu menuItem dashboardBody tabItems tabItem
 #' @importFrom shinyjs useShinyjs inlineCSS hidden
 #' @importFrom shinyFeedback useShinyFeedback
 #' @importFrom htmltools includeCSS
@@ -79,7 +79,7 @@ ui <- function() {
           ## * Tools ----
           sidebar = shinydashboard::dashboardSidebar(
             shinydashboard::sidebarMenu(
-              id = "side_menu",
+              id = "sidemenu",
               shinydashboard::menuItem(
                 "Welcome",
                 tabName = "welcome",
@@ -109,6 +109,9 @@ ui <- function() {
                 tags$hr(),
                 shinyjs::hidden(
                   actionButton("dev", "DEV CHECK")
+                ),
+                shinyjs::hidden(
+                  actionButton("test_end", "END TEST")
                 ),
                 tags$p(uiOutput("version"))
               )

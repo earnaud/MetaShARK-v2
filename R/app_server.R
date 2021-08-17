@@ -30,7 +30,7 @@ server <- function(input, output, session) {
   # App variables
   assign(
     "current.tab",
-    reactive(input$side_menu),
+    reactive(input$sidemenu),
     envir = main.env
   )
   
@@ -49,6 +49,14 @@ server <- function(input, output, session) {
           main.env$current.tab() != "upload")
         browser()
     }, label = "server: dev toggle")
+  }
+  
+  if(isTRUE(args$use.test)) {
+    shinyjs::show("test_end")
+    observeEvent(input$test_end, {
+      stopApp()
+    }, label = "server: end test")
+    
   }
   
   # Update values ====
