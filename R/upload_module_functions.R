@@ -6,112 +6,114 @@
 #' @noRd
 # FIXME rework this module
 uploadDP <- function(
-  # essential
-  mn,
-  cn,
+  # connection
+  endpoint,
   token,
+  # content
   eml,
   data,
-  # facultative
-  scripts = c(),
-  # formats,
+  scripts = NULL,
+  # options
   use.doi = FALSE
 ) {
+  options(dataone_test_token = token)
+  options(dataone_token = token)
+  
   # Set variables ----
-  cn <- dataone::CNode(cn)
-  mn <- dataone::getMNode(cn, mn)
+  devmsg(tag = "upload", "* Sending data package to %s", endpoint$name)
+  
+  d1c <- dataone::D1Client(
+    endpoint |>
+      dplyr::select(cn) |>
+      as.character(),
+    endpoint |>
+      dplyr::select(mn) |>
+      as.character()
+  )
   if (use.doi) {
-    doi <- dataone::generateIdentifier(mn, "DOI")
+    doi <- dataone::generateIdentifier(d1c@mn, "DOI")
   } # TODO check this feature
   
-  # # Write DP ----
-  
+  # Write DP ----
   # set data package
   dp <- methods::new("DataPackage")
   
+  # * metadata ----
   # Add metadata to the data package
   devmsg(tag = "upload", "* Set metadata")
   
+  metadata_id <- generateIdentifier(d1c@mn, scheme = "uuid")
+  doc <- EML::read_eml(eml)
+  eml.format <- doc$schemaLocation |>
+    gsub(
+      pattern = "(eml-[0-9]+\\.[0-9]+\\.[0-9]+).+$", 
+      replacement = "\\1"
+    )
   metadataObj <- methods::new(
     "DataObject",
-    # id = if(use.doi) doi else NULL,
-    format = eml$format,
-    filename = eml$file
+    id = metadata_id,
+    format = eml.format,
+    filename = eml
   )
   dp <- datapack::addMember(dp, metadataObj)
   
+  # * data ----
   # Add data to the data package
   devmsg(tag = "upload", "* Set data")
   
-  dataObjs <- sapply(
-    seq(data$file),
-    function(d, metadataObj = metadataObj) {
-      # add data object
-      dataObj <- methods::new(
-        "DataObject",
-        format = data$format[d],
-        filename = data$file[d]
-      )
-      dp <<- datapack::addMember(dp, dataObj, metadataObj)
-      return(dataObj)
-    }
-  )
+  data.formats <- mime::guess_type(data)
   
-  # Add scripts to the data package
-  devmsg(tag = "upload", "* Set scripts")
-  
-  if (length(scripts) != 0) {
-    progObjs <- sapply(
-      seq(scripts$file),
-      function(s, metadataObj = metadataObj) {
-        progObj <- methods::new(
-          "DataObject",
-          format = scripts$format[s],
-          filename = scripts$file[s]
-        )
-        dp <<- datapack::addMember(dp, progObj, metadataObj)
-        
-        return(progObj)
-      }
+  for(d in seq(data)) {
+    dataObj <- methods::new(
+      "DataObject",
+      format = data.formats[d],
+      filename = data[d]
     )
+    dp <- datapack::addMember(dp, do = dataObj, mo = metadataObj)
   }
   
-  # # Access rules ----
-  # devmsg(tag = "upload", "* Set access")
+  # * scripts ----
+  # Add scripts to the data package
+  if (length(scripts) != 0) {
+    devmsg(tag = "upload", "* Set scripts")
+    
+    scripts.formats <- mime::guess_type(scripts)
+    
+    for(d in seq(scripts)) {
+      scriptObj <- methods::new(
+        "DataObject",
+        format = scripts.formats[d],
+        filename = scripts[d]
+      )
+      dp <- datapack::addMember(dp, do = scriptObj, mo =metadataObj)
+    }
+  }
   
+  # Access rules ----
   # TODO allow customized access rules
-  accessRules <- NA 
   
-  # # Upload ----
-  
-  d1c <- dataone::D1Client(cn, mn)
-  
+  # Upload ----
   devmsg(tag = "upload", "* Upload")
-  
-  options(dataone_test_token = token)
-  options(dataone_token = token)
   
   packageId <- try(
     dataone::uploadDataPackage(
       d1c,
       dp,
       public = TRUE,
-      accessRules = accessRules,
-      quiet = FALSE,
-      packageId = paste0("urn:uuid:", uuid::UUIDgenerate())
+      quiet = FALSE
     )
   )
   
   if (class(packageId) == "try-error")
     browser()
+  else
+    devmsg(tag = "upload", "* Success (resource map ID: %s)", packageId)
   
   options(dataone_test_token = NULL)
   options(dataone_token = NULL)
   
-  if (class(packageId) != "try-error")
-    devmsg(tag = "upload", "* Success: %s", packageId)
-  
-  return(packageId)
+  return(metadata_id)
+  # return(dp)
 }
 
 #' @import shiny

@@ -9,32 +9,14 @@
 #' @importFrom data.table fread
 uploadUI <- function(id) {
   
-  # registeredEndpoints <- readDataTable(
-  #   isolate(main.env$PATHS$resources)$registeredEndpoints.txt
-  # )
-  # dp.list <- list.files(
-  #   "~/dataPackagesOutput/emlAssemblyLine/",
-  #   pattern = "_emldp$",
-  #   full.names = TRUE
-  # )
-  # names(dp.list) <- sub(
-  #   "_emldp", "",
-  #   list.files(
-  #     "~/dataPackagesOutput/emlAssemblyLine/",
-  #     pattern = "_emldp$"
-  #   )
-  # )
-  # 
-  # # TODO add update module
+  # TODO add update module
   
   tagList(
     wipRow(
       tabsetPanel(
         id = "upload",
-        # Upload ----
         tabPanel(
           title = "upload",
-          actionButton(NS(id, "dev"), "Dev"),
           # select endpoint ----
           tags$h3("Select your MetaCat portal"),
           tags$div(
@@ -42,7 +24,7 @@ uploadUI <- function(id) {
             is given of their consistance.", tags$code("prod"), "portals are 
             completely functional. Chosing 'Other' will ask you to input some 
             technical information."),
-            selectInput(
+            selectizeInput(
               NS(id, "endpoint"),
               "Available metacats:",
               c()
@@ -66,7 +48,7 @@ uploadUI <- function(id) {
           ),
           
           # Upload or update ----
-          tags$h3("Action to take"),
+          tags$h3("Action to perform"),
           tags$div(
             tags$p("Please point out whether this data package was never published
                    (prime upload) or this is meant to be updated (update). If you
@@ -175,7 +157,7 @@ uploadUI <- function(id) {
 #' @param main.env inner global environment
 #'
 #' @import shiny
-#' @importFrom dplyr filter select
+#' @importFrom dplyr filter select %>%
 #' @importFrom shinyjs enable disable click
 #' @importFrom data.table fread fwrite
 #' @importFrom mime guess_type
@@ -194,17 +176,20 @@ upload <- function(id, main.env) {
       )
     }
     
-    
-    registeredEndpoints <- readDataTable(
-      isolate(main.env$PATHS$resources)$registeredEndpoints.txt
-    )
+    registeredEndpoints <- isolate(main.env$VALUES$dataone.endpoints)
     dev <- main.env$dev
     
     # Select endpoint ----
+    # write choices
+    choices = registeredEndpoints %>%
+      split(.$cn) %>% 
+      sapply(select, "name") %>%
+      setNames(nm = gsub(".name", "", names(.)))
+    # update
     updateSelectInput(
       session,
       "endpoint",
-      choices = c(registeredEndpoints$mn, "Other")
+      choices = c(choices, "Other")
     )
     
     endpoint <- reactive(input$endpoint)
@@ -212,15 +197,33 @@ upload <- function(id, main.env) {
     memberNode <- reactive({
       if (endpoint() != "Other") {
         registeredEndpoints |>
-          dplyr::filter(mn == endpoint()) |>
-          dplyr::select(URL)
+          dplyr::filter(name == endpoint()) |>
+          dplyr::select(mn)
       } else {
         input$other_endpoint
       }
     })
+    
     output$`actual-endpoint` <- renderUI({
       if (endpoint() != "Other") {
-        tags$p(tags$b("Current endpoint:"), memberNode())
+        tags$span(
+          tags$b("Current endpoint:"), 
+          memberNode(),
+          HTML("\t"),
+          tags$span(
+            id = session$ns("help"), 
+            icon("question-circle"),
+            style = "width:fit-content; display:inline-flex; margin-left: 5px"
+          ),
+          shinyBS::bsTooltip(
+            session$ns("help"),
+            registeredEndpoints |> 
+              filter(name == endpoint()) |> 
+              select(description) |> 
+              as.character()
+          ),
+          style = "display:inline-flex"
+        )
       } else {
         textInput(
           NS(id, "other_endpoint"),
@@ -300,17 +303,6 @@ upload <- function(id, main.env) {
     },
     label = "Upload: dp list")
     
-    
-    # dp.list <- list.files(
-    #   isolate(main.env$PATHS$eal.dp),
-    #   pattern = "_emldp$",
-    #   full.names = TRUE
-    # )
-    # names(dp.list) <- sub(
-    #   "_emldp", "",
-    #   basename(dp.list)
-    # )
-    
     # * Get files ----
     rv <- reactiveValues(
       md = data.frame(stringsAsFactors = FALSE),
@@ -357,7 +349,7 @@ upload <- function(id, main.env) {
       if(nrow(rv$md) > 0)
         showNotification(
           "Only one metadata file allowed. Replacing with new one.",
-          type = "message"
+          type = "warning"
         )
       rv$md <- input$metadata
     })
@@ -365,7 +357,7 @@ upload <- function(id, main.env) {
     observeEvent(input$data, {
       .add <- input$data
       req(isContentTruthy(.add))
-      # browser() # Update list instead of erasing
+      # Update list instead of erasing
       rv$data <- rbind(rv$data, .add)
     })
     
@@ -449,6 +441,8 @@ upload <- function(id, main.env) {
       shinyjs::toggleState(
         "process",
         condition = (
+          isTruthy(memberNode())
+        ) && (
           dim(rv$md)[1] == 1 && dim(rv$data)[1] > 0
         ) && (
           is.character(main.env$SETTINGS$metacat.token) &&
@@ -463,45 +457,26 @@ upload <- function(id, main.env) {
     observeEvent(input$process, {
       shinyjs::disable("process")
       
-      md.format <- EML::read_eml(as.character(rv$md$datapath))$schemaLocation |>
-        strsplit(split = " ") |>
-        unlist() |>
-        utils::head(n = 1)
+      md.format <- EML::read_eml(as.character(rv$md$datapath))$`@context`$eml |>
+        gsub(
+          pattern = "https://eml.ecoinformatics.org/eml-", 
+          replacement = "eml://ecoinformatics.org/eml-"
+        )
       
       out <- uploadDP(
-        mn = registeredEndpoints |>
-          dplyr::filter(mn == endpoint()) |>
-          dplyr::select(URL) |>
-          as.character(),
-        cn = registeredEndpoints |>
-          dplyr::filter(mn == endpoint()) |>
-          dplyr::select(cn) |>
-          as.character(),
+        endpoint = registeredEndpoints |>
+          dplyr::filter(name == endpoint()),
         token = main.env$SETTINGS$metacat.token,
-        eml = list(
-          file = rv$md$datapath,
-          format = md.format
-        ),
-        data = list(
-          file = rv$data$datapath,
-          format = mime::guess_type(rv$data$datapath)
-        ),
-        scripts = if (dim(rv$scr)[1] > 0) {
-          list(
-            file = rv$scr$datapath,
-            format = mime::guess_type(rv$scr$datapath)
-          )
-        } else {
-          c()
-        },
-        # formats = main.env$FORMAT$dataone.list$MediaType,
+        eml = rv$md$datapath,
+        data = rv$data$datapath,
+        scripts = if (dim(rv$scr)[1] > 0) rv$scr$datapath else NULL,
         use.doi = FALSE
       )
       
       if (class(out) == "try-error") {
         showNotification(out[1], type = "error")
       } else {
-        showNotification(paste("Uploaded DP", out), type = "message")
+        showNotification(sprintf("Uploaded DP (metadata id: %s)", out), type = "message")
       }
       
       shinyjs::enable("process")
