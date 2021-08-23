@@ -13,15 +13,18 @@ GeoCovUI <- function(id) {
         # Method ====
         # - method choice itself
         tags$span(
+          "columns",
           shinyWidgets::materialSwitch(
             NS(id, "method"),
             tags$h5("Method"),
             inline = TRUE
           ),
-          textOutput(
-            NS(id, "selected_method"),
-            inline = TRUE
-          )
+          "custom"
+          #,
+          # textOutput(
+          #   NS(id, "selected_method"),
+          #   inline = TRUE
+          # )
         ), # end of method
         # Columns ====
         tags$div(
@@ -53,7 +56,6 @@ GeoCovUI <- function(id) {
 #' @import shiny
 #' @importFrom shinyWidgets updateMaterialSwitch
 #' @importFrom shinyjs toggle
-#' @importFrom dplyr %>% 
 #'
 #' @noRd
 GeoCov <- function(id, main.env) {
@@ -106,7 +108,7 @@ GeoCov <- function(id, main.env) {
     },
     label = "EAL4: switch method")
     
-    output$selected_method <- renderText(main.env$local.rv$method)
+    # output$selected_method <- renderText(main.env$local.rv$method)
     
     # Variables input ====
     # * Set inputs ----
@@ -173,8 +175,8 @@ GeoCov <- function(id, main.env) {
         main.env$local.rv$columns$site$col <- ""
         main.env$local.rv$columns$site$file <- ""
       } else {
-        .tmp <- input$site %>%
-          strsplit(., "/", TRUE) %>%
+        .tmp <- input$site |>
+          strsplit("/", TRUE) |>
           unlist()
         main.env$local.rv$columns$site$col <- .tmp[2]
         main.env$local.rv$columns$site$file <- 
@@ -197,8 +199,8 @@ GeoCov <- function(id, main.env) {
         main.env$local.rv$columns$lat$col <- ""
         main.env$local.rv$columns$lat$file <- ""
       } else {
-        .tmp <- input$latitude %>%
-          strsplit(., "/", TRUE) %>%
+        .tmp <- input$latitude |>
+          strsplit("/", TRUE) |>
           unlist()
         main.env$local.rv$columns$lat$col <- .tmp[2]
         main.env$local.rv$columns$lat$file <-
@@ -222,8 +224,8 @@ GeoCov <- function(id, main.env) {
         main.env$local.rv$columns$lon$col <- ""
         main.env$local.rv$columns$lon$file <- ""
       } else {
-        .tmp <- input$longitude %>%
-          strsplit(., "/", TRUE) %>%
+        .tmp <- input$longitude |>
+          strsplit("/", TRUE) |>
           unlist()
         main.env$local.rv$columns$lon$col <- .tmp[2]
         main.env$local.rv$columns$lon$file <-

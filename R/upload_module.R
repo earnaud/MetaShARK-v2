@@ -9,136 +9,144 @@
 #' @importFrom data.table fread
 uploadUI <- function(id) {
   
-  # registeredEndpoints <- readDataTable(
-  #   isolate(main.env$PATHS$resources)$registeredEndpoints.txt
-  # )
-  # dp.list <- list.files(
-  #   "~/dataPackagesOutput/emlAssemblyLine/",
-  #   pattern = "_emldp$",
-  #   full.names = TRUE
-  # )
-  # names(dp.list) <- sub(
-  #   "_emldp", "",
-  #   list.files(
-  #     "~/dataPackagesOutput/emlAssemblyLine/",
-  #     pattern = "_emldp$"
-  #   )
-  # )
-  # 
-  # # TODO add update module
+  # TODO add update module
   
   tagList(
-    tabsetPanel(
-      id = "upload",
-      # Upload ----
-      tabPanel(
-        title = "upload",
-        actionButton(NS(id, "dev"), "Dev"),
-        # select endpoint ----
-        tags$h3("Select your MetaCat portal"),
-        tags$div(
-          tags$p(tags$code("dev"), "portals are under construction. No guarantee
+    wipRow(
+      tabsetPanel(
+        id = "upload",
+        tabPanel(
+          title = "upload",
+          # select endpoint ----
+          tags$h3("Select your MetaCat portal"),
+          tags$div(
+            tags$p(tags$code("dev"), "portals are under construction. No guarantee
             is given of their consistance.", tags$code("prod"), "portals are 
             completely functional. Chosing 'Other' will ask you to input some 
             technical information."),
-          selectInput(
-            NS(id, "endpoint"),
-            "Available metacats:",
-            c()
+            selectizeInput(
+              NS(id, "endpoint"),
+              "Available metacats:",
+              c()
+            ),
+            uiOutput(NS(id, "actual-endpoint")),
+            tagList(
+              tags$p("Want your endpoint to be listed? get in touch with the dev team !")
+            ),
+            class = "leftMargin inputBox"
           ),
-          uiOutput(NS(id, "actual-endpoint")),
-          tagList(
-            tags$p("Want your endpoint to be listed? get in touch with the dev team !")
-          ),
-          class = "leftMargin inputBox"
-        ),
-        tags$hr(),
-        # check authentication token ----
-        tags$h3("Get your authentication token"),
-        tags$div(
-          tags$p("The ", tags$b("authentication token"), " is a user-specific characters key.
+          
+          # check authentication token ----
+          tags$h3("Get your authentication token"),
+          tags$div(
+            tags$p("The ", tags$b("authentication token"), " is a user-specific characters key.
             It allows the user to authenticate a connection between its current location and
             a distant server, actually the metadata catalog. To upload a data package, 
             the authentication token is required."),
-          actionButton(NS(id, "toSettings"), "Go to settings", icon("gear")),
-          class = "leftMargin inputBox"
-        ),
-        
-        # files input ----
-        tags$h3("Select your data package files"),
-        tags$div(
-          # data package input
-          tags$p("You can either select a data package from 
-          ~/dataPackagesOutput/emlAssemblyLine/ or pick up the files one by one. 
-          Selecting a data package will erase any previous selection."),
-          fluidRow(
-            column(
-              9,
-              # * DP ====
-              tags$h4("Select a data package"),
-              selectInput(
-                NS(id, "DP"),
-                "Data package",
-                choices = c(
-                  None = ""
-                ),
-                multiple = FALSE
-              ),
-              # individual files inputs
-              tags$h4("Add or remove files"),
-              # * Metadata ====
-              fileInput(
-                NS(id, "metadata"),
-                "EML-valid file (only one allowed)"
-              ),
-              textOutput(NS(id, "warnings-metadata")),
-              # * Data ====
-              fileInput(
-                NS(id, "data"),
-                "Data files described in your EML file"
-              ),
-              textOutput(NS(id, "warnings-data")),
-              # * Scripts ====
-              fileInput(
-                NS(id, "scripts"),
-                "Scripts used to produce or process data"
-              ),
-              textOutput(NS(id, "warnings-scripts"))
-            ),
-            column(
-              3,
-              tags$h4("Files list"),
-              uiOutput(NS(id, "filesList"))
-            )
+            actionButton(NS(id, "toSettings"), "Go to settings", icon("gear")),
+            class = "leftMargin inputBox"
           ),
-          class = "leftMargin inputBox"
-        ),
-        
-        # Constraints ----
-        # div(id="constraints_div",
-        #     tags$h4("Add constraints between script and data files"),
-        #     actionButton(NS(id, "add_constraint"), "", icon = icon("plus"), width = "40px")
-        # ),
-        # tags$hr(),
-        
-        actionButton(
-          NS(id, "process"),
-          "Process",
-          icon = icon("rocket"),
-          width = "100%"
-        )
-      ), # end of upload tab
-      # Update ----
-      tabPanel(
-        title = "update",
-        wipRow(
-          "WIP"
-          # 1. solr query
-          # 2. select items to update
-          # 3. select files
-        )
-      ) # end of update tab
-    ) # end of tabSetPanel
+          
+          # Upload or update ----
+          tags$h3("Action to perform"),
+          tags$div(
+            tags$p("Please point out whether this data package was never published
+                   (prime upload) or this is meant to be updated (update). If you
+                   are updating your data package, you will be asked to identify
+                   the previous version of the data package."),
+            radioButtons(
+              NS(id, "action"),
+              "(required)",
+              choiceNames = c("upload (first time)", "update"),
+              choiceValues = c("upload", "update"),
+              inline = TRUE
+            ),
+            shinyjs::hidden(
+              selectInput(
+                NS(id, "online_dp"),
+                "Online available data packages",
+                c()
+              )
+            ),
+            class = "leftMargin inputBox"
+          ),
+          
+          # files input ----
+          tags$h3("Select your data package files"),
+          tags$div(
+            # data package input
+            tags$p("You can either select a data package from 
+            ~/dataPackagesOutput/emlAssemblyLine/ or pick up the files one by one. 
+            Selecting a data package will erase any previous selection."),
+            fluidRow(
+              column(
+                9,
+                # * DP ====
+                tags$h4("Select a data package"),
+                selectInput(
+                  NS(id, "DP"),
+                  "Data package",
+                  choices = c(
+                    None = ""
+                  ),
+                  multiple = FALSE
+                ),
+                # individual files inputs
+                tags$h4("Add or remove files"),
+                # * Metadata ====
+                fileInput(
+                  NS(id, "metadata"),
+                  "EML-valid file (only one allowed)"
+                ),
+                textOutput(NS(id, "warnings-metadata")),
+                # * Data ====
+                fileInput(
+                  NS(id, "data"),
+                  "Data files described in your EML file"
+                ),
+                textOutput(NS(id, "warnings-data")),
+                # * Scripts ====
+                fileInput(
+                  NS(id, "scripts"),
+                  "Scripts used to produce or process data"
+                ),
+                textOutput(NS(id, "warnings-scripts"))
+              ),
+              column(
+                3,
+                tags$h4("Files list"),
+                uiOutput(NS(id, "filesList"))
+              )
+            ),
+            class = "leftMargin inputBox"
+          ),
+          
+          # Constraints ----
+          # div(id="constraints_div",
+          #     tags$h4("Add constraints between script and data files"),
+          #     actionButton(NS(id, "add_constraint"), "", icon = icon("plus"), width = "40px")
+          # ),
+          # tags$hr(),
+          
+          actionButton(
+            NS(id, "process"),
+            "Process",
+            icon = icon("rocket"),
+            width = "100%"
+          )
+        ), # end of upload tab
+        # Update ----
+        tabPanel(
+          title = "update",
+          wipRow(
+            "WIP"
+            # 1. solr query
+            # 2. select items to update
+            # 3. select files
+          )
+        ) # end of update tab
+      ) # end of tabSetPanel
+    )
   ) # end of tagList
 }
 
@@ -155,31 +163,67 @@ uploadUI <- function(id) {
 #' @importFrom mime guess_type
 upload <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-    registeredEndpoints <- readDataTable(
-      isolate(main.env$PATHS$resources)$registeredEndpoints.txt
-    )
+    # dev
+    if (main.env$dev){
+      observeEvent(
+        main.env$dev.browse(),
+        {
+          if (main.env$current.tab() == "upload") {
+            browser()
+          }
+        },
+        label = "Upload: dev"
+      )
+    }
+    
+    registeredEndpoints <- isolate(main.env$VALUES$dataone.endpoints)
     dev <- main.env$dev
     
     # Select endpoint ----
+    # write choices
+    choices = registeredEndpoints %>%
+      split(.$cn) %>% 
+      sapply(select, "name") %>%
+      setNames(nm = gsub(".name", "", names(.)))
+    # update
     updateSelectInput(
       session,
       "endpoint",
-      choices = c(registeredEndpoints$mn, "Other")
+      choices = c(choices, "Other")
     )
+    
     endpoint <- reactive(input$endpoint)
     
     memberNode <- reactive({
       if (endpoint() != "Other") {
-        registeredEndpoints %>%
-          dplyr::filter(mn == endpoint()) %>%
-          dplyr::select(URL)
+        registeredEndpoints |>
+          dplyr::filter(name == endpoint()) |>
+          dplyr::select(mn)
       } else {
         input$other_endpoint
       }
     })
+    
     output$`actual-endpoint` <- renderUI({
       if (endpoint() != "Other") {
-        tags$p(tags$b("Current endpoint:"), memberNode())
+        tags$span(
+          tags$b("Current endpoint:"), 
+          memberNode(),
+          HTML("\t"),
+          tags$span(
+            id = session$ns("help"), 
+            icon("question-circle"),
+            style = "width:fit-content; display:inline-flex; margin-left: 5px"
+          ),
+          shinyBS::bsTooltip(
+            session$ns("help"),
+            registeredEndpoints |> 
+              filter(name == endpoint()) |> 
+              select(description) |> 
+              as.character()
+          ),
+          style = "display:inline-flex"
+        )
       } else {
         textInput(
           NS(id, "other_endpoint"),
@@ -190,11 +234,14 @@ upload <- function(id, main.env) {
     })
     
     # Token input ----
-    observeEvent(input$toSettings,
-                 {
-                   shinyjs::click("appOptions", asis = TRUE)
-                 },
-                 ignoreInit = TRUE
+    observeEvent(input$toSettings, {
+      # shinyjs::click("appOptions", asis = TRUE)
+      shinyjs::addClass(
+        selector = "aside.control-sidebar",
+        class = "control-sidebar-open"
+      )
+    },
+    ignoreInit = TRUE
     )
     
     observe({
@@ -205,37 +252,77 @@ upload <- function(id, main.env) {
         output$token_status <- renderUI({
           tags$div("UNFILLED", class = "danger")
         })
-        shinyjs::disable("process")
+        # shinyjs::disable("process")
       }
       else {
         output$token_status <- renderUI({
           tags$div("FILLED", class = "valid")
         })
-        shinyjs::enable("process")
+        # shinyjs::enable("process")
       }
     })
     
-    # Files input ----
-    dp.list <- list.files(
-      isolate(main.env$PATHS$eal.dp),
+    # Update or upload ====
+    # get list of DP
+    
+    observeEvent(input$action, {
+      req(isTruthy(input$action))
+      
+      shinyjs::toggle(
+        "online_dp",
+        condition = input$action == "update"
+      )
+    })
+    
+    # Files input ====
+    # * DP list ----
+    .files.poll <- reactiveDirReader(
+      main.env$PATHS$eal.dp,
+      session,
       pattern = "_emldp$",
       full.names = TRUE
     )
-    names(dp.list) <- sub(
-      "_emldp", "",
-      basename(dp.list)
-    )
     
+    observe({
+      validate(
+        need(isTruthy(.files.poll()), "No files found")
+      )
+      
+      dp.list <- .files.poll() |>
+        basename() |>
+        gsub(pattern = "_emldp$", replacement = "") |>
+        gsub(pattern = "//", replacement = "/")
+      
+      # update list
+      updateSelectInput(
+        session,
+        "DP",
+        # choiceNames = c("None selected", dp.list),
+        choice = c("---", gsub(" \\(.*\\)$", "", dp.list))
+      )
+    },
+    label = "Upload: dp list")
+    
+    # * Get files ----
     rv <- reactiveValues(
       md = data.frame(stringsAsFactors = FALSE),
       data = data.frame(stringsAsFactors = FALSE),
       scr = data.frame(stringsAsFactors = FALSE)
     )
+    makeReactiveBinding("rv$md")
+    makeReactiveBinding("rv$data")
+    makeReactiveBinding("rv$scr")
     
     observeEvent(input$DP, {
-      .dir <- gsub("/+", "/", input$DP)
-      .id <- basename(.dir) %>% sub("_emldp$", "", .)
-      .eml.files <- sprintf("%s/%s/eml", .dir, .id) %>%
+      validate(
+        need(input$DP != "---", "No dp selected")
+      )
+      
+      .dir <- .files.poll()[grepl(input$DP, .files.poll())]|>
+        gsub(pattern = "//", replacement = "/")
+      .id <- input$DP
+      # grab metadata files
+      .eml.files <- sprintf("%s/%s/eml", .dir, .id) |>
         dir(full.names = TRUE)
       rv$md <- data.frame(
         name = basename(.eml.files),
@@ -243,8 +330,8 @@ upload <- function(id, main.env) {
         type = mime::guess_type(.eml.files),
         datapath = .eml.files
       )
-      
-      .data.files <- sprintf("%s/%s/data_objects", .dir, .id) %>%
+      # grab data files
+      .data.files <- sprintf("%s/%s/data_objects", .dir, .id) |>
         dir(full.names = TRUE)
       rv$data <- data.frame(
         name = basename(.data.files),
@@ -252,28 +339,32 @@ upload <- function(id, main.env) {
         type = mime::guess_type(.data.files),
         datapath = .data.files
       )
+      # no script directory -> do not grab scripts
     },
     ignoreInit = TRUE,
     label = "DPinput"
     )
     
     observeEvent(input$metadata, {
+      if(nrow(rv$md) > 0)
+        showNotification(
+          "Only one metadata file allowed. Replacing with new one.",
+          type = "warning"
+        )
       rv$md <- input$metadata
-      showNotification(
-        "Only one metadata file allowed",
-        type = "message"
-      )
     })
+    
     observeEvent(input$data, {
       .add <- input$data
       req(isContentTruthy(.add))
-      browser() # Update list instead of erasing
+      # Update list instead of erasing
       rv$data <- rbind(rv$data, .add)
     })
+    
     observeEvent(input$scripts, {
       .add <- input$scripts
       req(isContentTruthy(.add))
-      browser() # Update list instead of erasing
+      # browser() # Update list instead of erasing
       rv$scr <- rbind(input$scripts, .add)
     })
     
@@ -313,37 +404,27 @@ upload <- function(id, main.env) {
       )
     })
     
-    observeEvent(input$rmv,
-                 {
-                   .rmv <- input$`md-files`
-                   if (isContentTruthy(.rmv)) {
-                     .ind <- match(.rmv, rv$md$name)
-                     rv$md <- rv$md[-.ind, ]
-                   }
-                   .rmv <- input$`data-files`
-                   if (isContentTruthy(.rmv)) {
-                     .ind <- match(.rmv, rv$data$name)
-                     rv$data <- rv$data[-.ind, ]
-                   }
-                   .rmv <- input$`scr-files`
-                   if (isContentTruthy(.rmv)) {
-                     .ind <- match(.rmv, rv$scr$name)
-                     rv$scr <- rv$scr[-.ind, ]
-                   }
-                 },
-                 ignoreInit = TRUE
+    observeEvent(input$rmv, {
+      .rmv <- input$`md-files`
+      if (isContentTruthy(.rmv)) {
+        .ind <- match(.rmv, rv$md$name)
+        rv$md <- rv$md[-.ind, ]
+      }
+      .rmv <- input$`data-files`
+      if (isContentTruthy(.rmv)) {
+        .ind <- match(.rmv, rv$data$name)
+        rv$data <- rv$data[-.ind, ]
+      }
+      .rmv <- input$`scr-files`
+      if (isContentTruthy(.rmv)) {
+        .ind <- match(.rmv, rv$scr$name)
+        rv$scr <- rv$scr[-.ind, ]
+      }
+    },
+    ignoreInit = TRUE
     )
     
     observe({
-      if (
-        dim(rv$md)[1] != 1 ||
-        dim(rv$data)[1] < 1
-      ) {
-        shinyjs::disable("process")
-      } else {
-        shinyjs::enable("process")
-      }
-      
       if (
         dim(rv$scr)[1] == 0 ||
         dim(rv$data)[1] == 0
@@ -355,51 +436,47 @@ upload <- function(id, main.env) {
     })
     
     # Process ----
+    # * completeness ----    
+    observe({
+      shinyjs::toggleState(
+        "process",
+        condition = (
+          isTruthy(memberNode())
+        ) && (
+          dim(rv$md)[1] == 1 && dim(rv$data)[1] > 0
+        ) && (
+          is.character(main.env$SETTINGS$metacat.token) &&
+            !is.null(main.env$SETTINGS$metacat.token)
+        ) && (
+          input$action %in% c("upload", "update")
+        )
+      )
+    })
+    
+    # * pressed ----
     observeEvent(input$process, {
-      disable("process")
+      shinyjs::disable("process")
       
-      md.format <- EML::read_eml(as.character(rv$md$datapath))$schemaLocation %>%
-        strsplit(split = " ") %>%
-        unlist() %>%
-        utils::head(n = 1)
-
+      md.format <- EML::read_eml(as.character(rv$md$datapath))$`@context`$eml |>
+        gsub(
+          pattern = "https://eml.ecoinformatics.org/eml-", 
+          replacement = "eml://ecoinformatics.org/eml-"
+        )
+      
       out <- uploadDP(
-        mn = registeredEndpoints %>%
-          dplyr::filter(mn == endpoint()) %>%
-          dplyr::select(URL) %>%
-          as.character(),
-        cn = registeredEndpoints %>%
-          dplyr::filter(mn == endpoint()) %>%
-          dplyr::select(cn) %>%
-          as.character(),
-        token = list(
-          test = main.env$SETTINGS$metacat.test,
-          prod = main.env$SETTINGS$metacat.token
-        ),
-        eml = list(
-          file = rv$md$datapath,
-          format = md.format
-        ),
-        data = list(
-          file = rv$data$datapath,
-          format = mime::guess_type(rv$data$datapath)
-        ),
-        scripts = if (dim(rv$scr)[1] > 0) {
-          list(
-            file = rv$scr$datapath,
-            format = mime::guess_type(rv$scr$datapath)
-          )
-        } else {
-          c()
-        },
-        formats = main.env$FORMAT$dataone.list$MediaType,
+        endpoint = registeredEndpoints |>
+          dplyr::filter(name == endpoint()),
+        token = main.env$SETTINGS$metacat.token,
+        eml = rv$md$datapath,
+        data = rv$data$datapath,
+        scripts = if (dim(rv$scr)[1] > 0) rv$scr$datapath else NULL,
         use.doi = FALSE
       )
       
       if (class(out) == "try-error") {
         showNotification(out[1], type = "error")
       } else {
-        showNotification(paste("Uploaded DP", out), type = "message")
+        showNotification(sprintf("Uploaded DP (metadata id: %s)", out), type = "message")
       }
       
       shinyjs::enable("process")

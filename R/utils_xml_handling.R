@@ -1,4 +1,4 @@
-path <- "~/Documents/Test_data/EAL/2021-04-23_Kakila_emldp/2021-04-23_Kakila/eml/Kakila database of marine mammal observation data in the AGOA sanctuary - French Antilles.xml"
+# path <- "~/Documents/Test_data/EAL/2021-04-23_Kakila_emldp/2021-04-23_Kakila/eml/Kakila database of marine mammal observation data in the AGOA sanctuary - French Antilles.xml"
 
 # read ----
 # {
@@ -14,7 +14,7 @@ path <- "~/Documents/Test_data/EAL/2021-04-23_Kakila_emldp/2021-04-23_Kakila/eml
 #         # Get file as a list
 #         eml <- xmlToList(eml.root)
 #         # Get root node
-#         eml.back <- xmlClone(eml.root) %>% 
+#         eml.back <- xmlClone(eml.root) |>
 #           removeChildren("dataset")
 #         # === edit `eml` here === #
 #         

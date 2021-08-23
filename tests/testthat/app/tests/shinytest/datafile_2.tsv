@@ -1,0 +1,294 @@
+code_obs	date_obs	time_obs	latitude	longitude	area_name	taxon_name
+20000112_IFA_OB_A	12-01-2000	NA	46.0253	-4.8054	Biscay	Cetacea
+20000113_IFA_OB_A	13-01-2000	NA	46.0242	-4.8053	Biscay	Balaenopteridae
+20000114_IFA_OB_A	14-01-2000	NA	46.1147	-4.8532	Biscay	Delphinidae
+20000115_IFA_OB_A	15-01-2000	NA	46.0977	-4.8332	Biscay	Kogiidae
+20000119_IFA_OB_A	19-01-2000	NA	46.1072	-4.8234	Biscay	Physeteridae
+20000120_IFA_OB_A	20-01-2000	NA	46.0183	-4.8032	Biscay	Ziphiidae
+20000121_IFA_OB_A	21-01-2000	NA	46.0216	-4.8212	Biscay	Balaenoptera acutorostrata
+20000122_IFA_OB_A	22-01-2000	NA	46.0547	-4.9375	Biscay	Balaenoptera borealis
+20000124_IFA_OB_A	24-01-2000	NA	46.0558	-4.9376	Biscay	Balaenoptera edeni
+20000325_IFA_OB_A	25-03-2000	NA	46.0586	-4.9609	Biscay	Balaenoptera physalus
+20000325_IFA_OB_B	25-03-2000	NA	46.0576	-4.9576	Biscay	Megaptera novaeangliae
+20000326_IFA_OB_A	26-03-2000	NA	46.0532	-4.9476	Biscay	Feresa attenuata
+20000327_IFA_OB_A	27-03-2000	NA	46.0533	-4.9455	Biscay	Globicephala macrorhynchus
+20000329_IFA_OB_A	29-03-2000	NA	46.0504	-4.9435	Biscay	Grampus griseus
+20000330_IFA_OB_A	30-03-2000	NA	46.0553	-4.9377	Biscay	Lagenodelphis hosei
+20070221_BRE_NG_A	21-02-2007	NA	45.9601	-4.7906	Biscay	Orcinus orca
+20070222_BRE_NG_A	22-02-2007	NA	45.9471	-4.7856	Biscay	Peponocephala electra
+20070223_BRE_NG_A	23-02-2007	NA	46.1175	-4.8197	Biscay	Pseudorca crassidens
+20070223_BRE_NG_B	23-02-2007	NA	46.1052	-4.8203	Biscay	Stenalla coeruleoalba
+20070224_BRE_NG_A	24-02-2007	NA	46.1637	-4.8491	Biscay	Stenella attenuata
+20071201_BRE_NG_A	01-12-2007	NA	46.2002	-4.8809	Biscay	Stenella clymene
+20071201_BRE_NG_B	01-12-2007	NA	46.2034	-4.8847	Biscay	Stenella frontalis
+20071202_BRE_NG_A	02-12-2007	NA	46.1918	-4.8802	Biscay	Stenella longirostris
+20080328_BRE_NG_A	28-03-2008	NA	46.177	-4.8761	Biscay	Steno bredanensis
+20080329_BRE_NG_A	29-03-2008	NA	46.1661	-4.8734	Biscay	Tursiops truncatus
+20080330_BRE_NG_A	30-03-2008	NA	46.1556	-4.8681	Biscay	Kogia breviceps
+20080419_BRE_NG_A	19-04-2008	NA	46.1418	-4.8254	Biscay	Kogia sima
+20080420_BRE_NG_A	20-04-2008	NA	46.2487	-4.8554	Biscay	Physeter macrocephalus
+20080429_BRE_NG_A	29-04-2008	NA	46.2329	-4.8657	Biscay	Mesoplodon densirostris
+20080601_BRE_NG_A	01-06-2008	NA	46.2106	-4.8647	Biscay	Mesoplodon europeaus
+20090411_BRE_NG_A	11-04-2009	NA	46.1297	-4.8245	Biscay	Mesoplodon mirus
+20090412_BRE_NG_A	12-04-2009	NA	45.9749	-4.7917	Biscay	Ziphius cavirostris
+20090413_BRE_NG_A	13-04-2009	NA	46.1936	-4.8442	Biscay	Cetacea
+20090416_BRE_NG_A	16-04-2009	NA	46.2125	-4.8624	Biscay	Balaenopteridae
+20090417_BRE_NG_A	17-04-2009	NA	46.235	-4.9145	Biscay	Delphinidae
+20090418_BRE_NG_A	18-04-2009	NA	46.2123	-4.9111	Biscay	Kogiidae
+20090419_BRE_NG_A	19-04-2009	NA	45.9954	-4.8586	Biscay	Physeteridae
+20091101_BRE_NG_A	01-11-2009	NA	46.0499	-4.8401	Biscay	Ziphiidae
+20091102_BRE_NG_A	02-11-2009	NA	46.1757	-4.8857	Biscay	Balaenoptera acutorostrata
+20091107_BRE_NG_A	07-11-2009	NA	46.1021	-4.8009	Biscay	Balaenoptera borealis
+20100406_BRE_NG_A	06-04-2010	NA	46.1114	-4.8618	Biscay	Balaenoptera edeni
+20100407_BRE_NG_A	07-04-2010	NA	46.1227	-4.8976	Biscay	Balaenoptera physalus
+20100408_BRE_NG_A	08-04-2010	NA	45.8766	-4.6079	Biscay	Megaptera novaeangliae
+20100409_BRE_NG_A	09-04-2010	NA	45.9838	-4.7615	Biscay	Feresa attenuata
+20100410_BRE_NG_A	10-04-2010	NA	46.1466	-4.816	Biscay	Globicephala macrorhynchus
+20100411_BRE_NG_A	11-04-2010	NA	46.192	-4.8979	Biscay	Grampus griseus
+20101101_BRE_NG_A	01-11-2010	NA	46.1131	-4.8249	Biscay	Lagenodelphis hosei
+20101102_BRE_NG_A	02-11-2010	NA	46.1128	-4.8253	Biscay	Orcinus orca
+20101103_BRE_NG_A	03-11-2010	NA	46.1284	-4.832	Biscay	Peponocephala electra
+20101105_BRE_NG_A	05-11-2010	NA	46.1375	-4.8362	Biscay	Pseudorca crassidens
+20101107_BRE_NG_A	07-11-2010	NA	46.1068	-4.8046	Biscay	Stenalla coeruleoalba
+20110423_BRE_NG_A	23-04-2011	NA	46.1733	-4.8143	Biscay	Stenella attenuata
+20110424_BRE_NG_A	24-04-2011	NA	46.2011	-4.8721	Biscay	Stenella clymene
+20110425_BRE_NG_A	25-04-2011	NA	46.2021	-4.8715	Biscay	Stenella frontalis
+20110426_BRE_NG_A	26-04-2011	NA	46.2344	-4.8637	Biscay	Stenella longirostris
+20110506_BRE_NG_A	06-05-2011	NA	46.0581	-4.8662	Biscay	Steno bredanensis
+20110508_BRE_NG_A	08-05-2011	NA	46.2086	-4.8993	Biscay	Tursiops truncatus
+20110509_BRE_NG_A	09-05-2011	NA	46.0737	-4.8432	Biscay	Kogia breviceps
+20120411_AGO_INC_A	11-04-2012	NA	46.0937	-4.8105	Biscay	Kogia sima
+20120412_AGO_INC_A	12-04-2012	NA	46.1008	-4.8147	Biscay	Physeter macrocephalus
+20120414_AGO_INC_A	14-04-2012	NA	46.3315	-4.8917	Biscay	Mesoplodon densirostris
+20120415_AGO_INC_A	15-04-2012	NA	46.1508	-4.9395	Biscay	Mesoplodon europeaus
+20120416_AGO_INC_A	16-04-2012	NA	46.2617	-4.9667	Biscay	Mesoplodon mirus
+20120417_AGO_INC_A	17-04-2012	NA	46.2578	-4.8748	Biscay	Ziphius cavirostris
+20120712_OMM_NCh_A	12-07-2012	NA	46.2578	-4.8748	Biscay	Cetacea
+20120722_OMM_NP_A	22-07-2012	NA	46.3535	-4.8125	Biscay	Balaenopteridae
+20120805_OMM_AG_A	05-08-2012	NA	46.3593	-4.8233	Biscay	Delphinidae
+20120811_EMA_CF_A	11-08-2012	NA	46.3315	-4.8917	Biscay	Kogiidae
+20120814_OMM_LA_A	14-08-2012	NA	46.3523	-4.8815	Biscay	Physeteridae
+20120815_EMA_CF_A	15-08-2012	NA	46.3315	-4.8917	Biscay	Ziphiidae
+20120815_EMA_CF_B	15-08-2012	NA	46.3348	-4.876	Biscay	Balaenoptera acutorostrata
+20120815_OMM_JCh_A	15-08-2012	NA	46.3145	-4.9983	Biscay	Balaenoptera borealis
+20120818_EMA_CF_A	18-08-2012	NA	46.3155	-4.9858	Biscay	Balaenoptera edeni
+20120902_OMM_AG_A	02-09-2012	NA	46.3155	-4.9858	Biscay	Balaenoptera physalus
+20120908_OMM_FS_A	08-09-2012	NA	46.2852	-4.9712	Biscay	Megaptera novaeangliae
+20120909_OMM_AD_A	09-09-2012	NA	46.3062	-4.8337	Biscay	Feresa attenuata
+20120909_OMM_AG_A	09-09-2012	NA	46.1023	-4.9537	Biscay	Globicephala macrorhynchus
+20120910_OMM_LP_A	10-09-2012	NA	46.0737	-4.8687	Biscay	Grampus griseus
+20120919_OMM_JCh_A	19-09-2012	NA	46.2393	-4.1992	Biscay	Lagenodelphis hosei
+20121006_OMM_FS_A	06-10-2012	NA	46.2378	-4.1883	Biscay	Orcinus orca
+20121021_OMM_EPu_A	21-10-2012	NA	46.2915	-4.2215	Biscay	Peponocephala electra
+20121022_OMM_LB_A	22-10-2012	NA	46.3663	-4.2195	Biscay	Pseudorca crassidens
+20121024_EMA_CF_A	24-10-2012	NA	46.1542	-4.1922	Biscay	Stenalla coeruleoalba
+20121029_OMM_YP_A	29-10-2012	NA	46.2817	-4.1042	Biscay	Stenella attenuata
+20121031_OMM_SSe_A	31-10-2012	NA	46.2932	-4.1107	Biscay	Stenella clymene
+20121102_AGO_INC_A	02-11-2012	NA	46.3315	-4.1675	Biscay	Stenella frontalis
+20121102_AGO_INC_B	02-11-2012	NA	46.0885	-4.2517	Biscay	Stenella longirostris
+20121103_AGO_INC_A	03-11-2012	NA	46.0407	-4.5385	Biscay	Steno bredanensis
+20121103_AGO_INC_B	03-11-2012	NA	46.1368	-4.8202	Biscay	Tursiops truncatus
+20121103_EMA_CF_A	03-11-2012	NA	46.1027	-4.8785	Biscay	Kogia breviceps
+20121108_OMM_CE_A	08-11-2012	NA	46.113	-4.9285	Biscay	Kogia sima
+20121110_EMA_CF_A	10-11-2012	NA	46.1903	-4.8829	Biscay	Physeter macrocephalus
+20121110_OMM_CJe_A	10-11-2012	NA	46.1449	-4.9198	Biscay	Mesoplodon densirostris
+20121110_OMM_ELe_A	10-11-2012	NA	46.1423	-4.9592	Biscay	Mesoplodon europeaus
+20121121_EMA_CF_A	21-11-2012	NA	46.2882	-4.9617	Biscay	Mesoplodon mirus
+20121124_EMA_CF_A	24-11-2012	NA	46.2627	-4.1418	Biscay	Ziphius cavirostris
+20121128_EMA_CF_A	28-11-2012	NA	46.0675	-4.8562	Biscay	Cetacea
+20121205_EMA_CF_A	05-12-2012	NA	46.2413	-4.8458	Biscay	Balaenopteridae
+20121205_OMM_ELe_A	05-12-2012	NA	46.115	-4.8402	Biscay	Delphinidae
+20121207_OMM_ML_A	07-12-2012	NA	46.1584	-4.8196	Biscay	Kogiidae
+20121208_EMA_CF_A	08-12-2012	NA	46.1893	-4.8859	Biscay	Physeteridae
+20121212_OMM_SPi_A	12-12-2012	NA	46.2413	-4.8458	Biscay	Ziphiidae
+20121213_OMM_INC_A	13-12-2012	NA	46.1222	-4.823	Biscay	Balaenoptera acutorostrata
+20121215_EMA_CF_A	15-12-2012	NA	46.0425	-4.54	Biscay	Balaenoptera borealis
+20121219_EMA_CF_A	19-12-2012	NA	46.0735	-4.8795	Biscay	Balaenoptera edeni
+20121221_AGO_INC_A	21-12-2012	NA	46.0362	-4.9551	Biscay	Balaenoptera physalus
+20121221_OMM_INC_A	21-12-2012	NA	46.0447	-4.9642	Biscay	Megaptera novaeangliae
+20121222_OMM_SSe_A	22-12-2012	NA	46.3695	-4.9273	Biscay	Feresa attenuata
+20121223_OMM_AD_A	23-12-2012	NA	46.2265	-4.8567	Biscay	Globicephala macrorhynchus
+20121224_OMM_AG_A	24-12-2012	NA	46.0795	-4.3079	Biscay	Grampus griseus
+20121226_EMA_CF_A	26-12-2012	NA	45.9381	-4.383	Biscay	Lagenodelphis hosei
+20121229_EMA_CF_A	29-12-2012	NA	46.1788	-4.137	Biscay	Orcinus orca
+20121229_EMA_CF_B	29-12-2012	NA	45.9084	-4.3806	Biscay	Peponocephala electra
+20130103_OMM_BU_A	03-01-2013	NA	45.9287	-4.3851	Biscay	Pseudorca crassidens
+20130108_OMM_JCo_A	08-01-2013	NA	45.8767	-4.3775	Biscay	Stenalla coeruleoalba
+20130108_OMM_JSo_A	08-01-2013	NA	46.1343	-4.1212	Biscay	Stenella attenuata
+20130109_OMM_INC_A	09-01-2013	NA	46.1788	-4.1363	Biscay	Stenella clymene
+20130111_OMM_JPL_A	11-01-2013	NA	46.2848	-4.1033	Biscay	Stenella frontalis
+20130112_OMM_BU_A	12-01-2013	NA	45.9228	-4.3659	Biscay	Stenella longirostris
+20130117_OMM_JL_A	17-01-2013	NA	46.5602	-4.7238	Biscay	Steno bredanensis
+20130119_EMA_CF_A	19-01-2013	NA	46.4723	-4.5769	Biscay	Tursiops truncatus
+20130123_EMA_CF_A	23-01-2013	NA	46.22	-4.2263	Biscay	Kogia breviceps
+20130124_OMM_CMi_A	24-01-2013	NA	46.243	-4.0437	Biscay	Kogia sima
+20130126_EMA_CF_A	26-01-2013	NA	46.1916	-4.8805	Biscay	Physeter macrocephalus
+20130127_OMM_JCh_A	27-01-2013	NA	46.3708	-3.9557	Biscay	Mesoplodon densirostris
+20130130_EMA_CF_A	30-01-2013	NA	46.2288	-4.1363	Biscay	Mesoplodon europeaus
+20130130_OMM_GM_A	30-01-2013	NA	46.0851	-4.2575	Biscay	Mesoplodon mirus
+20130130_OMM_JL_A	30-01-2013	NA	46.2305	-4.0557	Biscay	Ziphius cavirostris
+20130130_OMM_SSe_A	30-01-2013	NA	46.24	-4.0605	Biscay	Cetacea
+20130131_OMM_MLa_A	31-01-2013	NA	46.1535	-4.0908	Biscay	Balaenopteridae
+20130131_OMM_SSe_A	31-01-2013	NA	45.9303	-4.455	Biscay	Delphinidae
+20130201_OMM_BA_A	01-02-2013	NA	46.172	-4.507	Biscay	Kogiidae
+20130202_EMA_CF_A	02-02-2013	NA	46.0343	-4.3878	Biscay	Physeteridae
+20130202_OMM_JCh_A	02-02-2013	NA	46.1731	-4.8865	Biscay	Ziphiidae
+20130203_OMM_FSa_A	03-02-2013	NA	46.2203	-4.9008	Biscay	Balaenoptera acutorostrata
+20130203_OMM_LB_A	03-02-2013	NA	46.1764	-4.8865	Biscay	Balaenoptera borealis
+20130204_OMM_MA_A	04-02-2013	NA	46.1981	-4.9171	Biscay	Balaenoptera edeni
+20130206_EMA_CF_A	06-02-2013	NA	46.1951	-4.8897	Biscay	Balaenoptera physalus
+20130207_OMM_CMi_A	07-02-2013	NA	46.1918	-4.878	Biscay	Megaptera novaeangliae
+20130207_OMM_KB_A	07-02-2013	NA	46.1731	-4.8865	Biscay	Feresa attenuata
+20130208_OMM_JCh_A	08-02-2013	NA	46.1797	-4.8865	Biscay	Globicephala macrorhynchus
+20130209_EMA_CF_A	09-02-2013	NA	46.1814	-4.8865	Biscay	Grampus griseus
+20130209_EMA_CF_B	09-02-2013	NA	46.1882	-4.8639	Biscay	Lagenodelphis hosei
+20130209_OMM_JCh_A	09-02-2013	NA	46.2295	-4.818	Biscay	Orcinus orca
+20130210_OMM_INC_A	10-02-2013	NA	46.133	-4.8137	Biscay	Peponocephala electra
+20130210_OMM_KB_A	10-02-2013	NA	46.1988	-4.9178	Biscay	Pseudorca crassidens
+20130210_OMM_LB_A	10-02-2013	NA	46.018	-4.7692	Biscay	Stenalla coeruleoalba
+20130211_OMM_KB_A	11-02-2013	NA	46.1985	-3.8678	Biscay	Stenella attenuata
+20130211_OMM_OM_A	11-02-2013	NA	46.1539	-4.9441	Biscay	Stenella clymene
+20130212_EMA_CF_A	12-02-2013	NA	46.1277	-4.821	Biscay	Stenella frontalis
+20130212_OMM_JCh_A	12-02-2013	NA	46.1541	-4.9401	Biscay	Stenella longirostris
+20130213_EMA_CF_A	13-02-2013	NA	46.2682	-4.9735	Biscay	Steno bredanensis
+20130213_OMM_JCh_A	13-02-2013	NA	46.2643	-4.9131	Biscay	Tursiops truncatus
+20130213_OMM_JLG_A	13-02-2013	NA	46.1731	-4.8865	Biscay	Kogia breviceps
+20130214_OMM_JLG_A	14-02-2013	NA	46.2579	-4.844	Biscay	Kogia sima
+20130215_EMA_CF_A	15-02-2013	NA	46.5117	-4.4538	Biscay	Physeter macrocephalus
+20130215_OMM_INC_A	15-02-2013	NA	46.4186	-4.846	Biscay	Mesoplodon densirostris
+20130216_EMA_CF_A	16-02-2013	NA	46.4515	-4.9529	Biscay	Mesoplodon europeaus
+20130216_OMM_LCh_A	16-02-2013	NA	46.5055	-4.4407	Biscay	Mesoplodon mirus
+20130218_OMM_MA_A	18-02-2013	NA	46.5022	-4.4407	Biscay	Ziphius cavirostris
+20130219_OMM_FLa_A	19-02-2013	NA	46.2678	-4.1916	Biscay	Cetacea
+20130222_OMM_JLG_A	22-02-2013	NA	46.5124	-4.4538	Biscay	Balaenopteridae
+20130222_OMM_MA_A	22-02-2013	NA	46.5485	-4.4595	Biscay	Delphinidae
+20130222_OMM_RO_A	22-02-2013	NA	46.5394	-4.4478	Biscay	Kogiidae
+20130222_OMM_SG_A	22-02-2013	NA	46.541	-4.4558	Biscay	Physeteridae
+20130223_EMA_CF_A	23-02-2013	NA	45.8334	-4.6733	Biscay	Ziphiidae
+20130223_EMA_CF_B	23-02-2013	NA	45.8929	-4.7311	Biscay	Balaenoptera acutorostrata
+20130223_OMM_KM_A	23-02-2013	NA	45.8929	-4.7311	Biscay	Balaenoptera borealis
+20130223_OMM_NM_A	23-02-2013	NA	46.1718	-4.8817	Biscay	Balaenoptera edeni
+20130224_EMA_CF_A	24-02-2013	NA	46.1858	-4.8595	Biscay	Balaenoptera physalus
+20130224_EMA_CF_B	24-02-2013	NA	46.1285	-4.0938	Biscay	Megaptera novaeangliae
+20130224_OMM_APa_A	24-02-2013	NA	45.9829	-4.4109	Biscay	Feresa attenuata
+20130225_OMM_JCh_A	25-02-2013	NA	45.9358	-4.4282	Biscay	Globicephala macrorhynchus
+20130226_OMM_CD_A	26-02-2013	NA	45.9046	-4.4369	Biscay	Grampus griseus
+20130227_EMA_CF_A	27-02-2013	NA	46.0108	-4.477	Biscay	Lagenodelphis hosei
+20130227_OMM_BH_A	27-02-2013	NA	46.0558	-4.3746	Biscay	Orcinus orca
+20130228_EMA_CF_A	28-02-2013	NA	46.1751	-4.3413	Biscay	Peponocephala electra
+20130228_OMM_AChe_A	28-02-2013	NA	46.111	-4.4078	Biscay	Pseudorca crassidens
+20130301_OMM_INC_A	01-03-2013	NA	46.183	-4.444	Biscay	Stenalla coeruleoalba
+20130301_OMM_JCh_A	01-03-2013	NA	46.2445	-4.2492	Biscay	Stenella attenuata
+20130302_EMA_CF_A	02-03-2013	NA	46.2015	-4.2438	Biscay	Stenella clymene
+20130302_OMM_ELe_A	02-03-2013	NA	46.181	-4.2296	Biscay	Stenella frontalis
+20130302_OMM_INC_A	02-03-2013	NA	46.1797	-4.2229	Biscay	Stenella longirostris
+20130302_OMM_JCh_A	02-03-2013	NA	46.1224	-3.8836	Biscay	Steno bredanensis
+20130302_OMM_PMu_A	02-03-2013	NA	46.1845	-4.1267	Biscay	Tursiops truncatus
+20130302_OMM_TDel_A	02-03-2013	NA	46.1294	-3.916	Biscay	Kogia breviceps
+20130303_EMA_CF_A	03-03-2013	NA	46.1278	-3.9625	Biscay	Kogia sima
+20130303_OMM_AP_A	03-03-2013	NA	46.3053	-4.1589	Biscay	Physeter macrocephalus
+20130303_OMM_CPl_A	03-03-2013	NA	46.257	-4.1415	Biscay	Mesoplodon densirostris
+20130303_OMM_DM_A	03-03-2013	NA	46.2863	-4.1538	Biscay	Mesoplodon europeaus
+20130303_OMM_FI_A	03-03-2013	NA	46.2383	-4.1839	Biscay	Mesoplodon mirus
+20130303_OMM_KM_A	03-03-2013	NA	46.2395	-4.1735	Biscay	Ziphius cavirostris
+20130303_OMM_LB_A	03-03-2013	NA	46.1319	-4.0029	Biscay	Cetacea
+20130303_OMM_LDe_A	03-03-2013	NA	46.1843	-4.1277	Biscay	Balaenopteridae
+20130304_OMM_DM_A	04-03-2013	NA	46.174	-4.1442	Biscay	Delphinidae
+20130304_OMM_GD_A	04-03-2013	NA	46.0187	-4.3856	Biscay	Kogiidae
+20130304_OMM_MA_A	04-03-2013	NA	46.0208	-4.3503	Biscay	Physeteridae
+20130305_OMM_INC_A	05-03-2013	NA	46.0172	-4.2114	Biscay	Ziphiidae
+20130305_OMM_JCh_A	05-03-2013	NA	46.1998	-4.1424	Biscay	Balaenoptera acutorostrata
+20130305_OMM_PW_A	05-03-2013	NA	46.1905	-4.1371	Biscay	Balaenoptera borealis
+20130306_EMA_CF_A	06-03-2013	NA	46.0377	-4.2505	Biscay	Balaenoptera edeni
+20130306_OMM_CLe_A	06-03-2013	NA	46.0443	-4.2547	Biscay	Balaenoptera physalus
+20130306_OMM_DM_A	06-03-2013	NA	46.0078	-4.2708	Biscay	Megaptera novaeangliae
+20130306_OMM_FI_A	06-03-2013	NA	46.0222	-4.3242	Biscay	Feresa attenuata
+20130306_OMM_INC_A	06-03-2013	NA	45.9515	-4.3527	Biscay	Globicephala macrorhynchus
+20130306_OMM_INC_B	06-03-2013	NA	45.9969	-4.4046	Biscay	Grampus griseus
+20130306_OMM_JLG_A	06-03-2013	NA	45.9709	-4.4106	Biscay	Lagenodelphis hosei
+20130306_OMM_LB_A	06-03-2013	NA	45.9573	-4.4198	Biscay	Orcinus orca
+20130306_OMM_LB_B	06-03-2013	NA	46.0057	-4.3509	Biscay	Peponocephala electra
+20130306_OMM_SPe_A	06-03-2013	NA	46.0194	-4.1941	Biscay	Pseudorca crassidens
+20130307_EMA_CF_A	07-03-2013	NA	46.1162	-4.2055	Biscay	Stenalla coeruleoalba
+20130307_OMM_CLe_A	07-03-2013	NA	45.9399	-4.3384	Biscay	Stenella attenuata
+20130307_OMM_CT_A	07-03-2013	NA	46.0474	-5.0327	Biscay	Stenella clymene
+20130307_OMM_DM_A	07-03-2013	NA	46.2371	-4.9077	Biscay	Stenella frontalis
+20130307_OMM_ECo_A	07-03-2013	NA	46.505	-4.718	Biscay	Stenella longirostris
+20130307_OMM_ECo_B	07-03-2013	NA	46.1782	-4.128	Biscay	Steno bredanensis
+20130307_OMM_FDe_A	07-03-2013	NA	46.1298	-4.424	Biscay	Tursiops truncatus
+20130307_OMM_FRe_A	07-03-2013	NA	46.1044	-4.4141	Biscay	Kogia breviceps
+20130307_OMM_INC_A	07-03-2013	NA	45.9274	-4.4422	Biscay	Kogia sima
+20130307_OMM_JCh_A	07-03-2013	NA	45.9649	-4.458	Biscay	Physeter macrocephalus
+20130307_OMM_JCh_B	07-03-2013	NA	46.0575	-4.3036	Biscay	Mesoplodon densirostris
+20130307_OMM_JLG_A	07-03-2013	NA	45.9692	-4.3391	Biscay	Mesoplodon europeaus
+20130307_OMM_KM_A	07-03-2013	NA	45.9117	-4.4502	Biscay	Mesoplodon mirus
+20130307_OMM_MA_A	07-03-2013	NA	45.9077	-4.4353	Biscay	Ziphius cavirostris
+20130307_OMM_SB_A	07-03-2013	NA	45.9819	-4.3523	Biscay	Cetacea
+20130308_OMM_CD_A	08-03-2013	NA	45.8837	-4.6213	Biscay	Balaenopteridae
+20130308_OMM_JCh_A	08-03-2013	NA	45.8837	-4.6213	Biscay	Delphinidae
+20130308_OMM_JCh_B	08-03-2013	NA	45.8825	-4.6309	Biscay	Kogiidae
+20130308_OMM_MDin_A	08-03-2013	NA	45.8182	-4.6338	Biscay	Physeteridae
+20130309_EMA_CF_A	09-03-2013	NA	46.1602	-4.2569	Biscay	Ziphiidae
+20130309_OMM_FDe_A	09-03-2013	NA	45.8179	-4.6466	Biscay	Balaenoptera acutorostrata
+20130309_OMM_FS_A	09-03-2013	NA	46.1742	-4.2797	Biscay	Balaenoptera borealis
+20130309_OMM_INC_A	09-03-2013	NA	45.8279	-4.6561	Biscay	Balaenoptera edeni
+20130309_OMM_INC_B	09-03-2013	NA	46.3494	-4.0448	Biscay	Balaenoptera physalus
+20130309_OMM_JCh_A	09-03-2013	NA	46.3513	-4.0431	Biscay	Megaptera novaeangliae
+20130309_OMM_LB_A	09-03-2013	NA	46.3561	-3.9763	Biscay	Feresa attenuata
+20130309_OMM_LB_B	09-03-2013	NA	45.9983	-5.0069	Biscay	Globicephala macrorhynchus
+20130309_OMM_MA_A	09-03-2013	NA	46.2827	-4.0062	Biscay	Grampus griseus
+20130310_OMM_INC_A	10-03-2013	NA	46.0115	-4.9464	Biscay	Lagenodelphis hosei
+20130310_OMM_JR_A	10-03-2013	NA	46.3444	-4.0883	Biscay	Orcinus orca
+20130310_OMM_LP_A	10-03-2013	NA	46.0301	-4.544	Biscay	Peponocephala electra
+20130310_OMM_MDin_A	10-03-2013	NA	46.5241	-4.7184	Biscay	Pseudorca crassidens
+20130310_OMM_WB_A	10-03-2013	NA	46.516	-4.7232	Biscay	Stenalla coeruleoalba
+20130311_OMM_AFel_A	11-03-2013	NA	46.3167	-4.8174	Biscay	Stenella attenuata
+20130311_OMM_KM_A	11-03-2013	NA	46.3016	-4.9447	Biscay	Stenella clymene
+20130312_OMM_CC_A	12-03-2013	NA	46.2735	-4.9347	Biscay	Stenella frontalis
+20130312_OMM_INC_A	12-03-2013	NA	46.2305	-4.9496	Biscay	Stenella longirostris
+20130312_OMM_PN_A	12-03-2013	NA	46.1818	-4.8666	Biscay	Steno bredanensis
+20130312_OMM_RO_A	12-03-2013	NA	46.2283	-4.9589	Biscay	Tursiops truncatus
+20130313_EMA_CF_A	13-03-2013	NA	46.2068	-4.967	Biscay	Kogia breviceps
+20130313_OMM_FLa_A	13-03-2013	NA	46.1571	-4.9738	Biscay	Kogia sima
+20130313_OMM_INC_A	13-03-2013	NA	46.1413	-4.9843	Biscay	Physeter macrocephalus
+20130313_OMM_INC_B	13-03-2013	NA	46.1213	-4.8783	Biscay	Mesoplodon densirostris
+20130313_OMM_KB_A	13-03-2013	NA	46.1881	-4.8683	Biscay	Mesoplodon europeaus
+20130313_OMM_LB_A	13-03-2013	NA	46.1818	-4.8666	Biscay	Mesoplodon mirus
+20130313_OMM_SPe_A	13-03-2013	NA	46.15	-4.9233	Biscay	Ziphius cavirostris
+20130314_OMM_CO_A	14-03-2013	NA	46.0818	-4.3127	Biscay	Cetacea
+20130314_OMM_ELe_A	14-03-2013	NA	45.972	-4.472	Biscay	Balaenopteridae
+20130314_OMM_MT_A	14-03-2013	NA	45.9719	-4.4659	Biscay	Delphinidae
+20130315_OMM_INC_A	15-03-2013	NA	46.2702	-4.8908	Biscay	Kogiidae
+20130315_OMM_INC_B	15-03-2013	NA	46.2715	-4.8955	Biscay	Physeteridae
+20130315_OMM_JL_A	15-03-2013	NA	46.2717	-4.904	Biscay	Ziphiidae
+20130315_OMM_JLG_A	15-03-2013	NA	46.4018	-4.7389	Biscay	Balaenoptera acutorostrata
+20130315_OMM_JR_A	15-03-2013	NA	46.4989	-4.8114	Biscay	Balaenoptera borealis
+20130315_OMM_ZL_A	15-03-2013	NA	46.3469	-4.9417	Biscay	Balaenoptera edeni
+20130316_AGO_INC_A	16-03-2013	NA	46.4696	-4.57	Biscay	Balaenoptera physalus
+20130316_AGO_INC_B	16-03-2013	NA	46.2593	-4.1258	Biscay	Megaptera novaeangliae
+20130316_EMA_CF_A	16-03-2013	NA	46.2418	-4.08	Biscay	Feresa attenuata
+20130316_OMM_FLa_A	16-03-2013	NA	NA	NA	Biscay	Globicephala macrorhynchus
+20130316_OMM_INC_A	16-03-2013	NA	NA	NA	Biscay	Grampus griseus
+20130316_OMM_KM_A	16-03-2013	NA	NA	NA	Biscay	Lagenodelphis hosei
+20130316_OMM_MDi_A	16-03-2013	NA	46.1667	-4.85	Biscay	Orcinus orca
+20130316_OMM_SPe_A	16-03-2013	NA	46.125	-4.8833	Biscay	Peponocephala electra
+20130316_OMM_SPe_B	16-03-2013	NA	NA	NA	Biscay	Pseudorca crassidens
+20130317_AGO_INC_A	17-03-2013	NA	46.15	-4.8833	Biscay	Stenalla coeruleoalba
+20130317_AGO_INC_B	17-03-2013	NA	46.15	-4.9	Biscay	Stenella attenuata
+20130317_EMA_CF_A	17-03-2013	NA	46.1167	-4.9667	Biscay	Stenella clymene
+20130317_OMM_AFa_A	17-03-2013	NA	46.1333	-4.8667	Biscay	Stenella frontalis
+20130317_OMM_DN_A	17-03-2013	NA	46.0167	-4.9333	Biscay	Stenella longirostris
+20130317_OMM_SCo_A	17-03-2013	NA	NA	NA	Biscay	Steno bredanensis
+20130318_AGO_INC_A	18-03-2013	NA	NA	NA	Biscay	Tursiops truncatus
+20130318_OMM_ARo_A	18-03-2013	NA	NA	NA	Biscay	Kogia breviceps
+20130318_OMM_FDe_A	18-03-2013	NA	46.0906	-4.9167	Biscay	Kogia sima
+20130318_OMM_JCh_A	18-03-2013	NA	NA	NA	Biscay	Physeter macrocephalus
+20130318_OMM_JLG_A	18-03-2013	NA	NA	NA	Biscay	Mesoplodon densirostris
+20130319_AGO_INC_A	19-03-2013	NA	NA	NA	Biscay	Mesoplodon europeaus
+20130319_OMM_DM_A	19-03-2013	NA	NA	NA	Biscay	Mesoplodon mirus
+20130319_OMM_SAu_A	19-03-2013	NA	NA	NA	Biscay	Ziphius cavirostris
+20130320_AGO_INC_A	20-03-2013	NA	NA	NA	Biscay	Cetacea
+20130320_EMA_CF_A	20-03-2013	NA	NA	NA	Biscay	Balaenopteridae
+20130320_OMM_BH_A	20-03-2013	NA	NA	NA	Biscay	Delphinidae
+20130320_OMM_CC_A	20-03-2013	NA	NA	NA	Biscay	Kogiidae
+20130320_OMM_KBe_A	20-03-2013	NA	NA	NA	Biscay	Physeteridae

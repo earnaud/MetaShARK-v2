@@ -17,7 +17,7 @@ MiscellaneousUI <- function(id, help.label = NULL) {
       )
     ),
     # tags$b("Selected file:"),
-    # textOutput(NS(id, "selected")) %>%
+    # textOutput(NS(id, "selected")) |>
     #   htmltools::tagAppendAttributes(class = "ellipsis"),
     tags$hr(),
     # Content edition ----
@@ -41,7 +41,6 @@ MiscellaneousUI <- function(id, help.label = NULL) {
 
 #' @import shiny
 #' @importFrom SummeRnote summernoteInput
-#' @importFrom dplyr %>%
 #'
 #' @noRd
 Miscellaneous <- function(id, main.env) {
@@ -58,7 +57,7 @@ Miscellaneous <- function(id, main.env) {
       req("content" %in% names(input))
       
       input$content
-    }) %>% 
+    }) |> 
       debounce(1000)
     
     observe({
@@ -85,11 +84,11 @@ Miscellaneous <- function(id, main.env) {
       .tmp <- if(grepl(".md$", main.env$local.rv[[id]]$file)) {
         readHTMLfromMD(main.env$local.rv[[id]]$file)
       } else # if(grepl(".txt$", main.env$local.rv[[id]]$file)) {
-        main.env$local.rv[[id]]$file %>%
-        readtext %>%
-        select("text") %>%
-        unlist %>%
-        HTML
+        main.env$local.rv[[id]]$file |>
+        readtext() |>
+        select("text") |>
+        unlist() |>
+        HTML()
       
       devmsg(tag = "Misc", "update note input %s (%s)", id, main.env$local.rv[[id]]$file)
       # },
@@ -123,7 +122,7 @@ Miscellaneous <- function(id, main.env) {
 # Keyword Sets ====
 
 #' @import shiny
-#' @importFrom dplyr filter select %>%
+#' @importFrom dplyr filter select
 #'
 #' @noRd
 insertKeywordSet <- function(id, main.env, .setup = FALSE) {
@@ -139,9 +138,9 @@ insertKeywordSet <- function(id, main.env, .setup = FALSE) {
   # create UI
   new.ui <- keywordSetUI(
     id,
-    kwt.value = main.env$local.rv$keywords %>% 
-      dplyr::filter(keyword.set == kws) %>%
-      dplyr::select(keyword.thesaurus) %>%
+    kwt.value = main.env$local.rv$keywords |> 
+      dplyr::filter(keyword.set == kws) |>
+      dplyr::select(keyword.thesaurus) |>
       unlist()
   )
   # insert the UI
@@ -187,7 +186,7 @@ keywordSetUI <- function(id, kwt.value = NULL) {
 # Auto save is performed here to allow quick comparisons between different 
 # keyword sets.
 #' @import shiny
-#' @importFrom dplyr filter select %>% mutate
+#' @importFrom dplyr filter select mutate
 #' @importFrom shinyWidgets updateSearchInput
 #'
 #' @noRd
@@ -199,11 +198,11 @@ keywordSet <- function(id, main.env, .setup = FALSE) {
     observeEvent(TRUE, {
       req(isTRUE(.setup))
       
-      .keywords <- main.env$local.rv$keywords %>%
-        dplyr::filter(keyword.set == kws) %>%
-        dplyr::select(keyword) %>%
-        unlist() %>%
-        strsplit(",") %>%
+      .keywords <- main.env$local.rv$keywords |>
+        dplyr::filter(keyword.set == kws) |>
+        dplyr::select(keyword) |>
+        unlist() |>
+        strsplit(",") |>
         unlist()
       sapply(.keywords, function(kw) {
         insertKeywordTag(session$ns(kw), kws, main.env)
@@ -235,7 +234,7 @@ keywordSet <- function(id, main.env, .setup = FALSE) {
       kwt <- input$kwt
       req(isTruthy(kwt))
       # Save changes
-      main.env$local.rv$keywords <- main.env$local.rv$keywords %>%
+      main.env$local.rv$keywords <- main.env$local.rv$keywords |>
         dplyr::mutate(
           keyword.thesaurus = ifelse(
             keyword.set == kws,
@@ -253,7 +252,7 @@ keywordSet <- function(id, main.env, .setup = FALSE) {
       # Remove UI
       removeUI(selector = paste0("#", session$ns("kws_div")), immediate = TRUE)
       # Remove keywords
-      main.env$local.rv$keywords <- main.env$local.rv$keywords %>%
+      main.env$local.rv$keywords <- main.env$local.rv$keywords |>
         dplyr::filter(keyword.set != kws)
       # Clear modules
       remove_shiny_inputs(id, input)
@@ -263,7 +262,7 @@ keywordSet <- function(id, main.env, .setup = FALSE) {
 
 # Keyword tags ====
 #' @import shiny
-#' @importFrom dplyr filter select %>% mutate
+#' @importFrom dplyr filter select mutate
 #'
 #' @noRd
 insertKeywordTag <- function(id, kws, main.env) {
@@ -273,14 +272,14 @@ insertKeywordTag <- function(id, kws, main.env) {
   # New keyword -- not in local.rv
   if(
     isFALSE(
-      main.env$local.rv$keywords %>%
-      dplyr::filter(keyword.set == kws) %>% 
-      dplyr::select(keyword) %>%
+      main.env$local.rv$keywords |>
+      dplyr::filter(keyword.set == kws) |> 
+      dplyr::select(keyword) |>
       grepl(pattern = new.kw)
     )
   ) {
     main.env$local.rv$keywords <- 
-      main.env$local.rv$keywords %>%
+      main.env$local.rv$keywords |>
       dplyr::mutate(
         keyword = ifelse(
           keyword.set == kws,
@@ -317,7 +316,7 @@ keywordTagUI <- function(id) {
 }
 
 #' @import shiny
-#' @importFrom dplyr %>% mutate
+#' @importFrom dplyr mutate
 #'
 #' @noRd
 keywordTag <- function(id, kws, main.env) {
@@ -326,7 +325,7 @@ keywordTag <- function(id, kws, main.env) {
       # remove the UI
       removeUI(selector = paste0("#", session$ns("kw_tag")), immediate = TRUE)
       # remove keyword
-      main.env$local.rv$keywords <- main.env$local.rv$keywords %>%
+      main.env$local.rv$keywords <- main.env$local.rv$keywords |>
         dplyr::mutate(
           keyword = ifelse(
             keyword.set == kws,

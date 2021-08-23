@@ -8,6 +8,7 @@ server <- function(input, output, session) {
   # get variables
   args <- get("metashark.args", envir = .GlobalEnv)
   main.env <- .globalScript(.args = args, envir = session$userData)
+  addResourcePath("media", system.file("media/", package = "MetaShARK"))
   
   # Set user-specific data
   assign(
@@ -30,7 +31,7 @@ server <- function(input, output, session) {
   # App variables
   assign(
     "current.tab",
-    reactive(input$side_menu),
+    reactive(input$sidemenu),
     envir = main.env
   )
   
@@ -45,24 +46,22 @@ server <- function(input, output, session) {
   if (main.env$dev){
     shinyjs::show("dev")
     observeEvent(input$dev, {
-      if (main.env$current.tab() != "fill")
+      if (main.env$current.tab() != "fill" &&
+          main.env$current.tab() != "upload")
         browser()
     }, label = "server: dev toggle")
   }
   
+  if(isTRUE(args$use.test)) {
+    shinyjs::show("test_end")
+    observeEvent(input$test_end, {
+      stopApp()
+    }, label = "server: end test")
+    
+  }
+  
   # Update values ====
   invisible({
-    # DataONE nodes
-    .DATAONE.LIST <- if(!main.env$dev) 
-      try(dataone::listFormats(dataone::CNode())) else
-        try(silent = TRUE)
-    if (class(.DATAONE.LIST) != "try-error") {
-      .DATAONE.LIST <- readDataTable(
-        isolate(main.env$PATHS$resources$dataoneCNodesList.txt)
-      )
-      isolate(main.env$dataone.list <- .DATAONE.LIST)
-    }
-  
     # Taxa authorities
     .TAXA.AUTHORITIES <- if(!main.env$dev)
       try(taxonomyCleanr::view_taxa_authorities()) else
@@ -77,7 +76,7 @@ server <- function(input, output, session) {
     # Ontology list
     .ONTOLOGIES <- data.table::fread(
       system.file(
-        "resources/bioportal_ontologies_list.csv",
+        "resources/ontologies_list.tsv",
         package = "MetaShARK"
       )
     )
@@ -100,17 +99,17 @@ server <- function(input, output, session) {
   
   # Version ----
   output$version <- renderText({
-    system("git describe --tags `git rev-list --tags --max-count=1`", intern=TRUE)
+    dir(".", pattern = "MetaShARK_.*.tar.gz") |>
+      gsub(pattern = "MetaShARK_(.*).tar.gz", replacement = "\\1")
   })
 }
 
-#' @importFrom dplyr %>% 
-#'
 #' @noRd
 listDP <- function(main.env) {
   list.files(
     main.env$PATHS$eal.dp,
     pattern = "_emldp$",
     full.names = FALSE
-  ) %>% gsub(pattern = "_emldp$", replacement = "")
+  ) |> 
+    gsub(pattern = "_emldp$", replacement = "")
 }

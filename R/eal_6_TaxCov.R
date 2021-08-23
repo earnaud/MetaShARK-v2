@@ -18,7 +18,7 @@ TaxCovUI <- function(id) {
 }
 
 #' @import shiny
-#' @importFrom dplyr %>% select filter
+#' @importFrom dplyr select filter
 #'
 #' @noRd
 TaxCov <- function(id, main.env) {
@@ -44,18 +44,18 @@ TaxCov <- function(id, main.env) {
         .att <- main.env$save.variable$Attributes$content
         .choice <- main.env$local.rv$.taxa.choices <- list()
         sapply(names(.att), function(.md.file) {
-          .data.file <- main.env$save.variable$DataFiles %>%
-            filter(grepl(.md.file, metadatapath)) %>%
-            select(datapath) %>%
-            unlist %>%
-            basename
+          .data.file <- main.env$save.variable$DataFiles |>
+            filter(grepl(.md.file, metadatapath)) |>
+            select(datapath) |>
+            unlist() |>
+            basename()
           # Set sites
-          .choice[[.data.file]] <<- .att[[.md.file]] %>% 
-            as.data.frame %>%
-            dplyr::filter(class %in% c("character", "categorical")) %>% 
-            dplyr::select(attributeName) %>%
-            unlist
-          .choice[[.data.file]] <<- paste(.data.file, .choice[[.data.file]], sep="/") %>%
+          .choice[[.data.file]] <<- .att[[.md.file]] |> 
+            as.data.frame() |>
+            dplyr::filter(class %in% c("character", "categorical")) |> 
+            dplyr::select(attributeName) |>
+            unlist()
+          .choice[[.data.file]] <<- paste(.data.file, .choice[[.data.file]], sep="/") |>
             setNames(nm = .choice[[.data.file]])
         })
         # Set value -- read from saved
@@ -64,7 +64,8 @@ TaxCov <- function(id, main.env) {
             main.env$local.rv$taxa.table,
             main.env$local.rv$taxa.col,
             sep = "/"
-          ) %>% setNames(nm = main.env$local.rv$taxa.table)
+          ) |>
+            setNames(nm = main.env$local.rv$taxa.table)
         }
       })
 
@@ -84,13 +85,17 @@ TaxCov <- function(id, main.env) {
         need(isTruthy(main.env$local.rv$taxa.col), "invalid taxa selection")
       )
       
-      file <- main.env$save.variable$DataFiles$datapath %>%
-        as.data.frame %>%
-        dplyr::filter(grepl(main.env$local.rv$taxa.table, .)) %>%
-        unlist
+      file <- main.env$save.variable$DataFiles$datapath |>
+        as.data.frame() |>
+        setNames(nm = "filenames")
+      file <- dplyr::filter(
+        file,
+        grepl(pattern = main.env$local.rv$taxa.table, filenames)
+      ) |>
+        unlist()
+      
       data <- data.table::fread(
-        file, 
-        nrows = 5,
+        file, nrows = 5,
         data.table = FALSE
       )[main.env$local.rv$taxa.col]
       
@@ -122,8 +127,8 @@ TaxCov <- function(id, main.env) {
         taxa.authority <- main.env$FORMATS$taxa.authorities
         choices <- taxa.authority$authority
         value <- if (isTruthy(main.env$local.rv$taxa.authority)) {
-          taxa.authority %>%
-            dplyr::filter(id == main.env$local.rv$taxa.authority) %>%
+          taxa.authority |>
+            dplyr::filter(id == main.env$local.rv$taxa.authority) |>
             dplyr::select(authority)
         }
       })
@@ -143,9 +148,9 @@ TaxCov <- function(id, main.env) {
     observeEvent(input$taxa.table, 
       {
         # save
-        .tmp <- input$taxa.table %>% 
-          strsplit(., split = "/", fixed = TRUE) %>%
-          unlist
+        .tmp <- input$taxa.table |> 
+          strsplit(split = "/", fixed = TRUE) |>
+          unlist()
         main.env$local.rv$taxa.table <- .tmp[1]
         main.env$local.rv$taxa.col <- .tmp[2]
       },
@@ -172,9 +177,9 @@ TaxCov <- function(id, main.env) {
     # * Taxa authority ----
     observeEvent(input$taxa.authority, {
       if(isTruthy(input$taxa.authority))
-        main.env$local.rv$taxa.authority <- main.env$FORMATS$taxa.authorities %>%
-          dplyr::filter(authority %in% input$taxa.authority) %>%
-          dplyr::select(id) %>%
+        main.env$local.rv$taxa.authority <- main.env$FORMATS$taxa.authorities |>
+          dplyr::filter(authority %in% input$taxa.authority) |>
+          dplyr::select(id) |>
           unlist()
       else
         main.env$local.rv$taxa.authority <- character()

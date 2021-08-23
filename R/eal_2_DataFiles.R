@@ -1,8 +1,16 @@
-#' @param id character. An ID string that corresponds with the ID used to call 
-#' the module's UI function.
-#' @param main.env environment. An internal environment for MetaShARK save 
-#' variables.
-#' 
+# @param id character. An ID string that corresponds with the ID used to call 
+# the module's UI function.
+# @param main.env environment. An internal environment for MetaShARK save 
+# variables.
+# 
+# insertModule(
+# session$ns("_1111"),
+# "#inserthere_eal2",
+# moduleUI = DataFileInputUI2,
+# moduleUI.args = list(main.env = main.env),
+# module = DataFileInput2,
+# module.args = list(main.env = main.env)
+# )
 #' @import shiny
 #' @importFrom shinyFiles shinyFilesButton
 #'
@@ -97,6 +105,8 @@ DataFiles <- function(id, main.env) {
       
       # * retrieve files info ----
       .loaded.files <- input$add_data_files
+      # FIXME clean file input - buggy
+      # shinyjs::reset(input$add_data_files)
       
       # remove spaces
       file.rename(
@@ -112,7 +122,7 @@ DataFiles <- function(id, main.env) {
       
       # Check for folders
       .to.remove <- c()
-      sapply(1:nrow(.loaded.files), function(.ind) {
+      sapply(seq(nrow(.loaded.files)), function(.ind) {
         .loaded.file <- .loaded.files[.ind,]
         filepath <- .loaded.file$datapath
         if (fs::is_dir(filepath)) {
@@ -165,7 +175,8 @@ DataFiles <- function(id, main.env) {
       } else {
         # non-empty local.rv
         sapply(.loaded.files$name, function(filename) {
-          filepath <- .loaded.files$datapath[.loaded.files$name == filename]
+          .row <- which(.loaded.files$name == filename)
+          filepath <- .loaded.files$datapath[.row]
           
           if (!filename %in% main.env$local.rv$data.files$name) {
             # Bind data
@@ -173,7 +184,7 @@ DataFiles <- function(id, main.env) {
               main.env$local.rv$data.files,
               cbind(
                 id = main.env$local.rv$counter,
-                .loaded.files[.loaded.files$name == filename, ]
+                .loaded.files[.row, ]
               )
             ))
             # Render
@@ -204,6 +215,7 @@ DataFiles <- function(id, main.env) {
     observeEvent(main.env$local.rv$data.files, {
       main.env$EAL$tag.list <- tagList()
       req(isContentTruthy(main.env$local.rv$data.files))
+      
       files.size <- if (isContentTruthy(main.env$local.rv$data.files$size)) {
         sum(main.env$local.rv$data.files$size)
       } else {
@@ -216,7 +228,7 @@ DataFiles <- function(id, main.env) {
       } else if (files.size >= 0.9 * files.size.max && files.size < files.size.max) {
         "color: gold;"
       } else {
-        "color: red"
+        "color: red;"
       }
       
       main.env$EAL$tag.list <- tagList(

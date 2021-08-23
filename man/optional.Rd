@@ -4,12 +4,12 @@
 \alias{optional}
 \title{optional}
 \usage{
-optional(x, type = NULL)
+optional(x, default = NULL)
 }
 \arguments{
 \item{x}{value provided for the argument}
 
-\item{type}{typed value (e.g. character()) in case option is invalid.}
+\item{default}{default value (e.g. character()) in case option is invalid.}
 }
 \description{
 Fill optional arguments of a function if the given argument comes to be not

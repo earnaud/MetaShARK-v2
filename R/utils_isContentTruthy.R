@@ -43,12 +43,12 @@ isHTMLTruthy <- function(x) {
 #' function).
 #' 
 #' @param x value provided for the argument
-#' @param type typed value (e.g. character()) in case option is invalid.
+#' @param default default value (e.g. character()) in case option is invalid.
 #' 
 #' @export
-optional <- function(x, type = NULL) {
+optional <- function(x, default = NULL) {
   if(isContentTruthy(x))
     return(x)
   else
-    return(type)
+    return(default)
 }

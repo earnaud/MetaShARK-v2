@@ -1,17 +1,22 @@
 #' @import shiny
-#' @import shinydashboard
+#' @importFrom shinydashboard dashboardSidebar sidebarMenu menuItem dashboardBody tabItems tabItem
 #' @importFrom shinyjs useShinyjs inlineCSS hidden
 #' @importFrom shinyFeedback useShinyFeedback
 #' @importFrom htmltools includeCSS
-#' @importFrom shinydashboardPlus loadingState dashboardPagePlus dashboardHeaderPlus
+#' @importFrom shinydashboardPlus loadingState dashboardPage dashboardHeader
 #' 
 #' @noRd
 ui <- function() {
   # get app arguments
   # main.env <- get("main.env", options()$metashark.env)
   
+  addResourcePath("media", system.file("media/", package = "MetaShARK"))
+  
   # prepare variable
   .menu.width <- "250px"
+  # ShinyJS extension -- unused
+  # From: https://community.rstudio.com/t/where-is-updatefileinput/11999/4
+  # jsCode = "shinyjs.clearUpload = function() $('#upload').parent().parent().next()[0].value = ''}"
   
   tagList(
     shinyjs::useShinyjs(),
@@ -43,7 +48,7 @@ ui <- function() {
       h2("Loading..."),
       shinydashboardPlus::loadingState(),
       tags$img(
-        src = "media/sea_shark.png",
+        src = "media/sea_shark.png", 
         width = "473px",
         height = "235px"
       )
@@ -51,10 +56,10 @@ ui <- function() {
     shinyjs::hidden(
       div(
         id = "app-content",
-        shinydashboardPlus::dashboardPagePlus(
+        shinydashboardPlus::dashboardPage(
           title = "MetaShARK",
           ## Header ====
-          header = shinydashboardPlus::dashboardHeaderPlus(
+          header = shinydashboardPlus::dashboardHeader(
             title = tagList(
               span(
                 class = "logo-lg",
@@ -70,15 +75,13 @@ ui <- function() {
                 height = "40px"
               )
             ),
-            titleWidth = "250px",
-            enable_rightsidebar = TRUE,
-            rightSidebarIcon = "gears"
+            titleWidth = "250px"
           ),
           ## Menus ====
           ## * Tools ----
           sidebar = shinydashboard::dashboardSidebar(
             shinydashboard::sidebarMenu(
-              id = "side_menu",
+              id = "sidemenu",
               shinydashboard::menuItem(
                 "Welcome",
                 tabName = "welcome",
@@ -107,9 +110,10 @@ ui <- function() {
               tagList(
                 tags$hr(),
                 shinyjs::hidden(
-                  actionButton(
-                    "dev", "DEV CHECK"
-                  )
+                  actionButton("dev", "DEV CHECK")
+                ),
+                shinyjs::hidden(
+                  actionButton("test_end", "END TEST")
                 ),
                 tags$p(uiOutput("version"))
               )
@@ -117,7 +121,7 @@ ui <- function() {
             width = "250px"
           ), # end sidebar
           # * Settings ----
-          rightsidebar = rightSidebarSettings(
+          controlbar = rightSidebarSettings(
             "settings"
           ),
           ## Content ====

@@ -95,9 +95,9 @@ Personnel <- function(id, main.env) {
       # Roles
       .roles <- if(isTruthy(main.env$local.rv$Personnel$role))
         table(
-          .tmp <- main.env$local.rv$Personnel$role %>%
-            strsplit(., ",") %>%
-            unlist
+          .tmp <- main.env$local.rv$Personnel$role |>
+            strsplit(split = ",") |>
+            unlist()
         ) else
           c()
       if(isFALSE("creator" %in% names(.roles))) 

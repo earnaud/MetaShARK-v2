@@ -17,7 +17,7 @@ CatVarsUI <- function(id) {
             overflow: scroll;
             max-height: 60vh;
             background-color: #e4e7ec;
-          ") %>%
+          ") |>
           shinycssloaders::withSpinner(),
         column(
           5, offset = 1,
@@ -54,7 +54,7 @@ CatVarsUI <- function(id) {
 #' @importFrom shinyjs toggleState
 #' @importFrom shinyBS bsCollapse
 #' @importFrom shinyFeedback hideFeedback showFeedbackSuccess showFeedbackDanger
-#' @importFrom dplyr %>% filter slice select
+#' @importFrom dplyr filter slice select
 #'
 #' @noRd
 CatVars <- function(id, main.env) {
@@ -141,19 +141,19 @@ CatVars <- function(id, main.env) {
       if(.code.selected()) {
         if(grepl("empty", .selected())) {
           .index <- as.numeric(gsub("\\[(.*):empty\\]","\\1", .selected()[[1]][1]))
-          .value <- main.env$local.rv$cv.tables[[.ancestor()[1]]] %>% 
-            filter(attributeName == .ancestor()[2]) %>%
-            slice(.index) %>%
-            select(definition) %>% 
-            unlist %>% 
-            unname
+          .value <- main.env$local.rv$cv.tables[[.ancestor()[1]]] |> 
+            filter(attributeName == .ancestor()[2]) |>
+            slice(.index) |>
+            select(definition) |> 
+            unlist() |> 
+            unname()
         } else {
-          .value <- main.env$local.rv$cv.tables[[.ancestor()[1]]] %>% 
-            filter(attributeName == .ancestor()[2]) %>%
-            filter(code == .selected()[[1]][1]) %>%
-            select(definition) %>% 
-            unlist %>% 
-            unname # important !
+          .value <- main.env$local.rv$cv.tables[[.ancestor()[1]]] |> 
+            filter(attributeName == .ancestor()[2]) |>
+            filter(code == .selected()[[1]][1]) |>
+            select(definition) |> 
+            unlist() |> 
+            unname() # important !
         }
         if(!isContentTruthy(.value))
           browser()
@@ -197,8 +197,8 @@ CatVars <- function(id, main.env) {
             function(.attribute.name, file.name) {
               main.env$local.rv$completed[[file.name]][[.attribute.name]] <- 
                 isContentTruthy(
-                  main.env$local.rv$cv.tables[[file.name]] %>%
-                    filter(attributeName == .attribute.name) %>%
+                  main.env$local.rv$cv.tables[[file.name]] |>
+                    filter(attributeName == .attribute.name) |>
                     select(definition)
                 )
             }

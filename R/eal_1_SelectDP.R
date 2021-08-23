@@ -97,7 +97,7 @@ SelectDPUI <- function(id) {
           textInput(
             NS(id, "dp_name"),
             "Data package name",
-            placeholder = paste0(Sys.Date(), "_project")
+            placeholder = "my_project"
           ),
           textInput(
             NS(id, "dp_title"),
@@ -136,7 +136,7 @@ SelectDPUI <- function(id) {
 }
 
 #' @import shiny
-#' @import shinyjs
+#' @importFrom shinyjs toggle toggleState disable enable
 #' @importFrom shinyFeedback hideFeedback showFeedbackDanger showFeedbackSuccess
 #' @importFrom utils zip
 #' @importFrom jsonlite read_json unserializeJSON 
@@ -304,8 +304,10 @@ SelectDP <- function(id, main.env) {
     )
     
     observeEvent(input$quick, {
-      req(input$dp_name %in% c("", paste0(Sys.Date(), "_project"))) # Do not change a yet changed name
-      if (input$quick) {
+      req(input$dp_name %in% c("", "my_project", paste0(Sys.Date(), "_project"))) # Do not change a yet changed name
+      if(isTRUE(getOption("shiny.testmode"))) {
+        updateTextInput(session, "dp_name", value = "my_project")
+      } else if (input$quick) {
         updateTextInput(session, "dp_name", value = paste0(Sys.Date(), "_project"))
       } else {
         updateTextInput(session, "dp_name", placeholder = paste0(Sys.Date(), "_project"))
@@ -350,7 +352,7 @@ SelectDP <- function(id, main.env) {
       # read variables
       main.env$save.variable <- initReactive("emlal", main.env$save.variable, main.env)
       
-      .tmp <- jsonlite::read_json(paste0(path, "/", dp, ".json"))[[1]] %>%
+      .tmp <- jsonlite::read_json(paste0(path, "/", dp, ".json"))[[1]] |>
         jsonlite::unserializeJSON()
       
       # save.variable adaptations
@@ -376,7 +378,7 @@ SelectDP <- function(id, main.env) {
                TaxCov = "Taxonomic Coverage",
                h # unchanged
         )
-      }) %>% unname()
+      }) |> unname()
       
       # - check quick mode
       .tmp$quick <- isTRUE(.tmp$quick)

@@ -6,22 +6,6 @@
 MiscUI <- function(id) {
   ns <- NS(id)
   
-  #FIXME set this to server with an update*
-  # .metadata.path <- isolate(main.env$save.variable$SelectDP$dp.metadata.path)
-  # 
-  # if (file.exists(paste0(.metadata.path, "/keywords.txt"))) {
-  #   keywords <- data.table::fread(
-  #     paste0(.metadata.path, "/keywords.txt"),
-  #     data.table = FALSE, stringsAsFactors = FALSE
-  #   )
-  #   keywords <- keywords$keyword %>%
-  #     strsplit(split = ",") %>%
-  #     unlist() %>%
-  #     paste(collapse = ",")
-  # } else {
-  #   keywords <- ""
-  # }
-  
   return(
     fluidPage(
       HTML("
@@ -146,8 +130,8 @@ Misc <- function(id, main.env) {
     observeEvent(input$keywords, {
       req(input$keywords)
       
-      main.env$local.rv$keywords$keyword <- unique(input$keywords) %>%
-        strsplit(",") %>%
+      main.env$local.rv$keywords$keyword <- unique(input$keywords) |>
+        strsplit(",") |>
         unlist()
       
       output$thesaurus <- renderUI({
@@ -192,16 +176,16 @@ Misc <- function(id, main.env) {
     observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page == 8)
       
-      if (!is.null(isolate(main.env$save.variable$Misc$temporal.coverage))) {
-        isolate(main.env$local.rv$temporal.coverage <- main.env$save.variable$Misc$temporal.coverage)
+      if (!is.null(main.env$local.rv$temporal.coverage)) {
         updateDateRangeInput(
           session,
-          "temporal.coverage",
+          "temporal_coverage",
           start = main.env$local.rv$temporal.coverage[1],
           end = main.env$local.rv$temporal.coverage[2]
         )
       }
-    })
+    }, 
+    priority = -1)
     
     # ** Get ----
     observeEvent(input$temporal_coverage, {

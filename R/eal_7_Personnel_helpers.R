@@ -158,7 +158,6 @@ PersonnelInputUI <- function(id, main.env) {
 
 #' @import shiny
 #' @importFrom shinyjs toggle show hide
-#' @importFrom dplyr %>%
 #'
 #' @noRd
 PersonnelInput <- function(id, main.env) {
@@ -194,7 +193,6 @@ PersonnelInput <- function(id, main.env) {
     # Toggle PI fields
     observeEvent(input$`role-role`, {
       req(main.env$EAL$page == 7)
-      #FIXME toggle bugs here, no idea why      
       if("PI" %grep% main.env$local.rv$Personnel$role[row()])
         shinyjs::show("PI") else
           shinyjs::hide("PI")
@@ -212,7 +210,9 @@ PersonnelInput <- function(id, main.env) {
         main.env$local.rv$Personnel$middleInitial[row()],
         main.env$local.rv$Personnel$surName[row()],
         collapse = " "
-      ) %>% gsub(" +", " ", x = .) %>% gsub("^ +$", "", x = .)
+      ) |>
+        gsub(pattern = " +", replacement =  " ") |>
+        gsub(pattern = "^ +$", replacement = "")
       
       validate(
         need(.name != "", "No provided name")
@@ -242,8 +242,8 @@ PersonnelInput <- function(id, main.env) {
         sprintf("https://pub.orcid.org/v3.0/%s", .value),
         httr::add_headers(Accept = "application/json")
       )
-      result$content <- result$content %>% 
-        rawToChar() %>% 
+      result$content <- result$content |> 
+        rawToChar() |> 
         jsonlite::fromJSON()
       
       # Update inputs with orcid record

@@ -1,4 +1,4 @@
-reactiveDirReader <- function(repo, session, pattern) {
+reactiveDirReader <- function(repo, session, pattern, full.names = FALSE) {
   files <- reactiveVal(character())
   
   files.poll <- reactivePoll(
@@ -7,7 +7,7 @@ reactiveDirReader <- function(repo, session, pattern) {
     function()
       identical(files(), dir(repo, pattern)),
     function()
-      dir(repo, pattern)
+      dir(repo, pattern, full.names = full.names)
   )
   
   observe({

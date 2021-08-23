@@ -22,14 +22,14 @@ buildAttributesTree <- function(main.env) {
               sticon="fa fa-table"
             )
           }
-        ) %>%
+        ) |>
           setNames(nm = .tables[[file.name]]$attributeName),
         stopened = TRUE,
         # sttype = "root",
         sticon = "fa fa-file"
         )
       }
-    ) %>% 
+    ) |> 
       setNames(nm = names(.tables))
   } else {
     list()
@@ -38,9 +38,13 @@ buildAttributesTree <- function(main.env) {
 
 #' @noRd
 replaceValue <- function(table, attribute.name, field, new.value) {
-  row <- which(table$attributeName == attribute.name)
-  col <- field
-  table[row, col] <- new.value
+  
+  x <- try({
+    row <- which(table$attributeName == attribute.name)
+    col <- field
+    table[row, col] <- new.value
+  })
+  
   return(table)
 }
 
@@ -51,30 +55,30 @@ setUnitList <- function(main.env, set = NULL) {
     {
       .tmp <- main.env$local.rv$custom.units$table$id
       if(isTruthy(.tmp))
-        names(.tmp) <- paste0("custom/", .tmp)
+        names(.tmp) <- "custom"
       .tmp
     },
     main.env$FORMATS$units
   )
   
   # Input format
-  types <- gsub("/.+", "", names(choices)) %>% unique()
+  types <- unique(names(choices))
   out <- list()
   
   sapply(types, function(type){
-    out[[type]] <<- c(unname(choices[grepl(paste0("^", type, "/"), names(choices))]))
+    out[[type]] <<- unname(choices[which(names(choices) == type)])
   })
   # Correct value set for updates
   if(!is.null(set)) {
-    set <- set %>%
+    set <- set |>
       setNames(nm = names(out)[
         which(sapply(
           out,
           function(.ul) 
             set %in% .ul
         ))
-      ]) %>%
-      as.list
+      ]) |>
+      as.list()
   }
   
   # Output
@@ -114,14 +118,17 @@ customUnitsUI <- function(id, values = rep(NA, 5), main.env) {
           selectInput(
             NS(id, "modal_parentSI"),
             label = "Parent unit in SI",
-            choices = main.env$FORMATS$units[-1],
+            choices = split(
+              unname(main.env$FORMATS$units[-1]),
+              as.factor(names(main.env$FORMATS$units[-1]))
+            ),
             selected = optional(values[3])
           ),
           # MultiplierToSI
           numericInput(
             NS(id, "modal_multiplier"),
             label = "Numeric multiplier computed from Parent unit in SI",
-            value = optional(values[4], type = 1),
+            value = optional(values[4], default = 1),
           ),
           # Description
           textAreaInput(
@@ -205,14 +212,14 @@ customUnits <- function(id, main.env) {
         input$modal_parentSI,
         input$modal_multiplier,
         input$modal_description
-      ) %>%
+      ) |>
         setNames(nm = colnames(main.env$local.rv$custom.units$table))
       
       # CU table is exected to have been made reactive at savevariable_functions.R#392
       # Update CU values ...
       if (.values[1] %in% main.env$local.rv$custom.units$table$id) {
-        main.env$local.rv$custom.units$table <- main.env$local.rv$custom.units$table %>%
-          dplyr::filter(id = .values[1]) %>%
+        main.env$local.rv$custom.units$table <- main.env$local.rv$custom.units$table |>
+          dplyr::filter(id = .values[1]) |>
           base::replace(values = .values)
       } else { # ... or add CU values
         main.env$local.rv$custom.units$table[

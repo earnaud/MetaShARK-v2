@@ -1,0 +1,111 @@
+{
+  "input": {
+    "dev": 0,
+    "documentation-tree-search-input": "",
+    "files": null,
+    "fill-Attributes-attributeDefinition": "!Add description here!",
+    "fill-Attributes-class": "numeric",
+    "fill-Attributes-dateTimeFormatString": "NA",
+    "fill-Attributes-missingValueCode": "",
+    "fill-Attributes-missingValueCodeExplanation": "",
+    "fill-Attributes-unit": "NA",
+    "fill-Categorical_Variables-description": "",
+    "fill-Data_Files-add_data_files": null,
+    "fill-Data_Files-add_url_files": 0,
+    "fill-Data_Files-url_files-url": "",
+    "fill-Geographic_Coverage-addui": 0,
+    "fill-Geographic_Coverage-method": false,
+    "fill-help": 0,
+    "fill-Make_EML-bug_report": 0,
+    "fill-Make_EML-make_eml": 0,
+    "fill-Make_EML-publish": 0,
+    "fill-Miscellaneous-abstract-content": "<p><br><\/p>",
+    "fill-Miscellaneous-abstract-file": null,
+    "fill-Miscellaneous-add_kws": 0,
+    "fill-Miscellaneous-additional.information-content": "<p><br><\/p>",
+    "fill-Miscellaneous-additional.information-file": null,
+    "fill-Miscellaneous-methods-content": "<p><br><\/p>",
+    "fill-Miscellaneous-methods-file": null,
+    "fill-Miscellaneous-temporal_coverage": [
+      null,
+      null
+    ],
+    "fill-Personnel-addui": 0,
+    "fill-quit": 0,
+    "fill-save": 0,
+    "fill-SelectDP-dp_create": 0,
+    "fill-SelectDP-dp_delete": 0,
+    "fill-SelectDP-dp_list": "",
+    "fill-SelectDP-dp_load": 0,
+    "fill-SelectDP-dp_name": "my_project",
+    "fill-SelectDP-dp_title": "",
+    "fill-SelectDP-license": "CCBY",
+    "fill-SelectDP-quick": true,
+    "fill-SelectDP-usage-link": 0,
+    "fill-tabs": "EAL",
+    "fill-wizard-2_3": 0,
+    "fill-wizard-3_2": 0,
+    "fill-wizard-3_4": 0,
+    "fill-wizard-4_3": 0,
+    "fill-wizard-4_5": 0,
+    "fill-wizard-5_4": 0,
+    "fill-wizard-5_6": 0,
+    "fill-wizard-6_5": 0,
+    "fill-wizard-6_7": 0,
+    "fill-wizard-7_6": 0,
+    "fill-wizard-7_8": 0,
+    "fill-wizard-8_7": 0,
+    "fill-wizard-8_9": 0,
+    "fill-wizard-9_8": 0,
+    "fill-wizard-wizard": "SelectDP",
+    "orcid-connect": 0,
+    "orcid-orcid": "",
+    "settings-cedar_save": 0,
+    "settings-cedar_token": "",
+    "settings-help-cedar-link": 0,
+    "settings-help-metacat-link": 0,
+    "settings-metacat_token": "",
+    "settings-orcid-help-link": 0,
+    "sn-checkbox-open-in-new-window": true,
+    "test_end": 0,
+    "upload": "upload",
+    "upload-action": "upload",
+    "upload-data": null,
+    "upload-DP": "---",
+    "upload-endpoint": "cn",
+    "upload-metadata": null,
+    "upload-online_dp": "",
+    "upload-process": 0,
+    "upload-scripts": null,
+    "upload-toSettings": 0
+  },
+  "output": {
+    "fill-Attributes-tree": null,
+    "fill-Categorical_Variables-tree": null,
+    "settings-orcid-infos": {
+      "html": "<div class=\"form-group shiny-input-container\">\n  <label class=\"control-label\" id=\"orcid-orcid-label\" for=\"orcid-orcid\">Write your ORCID here<\/label>\n  <input id=\"orcid-orcid\" type=\"text\" class=\"form-control\" value=\"\"/>\n<\/div>\n<button id=\"orcid-connect\" type=\"button\" class=\"btn btn-default action-button\">\n  <i class=\"fa fa-sign-in-alt\" role=\"presentation\" aria-label=\"sign-in-alt icon\"><\/i>\n  Connect with ORCID\n<\/button>",
+      "deps": [
+        {
+          "name": "font-awesome",
+          "version": "5.13.0",
+          "src": {
+            "href": "font-awesome-5.13.0"
+          },
+          "meta": null,
+          "script": null,
+          "stylesheet": [
+            "css/all.min.css",
+            "css/v4-shims.min.css"
+          ],
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        }
+      ]
+    },
+    "version": ""
+  },
+  "export": {
+
+  }
+}

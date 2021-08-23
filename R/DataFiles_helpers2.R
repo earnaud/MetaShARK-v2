@@ -1,45 +1,55 @@
 #' @import shiny
 #' 
 #' @noRd
-insertDataFileInput <- function(id, main.env){
-  # Add row
-  .id <- unns(id)
-  # create the UI -- no NS !!!
-  new.ui <- DataFileInputUI(id, main.env)
-  # insert the UI
-  insertUI(selector = "#inserthere_eal2", ui = new.ui, immediate = TRUE)
-  # create the server
-  DataFileInput(.id, main.env)
-}
+# insertDataFileInput <- function(id, main.env){
+#   # Add row
+#   .id <- unns(id)
+#   # create the UI -- no NS !!!
+#   new.ui <- DataFileInputUI(id, main.env)
+#   # insert the UI
+#   insertUI(selector = "#inserthere_eal2", ui = new.ui, immediate = TRUE)
+#   # create the server
+#   DataFileInput(.id, main.env)
+# }
 
 #' @import shiny
-#' @importFrom shinyjs hidden
-#' 
+#' @importFrom shinyjs hidden 
+#'
 #' @noRd
-DataFileInputUI <- function(id, main.env) {
+# insertModule(
+#   session$ns("2"),
+#   "#inserthere_eal2",
+#   moduleUI = DataFileInputUI2,
+#   moduleUI.args = list(main.env = main.env),
+#   module = DataFileInput2,
+#   module.args = list(main.env = main.env)
+# )
+DataFileInputUI2 <- function(id, main.env) {
   # Setup
   ref <- unns(id)
   .value <- main.env$local.rv$data.files[
     which(main.env$local.rv$data.files$id == ref),
   ]
   
+  # ui <- tagList(
   ui <- tags$div(
-    id = NS(id, "container"),
-    class = "inputBox",
+    style = "display: inline-block;width: calc(100% - 50px);",
+    # id = NS(id, "container"),
+    # class = "inputBox",
     tags$div(
       class = "topInputRow",
       # Collapse
       actionLink(NS(id, "collapse"), "", icon("chevron-right")),
       tags$span(
-        style="width: calc(100% - 100px); margin: 0 5px 0;",
+        style="width: calc(100% - 50px); margin: 0 5px 0;",
         # Show name
         tags$div(
           textOutput(NS(id, "name")),
           style="margin-top: 20px; padding: 6px; height: 40px;"
         )
-      ),
+      )
       # Remove UI
-      actionButton(NS(id, "remove"), "", icon("trash"), class = "redButton")
+      # , actionButton(NS(id, "remove"), "", icon("trash"), class = "redButton")
     ), # end of header
     shinyjs::hidden(
       tags$div(
@@ -78,7 +88,7 @@ DataFileInputUI <- function(id, main.env) {
           )
         )
       )
-    ) # end of content
+    ) # end of hidden content
   )
   
   return(ui)
@@ -89,7 +99,7 @@ DataFileInputUI <- function(id, main.env) {
 #' @importFrom shinyFeedback hideFeedback showFeedbackWarning showFeedbackSuccess
 #' 
 #' @noRd
-DataFileInput <- function(id, main.env) {
+DataFileInput2 <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
     # Setup ----
     row <- reactive({which(main.env$local.rv$data.files$id == id)})
@@ -119,7 +129,7 @@ DataFileInput <- function(id, main.env) {
     output$name <- renderText({
       
       .name <- main.env$local.rv$data.files$name[row()]
-      
+      browser()
       validate(
         need(.name != "", "No provided name")
       )
@@ -131,11 +141,11 @@ DataFileInput <- function(id, main.env) {
     observeEvent(input$remove, {
       message(sprintf("Removing %s", session$ns("container")))
       # remove the UI
-      removeUI(
-        selector = sprintf("#%s", session$ns("container")),
-        # immediate = TRUE,
-        session = session
-      )
+      # removeUI(
+      #   selector = sprintf("#%s", session$ns("container")),
+      #   # immediate = TRUE,
+      #   session = session
+      # )
       # erase file from 'data_objects' dir
       file.remove(main.env$local.rv$data.files[row(),"datapath"])
       # remove data from local variables

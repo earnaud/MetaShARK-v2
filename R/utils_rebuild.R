@@ -13,4 +13,6 @@ rebuild <- function(new.version = NA) {
   # rebuild
   file.remove(old.archive)
   devtools::build(path = ".")
+  # Set golem options
+  golem::set_golem_options()
 }

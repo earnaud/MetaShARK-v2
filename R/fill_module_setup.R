@@ -116,7 +116,7 @@ setSaveVariable <- function(content, save.variable, lv = 1, root = "root") {
 
 # Local save variable ====
 #' @import shiny
-#' @importFrom dplyr filter select %>% mutate
+#' @importFrom dplyr filter select mutate
 #' @importFrom data.table fread
 #' @importFrom rmarkdown pandoc_convert
 #' @importFrom xml2 read_html
@@ -182,11 +182,11 @@ setLocalRV <- function(main.env){
               } else
                 .out <- .out[1:5]
               return(.out)
-            }) %>%
+            }) |>
               setNames(nm = colnames(table))
             return(out)
           }
-        ) %>%
+        ) |>
           setNames(nm = gsub(
             "(.*)\\..*$",
             "\\1.txt",
@@ -286,9 +286,9 @@ setLocalRV <- function(main.env){
         if(isContentTruthy(kw))
           kw <- data.frame(
             keyword = sapply(unique(kw$keyword.thesaurus), function(kwt) {
-              paste(kw %>% 
-                      dplyr::filter(identical(keyword.thesaurus,kwt)) %>% 
-                      dplyr::select(keyword) %>% 
+              paste(kw |> 
+                      dplyr::filter(identical(keyword.thesaurus,kwt)) |> 
+                      dplyr::select(keyword) |> 
                       unlist(),
                     collapse = ",")
             }),
@@ -481,16 +481,16 @@ setLocalRV <- function(main.env){
           .check <- isTRUE("categorical" %in% .table[,"class"])
           return(.check)
         }
-      ) %>%
-        unlist() %>%
+      ) |>
+        unlist() |>
         any()
     })
     
     # Check completeness
-    main.env$EAL$completed <- main.env$local.rv$completed %>%
-      listReactiveValues %>%
-      unlist %>%
-      all
+    main.env$EAL$completed <- main.env$local.rv$completed |>
+      listReactiveValues() |>
+      unlist() |>
+      all()
     
     # Add side tag list rv
     main.env$local.rv$tag.list <- reactiveValues()
@@ -520,14 +520,14 @@ setLocalRV <- function(main.env){
         file.path,
         data.table = FALSE, stringsAsFactors = FALSE,
         na.strings = "NA"
-      ) %>%
+      ) |>
         dplyr::mutate(
           definition = if (definition == "NA" || !isTruthy(definition)) {
             paste("Value:", code, "for attribute:", attributeName)
           } else {
             definition
           }
-        ) %>%
+        ) |>
         dplyr::mutate(
           code = gsub("^$","\"\"", code)
         )
@@ -537,8 +537,8 @@ setLocalRV <- function(main.env){
       
       # Set completed
       main.env$local.rv$completed[[file.name]] <- reactiveValues()
-      attributes <- main.env$local.rv$cv.tables[[file.name]]$attributeName %>%
-        unique
+      attributes <- main.env$local.rv$cv.tables[[file.name]]$attributeName |>
+        unique()
       lapply(attributes, function(attribute) {
         main.env$local.rv$completed[[file.name]][[attribute]] <- FALSE
       })
@@ -555,10 +555,10 @@ setLocalRV <- function(main.env){
               unique(.tables[[.file.name]]$attributeName),
               file.name = .file.name,
               function(.attribute.name, file.name){
-                codes <- .tables[[file.name]] %>% 
-                  filter(attributeName == .attribute.name) %>% 
-                  select(code) %>% 
-                  unlist
+                codes <- .tables[[file.name]] |> 
+                  filter(attributeName == .attribute.name) |> 
+                  select(code) |> 
+                  unlist()
                 untruthy.codes <- which(!sapply(codes, isContentTruthy))
                 codes.names <- replace(
                   codes, 
@@ -578,17 +578,17 @@ setLocalRV <- function(main.env){
                   }
                 ),
                 sticon = "fa fa-columns"
-                ) %>% 
+                ) |> 
                   setNames(codes.names)
               }
-            ) %>%
+            ) |>
               setNames(nm = unique(.tables[[.file.name]]$attributeName)), 
             # sttype = "root",
             sticon = "fa fa-file",
             stopened = TRUE
             )
           }
-        ) %>% 
+        ) |> 
           setNames(nm = names(.tables))
         
       }
@@ -602,24 +602,24 @@ setLocalRV <- function(main.env){
     .site <- main.env$local.rv$columns$choices$sites <- list()
     .col <- main.env$local.rv$columns$choices$coords <- list()
     sapply(names(.att), function(.md.file) {
-      .data.file <- main.env$save.variable$DataFiles %>%
-        filter(grepl(.md.file, metadatapath)) %>% # full metadata path of attributes
-        select(datapath) %>% # full matching data path
-        unlist %>%
-        basename
+      .data.file <- main.env$save.variable$DataFiles |>
+        filter(grepl(.md.file, metadatapath)) |> # full metadata path of attributes
+        select(datapath) |> # full matching data path
+        unlist() |>
+        basename()
       # Set sites
-      .site[[.data.file]] <<- .att[[.md.file]] %>% 
-        dplyr::filter(class %in% c("character", "categorical")) %>% 
-        dplyr::select(attributeName) %>%
-        unlist
-      .site[[.data.file]] <<- paste(.data.file, .site[[.data.file]], sep="/") %>%
+      .site[[.data.file]] <<- .att[[.md.file]] |> 
+        dplyr::filter(class %in% c("character", "categorical")) |> 
+        dplyr::select(attributeName) |>
+        unlist()
+      .site[[.data.file]] <<- paste(.data.file, .site[[.data.file]], sep="/") |>
         setNames(nm = .site[[.data.file]])
       # Set columns
-      .col[[.data.file]] <<- .att[[.md.file]] %>% 
-        dplyr::filter(class == "numeric") %>%
-        dplyr::select(attributeName) %>%
-        unlist
-      .col[[.data.file]] <<- paste(.data.file, .col[[.data.file]], sep="/") %>%
+      .col[[.data.file]] <<- .att[[.md.file]] |> 
+        dplyr::filter(class == "numeric") |>
+        dplyr::select(attributeName) |>
+        unlist()
+      .col[[.data.file]] <<- paste(.data.file, .col[[.data.file]], sep="/") |>
         setNames(nm = .col[[.data.file]])
     })
     main.env$local.rv$columns$choices$sites <- .site
@@ -697,9 +697,11 @@ setLocalRV <- function(main.env){
     # Read template
     message("passing here")
     # Here, do not read from file: format for 'role' is not the same
-    saved.table <- if (main.env$save.variable$Personnel %>%
-                       listReactiveValues() %>%
-                       isContentTruthy())
+    saved.table <- if(
+      main.env$save.variable$Personnel |>
+      listReactiveValues() |>
+      isContentTruthy()
+    )
       isolate(main.env$save.variable$Personnel) else
         NULL
     if(!is.null(saved.table)) {
@@ -729,7 +731,7 @@ setLocalRV <- function(main.env){
       isolate({main.env$local.rv[[x]]$content <- readHTMLfromMD(main.env$local.rv[[x]]$file)})
     })
     # temporal coverage
-    if(!identical(main.env$save.variable$Misc$temporal.coverage, c(NA, NA)))
+    if(isContentTruthy(main.env$save.variable$Misc$temporal.coverage))
       main.env$local.rv$temporal.coverage <- main.env$save.variable$Misc$temporal.coverage
   }
   

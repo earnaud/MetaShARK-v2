@@ -1,98 +1,90 @@
 Package: MetaShARK
 Title: metashark
-Version: 1.5.4
-Authors@R: person('Elie', 'ARNAUD', email = 'earnaud@outlook.com', role = c('cre', 'aut'))
+Version: 1.6.0
+Authors@R: 
+    person(given = "Elie",
+           family = "ARNAUD",
+           role = c("cre", "aut"),
+           email = "earnaud@outlook.com")
 Author: Elie ARNAUD ([aut,cre])
 Maintainer: Elie ARNAUD <earnaud@outlook.com>
-Description: MetaShARK is a Shiny application allowing its
-                    user to fill metadata for a given ecological
-                    dataset of his owns. The data description relies
-                    on Ecological Metadata Language (EML).
+Description: MetaShARK is a Shiny application allowing its user to fill
+    metadata for a given ecological dataset of his owns. The data
+    description relies on Ecological Metadata Language (EML).
 License: MIT
-Encoding: UTF-8
-LazyData: true
-Imports: 
-  attempt,
-  config,
-  data.table,
-  dataone,
-  datapack,
-  dplyr,
-  DT,
-  EML,
-  EMLassemblyline,
-  emldown,
-  fs,
-  gdata,
-  glue,
-  golem,
-  htmltools,
-  jsonlite,
-  markdown,
-  methods,
-  mime,
-  processx,
-  RCurl,
-  readtext,
-  RefManageR,
-  rmarkdown,
-  rorcid,
-  shinyAce,
-  shinyBS,
-  shinycssloaders,
-  shinydashboard,
-  shinyFiles,
-  shinyjs,
-  shinydashboardPlus,
-  shinyFeedback,
-  shinyWidgets,
-  shiny (>= 1.5.0),
-  shinyTree,
-  stringr,
-  SummeRnote,
-  textutils,
-  tippy,
-  tagsinput,
-  taxonomyCleanr,
-  utils,
-  XML,
-  xml2
-Remotes:
-    ThinkR-open/tagsinput,
-    ropenscilabs/emldown
-RoxygenNote: 7.1.1
-Roxygen: list(markdown = TRUE)
 URL: https://github.com/earnaud/MetaShARK-v2.git
 BugReports: https://github.com/earnaud/MetaShARK-v2.git/issues
-Suggests: 
-    testthat (>= 3.0.0),
-    knitr
-VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)
+Imports: 
+    data.table,
+    dataone,
+    datapack,
+    devtools,
+    dplyr,
+    EML,
+    EMLassemblyline,
+    fs,
+    gdata,
+    htmltools,
+    httr,
+    jsonlite,
+    methods,
+    mime,
+    profvis,
+    RCurl,
+    readtext,
+    readxl,
+    RefManageR,
+    rmarkdown,
+    scales,
+    shiny (>= 1.5.0),
+    shinyBS,
+    shinybusy,
+    shinycssloaders,
+    shinydashboard,
+    shinydashboardPlus,
+    shinyFeedback,
+    shinyFiles,
+    shinyjs,
+    shinyTree,
+    shinyWidgets,
+    stringr,
+    SummeRnote,
+    taxonomyCleanr,
+    textutils,
+    tippy,
+    utils,
+    uuid,
+    XML,
+    xml2,
+    zip
+Suggests: 
+    golem,
+    shinytest,
+    here,
+    knitr,
+    pkgload,
+    processx,
+    testthat (>= 3.0.0)
+VignetteBuilder: 
+    knitr
+Remotes:
+    ThinkR-open/tagsinput
+Config/testthat/edition: 3
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
 Collate: 
-    'zzz.R'
-    'utils_writeText.R'
-    'utils_URL_Input.R'
-    'utils_rebuild.R'
-    'utils_readPlaintext.R'
-    'utils_readHTMLFromMD.R'
-    'utils_readDataTable.R'
-    'utils_reactiveTrigger.R'
-    'utils_reactiveDirReader.R'
-    'utils_listReactiveValues.R'
-    'utils_listToStructure.R'
-    'utils_isContentTruthy.R'
-    'utils_insertModuleBox.R'
-    'utils_followPath.R'
-    'utils_devmsg.R'
-    'utils_collapsible.R'
-    'utils_additional_HTML.R'
-    'utils_grep.R'
-    'utils_listToXML.R'
-    'utils_xml_handling.R'
+    'DataFiles_helpers2.R'
     'about_module.R'
     'about_module_functions.R'
+    'app_config.R'
+    'app_header.R'
+    'app_server.R'
+    'app_ui.R'
+    'clean_modules.R'
     'documentation_module.R'
     'eal_1_SelectDP.R'
     'eal_2_DataFiles.R'
@@ -103,6 +95,7 @@ Collate:
     'eal_4_CatVars.R'
     'eal_4_CatVars_helpers.R'
     'eal_5_GeoCov.R'
+    'eal_5_GeoCov_custom.R'
     'eal_5_GeoCov_helpers.R'
     'eal_6_TaxCov.R'
     'eal_7_ORCID_helpers.R'
@@ -116,17 +109,31 @@ Collate:
     'eal_x_Annotations_helpers.R'
     'fill_module.R'
     'fill_module_saves.R'
+    'fill_module_setup.R'
     'fill_pages.R'
     'metafin.R'
-    'runMetashark.R'
-    'settings_rightSideBar.R'
-    'template_functions.R'
+    'welcome_module.R'
+    'utils_xml_handling.R'
+    'utils_writeText.R'
+    'utils_URL_Input.R'
+    'utils_rebuild.R'
+    'utils_readPlaintext.R'
+    'utils_readHTMLFromMD.R'
+    'utils_readDataTable.R'
+    'utils_reactiveTrigger.R'
+    'utils_reactiveDirReader.R'
+    'utils_listToXML.R'
+    'utils_listToStructure.R'
+    'utils_listReactiveValues.R'
+    'utils_isContentTruthy.R'
+    'utils_insertModule.R'
+    'utils_grep.R'
+    'utils_followPath.R'
+    'utils_devmsg.R'
+    'utils_collapsible.R'
+    'utils_additional_HTML.R'
     'upload_module.R'
     'upload_module_functions.R'
-    'welcome_module.R'
-    'clean_modules.R'
-    'app_server.R'
-    'app_ui.R'
-    'app_header.R'
-    'fill_module_setup.R'
-Config/testthat/edition: 3
+    'template_functions.R'
+    'settings_rightSideBar.R'
+    'runMetashark.R'

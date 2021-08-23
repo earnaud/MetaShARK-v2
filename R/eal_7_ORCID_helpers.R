@@ -7,7 +7,7 @@ orcidInputUI <- function(id, val) {
   
   textInput(
     NS(id, "orcid"),
-    tags$span("ORCID", icon("orcid")),
+    tags$span("ORCID", icon("orcid"), "- facultative"),
     value = val
   )
 }
@@ -241,7 +241,7 @@ orcid <- function(id, main.env) {
     # reso <- orcid$get(
     #   "signin/auth.json"
     # )
-    # cookie <- curl::handle_cookies(reso$handle) %>%
+    # cookie <- curl::handle_cookies(reso$handle) |>
     #   filter(name == "XSRF-TOKEN")
     #
     #
