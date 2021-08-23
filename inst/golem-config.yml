@@ -1,10 +1,8 @@
 default:
   golem_name: MetaShARK
-  golem_version: 1.6.1
+  golem_version: 1.6.0
   app_prod: no
-  
 production:
   app_prod: yes
-  
 dev:
   golem_wd: !expr here::here()

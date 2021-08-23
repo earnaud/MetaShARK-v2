@@ -1,10 +1,12 @@
-# Current development
+# v1.6.0
+
+## Features
 
 * Added this NEWS file.
 
 * Upgrade to R4.1.0: removed {emldown} dependency for compatibility motives.
 
-* Setup {shinytest} tests functionnal.
+* Setup {shinytest} tests functionnal. 
 
 * Fixed unit load on Attributes.
 
@@ -16,7 +18,15 @@
 
 * Fixed revised custom unit list.
 
-# v1.5.2 + v1.5.3
+## Work In progress
+
+* Tests: set a complete set of tests. 
+
+* Upload: make data packages be fully uploaded.
+
+* Annotations: continue `dev-metafin` branch.
+
+# v1.5.3
 
 * NOTE: two tags were released because of a non-updated archive in 1.5.2.
 
