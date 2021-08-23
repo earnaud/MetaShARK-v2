@@ -96,6 +96,7 @@ runMetashark <- function(...) {
       )
     })
   } else if(isTRUE(args$use.test)) {
+    options("shiny.testmode" = TRUE)
     shinyApp(ui = ui, server = server)
   } else {
     runApp(

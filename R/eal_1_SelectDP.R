@@ -97,7 +97,7 @@ SelectDPUI <- function(id) {
           textInput(
             NS(id, "dp_name"),
             "Data package name",
-            placeholder = paste0(Sys.Date(), "_project")
+            placeholder = "my_project"
           ),
           textInput(
             NS(id, "dp_title"),
@@ -304,8 +304,10 @@ SelectDP <- function(id, main.env) {
     )
     
     observeEvent(input$quick, {
-      req(input$dp_name %in% c("", paste0(Sys.Date(), "_project"))) # Do not change a yet changed name
-      if (input$quick) {
+      req(input$dp_name %in% c("", "my_project", paste0(Sys.Date(), "_project"))) # Do not change a yet changed name
+      if(isTRUE(getOption("shiny.testmode"))) {
+        updateTextInput(session, "dp_name", value = "my_project")
+      } else if (input$quick) {
         updateTextInput(session, "dp_name", value = paste0(Sys.Date(), "_project"))
       } else {
         updateTextInput(session, "dp_name", placeholder = paste0(Sys.Date(), "_project"))

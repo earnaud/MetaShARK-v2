@@ -19,31 +19,51 @@
   assign("wip", .args$wip, main.env)
 
   # Paths ====
-  wwwPaths <- system.file("resources", package = "MetaShARK")
-  wwwPaths <- paste(wwwPaths, dir(wwwPaths), sep = "/") |>
+  wwwPaths <- system.file("resources", package = "MetaShARK") |>
+    dir(full.names = TRUE) |>
     as.list()
   names(wwwPaths) <- basename(unlist(wwwPaths))
+  
+  HOME <- if(isTRUE(getOption("shiny.testmode")))
+    system.file("../tests/testthat/app/tests/shinytest/test_data_package/", package = "MetaShARK") else
+      "~/dataPackagesOutput/emlAssemblyLine"
   PATHS <- reactiveValues(
-    home = "~",
-    eal.dp = paste0("~/dataPackagesOutput/emlAssemblyLine/"),
-    eal.dp.index = paste0("~/dataPackagesOutput/emlAssemblyLine/index.txt"),
+    home = HOME,
+    eal.dp = sprintf(
+      "%s/",
+      HOME
+    ),
+    eal.dp.index =sprintf(
+      "%s/index.txt",
+      HOME
+    ),
     eal.tmp = tempdir(),
     resources = wwwPaths
   )
-  dir.create(isolate(PATHS$eal.dp), recursive = TRUE, showWarnings = FALSE)
+  if(!isTRUE(getOption("shiny.testmode")))
+    dir.create(isolate(PATHS$eal.dp), recursive = TRUE, showWarnings = FALSE)
   dir.create(isolate(PATHS$eal.tmp), recursive = TRUE, showWarnings = FALSE)
 
   assign("PATHS", PATHS, envir = main.env)
 
   # Sessionning ====
   
-  if (isTRUE(file.exists(isolate(PATHS$eal.dp.index)))) {
-    DP.LIST <- data.table::fread(isolate(PATHS$eal.dp.index), sep = "\t")
+  if(isTRUE(getOption("shiny.testmode"))) {
+    devmsg(tag = "test", "setting DP list")
+    DP.LIST <- data.frame(
+      creator = character(),
+      name = character(),
+      title = character(),
+      path = character(),
+      stringsAsFactors = FALSE
+    )
+  } else if (isTRUE(file.exists(isolate(PATHS$eal.dp.index)))) {
+    DP.LIST <- readDataTable(isolate(PATHS$eal.dp.index), sep = "\t")
     DP.LIST$path <- DP.LIST$path |>
       gsub(pattern = "//+", replacement = "/")
   } else {
     DP.LIST <- data.frame(
-      creator.orcid = character(),
+      creator = character(),
       name = character(),
       title = character(),
       path = character(),
@@ -56,8 +76,8 @@
       sapply(.files, function(.file) {
         .info <- jsonlite::read_json(
           sprintf(
-            "%s/%s.json", 
-            .file, 
+            "%s/%s.json",
+            .file,
             basename(.file) |>
               gsub(pattern = "_emldp$", replacement = "")
           )
@@ -81,18 +101,25 @@
     isolate(main.env$PATHS$eal.dp),
     pattern = "_emldp$",
     full.names = TRUE
-  ) |> gsub(pattern = "//+", replacement = "/")
+  ) |> 
+    gsub(pattern = "//+", replacement = "/")
   DP.LIST <- dplyr::filter(DP.LIST, path %in% .actual.index)
-
+  # save actual index
   data.table::fwrite(DP.LIST, isolate(PATHS$eal.dp.index), sep = "\t")
 
   assign("DP.LIST", DP.LIST, envir = main.env)
   makeReactiveBinding("DP.LIST", env = main.env)
 
   # Values ====
+  # DataONE nodes
+  .ENDPOINTS <- readDataTable(
+    wwwPaths$registeredEndpoints.txt
+  )
+  
   assign(
     "VALUES",
     reactiveValues(
+      dataone.endpoints = .ENDPOINTS,
       thresholds = reactiveValues(
         files.size.max = 500000
       ),
@@ -101,8 +128,6 @@
     envir = main.env
   )
   # Formats ====
-  # DataONE nodes
-  .DATAONE.LIST <- data.table::fread(wwwPaths$dataoneCNodesList.txt)
 
   # Taxa authorities
   .TAXA.AUTHORITIES <- data.table::fread(wwwPaths$taxaAuthorities.txt)
@@ -142,7 +167,6 @@
         "hh:mm:ss", "hh:mm", "mm:ss", "hh"
       ),
       units = .units,
-      dataone.list = .DATAONE.LIST,
       taxa.authorities = .TAXA.AUTHORITIES
     ),
     envir = main.env

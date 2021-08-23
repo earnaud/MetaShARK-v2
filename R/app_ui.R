@@ -10,6 +10,8 @@ ui <- function() {
   # get app arguments
   # main.env <- get("main.env", options()$metashark.env)
   
+  addResourcePath("media", system.file("media/", package = "MetaShARK"))
+  
   # prepare variable
   .menu.width <- "250px"
   # ShinyJS extension -- unused
@@ -46,7 +48,7 @@ ui <- function() {
       h2("Loading..."),
       shinydashboardPlus::loadingState(),
       tags$img(
-        src = "media/sea_shark.png",
+        src = "media/sea_shark.png", 
         width = "473px",
         height = "235px"
       )

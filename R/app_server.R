@@ -8,6 +8,7 @@ server <- function(input, output, session) {
   # get variables
   args <- get("metashark.args", envir = .GlobalEnv)
   main.env <- .globalScript(.args = args, envir = session$userData)
+  addResourcePath("media", system.file("media/", package = "MetaShARK"))
   
   # Set user-specific data
   assign(
@@ -61,17 +62,6 @@ server <- function(input, output, session) {
   
   # Update values ====
   invisible({
-    # DataONE nodes
-    .DATAONE.LIST <- if(!main.env$dev) 
-      try(dataone::listFormats(dataone::CNode())) else
-        try(silent = TRUE)
-    if (class(.DATAONE.LIST) != "try-error") {
-      .DATAONE.LIST <- readDataTable(
-        isolate(main.env$PATHS$resources$dataoneCNodesList.txt)
-      )
-      isolate(main.env$dataone.list <- .DATAONE.LIST)
-    }
-  
     # Taxa authorities
     .TAXA.AUTHORITIES <- if(!main.env$dev)
       try(taxonomyCleanr::view_taxa_authorities()) else
