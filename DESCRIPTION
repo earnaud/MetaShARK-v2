@@ -80,6 +80,7 @@ Collate:
     'DataFiles_helpers2.R'
     'about_module.R'
     'about_module_functions.R'
+    'app_config.R'
     'app_header.R'
     'app_server.R'
     'app_ui.R'
