@@ -1,5 +1,7 @@
 FROM rocker/shiny:4.1.0
 
+LABEL version="1.6.0"
+
 RUN apt update --fix-missing -y \
     && apt upgrade -y \
     && apt-get install -y software-properties-common aptitude
