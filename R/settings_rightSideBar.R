@@ -5,15 +5,17 @@
 #' @noRd
 rightSidebarSettings <- function(id) {
   shinydashboardPlus::dashboardControlbar(
-    id = "settings_menu",
+    id = "settings_bar",
     width = 300,
 
     # #### MAX 5 PANELS !!!! due to AdminLTE2 ### #
 
     shinydashboardPlus::controlbarMenu(
+      id = "settings_menu",
       # Sessionning ====
       shinydashboardPlus::controlbarItem(
         title = "Login",
+        id = "login",
         tags$div(
           wipRow(
             collapsibleUI(
@@ -36,6 +38,7 @@ rightSidebarSettings <- function(id) {
       # Metacat token input ====
       shinydashboardPlus::controlbarItem(
         title = "Metacat",
+        id = "metacat",
         tags$div(
           textAreaInput(
             NS(id, "metacat_token"),
@@ -72,6 +75,7 @@ rightSidebarSettings <- function(id) {
       # CEDAR token input ====
       shinydashboardPlus::controlbarItem(
         title = "CEDAR token",
+        id = "cedar",
         tags$div(
           wipRow(
             textAreaInput(
