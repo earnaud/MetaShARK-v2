@@ -224,7 +224,6 @@ upload <- function(id, main.env) {
           tags$div(
             icon("question-circle"),
             style = "width:fit-content; display:inline-flex; margin-left: 5px",
-            # class = "tooltip",
             title = registeredEndpoints |>
               filter(name == endpoint()) |>
               select(description) |>

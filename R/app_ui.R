@@ -7,20 +7,12 @@
 #' 
 #' @noRd
 ui <- function() {
-  # get app arguments
-  # main.env <- get("main.env", options()$metashark.env)
-  
-  addResourcePath("media", system.file("media/", package = "MetaShARK"))
-  
-  # prepare variable
-  .menu.width <- "250px"
-  # ShinyJS extension -- unused
-  # From: https://community.rstudio.com/t/where-is-updatefileinput/11999/4
-  # jsCode = "shinyjs.clearUpload = function() $('#upload').parent().parent().next()[0].value = ''}"
-  
+  # body
   tagList(
+    # Enables packages support
     shinyjs::useShinyjs(),
     shinyFeedback::useShinyFeedback(),
+    # Add style
     shinyjs::inlineCSS("
       #loading-content {
         position: absolute;
@@ -41,6 +33,12 @@ ui <- function() {
     "),
     htmltools::includeCSS(
       system.file("app/www/styles.css", package = "MetaShARK")
+    ),
+    # App business spinner
+    shinybusy::add_busy_spinner(
+      spin = "spring",
+      position = "bottom-left",
+      color = "#3c8dbc"
     ),
     # Loading message
     div(
