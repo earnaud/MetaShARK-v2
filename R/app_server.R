@@ -7,7 +7,14 @@
 server <- function(input, output, session) {
   # get variables
   args <- get("metashark.args", envir = .GlobalEnv)
-  main.env <- .globalScript(.args = args, envir = session$userData)
+  rm("metashark.args", envir = .GlobalEnv)
+  ui.steps <- get("ui.steps", envir = .GlobalEnv)
+  rm("ui.steps", envir = .GlobalEnv)
+  main.env <- .globalScript(
+    .args = args, 
+    envir = session$userData, 
+    list(ui.steps = ui.steps)
+  )
   addResourcePath("media", system.file("media/", package = "MetaShARK"))
   
   # Set user-specific data

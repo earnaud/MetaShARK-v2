@@ -46,11 +46,11 @@ runMetashark <- function(...) {
 
   # Set args in .GlobalEnv = local options
   args <- list(...)
-  args$wip <- isTRUE(args$wip) # needed for some UI
   args$launch.browser <- isTRUE(args$launch.browser)
   
   # Dev - debug options
   args$dev <- isTRUE(args$dev)
+  args$wip <- isTRUE(args$wip) || isTRUE(args$dev) # needed for some UI
   args$reactlog <- isTRUE(args$reactlog) || isTRUE(args$dev)
   args$use.profvis <- isTRUE(args$use.profvis)
   args$use.test <- isTRUE(args$use.test)
