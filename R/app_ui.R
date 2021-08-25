@@ -4,6 +4,7 @@
 #' @importFrom shinyFeedback useShinyFeedback
 #' @importFrom htmltools includeCSS
 #' @importFrom shinydashboardPlus loadingState dashboardPage dashboardHeader
+#' @importFrom shinybusy add_busy_spinner
 #' 
 #' @noRd
 ui <- function() {

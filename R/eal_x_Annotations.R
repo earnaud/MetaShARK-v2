@@ -147,8 +147,6 @@ annotations <- function(id, label, main.env) {
 #' #' @title AnnotModUI
 #' #'
 #' #' @description module to document EML annotation
-#' #'
-#' #' @importFrom shinyBS bsTooltip
 #' AnnotModUI <- function(id, div_id, site_id, rmv_id, value = NULL) {
 #'   ns <- NS(id)
 #'

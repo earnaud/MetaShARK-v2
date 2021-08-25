@@ -2,6 +2,9 @@ app_sys <- function(...){
   system.file(..., package = "MetaShARK")
 }
 
+#' @importFrom config get
+#' 
+#' @noRd
 get_golem_config <- function(
   value, 
   config = Sys.getenv(

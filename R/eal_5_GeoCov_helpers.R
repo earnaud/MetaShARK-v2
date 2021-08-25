@@ -1,7 +1,5 @@
 # Columns ====
 
-#' @importFrom stringr str_extract_all
-#' 
 #' @noRd
 extractCoordinates <- function(main.env, coord.cols, .pattern, files.data) {
   # initialize variables

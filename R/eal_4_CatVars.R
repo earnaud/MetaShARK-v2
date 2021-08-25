@@ -1,4 +1,7 @@
 #' @import shiny
+#' @importFrom shinyTree shinyTree
+#' @importFrom shinycssloaders withSpinner
+#' @importFrom shinyjs hidden
 #'
 #' @noRd
 CatVarsUI <- function(id) {
@@ -52,7 +55,6 @@ CatVarsUI <- function(id) {
 
 #' @import shiny
 #' @importFrom shinyjs toggleState
-#' @importFrom shinyBS bsCollapse
 #' @importFrom shinyFeedback hideFeedback showFeedbackSuccess showFeedbackDanger
 #' @importFrom dplyr filter slice select
 #'

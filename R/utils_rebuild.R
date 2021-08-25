@@ -1,3 +1,6 @@
+#' @importFrom devtools build
+#' @importFrom golem set_golem_options
+#' 
 #' @noRd
 rebuild <- function(new.version = NA) {
   stopifnot(!is.na(new.version))
