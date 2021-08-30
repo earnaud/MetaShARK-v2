@@ -6,9 +6,9 @@
 #' @noRd
 server <- function(input, output, session) {
   # get variables
-  args <- get("metashark.args", envir = .GlobalEnv)
+  args <- base::get("metashark.args", envir = .GlobalEnv)
   rm("metashark.args", envir = .GlobalEnv)
-  ui.steps <- get("ui.steps", envir = .GlobalEnv)
+  ui.steps <- base::get("ui.steps", envir = .GlobalEnv)
   rm("ui.steps", envir = .GlobalEnv)
   main.env <- .globalScript(
     .args = args, 

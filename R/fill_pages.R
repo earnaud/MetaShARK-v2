@@ -23,7 +23,7 @@ tabPage <- function(id, title, ui, navTagList = NULL) {
 #'
 #' @noRd
 pagesUI <- function(id, parent.id) {
-  steps <- get("ui.steps", envir = .GlobalEnv)
+  steps <- base::get("ui.steps", envir = .GlobalEnv)
   .nb <- length(steps)
   .ui.args <- vector("list", .nb)
   

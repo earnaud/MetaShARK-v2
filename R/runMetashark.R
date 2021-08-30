@@ -43,7 +43,8 @@
 #' 
 #' @export
 runMetashark <- function(...) {
-
+  require(shinyTree)
+  
   # Set args in .GlobalEnv = local options
   args <- list(...)
   args$launch.browser <- isTRUE(args$launch.browser)
