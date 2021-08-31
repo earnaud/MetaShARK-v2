@@ -107,12 +107,14 @@ uploadUI <- function(id) {
               # * Data ====
               fileInput(
                 NS(id, "data"),
+                multiple = TRUE,
                 "Data files described in your EML file"
               ),
               textOutput(NS(id, "warnings-data")),
               # * Scripts ====
               fileInput(
                 NS(id, "scripts"),
+                multiple = TRUE,
                 "Scripts used to produce or process data"
               ),
               textOutput(NS(id, "warnings-scripts"))
@@ -359,19 +361,47 @@ upload <- function(id, main.env) {
           type = "warning"
         )
       rv$md <- input$metadata
+      # rename file
+      .new.name <- gsub("/..xml$", sprintf("/%s", rv$md$name), rv$md$datapath)
+      file.rename(rv$md$datapath, .new.name)
+      rv$md$datapath <- .new.name
     })
     
     observeEvent(input$data, {
       .add <- input$data
       req(isContentTruthy(.add))
       # Update list instead of erasing
+      .new.names <- sapply(
+        1:nrow(.add),
+        function(.rid) {
+          gsub(
+            pattern = "(.*/).*$",
+            replacement = sprintf("\\1%s", .add$name[.rid]),
+            .add$datapath[.rid]
+          )
+        }
+      )
+      file.rename(.add$datapath, .new.names)
+      .add$datapath <- .new.names
       rv$data <- rbind(rv$data, .add)
     })
     
     observeEvent(input$scripts, {
       .add <- input$scripts
       req(isContentTruthy(.add))
-      # browser() # Update list instead of erasing
+      # Update list instead of erasing
+      .new.names <- sapply(
+        1:nrow(rv$scr),
+        function(.rid) {
+          gsub(
+            pattern = "(.*/).*$",
+            replacement = sprintf("\\1%s", rv$scr$name[.rid]),
+            rv$scr$datapath[.rid]
+          )
+        }
+      )
+      file.rename(rv$scr$datapath, .new.names)
+      rv$scr$datapath <- .new.names
       rv$scr <- rbind(input$scripts, .add)
     })
     

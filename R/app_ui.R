@@ -114,7 +114,8 @@ ui <- function() {
                 shinyjs::hidden(
                   actionButton("test_end", "END TEST")
                 ),
-                tags$p(uiOutput("version"))
+                tags$p(textOutput("version")),
+                tags$p(textOutput("file_limit"))
               )
             ),
             width = "250px"

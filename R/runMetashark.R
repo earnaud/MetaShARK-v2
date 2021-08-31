@@ -82,8 +82,8 @@ runMetashark <- function(...) {
   options(encoding = 'UTF-8')
   Sys.setlocale("LC_ALL", "en_US.utf8") 
   
-  # Set max flow at 50Mb
-  options(shiny.maxRequestSize = 50*1024^2)
+  # Set max flow at 2 Go
+  options(shiny.maxRequestSize = 2*1024^3)
   
   # Set window values
   if(isFALSE(args$use.test))

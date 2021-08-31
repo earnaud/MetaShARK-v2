@@ -104,10 +104,17 @@ server <- function(input, output, session) {
   shinyjs::hide(id = "loading-content", anim = TRUE, animType = "fade")
   shinyjs::show("app-content")
   
-  # Version ----
+  # Other information ----
+  # Version
   output$version <- renderText({
     dir(".", pattern = "MetaShARK_.*.tar.gz") |>
       gsub(pattern = "MetaShARK_(.*).tar.gz", replacement = "\\1")
+  })
+  
+  # 
+  output$file_limit <- renderText({
+    options("shiny.maxRequestSize") |>
+      gdata::humanReadable()
   })
 }
 
