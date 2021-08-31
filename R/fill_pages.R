@@ -25,6 +25,7 @@ tabPage <- function(id, title, ui, navTagList = NULL) {
 pagesUI <- function(id, parent.id) {
   base::traceback() # debug for preventing further uses
   steps <- base::get("ui.steps", envir = .GlobalEnv)
+  rm("ui.steps", envir = .GlobalEnv)
   .nb <- length(steps)
   .ui.args <- vector("list", .nb)
   

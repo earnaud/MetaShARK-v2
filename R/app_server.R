@@ -9,7 +9,7 @@ server <- function(input, output, session) {
   args <- base::get("metashark.args", envir = .GlobalEnv)
   rm("metashark.args", envir = .GlobalEnv)
   ui.steps <- base::get("ui.steps", envir = .GlobalEnv)
-  rm("ui.steps", envir = .GlobalEnv)
+  # keep it up for fill_pages.R
   main.env <- .globalScript(
     .args = args, 
     envir = session$userData, 
