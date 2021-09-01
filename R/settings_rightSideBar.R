@@ -124,11 +124,6 @@ settings <- function(id, main.env) {
     # Metacat token ====
     collapsible("help-metacat")
 
-    # observeEvent(input$test_metacat, {
-    #   req(input$test_metacat)
-    #   main.env$SETTINGS$metacat.test <- input$test_metacat
-    # })
-
     observeEvent(input$metacat_token, {
       main.env$SETTINGS$metacat.token <- input$metacat_token
       showNotification(id = "metacat_set", "Dataone token set.", type = "message")

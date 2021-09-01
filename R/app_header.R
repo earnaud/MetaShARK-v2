@@ -201,7 +201,8 @@
       user = "public",
       orcid.token = character(),
       cedar.token = character(),
-      metacat.token = character()
+      metacat.token = character(),
+      side.tab = c()
       # , metacat.test = FALSE
     ),
     envir = main.env

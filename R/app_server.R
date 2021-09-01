@@ -7,9 +7,8 @@
 server <- function(input, output, session) {
   # get variables
   args <- base::get("metashark.args", envir = .GlobalEnv)
-  rm("metashark.args", envir = .GlobalEnv)
+  # rm("metashark.args", envir = .GlobalEnv)
   ui.steps <- base::get("ui.steps", envir = .GlobalEnv)
-  # keep it up for fill_pages.R
   main.env <- .globalScript(
     .args = args, 
     envir = session$userData, 
@@ -92,14 +91,14 @@ server <- function(input, output, session) {
     if(exists("template_issues"))
       rm("template_issues", envir = .GlobalEnv)
   })
-
+  
   ## modules called ----
   fill("fill", main.env)
   upload("upload", main.env)
   documentation("documentation", main.env)
   about("about")
   settings("settings", main.env)
-
+  
   # Hide the loading message when the rest of the server function has executed
   shinyjs::hide(id = "loading-content", anim = TRUE, animType = "fade")
   shinyjs::show("app-content")
@@ -111,10 +110,26 @@ server <- function(input, output, session) {
       gsub(pattern = "MetaShARK_(.*).tar.gz", replacement = "\\1")
   })
   
-  # 
+  # File input max size
   output$file_limit <- renderText({
-    options("shiny.maxRequestSize") |>
-      gdata::humanReadable()
+    sprintf(
+      "Maximum size per file input : %s",
+      options("shiny.maxRequestSize") |>
+        gdata::humanReadable()
+    )
+  })
+  
+  # Observer for settings side tab
+  observeEvent(main.env$SETTINGS$side.tab, {
+    req(is.character(main.env$SETTINGS$side.tab))
+    
+    updateTabsetPanel(
+      inputId = "settings_menu",
+      selected = main.env$SETTINGS$side.tab
+    )
+    
+    # reset
+    isolate(main.env$SETTINGS$side.tab <- c())
   })
 }
 
