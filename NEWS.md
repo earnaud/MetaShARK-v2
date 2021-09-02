@@ -2,6 +2,10 @@
 
 ## Features
 
+* Fixed DataOne nodes list
+
+* Increased file input limit to 2 Go
+
 * Added this NEWS file.
 
 * Upgrade to R4.1.0: removed {emldown} dependency for compatibility motives.
