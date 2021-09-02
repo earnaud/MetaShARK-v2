@@ -44,7 +44,7 @@ RUN Rscript -e 'remotes::install_version("markdown",upgrade="never", version = "
 RUN Rscript -e 'remotes::install_version("jsonlite",upgrade="never", version = "1.7.2")'
 RUN Rscript -e 'remotes::install_version("data.table",upgrade="never", version = "1.14.0")'
 RUN Rscript -e 'remotes::install_version("RCurl",upgrade="never", version = "1.98-1.3")'
-RUN Rscript -e 'remotes::install_version("xfun",upgrade="never", version = "0.24")'
+# RUN Rscript -e 'remotes::install_version("xfun",upgrade="never", version = "0.24")'
 RUN Rscript -e 'remotes::install_version("processx",upgrade="never", version = "3.5.2")'
 RUN Rscript -e 'remotes::install_version("knitr",upgrade="never", version = "1.33")'
 RUN Rscript -e 'remotes::install_version("htmltools",upgrade="never", version = "0.5.1.1")'
