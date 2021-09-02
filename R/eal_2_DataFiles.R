@@ -12,7 +12,6 @@
 # module.args = list(main.env = main.env)
 # )
 #' @import shiny
-#' @importFrom shinyFiles shinyFilesButton
 #'
 #' @noRd
 DataFilesUI <- function(id) {

@@ -19,7 +19,6 @@ insertPersonnelInput <- function(id, main.env) {
 
 #' @import shiny
 #' @importFrom shinyjs hidden
-#' @importFrom tippy tippy
 #'
 #' @noRd
 PersonnelInputUI <- function(id, main.env) {
@@ -78,7 +77,7 @@ PersonnelInputUI <- function(id, main.env) {
             1, 
             textInput(
               NS(id, "middle_initial"),
-              label = tippy::tippy("MI","Middle Initial"),
+              label = tags$div("MI", title="Middle Initial"),
               value = .value$middleInitial
             )
           ),

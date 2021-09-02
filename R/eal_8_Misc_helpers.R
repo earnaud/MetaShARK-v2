@@ -41,15 +41,12 @@ MiscellaneousUI <- function(id, help.label = NULL) {
 
 #' @import shiny
 #' @importFrom SummeRnote summernoteInput
+#' @importFrom readtext readtext
+#' @importFrom dplyr select
 #'
 #' @noRd
 Miscellaneous <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
-    # Set UI ----
-    # output$content <- renderUI({
-    #   req(main.env$EAL$page == 8)
-    # })
-    
     # Get content ----
     # Debounced input in two steps
     .content <- reactive({
@@ -85,8 +82,8 @@ Miscellaneous <- function(id, main.env) {
         readHTMLfromMD(main.env$local.rv[[id]]$file)
       } else # if(grepl(".txt$", main.env$local.rv[[id]]$file)) {
         main.env$local.rv[[id]]$file |>
-        readtext() |>
-        select("text") |>
+        readtext::readtext() |>
+        dplyr::select("text") |>
         unlist() |>
         HTML()
       

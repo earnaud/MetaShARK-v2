@@ -20,7 +20,7 @@ The aim of the MetaShARK app is to allow any user a bit familiar with ecology to
 This project has the ambition to offer the user a user-friendly alternative to existing tools (such as the hardcore Morpho ;) ) but also to address an other issue which is the EML is not always fully considered.  
 This MetaShARK git is called "v2" because it is the evolution with {golem} package of the previous [MetaShARK git](https://github.com/earnaud/MetaShARK)
 
-MetaShARK has a dedicated [dockerhub](https://hub.docker.com/r/eliearnaud/metashark/dockerfile) and its deployment method is also [accessible](https://github.com/earnaud/MetaShARK_docker/). You can also deploy MetaShARK in a local version: for this, check the `local installation` section.
+MetaShARK has a dedicated [dockerhub](https://hub.docker.com/r/eliearnaud/metashark/dockerfile). You can also deploy MetaShARK in a local version: for this, check the `local installation` section.
 
 ## Legal disclaimers
 
@@ -42,9 +42,9 @@ It is now possible to deploy a local container for MetaShARK.
 
 Two possibilities :
 
-#### Using the public eliearnaud/metashark prebuilded Docker image
+#### Using the public eliearnaud/metashark prebuilt Docker image
 
-Typing this command line on a shell :
+Typing this command line on a shell:
 
 On linux computer:
 ``` docker run -d --rm  -p 3838:3838  --name MS  -v ~/metashark_data:/root/dataPackagesOutput  eliearnaud/metashark ```

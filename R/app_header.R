@@ -5,19 +5,31 @@
 #' @noRd
 .globalScript <- function(
   .args = list(dev = FALSE, wip = FALSE, reactlog = TRUE), 
-  envir
+  envir,
+  ...
 ) {
 
+  other.items <- c(...)
+  if("ui.steps" %in% names(other.items)) {
+    ui.steps <- other.items$ui.steps
+    other.items <- other.items[-which(names(other.items) == "ui.steps")]
+  }
+  
   # Options setup ====
   options(stringsAsFactors = FALSE)
   options(shiny.reactlog = .args$reactlog)
   
   # Environment setup ====
   main.env <- new.env(parent = envir)
-  
+  # assign specific values for quick access
   assign("dev", .args$dev, main.env)
   assign("wip", .args$wip, main.env)
-
+  # assign other values in 'metashark.args'
+  other.args <- .args[which(names(.args) != c("wip", "dev"))]
+  assign("other.args", other.args, main.env)
+  # assign ... in main.env
+  assign("other.items", other.items, main.env)
+  
   # Paths ====
   wwwPaths <- system.file("resources", package = "MetaShARK") |>
     dir(full.names = TRUE) |>
@@ -189,7 +201,8 @@
       user = "public",
       orcid.token = character(),
       cedar.token = character(),
-      metacat.token = character()
+      metacat.token = character(),
+      side.tab = c()
       # , metacat.test = FALSE
     ),
     envir = main.env

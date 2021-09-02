@@ -4,7 +4,7 @@
 \alias{wipRow}
 \title{wipRow}
 \usage{
-wipRow(...)
+wipRow(..., id = NULL)
 }
 \arguments{
 \item{...}{content to style}

@@ -17,6 +17,7 @@ BugReports: https://github.com/earnaud/MetaShARK-v2.git/issues
 Depends: 
     R (>= 2.10)
 Imports: 
+    config,
     data.table,
     dataone,
     datapack,
@@ -26,6 +27,7 @@ Imports:
     EMLassemblyline,
     fs,
     gdata,
+    golem,
     htmltools,
     httr,
     jsonlite,
@@ -45,7 +47,6 @@ Imports:
     shinydashboard,
     shinydashboardPlus,
     shinyFeedback,
-    shinyFiles,
     shinyjs,
     shinyTree,
     shinyWidgets,
@@ -53,19 +54,13 @@ Imports:
     SummeRnote,
     taxonomyCleanr,
     textutils,
-    tippy,
     utils,
-    uuid,
     XML,
     xml2,
     zip
 Suggests: 
-    golem,
-    shinytest,
-    here,
     knitr,
-    pkgload,
-    processx,
+    shinytest,
     testthat (>= 3.0.0)
 VignetteBuilder: 
     knitr

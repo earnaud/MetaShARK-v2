@@ -53,8 +53,9 @@ withRedStar <- function(text) {
 #' @importFrom shiny tags
 #' 
 #' @export
-wipRow <- function(...) {
+wipRow <- function(..., id = NULL) {
   tags$div(
+    id = id,
     tags$div(style = "height: 10px", class = "topInputRow wip"),
     ...,
     class = "inputBox"

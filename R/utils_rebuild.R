@@ -1,3 +1,6 @@
+#' @importFrom devtools build
+#' @importFrom golem set_golem_options
+#' 
 #' @noRd
 rebuild <- function(new.version = NA) {
   stopifnot(!is.na(new.version))
@@ -10,9 +13,14 @@ rebuild <- function(new.version = NA) {
     "sed -i '/Version:/ s/%s/%s/' DESCRIPTION",
     old.version, new.version
   ))
+  # Set Dockerfile version
+  system(sprintf(
+    "sed -i 's/LABEL version=\"%s/LABEL version=\"%s/' Dockerfile",
+    old.version, new.version
+  ))
+  # Set golem options
+  golem::set_golem_options()
   # rebuild
   file.remove(old.archive)
   devtools::build(path = ".")
-  # Set golem options
-  golem::set_golem_options()
 }

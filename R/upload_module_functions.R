@@ -104,15 +104,25 @@ uploadDP <- function(
     )
   )
   
-  if (class(packageId) == "try-error")
-    browser()
-  else
+  if (class(packageId) == "try-error"){
+    adress <- ""
+    # browser()
+  } else {
+    adress <- paste0(
+      sub("metacat.+$", "", d1c@mn@baseURL),
+      "view/",
+      sub("resource_map_", "", packageId)
+    )
     devmsg(tag = "upload", "* Success (resource map ID: %s)", packageId)
-  
+  }
   options(dataone_test_token = NULL)
   options(dataone_token = NULL)
   
-  return(metadata_id)
+  
+  return(list(
+    adress = adress,
+    id = metadata_id
+  ))
   # return(dp)
 }
 

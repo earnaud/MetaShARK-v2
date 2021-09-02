@@ -13,7 +13,7 @@
 #' be changed with options(datatable.fread.datatable=FALSE).
 #' @param ... additional arguments to read.table.
 #'
-#' @importFrom gdata read.xls
+#' @importFrom readxl read_excel
 #' @importFrom data.table fread
 #' 
 # @export
