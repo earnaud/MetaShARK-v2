@@ -1,3 +1,6 @@
+# Create user counter
+users = reactiveValues(count = 0)
+
 #' @import shiny
 #' @importFrom dataone listFormats CNode
 #' @importFrom taxonomyCleanr view_taxa_authorities
@@ -92,7 +95,26 @@ server <- function(input, output, session) {
       rm("template_issues", envir = .GlobalEnv)
   })
   
-  ## modules called ----
+  # User count ====
+  onSessionStart = isolate({
+    users$count = users$count + 1
+  })
+  
+  onSessionEnded(function() {
+    isolate({
+      users$count = users$count - 1
+    })
+  })
+  
+  # Disclaimer
+  devmsg(
+    tag = "DEV",
+    "Connected users at %s: %s",
+    Sys.time(),
+    isolate(users$count)
+  )
+  
+  # Modules called ====
   fill("fill", main.env)
   upload("upload", main.env)
   documentation("documentation", main.env)

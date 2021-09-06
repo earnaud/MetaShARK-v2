@@ -45,7 +45,8 @@
 runMetashark <- function(...) {
   require(shinyTree)
   
-  # Set args in .GlobalEnv = local options
+  # Set args ====
+  # in .GlobalEnv = local options
   args <- list(...)
   args$launch.browser <- isTRUE(args$launch.browser)
   
@@ -60,6 +61,7 @@ runMetashark <- function(...) {
   assign("metashark.args", args, envir = .GlobalEnv)
   on.exit(rm("metashark.args", envir = .GlobalEnv))
   
+  # Settings =====
   # Set steps in .GlobalEnv for UI purposes
   assign("ui.steps", c(
     "SelectDP",
@@ -89,6 +91,7 @@ runMetashark <- function(...) {
   if(isFALSE(args$use.test))
     options(shiny.port = 3838)
   
+  # Launch ====
   if(isTRUE(args$use.profvis)) {
     profvis::profvis({
       runApp(

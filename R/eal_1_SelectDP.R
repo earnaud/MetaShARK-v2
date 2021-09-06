@@ -330,6 +330,12 @@ SelectDP <- function(id, main.env) {
       )
       # Next page triggered in this particular saveReactive
       saveReactive(main.env, main.env$EAL$page) # page = 1
+      # Reset annotations variable
+      main.env$local.annotations <- reactiveValues(
+        annotation.table = data.frame(stringsAsFactors = FALSE),
+        result.table = data.frame(stringsAsFactors = FALSE),
+        tree.content =list()
+      )
     },
     label = "EAL1: create DP"
     )
