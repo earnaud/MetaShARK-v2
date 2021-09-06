@@ -51,7 +51,8 @@ fillUI <- function(id) {
     tabPanel(
       "MetaFIN",
       MetaFINUI(
-        NS(id, "metafin")
+        NS(id, "metafin"),
+        wip = base::get("metashark.args", envir = .GlobalEnv)$wip
       )
     )
   )
@@ -208,11 +209,12 @@ fill <- function(id, main.env) {
           # * Reset local.rv ----
           devmsg(tag="fill_module.R", "set local rv")
           main.env <- setLocalRV(main.env)
+          devmsg(tag="fill_module.R", "-- done")
           incProgress(1/7)
           
           # * Change page ----
-          updateTabsetPanel(session, "wizard-wizard", selected = steps[main.env$EAL$page])
           devmsg(tag="fill_module.R", "change pane")
+          updateTabsetPanel(session, "wizard-wizard", selected = steps[main.env$EAL$page])
           incProgress(1/7)
           
           # * Update history ----
