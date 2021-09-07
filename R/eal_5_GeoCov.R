@@ -87,8 +87,20 @@ GeoCov <- function(id, main.env) {
           custom = TRUE
         )
       )
+      
+      # Display correct UI
+      shinyjs::toggle(
+        "columns_input", 
+        condition = main.env$local.rv$method == "columns"
+      )
+      
+      shinyjs::toggle(
+        "custom_input", 
+        condition = main.env$local.rv$method == "custom"
+      )
     },
-    label = "EAL5 set method switch"
+    label = "EAL5 set method switch",
+    priority = -1
     )
 
     # Method selection ====
@@ -106,7 +118,8 @@ GeoCov <- function(id, main.env) {
         condition = main.env$local.rv$method == "custom"
       )
     },
-    label = "EAL4: switch method")
+    label = "EAL4: switch method"
+    )
     
     # output$selected_method <- renderText(main.env$local.rv$method)
     
@@ -251,7 +264,7 @@ GeoCov <- function(id, main.env) {
           insertGeoCovInput(
             session$ns(as.character(-.ind)), # from -n to -1, NS-ed
             main.env,
-            default = main.env$local.rv$custom$coordinates[.ind]
+            default = main.env$local.rv$custom$coordinates[.ind,]
           )
         })
     },

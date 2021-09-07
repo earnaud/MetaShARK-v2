@@ -182,7 +182,7 @@ fill <- function(id, main.env) {
       withProgress(
         {
           # * Save  & Template ----
-          devmsg(tag="fill_module.R", "save & template")
+          devmsg(tag="fill_module.R", "save & template\r")
           if(main.env$EAL$old.page > 1)
             saveReactive(
               main.env, 
@@ -193,7 +193,7 @@ fill <- function(id, main.env) {
           incProgress(1/7)
           
           # * set EAL variables ----
-          devmsg(tag="fill_module.R", "set EAL variables")
+          devmsg(tag="fill_module.R", "set EAL variables\r")
           # left Data Files
           if (main.env$EAL$old.page == 2) 
             unlink(main.env$PATHS$eal.tmp)
@@ -207,13 +207,13 @@ fill <- function(id, main.env) {
           incProgress(1/7)
           
           # * Reset local.rv ----
-          devmsg(tag="fill_module.R", "set local rv")
+          devmsg(tag="fill_module.R", "set local rv\r")
+          # browser()
           main.env <- setLocalRV(main.env)
-          devmsg(tag="fill_module.R", "-- done")
           incProgress(1/7)
           
           # * Change page ----
-          devmsg(tag="fill_module.R", "change pane")
+          devmsg(tag="fill_module.R", "change pane\r")
           updateTabsetPanel(session, "wizard-wizard", selected = steps[main.env$EAL$page])
           incProgress(1/7)
           
@@ -221,16 +221,16 @@ fill <- function(id, main.env) {
           if (!main.env$EAL$current %in% main.env$EAL$history) {
             main.env$EAL$history <- c(main.env$EAL$history, main.env$EAL$current)
           }
-          devmsg(tag="fill_module.R", "update history")
+          devmsg(tag="fill_module.R", "update history\r")
           incProgress(1/7)
           
           # * Savevar changes ----
-          devmsg(tag="fill_module.R", "save variables change")
+          devmsg(tag="fill_module.R", "save variables change\r")
           main.env$save.variable$step <- main.env$EAL$page # save current location
           main.env$save.variable$history <- main.env$EAL$history # erase old save
           
           # Display accessory UI elements
-          devmsg(tag="fill_module.R", "display UI")
+          devmsg(tag="fill_module.R", "display UI\r")
           if(main.env$EAL$page > 1) {
             shinyjs::show("help")
             shinyjs::show("save")
@@ -241,6 +241,8 @@ fill <- function(id, main.env) {
             shinyjs::hide("quit")
           }
           incProgress(1/7)
+          
+          devmsg(tag="fill_module.R", "ended\r")
           
           # * Helps ====
           {

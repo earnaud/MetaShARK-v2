@@ -107,11 +107,16 @@ server <- function(input, output, session) {
   })
   
   # Disclaimer
-  devmsg(
-    tag = "DEV",
-    "Connected users at %s: %s",
-    Sys.time(),
-    isolate(users$count)
+  observe({
+    invalidateLater(60*1000)
+    devmsg(
+      tag = "DEV",
+      "Connected users at %s: %s",
+      Sys.time(),
+      isolate(users$count)
+    )
+  },
+  label = "users count"
   )
   
   # Modules called ====

@@ -94,7 +94,7 @@ GeoCovInputUI <- function(id, site.id, default = NULL) {
   }
   else {
     def.site <- ""
-    # Defaults coordinates are a square around Europe
+    # Default coordinates are a square around Europe
     def.lat <- c(35, 65)
     def.lon <- c(-25, 45)
   }
@@ -129,7 +129,7 @@ GeoCovInputUI <- function(id, site.id, default = NULL) {
           NS(id, "latitude"),
           tags$h4("Latitude"),
           min = -90, max = 90,
-          value = def.lat,
+          value = unlist(def.lat),
           step = 0.01
         )
       ),
@@ -139,7 +139,7 @@ GeoCovInputUI <- function(id, site.id, default = NULL) {
           NS(id, "longitude"),
           tags$h4("Longitude"),
           min = -180, max = 180,
-          value = def.lon,
+          value = unlist(def.lon),
           step = 0.01
         )
       )
