@@ -3,7 +3,6 @@ MetaFINUI <- function(id, wip) {
   
   if(wip) {
     wipRow(
-      tags$h3("MetaFIN"),
       fileInput(
         ns("file"),
         "Select a valid EML file (.xml)",

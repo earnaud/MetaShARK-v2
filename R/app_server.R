@@ -54,6 +54,7 @@ server <- function(input, output, session) {
   
   if (main.env$dev){
     shinyjs::show("dev")
+    shinyjs::show("disclaimer-wip")
     observeEvent(input$dev, {
       if (main.env$current.tab() != "fill" &&
           main.env$current.tab() != "upload")
@@ -108,7 +109,7 @@ server <- function(input, output, session) {
   
   # Disclaimer
   observe({
-    invalidateLater(60*1000)
+    invalidateLater(5*60*1000)
     devmsg(
       tag = "DEV",
       "Connected users at %s: %s",

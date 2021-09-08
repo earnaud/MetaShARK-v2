@@ -36,7 +36,8 @@ SelectDPUI <- function(id) {
               )
             )
           )
-        )
+        ),
+        tags$hr()
       ),
       fluidRow(
         # Load existing DP ----

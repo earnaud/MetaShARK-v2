@@ -5,34 +5,65 @@ fillUI <- function(id) {
   tabsetPanel(
     id = NS(id, "tabs"),
     tabPanel(
-      "EAL",
+      tags$h4("EML Assembly Line"),
       fluidPage(
         style = "padding-top:2.5%;",
         # * Top row ----
         tags$span(
           fluidRow(
             div(
-              h4("EML Assembly Line"),
-              h3(textOutput(NS(id, "current_step"))),
+              HTML(
+                '<svg style="height: 50px;width: 100%;/*! bottom: -35px; */position: absolute;">
+                  <line y1="0" y2="0" style="stroke:rgb(149, 149, 149);stroke-width:3" x2="400" x1="-1000"></line>
+                  <line y1="0" y2="50" style="stroke:rgb(149, 149, 149);stroke-width:3" x2="450" x1="400"></line>
+                  <line y1="50" x2="2000" y2="50" style="stroke:rgb(149, 149, 149);stroke-width:3" x1="450"></line>
+                </svg>'
+              ),
+              h3(
+                textOutput(NS(id, "current_step"))
+              ),
               style = "float: left"
             ),
             div(
-              actionButton(
+              shinyWidgets::actionBttn(
                 NS(id, "help"), 
-                "Help", 
-                icon("question-circle")
+                "Help",
+                icon("question-circle"),
+                style = "simple",
+                color = "primary"
               ),
-              actionButton(
+              # actionButton(
+              #   NS(id, "help"), 
+              #   "Help", 
+              #   icon("question-circle"),
+              #   style = "background-color: #6cb5e1; color: #fff"
+              # ),
+              shinyWidgets::actionBttn(
                 NS(id, "save"),
                 "Save",
-                icon("save")
-              ), # fill-wizard-save
-              actionButton(
+                icon("save"),
+                style = "simple",
+                color = "success"
+              ),
+              # actionButton(
+              #   NS(id, "save"),
+              #   "Save",
+              #   icon("save"),
+              #   style = "background-color: #a2d98e;"
+              # ), # fill-wizard-save
+              shinyWidgets::actionBttn(
                 NS(id, "quit"), 
                 "Quit",
                 icon("times-circle"),
-                class = "danger"
-              ), # fill-wizard-quit
+                style = "simple",
+                color = "danger"
+              ),
+              # actionButton(
+              #   NS(id, "quit"), 
+              #   "Quit",
+              #   icon("times-circle"),
+              #   class = "danger"
+              # ), # fill-wizard-quit
               style = "float: right;"
             ), # fill-wizard-help
             style = "width: 100%"
@@ -49,7 +80,7 @@ fillUI <- function(id) {
       ) # end fluidPage
     ),
     tabPanel(
-      "MetaFIN",
+      tags$h4("MetaFIN"),
       MetaFINUI(
         NS(id, "metafin"),
         wip = base::get("metashark.args", envir = .GlobalEnv)$wip

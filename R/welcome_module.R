@@ -10,9 +10,12 @@ welcomeUI <- function(id) {
       # MetaShARK
       tags$h1("Welcome in MetaShARK"),
       fluidRow(
-        wipRow(
-          tags$p("DISCLAIMER: some features are still in development. Some parts
+        shinyjs::hidden(
+          wipRow(
+            id = "disclaimer-wip",
+            tags$p("DISCLAIMER: some features are still in development. Some parts
             with this color code are not meant to be fully functional.")
+          )
         ),
         column(
           6,
@@ -60,7 +63,7 @@ welcomeUI <- function(id) {
           tags$p(
             HTML("The application you are currently using is a front-end
             tool for any user who wants to contribute to a DataOne node
-            repository, also known as <b>metadata catalog</b> or <b>MetaCat</b>.
+            repository, also known as <b>metadata catalogue</b> or <b>MetaCat</b>.
             To contribute to a MetaCat, you need to login to the metacat
             in which you want to upload your data package. Then, it will 
             be possible for MetaShARK to gather the needed informations, as
