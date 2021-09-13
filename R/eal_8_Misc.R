@@ -197,7 +197,7 @@ Misc <- function(id, main.env) {
     # * Additional information ====
     Miscellaneous("additional.information", main.env)
     
-    # Saves ----
+    # Checks ----
     observe({
       req(main.env$EAL$page == 8)
       
@@ -216,7 +216,8 @@ Misc <- function(id, main.env) {
           "1" = ifelse(check.abstract, "success", "warning"),
           "2" = ifelse(check.methods, "success", "warning"),
           "3" = ifelse(check.keywords, "success", "warning"),
-          "4" = ifelse(check.temporal.coverage, "success", "warning")
+          "4" = ifelse(check.temporal.coverage, "success", "warning"),
+          "5" = "default"
         )
       )
       
@@ -228,9 +229,8 @@ Misc <- function(id, main.env) {
         check.temporal.coverage
       )
     },
-    label = "EAL8: saves"
+    label = "EAL8: checks"
     )
     
-    # Process data (deprecated)
   })
 }

@@ -452,7 +452,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
     data.frame(
       keyword = strsplit(content$keywords$keyword[row.ind], ",") |> 
         unlist(),
-      keyword.thesaurus = kwt # repeated as many times as necesary
+      keywordThesaurus = kwt # repeated as many times as necessary
     )
   })
   .keywords <- dplyr::bind_rows(.tmp)
