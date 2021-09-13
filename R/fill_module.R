@@ -260,7 +260,7 @@ fill <- function(id, main.env) {
           main.env$save.variable$step <- main.env$EAL$page # save current location
           main.env$save.variable$history <- main.env$EAL$history # erase old save
           
-          # Display accessory UI elements
+          # * Accessory UI elements ----
           devmsg(tag="fill_module.R", "display UI\r")
           if(main.env$EAL$page > 1) {
             shinyjs::show("help")

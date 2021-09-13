@@ -30,25 +30,23 @@ MakeEMLUI <- function(id) {
         tags$br(),
         fluidRow(
           column(
-            6, #offset = 3,
-            wipRow(
-              tags$div(
-                id = "publish",
-                tags$h4("Publish data package"),
-                "You can head to the Upload tab and publish 
+            4, offset = 1,
+            tags$div(
+              id = "publish",
+              tags$h4("Publish data package"),
+              "You can head to the Upload tab and publish 
                 your data package to a metacat repository."
-              ),
-              shinyjs::disabled(
-                actionButton(
-                  NS(id, "publish"),
-                  "Publish",
-                  icon("file-export")
-                )
+            ),
+            shinyjs::disabled(
+              actionButton(
+                NS(id, "publish"),
+                "Publish",
+                icon("file-export")
               )
             )
           ),
           column(
-            6,
+            4, offset = 2,
             tags$div(
               tags$h4("Download your data package"),
               "Get a local version containing MetaShARK files, EML Assembly Lines 
@@ -134,7 +132,7 @@ MakeEML <- function(id, main.env) {
             # FROM FILES geographic.description
             # FROM FILES geographic.coordinates
             x$maintenance.description <- "ongoing"
-            x$data.table <- dir(x$data.path)
+            # x$data.table <- dir(x$data.path)
             x$data.table.name <- optional(.$DataFiles$table.name)
             x$data.table.description <- optional(.$DataFiles$description)
             # TODO data.table.quote.character
@@ -162,6 +160,7 @@ MakeEML <- function(id, main.env) {
                 full.names = TRUE
               )
             )
+            
             do.call(
               EMLassemblyline::make_eml,
               x[names(x) %in% names(formals(EMLassemblyline::make_eml))]
@@ -241,6 +240,16 @@ MakeEML <- function(id, main.env) {
         setwd(old.wd)
       }
     )
+    
+    # publish ----
+    observeEvent(input$publish, {
+      # Save work at this state
+      saveReactive(main.env, main.env$EAL$page, do.template = FALSE)
+      # Clean & reset variables
+      main.env <- cleanModules(main.env)
+      # Change side menu to upload tab
+      browser()
+    })
     
     # # emldown ----
     # output$download_emldown <- downloadHandler(

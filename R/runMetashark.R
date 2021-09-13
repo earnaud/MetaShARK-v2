@@ -43,7 +43,9 @@
 #' 
 #' @export
 runMetashark <- function(...) {
+  # Required -- dot not remove
   require(shinyTree)
+  require(shinyBS)
   
   # Set args ====
   # in .GlobalEnv = local options

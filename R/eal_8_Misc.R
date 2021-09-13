@@ -18,21 +18,21 @@ MiscUI <- function(id) {
         "),
       shinyBS::bsCollapse(
         id = NS(id, "Miscs"),
-        # * Abstract ----
+        ## Abstract ----
         shinyBS::bsCollapsePanel(
           title = withRedStar("Abstract"),
           value = 1,
           MiscellaneousUI(NS(id, "abstract"))
         ),
         
-        # * Methods ----
+        ## Methods ----
         shinyBS::bsCollapsePanel(
           title = withRedStar("Methods"),
           value = 2,
           MiscellaneousUI(NS(id, "methods"))
         ),
         
-        # * Keywords ----
+        ## Keywords ----
         shinyBS::bsCollapsePanel(
           title = withRedStar("Keywords"),
           value = 3,
@@ -45,7 +45,7 @@ MiscUI <- function(id) {
           )
         ),
         
-        # * Temporal coverage ----
+        ## Temporal coverage ----
         shinyBS::bsCollapsePanel(
           title = withRedStar("Temporal coverage"),
           value = 4,
@@ -62,7 +62,7 @@ MiscUI <- function(id) {
           )
         ),
         
-        # * Additional Info ----
+        ## Additional Info ----
         shinyBS::bsCollapsePanel(
           title = "Additional Info - optional",
           value = 5,
@@ -100,18 +100,18 @@ Misc <- function(id, main.env) {
     }
     
     # Fill ----
-    # * Abstract ====
+    ## Abstract ----
     Miscellaneous("abstract", main.env)
     
-    # * Methods ====
+    ## Methods ----
     Miscellaneous("methods", main.env)
     
-    # * Keywords ====
+    ## Keywords ----
     observeEvent(input$add_kws, {
       insertKeywordSet(session$ns(input$add_kws), main.env)
     })
     
-    # ** Setup ----
+    ### Setup ----
     # Initial UI
     observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page == 8)
@@ -171,8 +171,8 @@ Misc <- function(id, main.env) {
     label = "EAL8: more keywords"
     )
     
-    # * Temporal coverage ====
-    # ** Setup ----
+    ## Temporal coverage ----
+    ### Setup ----
     observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page == 8)
       
@@ -187,14 +187,14 @@ Misc <- function(id, main.env) {
     }, 
     priority = -1)
     
-    # ** Get ----
+    ### Get ----
     observeEvent(input$temporal_coverage, {
       main.env$local.rv$temporal.coverage <- input$temporal_coverage
     },
     label = "EAL8: input temporal coverage"
     )
     
-    # * Additional information ====
+    ## Additional information ----
     Miscellaneous("additional.information", main.env)
     
     # Checks ----
@@ -202,13 +202,13 @@ Misc <- function(id, main.env) {
       req(main.env$EAL$page == 8)
       
       invalidateLater(1000)
-      # * Checks----
+      ## Checks----
       check.abstract <- isHTMLTruthy(main.env$local.rv$abstract$content)
       check.methods <- isHTMLTruthy(main.env$local.rv$methods$content)
       check.keywords <- isContentTruthy(main.env$local.rv$keywords$keyword)
       check.temporal.coverage <- isTruthy(main.env$local.rv$temporal.coverage)
       
-      # * Feedback ----
+      ## Feedback ----
       shinyBS::updateCollapse(
         session,
         "Miscs",
@@ -221,7 +221,7 @@ Misc <- function(id, main.env) {
         )
       )
       
-      # * Synthetize  ----
+      ## Synthetize  ----
       main.env$EAL$completed <- all(
         check.abstract,
         check.methods,

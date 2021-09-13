@@ -446,7 +446,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
     ""
   )
   # build keywords data.frame
-  .tmp <- lapply(unique(content$keywords$keyword.thesaurus), function(kwt) {
+  .keywords <- lapply(unique(content$keywords$keyword.thesaurus), function(kwt) {
     row.ind <- which(content$keywords$keyword.thesaurus == kwt)
     
     data.frame(
@@ -454,8 +454,8 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
         unlist(),
       keywordThesaurus = kwt # repeated as many times as necessary
     )
-  })
-  .keywords <- dplyr::bind_rows(.tmp)
+  }) |> 
+    dplyr::bind_rows()
   data.table::fwrite(
     .keywords,
     paste0(
