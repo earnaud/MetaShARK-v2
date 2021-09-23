@@ -68,6 +68,7 @@ textarea {
   height: calc(100% - 70px);
   max-height: calc(100% - 70px);
   overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 /* -- Classes -- */
@@ -107,6 +108,22 @@ textarea {
 
 .contentRow {
   background-color: #f6f6f6;
+}
+
+.coordinate-input {
+  display: flex;
+  align-items: baseline;
+  background: lightgrey;
+  width: fit-content;
+  padding: 1px 1em 1px 2px;
+  margin: 0.25em;
+  border-radius: 5px;
+}
+
+.coordinate-input .form-group {
+  margin-bottom: 2px;
+  margin-top: 2px;
+  width: fit-content;
 }
 
 .form-group.shiny-input-container.has-feedback {
