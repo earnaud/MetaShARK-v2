@@ -199,9 +199,13 @@ Misc <- function(id, main.env) {
     
     # Checks ----
     observe({
+      devmsg("Checking ... ", tag = "dev eal 8")
+      invalidateLater(1000)
       req(main.env$EAL$page == 8)
       
-      invalidateLater(1000)
+      devmsg("... checked !", tag = "dev eal 8")
+      
+      
       ## Checks----
       check.abstract <- isHTMLTruthy(main.env$local.rv$abstract$content)
       check.methods <- isHTMLTruthy(main.env$local.rv$methods$content)
