@@ -144,13 +144,15 @@ templateModules <- function(main.env, page){
     if(exists("template_issues")) 
       stop("EAL template issues - CatVar")
     
-    EMLassemblyline::template_geographic_coverage(
-      path = main.env$save.variable$SelectDP$dp.metadata.path,
-      data.path = main.env$save.variable$SelectDP$dp.data.path,
-      empty = TRUE,
-      write.file = TRUE
-    )
-    
+    # Template if not existing
+    if("GeoCov" %in% names(main.env$save.variable)) {
+      EMLassemblyline::template_geographic_coverage(
+        path = main.env$save.variable$SelectDP$dp.metadata.path,
+        data.path = main.env$save.variable$SelectDP$dp.data.path,
+        empty = TRUE,
+        write.file = TRUE
+      )
+    }
     # Check for EAL issues
     if(exists("template_issues"))
       stop("EAL template issues - GeoCov")

@@ -196,12 +196,19 @@ pagesServer <- function(id, main.env) {
 #'
 #' @noRd
 nextTabButton <- function(id, i) {
-  actionButton(
+  shinyWidgets::actionBttn(
     NS(id, paste(i, i + 1, sep = "_")),
     "Next",
-    icon = icon("arrow-right"),
-    width = "100%"
+    icon("arrow-right"),
+    # style = "pill",
+    block = TRUE
   )
+  # actionButton(
+  #   NS(id, paste(i, i + 1, sep = "_")),
+  #   "Next",
+  #   icon = icon("arrow-right"),
+  #   width = "100%"
+  # )
 }
 
 # * Previous ====
@@ -210,10 +217,17 @@ nextTabButton <- function(id, i) {
 #'
 #' @noRd
 prevTabButton <- function(id, i) {
-  actionButton(
+  shinyWidgets::actionBttn(
     NS(id, paste(i, i - 1, sep = "_")),
     "Previous",
-    icon = icon("arrow-left"),
-    width = "100%"
+    icon("arrow-left"),
+    # style = "pill",
+    block = TRUE
   )
+  # actionButton(
+  #   NS(id, paste(i, i - 1, sep = "_")),
+  #   "Previous",
+  #   icon = icon("arrow-left"),
+  #   width = "100%"
+  # )
 }

@@ -128,6 +128,7 @@ setLocalRV <- function(main.env){
     checkTemplates(main.env)
   
   # Set variable ====
+  devmsg(tag = "fill-module-setup.R", "set variable")
   main.env$local.rv <- switch(
     main.env$EAL$page,
     # * SelectDP ----
@@ -353,8 +354,10 @@ setLocalRV <- function(main.env){
   )
   
   # Post-modifications ====
+  devmsg(tag = "fill-module-setup.R", "post-modification")
   # * Attributes ----
   if(main.env$EAL$page == 3) {
+    devmsg(tag = "setup", "3")
     # Path to metadata templates empty?
     if (isContentTruthy(main.env$save.variable$DataFiles$metadatapath)) {
       # Set content
@@ -497,6 +500,7 @@ setLocalRV <- function(main.env){
   }
   # * Catvars ----
   if(main.env$EAL$page == 4) {
+    devmsg(tag = "setup", "4")
     # read metadata folder path
     .md.path <- isolate(main.env$save.variable$SelectDP$dp.metadata.path)
     req(isContentTruthy(.md.path))
@@ -597,6 +601,7 @@ setLocalRV <- function(main.env){
   
   # * GeoCov ----
   if(main.env$EAL$page == 5) {
+    devmsg(tag = "setup", "5")
     # Set choices for selectInput -- reuse Attributes
     .att <- main.env$save.variable$Attributes$content
     .site <- main.env$local.rv$columns$choices$sites <- list()
@@ -627,7 +632,10 @@ setLocalRV <- function(main.env){
     
     # Read saved values
     if(isContentTruthy(listReactiveValues(main.env$save.variable$GeoCov))) {
-      main.env$local.rv$method <- main.env$save.variable$GeoCov$method
+      if(is.null(main.env$save.variable$GeoCov$method)) {
+        main.env$local.rv$method <- names(main.env$save.variable$GeoCov)
+      } else
+        main.env$local.rv$method <- main.env$save.variable$GeoCov$method
       
       # * Columns
       if(main.env$local.rv$method == "columns" && 
@@ -670,6 +678,7 @@ setLocalRV <- function(main.env){
   
   # * TaxCov ----
   if(main.env$EAL$page == 6) {
+    devmsg(tag = "setup", "6")
     # File
     if(isTruthy(main.env$save.variable$TaxCov$taxa.table) && 
        gsub("\\..*","", main.env$save.variable$TaxCov$taxa.table) %grep%
@@ -694,6 +703,7 @@ setLocalRV <- function(main.env){
   
   # * Personnel ----
   if(main.env$EAL$page == 7) {
+    devmsg(tag = "setup", "7")
     # Read template
     message("passing here")
     # Here, do not read from file: format for 'role' is not the same
@@ -726,6 +736,7 @@ setLocalRV <- function(main.env){
   
   # * Misc ----
   if (main.env$EAL$page == 8) {
+    devmsg(tag = "setup", "8")
     # markdown files
     sapply(c("abstract", "methods", "additional.information"), function(x) {
       isolate({main.env$local.rv[[x]]$content <- readHTMLfromMD(main.env$local.rv[[x]]$file)})
@@ -736,6 +747,7 @@ setLocalRV <- function(main.env){
   }
   
   # (End) ====
+  devmsg(tag = "fill-module-setup", "passed")
   
   return(main.env)
 }

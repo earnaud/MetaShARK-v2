@@ -1,9 +1,42 @@
+/* Color palette */
+
+.color1 {color: #000002;}
+.color2 {color: #172a3a;}
+.color3 {color: #325975;}
+.color4 {color: #4e91b9;}
+.color5 {color: #6bd1ff;}
+.white {color: #fff}
+
 /* -- Overwrite -- */
+
+.content-wrapper {
+  background-color: #f4f4f4 !important;
+}
+
+.form-control {
+  background-color: #fff !important;
+}
 
 img {
 	display: block;
 	margin-left: auto;
 	margin-right: auto;
+}
+
+.logo {
+  background-color: #4e91b9 !important;
+}
+
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover {
+  background-color: transparent;
+}
+
+.navbar {
+  background-color: #4e91b9 !important;
+}
+
+.main-sidebar {
+  background-color: #172a3a !important;
 }
 
 p {
@@ -35,6 +68,7 @@ textarea {
   height: calc(100% - 70px);
   max-height: calc(100% - 70px);
   overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 /* -- Classes -- */
@@ -74,6 +108,22 @@ textarea {
 
 .contentRow {
   background-color: #f6f6f6;
+}
+
+.coordinate-input {
+  display: flex;
+  align-items: baseline;
+  background: lightgrey;
+  width: fit-content;
+  padding: 1px 1em 1px 2px;
+  margin: 0.25em;
+  border-radius: 5px;
+}
+
+.coordinate-input .form-group {
+  margin-bottom: 2px;
+  margin-top: 2px;
+  width: fit-content;
 }
 
 .form-group.shiny-input-container.has-feedback {

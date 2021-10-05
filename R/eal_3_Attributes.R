@@ -806,7 +806,8 @@ Attributes <- function(id, main.env) {
       
       # If any problem, tell the user
       checked.attributes <- which(
-        !main.env$local.rv$completed |>
+        main.env$local.rv$completed |>
+          isFALSE() |>
           listReactiveValues() |>
           unlist()
         ) |>

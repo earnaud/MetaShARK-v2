@@ -12,7 +12,7 @@
 #'   \item{wip}{logical. Shows WIP parts of the app. (default to FALSE)}
 #'   \item{dev}{logical. Add development elements in the GUI. (default to FALSE)}
 #'   \item{reactlog}{logical. Use reactlog? (default to TRUE)}
-#'   \item{test}{logical. Recod tests? (default to FALSE)}
+#'   \item{use.profvis}{logical. Profile the app with {profvis}? (default to FALSE)}
 #' }
 #'
 #' @details
@@ -43,9 +43,12 @@
 #' 
 #' @export
 runMetashark <- function(...) {
+  # Required -- dot not remove
   require(shinyTree)
+  require(shinyBS)
   
-  # Set args in .GlobalEnv = local options
+  # Set args ====
+  # in .GlobalEnv = local options
   args <- list(...)
   args$launch.browser <- isTRUE(args$launch.browser)
   
@@ -60,6 +63,7 @@ runMetashark <- function(...) {
   assign("metashark.args", args, envir = .GlobalEnv)
   on.exit(rm("metashark.args", envir = .GlobalEnv))
   
+  # Settings =====
   # Set steps in .GlobalEnv for UI purposes
   assign("ui.steps", c(
     "SelectDP",
@@ -89,6 +93,7 @@ runMetashark <- function(...) {
   if(isFALSE(args$use.test))
     options(shiny.port = 3838)
   
+  # Launch ====
   if(isTRUE(args$use.profvis)) {
     profvis::profvis({
       runApp(

@@ -12,7 +12,7 @@ runMetashark(...)
 \item{wip}{logical. Shows WIP parts of the app. (default to FALSE)}
 \item{dev}{logical. Add development elements in the GUI. (default to FALSE)}
 \item{reactlog}{logical. Use reactlog? (default to TRUE)}
-\item{test}{logical. Recod tests? (default to FALSE)}
+\item{use.profvis}{logical. Profile the app with {profvis}? (default to FALSE)}
 }}
 }
 \description{

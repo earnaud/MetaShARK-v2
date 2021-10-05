@@ -1,3 +1,17 @@
+# V1.6.1
+
+## Features 
+
+* Fixed navigation error when clicking 'previous' in EAL.
+
+* Added a counter for the number of users, outputting in the logs.
+
+## Work in progress
+
+* Tests: write a complete set of tests. 
+
+* Annotations: continue `dev-metafin` branch.
+
 # v1.6.0
 
 ## Features

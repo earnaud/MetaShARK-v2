@@ -132,3 +132,6 @@ Collate:
     'template_functions.R'
     'settings_rightSideBar.R'
     'runMetashark.R'
+    'utils-colorPickerInput.R'
+    'utils-coordinateInput.R'
+    'utils-customLocationInput.R'
