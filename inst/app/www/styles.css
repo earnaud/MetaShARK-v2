@@ -9,6 +9,11 @@
 
 /* -- Overwrite -- */
 
+.bttn.disabled, .bttn.disabled::after, .bttn.disabled::before  {
+  cursor: not-allowed;
+  transform: none !important;
+}
+
 .content-wrapper {
   background-color: #f4f4f4 !important;
 }
