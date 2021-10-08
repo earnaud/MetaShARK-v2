@@ -137,7 +137,8 @@ uploadUI <- function(id) {
     
     # Process -----
     tags$div(
-      uiOutput(NS(id, "last_uploaded")) |>
+      actionLink(NS(id, "last_uploaded"), "<NO URL>", icon("external-link")) |>
+      # uiOutput(NS(id, "last_uploaded")) |>
         shinyjs::hidden(),
       actionButton(
         NS(id, "process"),
@@ -147,20 +148,6 @@ uploadUI <- function(id) {
       ),
       class = "leftMargin inputBox"
     )
-    # )
-    # ,# , # end of upload tab
-    # Update ----
-    #   tabPanel(
-    #     title = "update",
-    #     wipRow(
-    #       "WIP"
-    #       # 1. solr query
-    #       # 2. select items to update
-    #       # 3. select files
-    #     )
-    #   ) # end of update tab
-    # ) # end of tabSetPanel
-    # )
   ) # end of tagList
 }
 
@@ -525,16 +512,36 @@ upload <- function(id, main.env) {
       shinyjs::enable("process")
     })
     
-    output$last_uploaded <- renderUI({
+    observe({
       validate(
         need(last.uploaded() != "", "none"),
         need(class(last.uploaded()) != "try-error", last.uploaded())
       )
       
-      tags$div(
-        tags$b("Last uploaded:"),
-        tags$a(href=last.uploaded(), last.uploaded())
+      updateActionLink(
+        session,
+        "last_uploaded",
+        label = last.uploaded()
       )
     })
+    
+    # output$last_uploaded <- renderUI({
+    #   validate(
+    #     need(last.uploaded() != "", "none"),
+    #     need(class(last.uploaded()) != "try-error", last.uploaded())
+    #   )
+    #   
+    #   tags$div(
+    #     tags$b("Last uploaded:"),
+    #     tags$a(href=last.uploaded(), last.uploaded())
+    #   )
+    # })
+    
+    observeEvent(input$last_uploaded, {
+      req(input$last_uploaded)
+      
+      browseURL(last.uploaded())
+    })
+    
   })
 }

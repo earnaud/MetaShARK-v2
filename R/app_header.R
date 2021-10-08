@@ -116,6 +116,7 @@
   ) |> 
     gsub(pattern = "//+", replacement = "/")
   DP.LIST <- dplyr::filter(DP.LIST, path %in% .actual.index)
+  
   # save actual index
   data.table::fwrite(DP.LIST, isolate(PATHS$eal.dp.index), sep = "\t")
 

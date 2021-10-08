@@ -30,6 +30,11 @@ uploadDP <- function(
       dplyr::select(mn) |>
       as.character()
   )
+  # Brute fix the URL
+  if(!grepl("^https", d1c@mn@endpoint))
+    d1c@mn@endpoint <- gsub("http", "https", d1c@mn@endpoint)
+  devmsg(d1c@mn@endpoint)
+  
   if (use.doi) {
     doi <- dataone::generateIdentifier(d1c@mn, "DOI")
   } # TODO check this feature
@@ -106,7 +111,6 @@ uploadDP <- function(
   
   if (class(packageId) == "try-error"){
     adress <- ""
-    # browser()
   } else {
     adress <- paste0(
       sub("metacat.+$", "", d1c@mn@baseURL),
@@ -117,6 +121,15 @@ uploadDP <- function(
   }
   options(dataone_test_token = NULL)
   options(dataone_token = NULL)
+  
+  # Fix for PNDB
+  adress <- ifelse(
+    d1c@mn@name == "PNDB TEST Data Repository",
+    gsub("test", "data.test", adress),
+    adress
+  )
+  
+  message(adress)
   
   
   return(list(
