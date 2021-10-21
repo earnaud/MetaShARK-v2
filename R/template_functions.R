@@ -192,7 +192,7 @@ templateModules <- function(main.env, page){
           "Please wait until completion. This might take minutes.",
           "Selected authorities being queried:",
           main.env$FORMATS$taxa.authorities |>
-            filter(id == main.env$local.rv$taxa.authority) |>
+            filter(id %in% main.env$local.rv$taxa.authority) |>
             select(authority) |>
             unlist() |> 
             lapply(tags$li) |> 
