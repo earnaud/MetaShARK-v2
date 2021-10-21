@@ -137,8 +137,8 @@ uploadUI <- function(id) {
     
     # Process -----
     tags$div(
-      actionLink(NS(id, "last_uploaded"), "<NO URL>", icon("external-link")) |>
-      # uiOutput(NS(id, "last_uploaded")) |>
+      # actionLink(NS(id, "last_uploaded"), "<NO URL>", icon("external-link")) |>
+      uiOutput(NS(id, "last_uploaded")) |>
         shinyjs::hidden(),
       actionButton(
         NS(id, "process"),
@@ -146,6 +146,8 @@ uploadUI <- function(id) {
         icon = icon("rocket"),
         width = "100%"
       ),
+      uiOutput(NS(id, "required")) |>
+        shinyjs::hidden(),
       class = "leftMargin inputBox"
     )
   ) # end of tagList
@@ -463,19 +465,67 @@ upload <- function(id, main.env) {
     
     # Process ----
     # * completeness ----    
+    are.required <- reactiveVal()
     observe({
+      # Set conditions
+      is.mn.selected <- isTruthy(memberNode())
+      is.md.selected <- dim(rv$md)[1] == 1
+      is.data.selected <- dim(rv$data)[1] > 0
+      is.token.set <- isTRUE(is.character(main.env$SETTINGS$metacat.token) &&
+        !is.null(main.env$SETTINGS$metacat.token) &&
+        main.env$SETTINGS$metacat.token != "")
+      is.action.set <- input$action %in% c("upload", "update")
+      
+      # Switch process button
       shinyjs::toggleState(
         "process",
         condition = (
-          isTruthy(memberNode())
-        ) && (
-          dim(rv$md)[1] == 1 && dim(rv$data)[1] > 0
-        ) && (
-          is.character(main.env$SETTINGS$metacat.token) &&
-            !is.null(main.env$SETTINGS$metacat.token)
-        ) && (
-          input$action %in% c("upload", "update")
+          is.mn.selected &&
+            is.md.selected &&
+            is.data.selected &&
+            is.token.set &&
+            is.action.set
+        #   isTruthy(memberNode())
+        # ) && (
+        #   dim(rv$md)[1] == 1 && dim(rv$data)[1] > 0
+        # ) && (
+        #   is.character(main.env$SETTINGS$metacat.token) &&
+        #     !is.null(main.env$SETTINGS$metacat.token) &&
+        #     main.env$SETTINGS$metacat.token != ""
+        # ) && (
+        #   input$action %in% c("upload", "update")
         )
+      )
+      
+      # Set list of required things
+      # as.list used to avoid NULL values
+      are.required(as.list(c(
+        if(!is.mn.selected)
+          "No member node targeted",
+        if(!is.md.selected)
+          "One metadata file is expected",
+        if(!is.data.selected)
+          "At least one data file is expected",
+        if(!is.token.set)
+          "No dataone token was set",
+        if(!is.action.set)
+          "No action must be taken"
+      )))
+      
+      shinyjs::toggle(
+        "required",
+        condition = is.list(are.required()) && length(are.required()) > 0
+      )
+    })
+    
+    output$required <- renderUI({
+      validate(
+        need(length(are.required()) > 0, "no item required")
+      )
+      
+      tagList(
+        tags$b("Are required:"),
+        tags$ul(lapply(are.required(), tags$li))
       )
     })
     
@@ -511,37 +561,37 @@ upload <- function(id, main.env) {
       
       shinyjs::enable("process")
     })
-    
-    observe({
-      validate(
-        need(last.uploaded() != "", "none"),
-        need(class(last.uploaded()) != "try-error", last.uploaded())
-      )
-      
-      updateActionLink(
-        session,
-        "last_uploaded",
-        label = last.uploaded()
-      )
-    })
-    
-    # output$last_uploaded <- renderUI({
+
+    # observe({
     #   validate(
     #     need(last.uploaded() != "", "none"),
     #     need(class(last.uploaded()) != "try-error", last.uploaded())
     #   )
-    #   
-    #   tags$div(
-    #     tags$b("Last uploaded:"),
-    #     tags$a(href=last.uploaded(), last.uploaded())
+    # 
+    #   updateActionLink(
+    #     session,
+    #     "last_uploaded",
+    #     label = last.uploaded()
     #   )
     # })
     
-    observeEvent(input$last_uploaded, {
-      req(input$last_uploaded)
-      
-      browseURL(last.uploaded())
+    output$last_uploaded <- renderUI({
+      validate(
+        need(last.uploaded() != "", "none"),
+        need(class(last.uploaded()) != "try-error", last.uploaded())
+      )
+
+      tags$div(
+        tags$b("Last uploaded:"),
+        tags$a(href=last.uploaded(), last.uploaded(), icon("external-link"))
+      )
     })
+    
+    # observeEvent(input$last_uploaded, {
+    #   req(input$last_uploaded)
+    #   
+    #   browseURL(last.uploaded())
+    # })
     
   })
 }
