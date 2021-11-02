@@ -70,6 +70,18 @@ server <- function(input, output, session) {
     
   }
   
+  # JS messages ----
+  observeEvent(input$js_messages, {
+    showNotification(
+      tagList(
+        tags$b("IMPORTANT !"),
+        tags$p(input$js_messages)
+      ),
+      duration = NULL,
+      type = "warning"
+    )
+  })
+  
   # Update values ====
   invisible({
     # Taxa authorities

@@ -10,6 +10,25 @@
 ui <- function() {
   # body
   tagList(
+    # Enable Matomo support
+    tags$head(
+      tags$script(
+        HTML(
+         "<script type=\"text/javascript\">
+            var _paq = window._paq = window._paq || [];
+            _paq.push(['trackPageView']);
+          _paq.push(['enableLinkTracking']);
+          (function() {
+            var u=\"//matomo.mnhn.fr/\";
+            _paq.push(['setTrackerUrl', u+'matomo.php']);
+            _paq.push(['setSiteId', '54']);
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.type='text/javascript'; g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+          })();
+          </script>"
+        )
+      )
+    ),
     # Enables packages support
     shinyjs::useShinyjs(),
     shinyFeedback::useShinyFeedback(),

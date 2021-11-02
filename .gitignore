@@ -17,4 +17,5 @@ debug.txt
 .~lock.todo.ods#
 todo.ods
 test-enc.R
+.RDataTmp
 ~profvis_metashark.html
