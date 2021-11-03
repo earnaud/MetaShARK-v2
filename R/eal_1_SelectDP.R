@@ -366,7 +366,7 @@ SelectDP <- function(id, main.env) {
       # TODO remove this later
       
       # - keywords.thesaurus replaced by keywordThesaurus
-      if("keyword.thesaurus" %in% names(.tmp$Misc$keywords))
+      if("Misc" %in% names(.tmp) && "keyword.thesaurus" %in% names(.tmp$Misc$keywords))
         names(.tmp$Misc$keywords)[2] <- "keywordThesaurus"
       
       # - emlal/metafin difference
