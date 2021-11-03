@@ -140,6 +140,7 @@
     ),
     envir = main.env
   )
+  
   # Formats ====
 
   # Taxa authorities
@@ -169,7 +170,15 @@
       )
     )
   })
-
+  .units <- split(.units, names(.units)) |>
+    sapply(unname)
+  # Turn 1-length items' names to items themselves
+  sapply(
+    which(sapply(.units, length) == 1),
+    function(li) 
+      names(.units)[li] <<- .units[[li]]
+  )
+  
   assign(
     "FORMATS",
     reactiveValues(
