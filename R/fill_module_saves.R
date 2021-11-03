@@ -440,14 +440,14 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
   
   # keywords ----
   # Merge NA thesaurus with "" thesaurus
-  content$keywords$keyword.thesaurus <- replace(
-    content$keywords$keyword.thesaurus, 
-    which(is.na(content$keywords$keyword.thesaurus)),
+  content$keywords$keywordThesaurus <- replace(
+    content$keywords$keywordThesaurus, 
+    which(is.na(content$keywords$keywordThesaurus)),
     ""
   )
   # build keywords data.frame
-  .keywords <- lapply(unique(content$keywords$keyword.thesaurus), function(kwt) {
-    row.ind <- which(content$keywords$keyword.thesaurus == kwt)
+  .keywords <- lapply(unique(content$keywords$keywordThesaurus), function(kwt) {
+    row.ind <- which(content$keywords$keywordThesaurus == kwt)
     
     data.frame(
       keyword = strsplit(content$keywords$keyword[row.ind], ",") |> 

@@ -32,7 +32,7 @@ SelectDPUI <- function(id) {
                 filling. It will bring you to the next step."),
               tags$li(tags$b("Previous:"), "click this to come back to the
                 previous step."
-                      # You can also use the steps", tags$span(icon("circle"),style = "color: dodgerblue;"), " markers to get to the desired step.")
+              # You can also use the steps", tags$span(icon("circle"),style = "color: dodgerblue;"), " markers to get to the desired step.")
               )
             )
           )
@@ -364,6 +364,10 @@ SelectDP <- function(id, main.env) {
       
       # save.variable adaptations
       # TODO remove this later
+      
+      # - keywords.thesaurus replaced by keywordThesaurus
+      if("keyword.thesaurus" %in% names(.tmp$Misc$keywords))
+        names(.tmp$Misc$keywords)[2] <- "keywordThesaurus"
       
       # - emlal/metafin difference
       if (identical(names(.tmp), c("metafin", "emlal")))

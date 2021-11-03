@@ -137,7 +137,7 @@ insertKeywordSet <- function(id, main.env, .setup = FALSE) {
     id,
     kwt.value = main.env$local.rv$keywords |> 
       dplyr::filter(keyword.set == kws) |>
-      dplyr::select(keyword.thesaurus) |>
+      dplyr::select(keywordThesaurus) |>
       unlist()
   )
   # insert the UI
@@ -233,10 +233,10 @@ keywordSet <- function(id, main.env, .setup = FALSE) {
       # Save changes
       main.env$local.rv$keywords <- main.env$local.rv$keywords |>
         dplyr::mutate(
-          keyword.thesaurus = ifelse(
+          keywordThesaurus = ifelse(
             keyword.set == kws,
             kwt,
-            keyword.thesaurus
+            keywordThesaurus
           )                  
         )
     }, 

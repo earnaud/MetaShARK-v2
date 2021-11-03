@@ -54,7 +54,7 @@ initReactive <- function(sub.list = NULL, save.variable = NULL, main.env) {
         ),
         keywords = data.frame(
           keyword = character(),
-          keyword.thesaurus = character(),
+          keywordThesaurus = character(),
           keyword.set = character()
         ),
         temporal.coverage = c(NA, NA),
@@ -283,18 +283,21 @@ setLocalRV <- function(main.env){
           paste0(isolate(main.env$save.variable$SelectDP$dp.metadata.path), "/keywords.txt"),
           data.table = FALSE, stringsAsFactors = FALSE
         )
+        if("keywordThesaurus" %in% names(kw))
+          colnames(kw)[2] <- "keywordThesaurus"
+          
         # Collapse --get by same thesaurus -- set the keyword set
         if(isContentTruthy(kw))
           kw <- data.frame(
-            keyword = sapply(unique(kw$keyword.thesaurus), function(kwt) {
+            keyword = sapply(unique(kw$keywordThesaurus), function(kwt) {
               paste(kw |> 
-                      dplyr::filter(identical(keyword.thesaurus,kwt)) |> 
+                      dplyr::filter(identical(keywordThesaurus,kwt)) |> 
                       dplyr::select(keyword) |> 
                       unlist(),
                     collapse = ",")
             }),
-            keyword.thesaurus = unique(kw$keyword.thesaurus),
-            keyword.set = paste0("_", seq(unique(kw$keyword.thesaurus))),
+            keywordThesaurus = unique(kw$keywordThesaurus),
+            keyword.set = paste0("_", seq(unique(kw$keywordThesaurus))),
             stringsAsFactors = FALSE,
             row.names = c()
           )
@@ -302,7 +305,7 @@ setLocalRV <- function(main.env){
       if (!isContentTruthy(kw)) {
         kw <- data.frame(
           keyword = character(),
-          keyword.thesaurus = character(),
+          keywordThesaurus = character(),
           keyword.set = character(),
           stringsAsFactors = FALSE
         )
