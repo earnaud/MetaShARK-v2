@@ -484,7 +484,7 @@ Attributes <- function(id, main.env) {
       # Correct input value
       .value <- unit.value()
       if(isFALSE(.value %in% c(
-        main.env$FORMATS$units,
+        unlist(main.env$FORMATS$units),
         "custom",
         main.env$local.rv$custom.units$table$unit.id
       ))) {
@@ -777,7 +777,7 @@ Attributes <- function(id, main.env) {
                 input$unit != "custom" &&
                 input$unit %in% c(
                   main.env$local.rv$custom.units$table$id,
-                  main.env$FORMATS$units
+                  unlist(main.env$FORMATS$units)
                 )
             } else TRUE
           } && 

@@ -41,15 +41,20 @@ DataFilesUI <- function(id) {
         ),
         column(
           6,
-          wipRow(
-            URL_Input_UI(
-              NS(id, "url_files"),
-              "Select data file(s) from an URL"
-            ),
-            actionButton(
-              NS(id,"add_url_files"),
-              label = "Get",
-              icon = icon("download")
+          shinyjs::hidden(
+            tags$div(
+              id = "url_div",
+              wipRow(
+                URL_Input_UI(
+                  NS(id, "url_files"),
+                  "Select data file(s) from an URL"
+                ),
+                actionButton(
+                  NS(id,"add_url_files"),
+                  label = "Get",
+                  icon = icon("download")
+                )
+              )
             )
           )
         )
@@ -77,6 +82,8 @@ DataFiles <- function(id, main.env) {
         },
         label = "EAL2: dev"
       )
+      
+      shinyjs::show("url_div")
     }
     
     # Setup UI on load

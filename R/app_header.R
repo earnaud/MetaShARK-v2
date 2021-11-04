@@ -178,6 +178,9 @@
     function(li) 
       names(.units)[li] <<- .units[[li]]
   )
+  # Set custom as first unit
+  .units2 <- .units[names(.units) != "custom"]
+  .units <- c(.units["custom"], .units2)
   
   assign(
     "FORMATS",
