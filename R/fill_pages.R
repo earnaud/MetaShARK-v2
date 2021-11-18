@@ -97,12 +97,20 @@ pagesServer <- function(id, main.env) {
         
         # Two times computing required for ifelse clause following
         .tmp <- main.env$EAL$page + to - from
-        main.env$EAL$page <- .tmp + if(
-          # want to reach categorical variables
-          # but no catvar is to be found ..
-          .tmp == 4 && isFALSE(main.env$save.variable$Attributes$use.catvars)
-        ) {
-          # .. avoid step ..
+        if(main.env$EAL$old.page == 3)
+          browser()
+        main.env$EAL$page <- .tmp + if({
+          # do catvars are required to be reached? ..
+          .use.catvars <- if(main.env$EAL$old.page == 3)
+            main.env$local.rv$use.catvars() else
+              main.env$save.variable$Attributes$use.catvars
+          .tmp == 4 && isFALSE(.use.catvars)
+        }) {
+          # tell the user
+          showNotification(
+            "Skipped categorical variables (not required)"
+          )
+          # .. no, avoid step ..
           switch(
             as.character(main.env$EAL$old.page),
             "3" = 1,
