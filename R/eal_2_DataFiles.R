@@ -145,8 +145,8 @@ DataFiles <- function(id, main.env) {
       # Do not go further if no more files left
       req(length(.loaded.files) > 0)
       
-      # * bind into local.rv ----
-      # empty local.rv
+      ## bind into local.rv ----
+      ### empty local.rv ----
       if (isFALSE(
         isContentTruthy(main.env$local.rv$data.files) && 
         all(dim(main.env$local.rv$data.files) > 0)
@@ -179,12 +179,14 @@ DataFiles <- function(id, main.env) {
         main.env$local.rv$data.files$datapath <- destination
         
       } else {
-        # non-empty local.rv
+        ### non-empty local.rv ----
         sapply(.loaded.files$name, function(filename) {
           .row <- which(.loaded.files$name == filename)
           filepath <- .loaded.files$datapath[.row]
           
+          # Add entry in variable 
           if (!filename %in% main.env$local.rv$data.files$name) {
+            if(main.env$dev) devmsg("uploaded %s", filename)
             # Bind data
             main.env$local.rv$data.files <- unique(rbind(
               main.env$local.rv$data.files,
@@ -200,11 +202,39 @@ DataFiles <- function(id, main.env) {
             )
             # Increase file counter
             main.env$local.rv$counter <- main.env$local.rv$counter + 1
+          } else {
+            if(main.env$dev) devmsg("updated %s", filename)
+            .row2 <- which(main.env$local.rv$data.files$name == filename)
+            
+            # replace
+            main.env$local.rv$data.files[.row2, -1] <- .loaded.files[.row,]
+            # update UI
+            if(!isTruthy(main.env$local.rv$data.files$description[.row2]))
+              main.env$local.rv$data.files$description[.row2] <- sprintf(
+                "Content of %s", main.env$local.rv$data.files$name[.row2]
+              )
+            updateTextAreaInput(
+              session = session,
+              paste0(.row2, "-data.description"),
+              value = main.env$local.rv$data.files$description[.row2]
+            )
           }
+          
+          # Copy file to the server
+          # browser()
+          # destination <- sprintf(
+          #   "%s/%s",
+          #   main.env$PATHS$eal.tmp,
+          #   filename
+          # )
+          # .ind <- which(main.env$local.rv$data.files$name == filename)
+          # file.copy(main.env$local.rv$data.files$datapath[.ind], destination)
+          # main.env$local.rv$data.files$datapath[.ind] <- destination
+          
         })
       }
       
-      # * copy to the server ----
+      ## copy to the server ----
       destination <- sprintf(
         "%s/%s",
         main.env$PATHS$eal.tmp,
@@ -256,10 +286,11 @@ DataFiles <- function(id, main.env) {
     # Saves ----
     observe({
       req(main.env$EAL$page == 2)
-      invalidateLater(1000)
+      # invalidateLater(1000)
       main.env$EAL$completed <- isContentTruthy(main.env$local.rv$data.files) &&
         all(dim(main.env$local.rv$data.files) > 0)
     },
+    priority = -1,
     label = "EAL2: set completed"
     )
     
