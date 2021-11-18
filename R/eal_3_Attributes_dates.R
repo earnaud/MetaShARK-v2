@@ -47,94 +47,160 @@ setDateSelection <- function(dates.sample){
 }
 
 
-
+#' @importFrom lubridate guess_formats
 guessDateTimeFormat <- function(date) {
-  compos <- unlist(strsplit(as.character(date), split = "[ [:punct:]]"))
-  potentialities <- rep(
-    list(c("YYYY", "YY", "MM", "DD", "hh", "mm", "ss")),
-    length(compos)
-  )
+  # guess format by lubridate
+  date.formats <- date |>
+    lubridate::guess_formats(lubridate_formats) |>
+    unique() 
+  # are there separators? if there are, remove mismatching formats like "YYDD"
+  if("[[:punct:]]" %grep% date.formats)
+    date.formats <- date.formats[!grepl("%[a-zA-Z]%", date.formats)]
   
-  # Any is 4-character long: YYYY
-  sapply(seq(compos), function(cind) {
-    compo <- as.numeric(compos[cind])
-    pot <<- potentialities[[cind]]
-    if(nchar(compo) == 4)
-      pot <<- "YYYY"
-    else
-      pot <<- pot[pot != "YYYY"]
-    
-    if(length(pot) > 1){
-      if(compo > 60){
-        pot <<- pot[pot != "ss"]
-        pot <<- pot[pot != "mm"]
-      }
-      if(compo > 31)
-        pot <<- pot[pot != "DD"]
-      if(compo > 24)
-        pot <<- pot[pot != "hh"]
-      if(compo > 12)
-        pot <<- pot[pot != "MM"]
-    }
-    
-    potentialities[[cind]] <<- pot
-  })
-  names(potentialities) <- compos
-  
-  # Once restricted, let's check the possibilities
-  out <- expand.grid(potentialities)
-  
-  # remove duplicates
-  toremove <- sapply(1:nrow(out), function(ind) {
-    row <- unlist(out[ind,])
-    row <- gsub("YYYY", "YY", row)
-    return(!any(duplicated(row)))
-  })
-  out <- out[toremove,]
-  
-  # Remove great gap format
-  types <- c(YYYY = 0, YY = 0, MM = 1, DD = 2, hh = 3, mm = 4, ss = 5)
-  tokeep <- sapply(1:nrow(out), function(ind) {
-    row <- as.character(unlist(out[ind,]))
-    typed.row <- types[row]
-    return(max(typed.row) - min(typed.row) <= ncol(out) - 1)
-  })
-  out <- out[tokeep,]
-  
-  # format output
-  rev.types <- rev(types) |> setNames(names(types))
-  out <- sapply(1:nrow(out), function(ind) {
-    row <- unlist(out[ind,])
-    paste(row, collapse = "-")
-  }) |> 
-    data.frame(stringsAsFactors = FALSE) |>
-    setNames(paste(compos, collapse = "-"))
-  
-  # set ordered results as first
-  sorted <- sapply(1:nrow(out), function(ind) {
-    .out <- out[ind,] |>
-      unlist() |> 
-      as.character() |>
-      strsplit("-") |>
-      unlist() 
-    any(
-      sapply(.out, function(i) types[i]) |>
-        unname() |> 
-        is.unsorted() |> 
-        isFALSE(),
-      sapply(.out, function(i) rev.types[i]) |>
-        unname() |> 
-        is.unsorted() |> 
-        isFALSE()
-    )
-  })
-  if(any(sorted)){
-    out <- data.frame(
-      c(sort(out[sorted,]), sort(out[!sorted,])),
-      stringsAsFactors = FALSE
-    ) |>
-      setNames(paste(compos, collapse = "-"))
-  }
-  
-  return(out)
+  return(date.formats)
 }
+#' Convert lubridate to common format
+convertLubridateFormat <- function(date.formats) {
+  date.formats |>
+    gsub(pattern = "%Y", replacement = "YYYY") |> 
+    gsub(pattern = "%O?y", replacement = "YY") |> 
+    gsub(pattern = "%O?m", replacement = "MM") |> 
+    gsub(pattern = "%O?d", replacement = "DD") |> 
+    gsub(pattern = "%O?H", replacement = "hh") |> 
+    gsub(pattern = "%O?M", replacement = "mm") |> 
+    gsub(pattern = "%S", replacement = "ss") |> 
+    gsub(pattern = "%T", replacement = "hh:mm:ss") |> 
+    gsub(pattern = "%R", replacement = "hh:mm")
+}
+    
+  
+#   # compos <- unlist(strsplit(as.character(date), split = "[ [:punct:]]"))
+#   compos <- strsplit(as.character(date), split = "[ [:punct:]]") |>
+#     as.data.frame() |> 
+#     setNames(1:length(date)) |>
+#     t()
+#   compos.length <- apply(compos, 1, nchar) |> apply(1, unique)
+#   if(any(sapply(compos.length, length)> 1))
+#     browser()
+#   
+#   compos.length <- unlist(compos.length)
+#   potentialities <- c("YYYY", "YY", "MM", "DD", "hh", "mm", "ss")
+#   
+#   compos.result <- sapply(
+#     1:length(compos.length),
+#     function(cind) {
+#       if(compos.length[cind] == 4)
+#         return("YYYY")
+#       compo <- max(as.numeric(compos[,cind]))
+#       if(compo > 60)
+#         return("YY")
+#       if(compo > 31) # not day nor hour nor month
+#         retun("mm") # could be ss
+#       if(compo > 24)
+#         return("DD")
+#       if(compo > 12)
+#         return("hh")
+#       return("MM")
+#     }
+#   )
+#   # Curate format
+#   i = 0
+#   while(anyDuplicated(compos.result) && i < 5) { # max 5 iterations: MM, DD, hh, mm, ss
+#     i <- i+1
+#     .toreplace <- which(duplicated(compos.result))
+#     .ref <- which(compos.result == compos.result[.toreplace])[1]
+#     message(.ref)
+#     compos.result[.toreplace] <- rep(switch(
+#       compos.result[.ref],
+#       MM = "hh",
+#       hh = "DD",
+#       DD = "mm",
+#       mm = "ss"
+#     ), length(.toreplace))
+#     message(compos.result)
+#   }
+#   
+#   
+#   # Any is 4-character long: YYYY
+#   sapply(seq(compos), function(cind) {
+#     compo <- as.numeric(compos[cind])
+#     pot <<- potentialities[[cind]]
+#     if(nchar(compo) == 4)
+#       pot <<- "YYYY"
+#     else
+#       pot <<- pot[pot != "YYYY"]
+#     
+#     if(length(pot) > 1){
+#       if(compo > 60){
+#         pot <<- pot[pot != "ss"]
+#         pot <<- pot[pot != "mm"]
+#       }
+#       if(compo > 31)
+#         pot <<- pot[pot != "DD"]
+#       if(compo > 24)
+#         pot <<- pot[pot != "hh"]
+#       if(compo > 12)
+#         pot <<- pot[pot != "MM"]
+#     }
+#     
+#     potentialities[[cind]] <<- pot
+#   })
+#   names(potentialities) <- compos
+#   
+#   # Once restricted, let's check the possibilities
+#   out <- expand.grid(potentialities)
+#   
+#   # remove duplicates
+#   toremove <- sapply(1:nrow(out), function(ind) {
+#     row <- unlist(out[ind,])
+#     row <- gsub("YYYY", "YY", row)
+#     return(!any(duplicated(row)))
+#   })
+#   out <- out[toremove,]
+#   
+#   # Remove great gap format
+#   types <- c(YYYY = 0, YY = 0, MM = 1, DD = 2, hh = 3, mm = 4, ss = 5)
+#   tokeep <- sapply(1:nrow(out), function(ind) {
+#     row <- as.character(unlist(out[ind,]))
+#     typed.row <- types[row]
+#     return(max(typed.row) - min(typed.row) <= ncol(out) - 1)
+#   })
+#   out <- out[tokeep,]
+#   
+#   # format output
+#   rev.types <- rev(types) |> setNames(names(types))
+#   out <- sapply(1:nrow(out), function(ind) {
+#     row <- unlist(out[ind,])
+#     paste(row, collapse = "-")
+#   }) |> 
+#     data.frame(stringsAsFactors = FALSE) |>
+#     setNames(paste(compos, collapse = "-"))
+#   
+#   # set ordered results as first
+#   sorted <- sapply(1:nrow(out), function(ind) {
+#     .out <- out[ind,] |>
+#       unlist() |> 
+#       as.character() |>
+#       strsplit("-") |>
+#       unlist() 
+#     any(
+#       sapply(.out, function(i) types[i]) |>
+#         unname() |> 
+#         is.unsorted() |> 
+#         isFALSE(),
+#       sapply(.out, function(i) rev.types[i]) |>
+#         unname() |> 
+#         is.unsorted() |> 
+#         isFALSE()
+#     )
+#   })
+#   if(any(sorted)){
+#     out <- data.frame(
+#       c(sort(out[sorted,]), sort(out[!sorted,])),
+#       stringsAsFactors = FALSE
+#     ) |>
+#       setNames(paste(compos, collapse = "-"))
+#   }
+#   
+#   return(out)
+# }
