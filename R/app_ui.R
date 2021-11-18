@@ -36,7 +36,7 @@ ui <- function() {
     shinyjs::inlineCSS("
       #loading-content {
         position: absolute;
-        background: #000000;
+        background: black;
         opacity: 0.9;
         z-index: 100;
         left: 0;
@@ -129,6 +129,9 @@ ui <- function() {
                 tags$hr(),
                 shinyjs::hidden(
                   actionButton("dev", "DEV CHECK")
+                ),
+                shinyjs::hidden(
+                  textOutput("eal_complete")
                 ),
                 shinyjs::hidden(
                   actionButton("test_end", "END TEST")

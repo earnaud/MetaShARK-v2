@@ -52,8 +52,12 @@ server <- function(input, output, session) {
     envir = main.env
   )
   
+  if (main.env$dev)
+    output$eal_complete <- renderText(main.env$EAL$completed)
+  
   if (main.env$dev){
     shinyjs::show("dev")
+    shinyjs::show("eal_complete")
     shinyjs::show("disclaimer-wip")
     observeEvent(input$dev, {
       if (main.env$current.tab() != "fill" &&
