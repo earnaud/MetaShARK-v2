@@ -25,7 +25,7 @@ collapsibleUI <- function(id, label, .hidden = TRUE, ..., class = NULL) {
     actionLink(
       NS(id, "link"),
       label,
-      icon = if (isTRUE(.hidden)) icon("chevron-right") else icon("chevron-down")
+      icon = if (isTRUE(.hidden)) icon("chevron-circle-right") else icon("chevron-down")
     ),
     if (isTRUE(.hidden)) {
       shinyjs::hidden(
