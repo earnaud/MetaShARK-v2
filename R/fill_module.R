@@ -7,71 +7,61 @@ fillUI <- function(id) {
     tabPanel(
       tags$h4("EML Assembly Line"),
       fluidPage(
-        style = "padding-top:2.5%;",
+        style = "padding-top:2.5%; background-color: #ffffff57",
         # * Top row ----
-        tags$span(
-          fluidRow(
-            div(
-              HTML(
-                '<svg style="height: 50px;width: 100%;/*! bottom: -35px; */position: absolute;">
-                  <line y1="0" y2="0" style="stroke:rgb(149, 149, 149);stroke-width:3" x2="400" x1="-1000"></line>
-                  <line y1="0" y2="50" style="stroke:rgb(149, 149, 149);stroke-width:3" x2="450" x1="400"></line>
-                  <line y1="50" x2="2000" y2="50" style="stroke:rgb(149, 149, 149);stroke-width:3" x1="450"></line>
-                </svg>'
-              ),
+        tags$table(
+          style="width: 100%",
+          HTML(
+            '<svg style="height: 50px; width: 100%; float: left; position: absolute; overflow: initial;">
+              <line y1="0" y2="0"  x1="-1000" x2="300px" style="stroke:rgb(149, 149, 149);stroke-width:3"></line>
+              <line y1="0" y2="50"  x1="300px" x2="350px" style="stroke:rgb(149, 149, 149);stroke-width:3"></line>
+              <line y1="50" y2="50"  x1="350px" x2="2000px" style="stroke:rgb(149, 149, 149);stroke-width:3"></line>
+            </svg>'
+          ),
+          tags$tr(
+            tags$td(
+              style="width: 350px; min-width: 350px",
               h3(
                 textOutput(NS(id, "current_step"))
-              ),
-              style = "float: left"
+              )
             ),
-            div(
-              shinyWidgets::actionBttn(
-                NS(id, "help"), 
-                "Help",
-                icon("question-circle"),
-                style = "simple",
-                color = "primary"
-              ),
-              # actionButton(
-              #   NS(id, "help"), 
-              #   "Help", 
-              #   icon("question-circle"),
-              #   style = "background-color: #6cb5e1; color: #fff"
-              # ),
-              shinyWidgets::actionBttn(
-                NS(id, "save"),
-                "Save",
-                icon("save"),
-                style = "simple",
-                color = "success"
-              ),
-              # actionButton(
-              #   NS(id, "save"),
-              #   "Save",
-              #   icon("save"),
-              #   style = "background-color: #a2d98e;"
-              # ), # fill-wizard-save
-              shinyWidgets::actionBttn(
-                NS(id, "quit"), 
-                "Quit",
-                icon("times-circle"),
-                style = "simple",
-                color = "danger"
-              ),
-              # actionButton(
-              #   NS(id, "quit"), 
-              #   "Quit",
-              #   icon("times-circle"),
-              #   class = "danger"
-              # ), # fill-wizard-quit
-              style = "float: right;"
-            ), # fill-wizard-help
-            style = "width: 100%"
-          ),
-          # uiOutput(NS(id, "chain")),
-          style = "display: inline-flex; width: 100%"
+            tags$td(
+              style="min-width: 200px",
+              h3(class = "help-block", # helpText merged to h3
+                textOutput(NS(id, "current_DP"))
+              )
+            ),
+            tags$td(
+              div(
+                id = NS(id, "top_buttons"),
+                style = "float: right; min-width: 200px",
+                shinyWidgets::actionBttn(
+                  NS(id, "help"), 
+                  "Help",
+                  icon("question-circle"),
+                  style = "simple",
+                  color = "primary"
+                ),
+                shinyWidgets::actionBttn(
+                  NS(id, "save"),
+                  "Save",
+                  icon("save"),
+                  style = "simple",
+                  color = "success"
+                ),
+                shinyWidgets::actionBttn(
+                  NS(id, "quit"), 
+                  "Quit",
+                  icon("times-circle"),
+                  style = "simple",
+                  color = "danger"
+                )
+              )
+            )
+          )
         ),
-        hr(),
+        
+        # uiOutput(NS(id, "chain")),
         # * Pages ----
         pagesUI(
           NS(id, "wizard"),
@@ -79,11 +69,15 @@ fillUI <- function(id) {
         )
       ) # end fluidPage
     ),
+    # MetaFIN ====
     tabPanel(
       tags$h4("MetaFIN"),
-      MetaFINUI(
-        NS(id, "metafin"),
-        wip = base::get("metashark.args", envir = .GlobalEnv)$wip
+      tags$div(
+        style = "background-color: #ffffff57",
+        MetaFINUI(
+          NS(id, "metafin"),
+          wip = base::get("metashark.args", envir = .GlobalEnv)$wip
+        )
       )
     )
   )
@@ -114,6 +108,13 @@ fill <- function(id, main.env) {
     # Wizard  ====
     # pages change
     pagesServer("wizard", main.env)
+    
+    # Display data package title
+    output$current_DP <- renderText({
+      req(main.env$EAL$page > 1)
+      
+      main.env$save.variable$SelectDP$dp.title
+    })
     
     # modules content
     sapply(seq_along(isolate(main.env$VALUES$steps)), function(i){
@@ -239,7 +240,6 @@ fill <- function(id, main.env) {
           
           # * Reset local.rv ----
           devmsg(tag="fill_module.R", "set local rv\r")
-          # browser()
           main.env <- setLocalRV(main.env)
           incProgress(1/7)
           
@@ -263,10 +263,14 @@ fill <- function(id, main.env) {
           # * Accessory UI elements ----
           devmsg(tag="fill_module.R", "display UI\r")
           if(main.env$EAL$page > 1) {
+            shinyjs::show("top_row")
+            shinyjs::show("current_DP")
             shinyjs::show("help")
             shinyjs::show("save")
             shinyjs::show("quit")
           } else {
+            shinyjs::hide("top_row")
+            shinyjs::hide("current_DP")
             shinyjs::hide("help")
             shinyjs::hide("save")
             shinyjs::hide("quit")
@@ -325,7 +329,7 @@ fill <- function(id, main.env) {
             For each attribute, you can set:"),
                   tags$ul(
                     tags$li(tags$i("Attribute Name*:"), "the name of the attribute."),
-                    tags$li(tags$i("Attribute Description:"), "a "),
+                    tags$li(tags$i("Attribute Description:"), "a description of the attribute."),
                     tags$li(tags$i("Attribute Class*:"), "the type of content in the attributes among
               \"numeric\", \"character\", \"categorical\" and \"Date\". Categorical means a 
               character string with encoded values (e.g. Male/Female)."),

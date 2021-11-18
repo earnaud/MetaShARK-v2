@@ -7,7 +7,8 @@ SelectDPUI <- function(id) {
   return(
     fluidPage(
       title = "Organize data packages",
-      fluidRow(
+      tags$div(
+        class = "headband",
         collapsibleUI(
           NS(id, "usage"),
           "TUTORIAL: EML Assembly Line workflow",
@@ -16,7 +17,6 @@ SelectDPUI <- function(id) {
               basically designed as a package, embedded in Shiny within MetaShARK.
               This little helper aims to show you what awaits you in the further 
               steps."),
-            tags$hr(),
             tags$p("After loading/creating a data package, a navigation bar will 
               appear on your right. There features the following buttons:"),
             tags$ul(
@@ -389,7 +389,8 @@ SelectDP <- function(id, main.env) {
                TaxCov = "Taxonomic Coverage",
                h # unchanged
         )
-      }) |> unname()
+      }) |> 
+        unname()
       
       # - check quick mode
       .tmp$quick <- isTRUE(.tmp$quick)

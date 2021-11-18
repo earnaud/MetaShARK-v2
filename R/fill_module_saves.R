@@ -110,7 +110,6 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
   .sv <- main.env$save.variable
   .tmp <- main.env$local.rv$data.files
   .tmp <- try(dplyr::select(.tmp, -id))
-  
   # Format content
   if (!isContentTruthy(.tmp)) {
     message("Invalid content")
