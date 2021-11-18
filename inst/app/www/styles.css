@@ -9,17 +9,48 @@
 
 /* -- Overwrite -- */
 
+.welcome-row {
+  background: #fff;
+  padding: 0em calc(1000px + 3em) 0.5em 3em;
+  margin: 1em -1000px 2em 5em;
+  transform: skewX(-5deg);
+}
+
+.welcome-outer {
+  align-items: stretch;
+  display: flex;
+  transform: skewX(5deg);
+}
+
+.welcome-innerright {
+  columns: 3;
+  width: calc(100% - 200px);
+}
+
+.welcome-innerleft {
+  margin-top: auto;
+  margin-bottom: auto;
+  width: 200px;
+}
+
 .bttn.disabled, .bttn.disabled::after, .bttn.disabled::before  {
   cursor: not-allowed;
   transform: none !important;
 }
 
 .content-wrapper {
-  background-color: #f4f4f4 !important;
+  background-color: #aadaf2 !important;
 }
 
 .form-control {
   background-color: #fff !important;
+}
+
+.headband {
+	background: white;
+	padding: 1em;
+	border-top: 2px darkgray solid;
+	border-bottom: 2px darkgray solid;
 }
 
 img {
@@ -33,7 +64,11 @@ img {
 }
 
 .nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover {
-  background-color: transparent;
+  background-color: #ffffff57 !important;
+}
+
+.nav-tabs > li > a {
+  background: linear-gradient(transparent, #ffffff57);
 }
 
 .navbar {
@@ -192,4 +227,9 @@ textarea {
 
 .wip * {
   background-color: white;
+}
+
+.wipbox {
+  background: #93909036;
+  font-weight: bold;
 }
