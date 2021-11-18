@@ -1,6 +1,6 @@
 default:
   golem_name: MetaShARK
-  golem_version: 1.6.0
+  golem_version: 1.7.0
   app_prod: no
 production:
   app_prod: yes
