@@ -44,12 +44,12 @@ templateModules <- function(main.env, page){
       main.env$local.rv$dp.license()
     )
     
-    if(isTRUE(main.env$wip))
-      EMLassemblyline::template_annotations(
-        main.env$save.variable$SelectDP$dp.metadata.path,
-        main.env$save.variable$SelectDP$dp.data.path,
-        dir(main.env$save.variable$SelectDP$dp.data.path)
-      )
+    # if(isTRUE(main.env$wip))
+      # EMLassemblyline::template_annotations(
+      #   main.env$save.variable$SelectDP$dp.metadata.path,
+      #   main.env$save.variable$SelectDP$dp.data.path,
+      #   dir(main.env$save.variable$SelectDP$dp.data.path)
+      # )
     
     # Check for EAL issues
     if(exists("template_issues")) 
@@ -89,6 +89,18 @@ templateModules <- function(main.env, page){
   if(exists("template_issues")) 
     rm("template_issues", envir = .GlobalEnv)
   
+  # Clean non matching attributes files
+  .att.filenames <- dir(main.env$save.variable$SelectDP$dp.metadata.path, full.names = TRUE, pattern = "^attrib")
+  .data.filenames <- dir(main.env$save.variable$SelectDP$dp.data.path, full.names = TRUE)
+  .short.att.names <- basename(.att.filenames) |> 
+    gsub(pattern = "\\..*$", replacement = "") |> 
+    gsub(pattern = "^attributes_", replacement = "")
+  .short.data.names <- basename(.data.filenames) |> 
+    gsub(pattern = "\\..*$", replacement = "")
+  .to.remove <- which(!.short.att.names %in% .short.data.names)
+  try(file.remove(.att.filenames[.to.remove])) # file may not actually exist
+  
+  # Template attributes
   x <- try({
     EMLassemblyline::template_table_attributes(
       path = isolate(main.env$save.variable$SelectDP$dp.metadata.path),
