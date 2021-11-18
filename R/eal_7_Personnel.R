@@ -59,6 +59,7 @@ Personnel <- function(id, main.env) {
           
           insertPersonnelInput(
             session$ns(row$id),
+            hidden = FALSE,
             main.env
           )
         })

@@ -1,7 +1,7 @@
 #' @import shiny
 #'
 #' @noRd
-insertPersonnelInput <- function(id, main.env) {
+insertPersonnelInput <- function(id, main.env, hidden = TRUE) {
   # Add row
   .id <- unns(id)
   if(!grepl("^_", .id)) {
@@ -10,7 +10,7 @@ insertPersonnelInput <- function(id, main.env) {
       c(rep("", ncol(main.env$local.rv$Personnel)-1), id = .id)
   }
   # create the UI
-  new.ui <- PersonnelInputUI(id, main.env)
+  new.ui <- PersonnelInputUI(id, main.env, hidden = hidden)
   # insert the UI
   insertUI(selector = "#inserthere_eal7", ui = new.ui, immediate = TRUE)
   # create the server
@@ -21,7 +21,7 @@ insertPersonnelInput <- function(id, main.env) {
 #' @importFrom shinyjs hidden
 #'
 #' @noRd
-PersonnelInputUI <- function(id, main.env) {
+PersonnelInputUI <- function(id, main.env, hidden = TRUE) {
   # Setup
   ref <- unns(id)
   .value <- main.env$local.rv$Personnel[
@@ -36,7 +36,7 @@ PersonnelInputUI <- function(id, main.env) {
     tags$div(
       class = "topInputRow",
       # Collapse
-      actionLink(NS(id, "collapse"), "", icon("chevron-right")),
+      actionLink(NS(id, "collapse"), "", icon("chevron-circle-right")),
       tags$span(
         style="width: calc(100% - 100px); margin: 0 5px 0;",
         # Role
@@ -55,8 +55,8 @@ PersonnelInputUI <- function(id, main.env) {
       # Remove UI
       actionButton(NS(id, "remove"), "", icon("trash"), class = "redButton")
     ), # end of header
-    shinyjs::hidden(
-      tags$div(
+    {
+      .content <- tags$div(
         id = NS(id, "content"),
         class = "contentRow",
         # * Identity ----
@@ -148,7 +148,11 @@ PersonnelInputUI <- function(id, main.env) {
           )
         ) # end of hidden PI fields
       )
-    ) # end of content
+      .content <- if(.hidden)
+        shinyjs::hidden(.content)
+      
+      .content
+    } # end of content
   )
   
   # Output ====
