@@ -52,12 +52,20 @@ SelectDPUI <- function(id) {
               helpText("No dp has been found")
             )
           ),
-          radioButtons(
-            NS(id, "dp_list"),
-            NULL,
-            choiceNames = c("None selected"),
-            choiceValues = c("")
+          tags$style(
+            ".eal1radio {overflow: scroll; width: auto; max-height: 500px;}"
           ),
+          tags$div(
+            radioButtons(
+              NS(id, "dp_list"),
+              NULL,
+              choiceNames = c("None selected"),
+              choiceValues = c("")
+            ),
+            class = "eal1radio"
+          ),
+          
+          
           actionButton(
             NS(id, "dp_load"),
             "Load",
