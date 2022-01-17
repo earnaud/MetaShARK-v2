@@ -1,12 +1,12 @@
 insertCustomLocationInput <- function(
-  id, outer.id, default, selector = "#inserthere", main.env
+  id, outer.id, default, selector = "#inserthere", local.rv
 ) {
   # create the UI
   new.ui <- customLocationInput_UI(id, default = default)
   # insert the UI
   insertUI(selector, ui = new.ui, immediate = TRUE)
   # create the server
-  customLocationInput(unns(id), outer.id = outer.id, main.env)
+  customLocationInput(unns(id), outer.id = outer.id, local.rv)
 }
 
 # Coordinate Input UI ====
@@ -23,7 +23,7 @@ customLocationInput_UI <- function(id, default) {
 }
 
 # Coordinate Input Server ====
-customLocationInput <- function(id, outer.id, main.env) {
+customLocationInput <- function(id, outer.id, local.rv) {
   moduleServer(id, function(input, output, session) {
     # grab values from inserted module
     rv <- coordinateInput("coordinate")
@@ -35,9 +35,9 @@ customLocationInput <- function(id, outer.id, main.env) {
       .id <- id # used for dplyr
       
       ## either create .. ----
-      if(isFALSE(.id %in% as.character(main.env$custom[[outer.id]]$points$id))){
-        main.env$custom[[outer.id]]$points <- rbind(
-          main.env$custom[[outer.id]]$points,
+      if(isFALSE(.id %in% as.character(local.rv$custom[[outer.id]]$points$id))){
+        local.rv$custom[[outer.id]]$points <- rbind(
+          local.rv$custom[[outer.id]]$points,
           data.frame(
             id = as.double(.id), 
             lat = rv()$lat, 
@@ -45,10 +45,10 @@ customLocationInput <- function(id, outer.id, main.env) {
           )
         )
       } else { ## .. or change ----
-        main.env$custom[[outer.id]]$points[
-          main.env$custom[[outer.id]]$points$id == .id,
-        ] <- main.env$custom[[outer.id]]$points[
-          main.env$custom[[outer.id]]$points$id == .id,
+        local.rv$custom[[outer.id]]$points[
+          local.rv$custom[[outer.id]]$points$id == .id,
+        ] <- local.rv$custom[[outer.id]]$points[
+          local.rv$custom[[outer.id]]$points$id == .id,
         ] |> 
           mutate(lat = rv()$lat) |>
           mutate(lon = rv()$lon)
@@ -61,8 +61,8 @@ customLocationInput <- function(id, outer.id, main.env) {
       # remove UI
       removeUI(selector = paste0("#", NS(outer.id, NS(id, "box"))), immediate = TRUE)
       # remove data
-      .ind <- which(main.env$custom[[outer.id]]$points$id == id)
-      main.env$custom[[outer.id]]$points <- main.env$custom[[outer.id]]$points[-.ind,]
+      .ind <- which(local.rv$custom[[outer.id]]$points$id == id)
+      local.rv$custom[[outer.id]]$points <- local.rv$custom[[outer.id]]$points[-.ind,]
     })
   })
 }
