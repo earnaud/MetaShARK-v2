@@ -39,6 +39,7 @@ readDataTable <- function(file, data.table = FALSE, ...) {
     df <- data.table::fread(
       file, 
       data.table = data.table, 
+      stringsAsFactors = FALSE,
       na.strings = "NA", 
       ...
     )

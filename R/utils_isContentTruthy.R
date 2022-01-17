@@ -46,8 +46,11 @@ isHTMLTruthy <- function(x) {
 #' @param default default value (e.g. character()) in case option is invalid.
 #' 
 #' @export
-optional <- function(x, default = NULL) {
-  if(isContentTruthy(x))
+optional <- function(x, default = NULL, quiet = FALSE) {
+  x <- try(x, silent = TRUE)
+  if(class(x) == "try-error" && quiet == FALSE)
+    warning(x)
+  if(isContentTruthy(x) && class(x) != "try-error")
     return(x)
   else
     return(default)
