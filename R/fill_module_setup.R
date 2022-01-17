@@ -128,7 +128,8 @@ setLocalRV <- function(main.env){
     checkTemplates(main.env)
   
   # Set variable ====
-  devmsg(tag = "fill-module-setup.R", "set variable")
+  main.env$VALUES$last.timer = Sys.time()
+  devmsg(tag = "fill-module-setup.R", "set variable", timer.env = main.env)
   main.env$local.rv <- switch(
     main.env$EAL$page,
     ##SelectDP ----
@@ -170,15 +171,14 @@ setLocalRV <- function(main.env){
             isolate(main.env$save.variable$SelectDP$dp.metadata.path),
             pattern = "^custom_units",
             full.names = TRUE
-          ),
-          stringsAsFactors = FALSE
+          )
         )
       ),
       preview = {
         out <- lapply(
           main.env$save.variable$DataFiles$datapath,
           function(file.path) {
-            table <- readDataTable(file.path, stringsAsFactors = FALSE)
+            table <- readDataTable(file.path)
             out <- lapply(colnames(table), function(col) {
               .out <- table[,col][which(sapply(table[,col], isContentTruthy))]
               if(length(.out) < 5){
@@ -200,7 +200,7 @@ setLocalRV <- function(main.env){
         out
       }
     ),
-    ##CatVars ----
+    ## CatVars ----
     reactiveValues(
       current = reactiveValues(
         index = numeric(),
@@ -212,9 +212,10 @@ setLocalRV <- function(main.env){
       completed = reactiveValues(),
       tree.content = c()
     ),
-    ##GeoCov ----
+    ## GeoCov ----
     reactiveValues(
       method = "columns",
+      ### Columns ----
       columns = reactiveValues(
         choices = reactiveValues(
           files = "all",
@@ -234,19 +235,24 @@ setLocalRV <- function(main.env){
           file = character()
         )
       ),
+      ### Custom ----
       custom = reactiveValues(
-        id = numeric(),
-        coordinates = data.frame(
-          geographicDescription = character(),
-          northBoundingCoordinate = numeric(),
-          southBoundingCoordinate = numeric(),
-          eastBoundingCoordinate = numeric(),
-          westBoundingCoordinate = numeric(),
-          stringsAsFactors = FALSE
-        )
+        # will be inserted reactiveValues() named as numbers
+        count = 0
       )
+      # custom = reactiveValues(
+      #   id = numeric(),
+      #   coordinates = data.frame(
+      #     geographicDescription = character(),
+      #     northBoundingCoordinate = numeric(),
+      #     southBoundingCoordinate = numeric(),
+      #     eastBoundingCoordinate = numeric(),
+      #     westBoundingCoordinate = numeric(),
+      #     stringsAsFactors = FALSE
+      #   )
+      # )
     ),
-    ##TaxCov ----
+    ## TaxCov ----
     reactiveValues(
       taxa.table = character(),
       taxa.col = character(),
@@ -254,7 +260,7 @@ setLocalRV <- function(main.env){
       taxa.authority = character(),
       complete = FALSE
     ),
-    ##Personnel ----
+    ## Personnel ----
     reactiveValues(
       role.choices = list(Base = list("creator", "contact", "PI"), Other = list("Other")),
       last.modified = 0,
@@ -283,8 +289,7 @@ setLocalRV <- function(main.env){
       kw <- data.frame()
       if (isContentTruthy(isolate(main.env$save.variable$SelectDP$dp.metadata.path))) {
         kw <- readDataTable(
-          paste0(isolate(main.env$save.variable$SelectDP$dp.metadata.path), "/keywords.txt"),
-          data.table = FALSE, stringsAsFactors = FALSE
+          paste0(isolate(main.env$save.variable$SelectDP$dp.metadata.path), "/keywords.txt")
         )
         if("keywordThesaurus" %in% names(kw))
           colnames(kw)[2] <- "keywordThesaurus"
@@ -360,7 +365,7 @@ setLocalRV <- function(main.env){
   )
   
   # Post-modifications ====
-  devmsg(tag = "fill-module-setup.R", "post-modification")
+  devmsg(tag = "fill-module-setup.R", "post-modification", timer.env = main.env)
   ## Attributes ----
   if(main.env$EAL$page == 3) {
     devmsg(tag = "setup", "3")
@@ -372,15 +377,14 @@ setLocalRV <- function(main.env){
       lapply( # iterate over number of data files
         1:length(main.env$save.variable$DataFiles$datapath),
         function(.ind){
+          
           # local shortcuts for data path and metadata path
           .md.path <- main.env$save.variable$DataFiles$metadatapath[.ind]
           .data.path <- main.env$save.variable$DataFiles$datapath[.ind]
           # Use data file name as reference
-          .rv.name <- gsub("attributes_", "", basename(.md.path))
+          .rv.name <- gsub("^attributes_", "", basename(.md.path))
           # Load metadata table
-          .md.table <- readDataTable(
-            .md.path, data.table = FALSE, stringsAsFactors = FALSE
-          )
+          .md.table <- readDataTable(.md.path)
           # Curates table content
           .md.table[is.na(.md.table)] <- ""
           
@@ -391,35 +395,43 @@ setLocalRV <- function(main.env){
           #### Curate date ----
           .date.row <- which(.md.table$class == "Date")
           # Ensure removing "!Add.*here!"
-          .md.table$dateTimeFormatString <- rep("", nrow(.md.table))
+          .to.replace <- which(grepl("!Add.*here!", .md.table$dateTimeFormatString))
+          if(isTruthy(.to.replace))
+            .md.table$dateTimeFormatString[.to.replace] <- ""
+          
           # If any date, fill rows
           if (isTruthy(.date.row)) {
             # default option
             # .md.table$dateTimeFormatString[.date.row] <- rep(main.env$FORMATS$dates[3], length(.date.row))
             # let's do it better:
             
-            
-            
             # do not work on date row filled (except by !Add.*here!)
-            .filled <- (sapply(.md.table$dateTimeFormatString, isContentTruthy) & 
-                        isFALSE(grepl("!Add.*here!", .md.table$dateTimeFormatString)))[.date.row]
-            # Read 100 first rows
-            .data.table <- readDataTable(.data.path, nrows = 100)
-            # Guess date for date rows not filled
-            .md.table$dateTimeFormatString[.date.row] <- sapply(
-              .date.row[!.filled],
-              function(.row) {
-              # .row is attributes row and data column
-              .dates <- .data.table[[.row]] |> as.character()
-              .date.formats <- guessDateTimeFormat(.dates) |>
-                convertLubridateFormat() |>
-                unique()
-              # If no result, default format string
-              if(length(.date.formats) == 0){
-                .date.formats <- main.env$FORMATS$dates[1]
-              }
-              return(.date.formats[1])
-            })
+            .filled.date <- (sapply(.md.table$dateTimeFormatString, isContentTruthy) & 
+                          !sapply(.md.table$dateTimeFormatString, grepl, "!Add.*here!")
+                        )[.date.row]
+            if(any(!.filled.date)){ # if any date is not filled
+              # Read 100 first rows
+              .data.table <- readDataTable(.data.path, nrows = 100)
+              # Guess date for date rows not filled
+              .md.table$dateTimeFormatString[.date.row] <- sapply(
+                .date.row[!.filled.date],
+                function(.row) {
+                  # .row is attributes row and data column
+                  .dates <- .data.table[[.row]] |> as.character()
+                  .date.formats <- guessDateTimeFormat(
+                    .dates, main.env$FORMATS$lubridate_formats) |>
+                    convertLubridateFormat() |>
+                    unique()
+                  
+                  # If no result, default format string
+                  if(length(.date.formats) == 0){
+                    .date.formats <- main.env$FORMATS$dates[1]
+                  }
+                  
+                  return(.date.formats[1])
+                }
+              )
+            }
           }
           
           #### Curate unit ----
@@ -561,11 +573,21 @@ setLocalRV <- function(main.env){
     sapply(main.env$local.rv$cv.files, function(file.path) {
       # Set each table per file
       file.name <- basename(file.path)
-      main.env$local.rv$cv.tables[[file.name]] <- data.table::fread(
-        file.path,
-        data.table = FALSE, stringsAsFactors = FALSE,
-        na.strings = "NA"
-      ) |>
+      main.env$local.rv$cv.tables[[file.name]] <- readDataTable(file.path)
+      # Compare saved categorical variables to actual ones, if they changed
+      .catvar.attributes.names <- c()
+      sapply(main.env$save.variable$Attributes$content, function(md.table) {
+        .catvar.attributes.names <<- c(
+          .catvar.attributes.names,
+          md.table$attributeName[md.table$class == "categorical"]
+        )
+      })
+      
+      # Curate catvars
+      main.env$local.rv$cv.tables[[file.name]] <- main.env$local.rv$cv.tables[[file.name]] |> 
+        # keep attributes actually found as categorical
+        dplyr::filter(attributeName %in% .catvar.attributes.names) |>
+        # Fill in automated definitions
         dplyr::mutate(
           definition = if (definition == "NA" || !isTruthy(definition)) {
             paste("Value:", code, "for attribute:", attributeName)
@@ -573,9 +595,11 @@ setLocalRV <- function(main.env){
             definition
           }
         ) |>
+        # avoid "" in code
         dplyr::mutate(
           code = gsub("^$","\"\"", code)
         )
+      
       makeReactiveBinding(
         sprintf("main.env$local.rv$cv.tables$%s", file.name)
       )
@@ -640,10 +664,13 @@ setLocalRV <- function(main.env){
     }) # end lapply:file
   }
   
-  ##GeoCov ----
+  ## GeoCov ----
   if(main.env$EAL$page == 5) {
     devmsg(tag = "setup", "5")
-    # Set choices for selectInput -- reuse Attributes
+    
+    ### Columns ----
+    #### Set choices ----
+    # for selectInput -- reuse Attributes
     .att <- main.env$save.variable$Attributes$content
     .site <- main.env$local.rv$columns$choices$sites <- list()
     .col <- main.env$local.rv$columns$choices$coords <- list()
@@ -662,8 +689,8 @@ setLocalRV <- function(main.env){
         setNames(nm = .site[[.data.file]])
       # Set columns
       .col[[.data.file]] <<- .att[[.md.file]] |> 
-        dplyr::filter(class == "numeric") |>
-        dplyr::select(attributeName) |>
+        dplyr::filter(class == "numeric") |> 
+        dplyr::select(attributeName) |> 
         unlist()
       .col[[.data.file]] <<- paste(.data.file, .col[[.data.file]], sep="/") |>
         setNames(nm = .col[[.data.file]])
@@ -671,20 +698,21 @@ setLocalRV <- function(main.env){
     main.env$local.rv$columns$choices$sites <- .site
     main.env$local.rv$columns$choices$coords <- .col
     
-    # Read saved values
+    #### Read saved values ----
     if(isContentTruthy(listReactiveValues(main.env$save.variable$GeoCov))) {
       if(is.null(main.env$save.variable$GeoCov$method)) {
         main.env$local.rv$method <- names(main.env$save.variable$GeoCov)
       } else
         main.env$local.rv$method <- main.env$save.variable$GeoCov$method
       
-      ##Columns
+      ## Columns
       if(main.env$local.rv$method == "columns" && 
          isContentTruthy(main.env$save.variable$GeoCov$columns)) {
         site.name <- main.env$save.variable$GeoCov$columns$site$col
         lat.col <- main.env$save.variable$GeoCov$columns$lat$col
         lon.col <- main.env$save.variable$GeoCov$columns$lon$col
         
+        # Each time, only set previous values if they are matched in the data 
         if (site.name %grep% main.env$local.rv$columns$choices$sites) {
           main.env$local.rv$columns$site <- main.env$save.variable$GeoCov$columns$site
         }
@@ -697,14 +725,43 @@ setLocalRV <- function(main.env){
           main.env$local.rv$columns$lon$file <- main.env$save.variable$GeoCov$columns$lon$file
         }
       }
-      ##Custom
+      
+      ### Custom ----
       if (main.env$local.rv$method == "custom" &&
           isContentTruthy(main.env$save.variable$GeoCov$custom)) {
         saved_table <- main.env$save.variable$GeoCov$custom$coordinates
-        if (isContentTruthy(saved_table)) 
-          main.env$local.rv$custom$coordinates <- saved_table
+        if (isContentTruthy(saved_table)) {
+          count <- 1
+          
+          sapply(1:nrow(saved_table), function(row.ind) {
+            row <- saved.table[row.ind,]
+            count <- count+1
+            
+            main.env$local.rv$custom[[count]] <- reactiveValues(
+              count = 3, # number of locationInputs
+              # Values 
+              type = if("wkt" %in% names(row) && isContentTruthy(row["wkt"])) {
+                "polygon"
+              } else if(row$northBoundingCoordinate == row$southBoundingCoordinate &&
+                        row$westBoundingCoordinate == row$eastBoundingCoordinate) {
+                "marker"
+              } else "rectangle",
+              description = row$description, # length == 1
+              # FIXME continue here
+              points = data.frame( # length >= 1
+                id = 1:3, 
+                lat = c(30,60,45),
+                lon = c(-15,35,-15),# lon of the point
+                stringsAsFactors = FALSE
+              ),
+              color = "#03f" # length == 1
+            )
+          })
+        }
       }
     }
+    
+    makeReactiveBinding("main.env$local.rv$custom")
     
     # Set completeness
     main.env$local.rv$columns$complete <- reactive(
@@ -712,12 +769,16 @@ setLocalRV <- function(main.env){
         isTruthy(main.env$local.rv$columns$lat$col) &&
         isTruthy(main.env$local.rv$columns$lon$col)
     )
-    main.env$local.rv$custom$complete <-reactive(
-      isContentTruthy(main.env$local.rv$custom$coordinates)
-    )
+    main.env$local.rv$custom$complete <-reactive({
+      .nm <- names(main.env$local.rv$custom)[!names(main.env$local.rv$custom) %in% c("complete", "count")]
+      if(length(.nm) == 0) FALSE else
+        all(sapply(.nm, function(name) {
+          isContentTruthy(main.env$local.rv$custom[[name]])
+        }))
+    })
   }
   
-  ##TaxCov ----
+  ## TaxCov ----
   if(main.env$EAL$page == 6) {
     devmsg(tag = "setup", "6")
     # File
@@ -788,7 +849,7 @@ setLocalRV <- function(main.env){
   }
   
   # (End) ====
-  devmsg(tag = "fill-module-setup", "passed")
+  devmsg(tag = "fill-module-setup", "passed", timer.env = main.env)
   
   return(main.env)
 }

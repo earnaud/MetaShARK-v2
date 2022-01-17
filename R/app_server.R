@@ -1,4 +1,4 @@
-# Create user counter
+# Create user counter -- only available inside a single container
 users = reactiveValues(count = 0)
 
 #' @import shiny
@@ -8,18 +8,23 @@ users = reactiveValues(count = 0)
 #'
 #' @noRd
 server <- function(input, output, session) {
-  # get variables
+  # get variables & clean
   args <- base::get("metashark.args", envir = .GlobalEnv)
-  # rm("metashark.args", envir = .GlobalEnv)
+  rm("metashark.args", envir = .GlobalEnv)
   ui.steps <- base::get("ui.steps", envir = .GlobalEnv)
+  rm("ui.steps", envir = .GlobalEnv)
+  
+  # Setup environment
   main.env <- .globalScript(
     .args = args, 
     envir = session$userData, 
     list(ui.steps = ui.steps)
   )
+  # Locate "media/" for app
   addResourcePath("media", system.file("media/", package = "MetaShARK"))
   
   # Set user-specific data
+  # TODO later
   assign(
     "credentials",
     reactiveValues(
@@ -28,7 +33,6 @@ server <- function(input, output, session) {
     ),
     envir = session$userData
   )
-  
   assign(
     "contents",
     reactiveValues(
@@ -46,15 +50,16 @@ server <- function(input, output, session) {
   
   # Dev jobs ====
   # Dev button ----
+  # all-accessible reactive for dev button
   assign(
     "dev.browse",
     reactive(input$dev),
     envir = main.env
   )
-  
+  # Output EAL step completeness
   if (main.env$dev)
     output$eal_complete <- renderText(main.env$EAL$completed)
-  
+  # Display / create dev elements 
   if (main.env$dev){
     shinyjs::show("dev")
     shinyjs::show("eal_complete")
@@ -66,6 +71,7 @@ server <- function(input, output, session) {
     }, label = "server: dev toggle")
   }
   
+  # Test mode ----
   if(isTRUE(args$use.test)) {
     shinyjs::show("test_end")
     observeEvent(input$test_end, {
@@ -87,6 +93,7 @@ server <- function(input, output, session) {
   })
   
   # Update values ====
+  # require to be in server, not .globalScript
   invisible({
     # Taxa authorities
     .TAXA.AUTHORITIES <- if(!main.env$dev)
@@ -106,7 +113,7 @@ server <- function(input, output, session) {
         package = "MetaShARK"
       )
     )
-    isolate(main.env$ontologies <- .TAXA.AUTHORITIES)
+    isolate(main.env$ontologies <- .ONTOLOGIES)
     
     if(exists("template_issues"))
       rm("template_issues", envir = .GlobalEnv)
@@ -125,9 +132,10 @@ server <- function(input, output, session) {
   
   # Disclaimer
   observe({
+    # Refresh every 5 minutes
     invalidateLater(5*60*1000)
     devmsg(
-      tag = "DEV",
+      tag = "Metric",
       "Connected users at %s: %s",
       Sys.time(),
       isolate(users$count)
@@ -137,7 +145,7 @@ server <- function(input, output, session) {
   )
   
   # Modules called ====
-  fill("fill", main.env)
+  fill("fill", main.env) # EAL fill-in server part
   upload("upload", main.env)
   documentation("documentation", main.env)
   about("about")
@@ -148,7 +156,7 @@ server <- function(input, output, session) {
   shinyjs::show("app-content")
   
   # Other information ----
-  # Version
+  # Version -- based on .tar.gz archive
   output$version <- renderText({
     dir(".", pattern = "MetaShARK_.*.tar.gz") |>
       gsub(pattern = "MetaShARK_(.*).tar.gz", replacement = "\\1")
@@ -163,7 +171,7 @@ server <- function(input, output, session) {
     )
   })
   
-  # Observer for settings side tab
+  # Observer for changes in settings side tab 
   observeEvent(main.env$SETTINGS$side.tab, {
     req(is.character(main.env$SETTINGS$side.tab))
     
