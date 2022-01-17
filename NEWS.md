@@ -1,3 +1,27 @@
+# V1.7.0 (pre-release)
+
+## Features 
+
+* Style enhanced
+
+* Personnel step reworked
+
+* Navigation issues fixed
+
+* Geospatial data support
+
+## Work in progress
+
+* Bugs: test and stabilize this version
+
+* MetaFIN: continue `dev-metafin` branch
+
+* Annotations: add annotations module
+
+* Docker: optimize docker image
+
+* Tests: continue writing tests
+
 # V1.6.1
 
 ## Features 
@@ -6,11 +30,25 @@
 
 * Added a counter for the number of users, outputting in the logs.
 
+* New styles and display for enhanced graphic UI.
+
+* Custom geographic coverage now includes drawing tool.
+
+* Geographic coverage now supports .shp files.
+
+* Fixed EAL 8
+
+* Updated Docker (thanks to https://github.com/charlycou)
+
 ## Work in progress
 
-* Tests: write a complete set of tests. 
+* Tests: write a complete set of tests.
+
+* Bugs: many were spotted, many more to fix.
 
 * Annotations: continue `dev-metafin` branch.
+
+* Geospatial data: integration of EAL progress.
 
 # v1.6.0
 
