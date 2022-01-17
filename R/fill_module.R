@@ -26,7 +26,7 @@ fillUI <- function(id) {
               )
             ),
             tags$td(
-              style="min-width: 200px",
+              style="width: 300px; min-width: 300px",
               h3(class = "help-block", # helpText merged to h3
                 textOutput(NS(id, "current_DP"))
               )
@@ -189,7 +189,8 @@ fill <- function(id, main.env) {
     
     # * Save ----
     observeEvent(input$save, {
-      if(main.env$dev) devmsg("saved: %s", main.env$EAL$page)
+      if(main.env$dev) 
+        devmsg("saved: %s", main.env$EAL$page, timer.env = main.env)
       saveReactive(main.env, main.env$EAL$page, do.template = FALSE)
     })
     
@@ -214,7 +215,7 @@ fill <- function(id, main.env) {
       withProgress(
         {
           # * Save  & Template ----
-          devmsg(tag="fill_module.R", "save & template\r")
+          devmsg(tag="fill_module.R", "save & template", timer.env = main.env)
           if(main.env$EAL$old.page > 1)
             saveReactive(
               main.env, 
@@ -225,7 +226,7 @@ fill <- function(id, main.env) {
           incProgress(1/7)
           
           # * set EAL variables ----
-          devmsg(tag="fill_module.R", "set EAL variables\r")
+          devmsg(tag="fill_module.R", "set EAL variables", timer.env = main.env)
           # left Data Files
           if (main.env$EAL$old.page == 2) 
             unlink(main.env$PATHS$eal.tmp)
@@ -239,12 +240,12 @@ fill <- function(id, main.env) {
           incProgress(1/7)
           
           # * Reset local.rv ----
-          devmsg(tag="fill_module.R", "set local rv\r")
+          devmsg(tag="fill_module.R", "set local rv", timer.env = main.env)
           main.env <- setLocalRV(main.env)
           incProgress(1/7)
           
           # * Change page ----
-          devmsg(tag="fill_module.R", "change pane\r")
+          devmsg(tag="fill_module.R", "change pane", timer.env = main.env)
           updateTabsetPanel(session, "wizard-wizard", selected = steps[main.env$EAL$page])
           incProgress(1/7)
           
@@ -252,16 +253,16 @@ fill <- function(id, main.env) {
           if (!main.env$EAL$current %in% main.env$EAL$history) {
             main.env$EAL$history <- c(main.env$EAL$history, main.env$EAL$current)
           }
-          devmsg(tag="fill_module.R", "update history\r")
+          devmsg(tag="fill_module.R", "update history", timer.env = main.env)
           incProgress(1/7)
           
           # * Savevar changes ----
-          devmsg(tag="fill_module.R", "save variables change\r")
+          devmsg(tag="fill_module.R", "save variables change", timer.env = main.env)
           main.env$save.variable$step <- main.env$EAL$page # save current location
           main.env$save.variable$history <- main.env$EAL$history # erase old save
           
           # * Accessory UI elements ----
-          devmsg(tag="fill_module.R", "display UI\r")
+          devmsg(tag="fill_module.R", "display UI", timer.env = main.env)
           if(main.env$EAL$page > 1) {
             shinyjs::show("top_row")
             shinyjs::show("current_DP")
@@ -277,7 +278,7 @@ fill <- function(id, main.env) {
           }
           incProgress(1/7)
           
-          devmsg(tag="fill_module.R", "ended\r")
+          devmsg(tag="fill_module.R", "ended", timer.env = main.env)
           
           # * Helps ====
           {
