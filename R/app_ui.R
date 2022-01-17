@@ -10,7 +10,8 @@
 ui <- function() {
   # body
   tagList(
-    # Enable Matomo support
+    # Web header ====
+    ## Enable Matomo support ----
     tags$head(
       tags$script(
         HTML(
@@ -29,10 +30,11 @@ ui <- function() {
         )
       )
     ),
-    # Enables packages support
+    ## Enables packages support ----
     shinyjs::useShinyjs(),
     shinyFeedback::useShinyFeedback(),
-    # Add style
+    
+    ## Add style ----
     shinyjs::inlineCSS("
       #loading-content {
         position: absolute;
@@ -54,7 +56,7 @@ ui <- function() {
     htmltools::includeCSS(
       system.file("app/www/styles.css", package = "MetaShARK")
     ),
-    # App business spinner
+    ## App business spinner ----
     shinybusy::add_busy_spinner(
       spin = "spring",
       position = "bottom-left",
@@ -76,7 +78,7 @@ ui <- function() {
         id = "app-content",
         shinydashboardPlus::dashboardPage(
           title = "MetaShARK",
-          ## Header ====
+          # Header ====
           header = shinydashboardPlus::dashboardHeader(
             title = tagList(
               span(
@@ -95,9 +97,9 @@ ui <- function() {
             ),
             titleWidth = "250px"
           ),
-          ## Menus ====
-          ## * Tools ----
+          # Menus ====
           sidebar = shinydashboard::dashboardSidebar(
+            ## Tools ----
             shinydashboard::sidebarMenu(
               id = "sidemenu",
               shinydashboard::menuItem(
@@ -142,11 +144,11 @@ ui <- function() {
             ),
             width = "250px"
           ), # end sidebar
-          # * Settings ----
+          ## Settings ----
           controlbar = rightSidebarSettings(
             "settings"
           ),
-          ## Content ====
+          # Content ====
           body = shinydashboard::dashboardBody(
             tags$script(HTML("$('body').addClass('fixed');")),
             shinydashboard::tabItems(

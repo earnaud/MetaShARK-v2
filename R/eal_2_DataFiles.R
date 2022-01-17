@@ -109,7 +109,7 @@ DataFiles <- function(id, main.env) {
       # validity checks
       req(isContentTruthy(input$add_data_files))
       
-      # * retrieve files info ----
+      ## retrieve files info ----
       .loaded.files <- input$add_data_files
       # FIXME clean file input - buggy
       # shinyjs::reset(input$add_data_files)
