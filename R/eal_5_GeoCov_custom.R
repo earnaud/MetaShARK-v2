@@ -3,10 +3,10 @@ insertCustomGeoCov <- function(id, main.env) {
   # create the UI
   new.ui <- customGeoCov_UI(
     id,
-    value = optional(listReactiveValues(main.env$custom[[id]]))
+    value = optional(listReactiveValues(main.env$local.rv$custom[[unns(id)]]))
   )
   # insert the UI
-  insertUI(selector = "#inserthere", ui = new.ui, immediate = TRUE)
+  insertUI(selector = "#inserthere_eal5", ui = new.ui, immediate = TRUE)
   # create the server
   customGeoCov(unns(id), main.env)
 }
@@ -33,7 +33,11 @@ customGeoCov_UI <- function(id, value = NULL) {
   tags$div(
     id = ns("box"),
     class = "inputBox",
-    style = "max-height: 300px; overflow: scroll",
+    style = "
+    max-height: 10vw !important;
+    overflow-y: scroll;
+    background: #ffffff57;
+    overflow-x: hidden",
     fluidRow(
       column(
         10,
@@ -57,29 +61,31 @@ customGeoCov_UI <- function(id, value = NULL) {
             )
           )
         ),
-        customLocationInput_UI(
-          ns("1"), 
-          list(
-            lat = optional(value$points$lat[1], 35),
-            lon = optional(value$points$lon[1], -15)
-          )
+        tags$div(
+          customLocationInput_UI(
+            ns("1"), 
+            list(
+              lat = optional(value$points$lat[1], 35),
+              lon = optional(value$points$lon[1], -15)
+            )
+          ),
+          if(length(value$points$lat) > 1)
+            customLocationInput_UI(
+              ns("2"), 
+              list(
+                lat = optional(value$points$lat[2], 60),
+                lon = optional(value$points$lon[2], 35)
+              )
+            ),
+          if(length(value$points$lat) > 2)
+            customLocationInput_UI(
+              ns("3"), 
+              list(
+                lat = optional(value$points$lat[3], 45),
+                lon = optional(value$points$lon[3], -15)
+              )
+            )
         ),
-        if(length(value$points$lat) > 1)
-          customLocationInput_UI(
-            ns("2"), 
-            list(
-              lat = optional(value$points$lat[2], 60),
-              lon = optional(value$points$lon[2], 35)
-            )
-          ),
-        if(length(value$points$lat) > 2)
-          customLocationInput_UI(
-            ns("3"), 
-            list(
-              lat = optional(value$points$lat[3], 45),
-              lon = optional(value$points$lon[3], -15)
-            )
-          ),
         tags$div(id=sprintf("inserthere_eal5_custom_%s", unns(id))),
         actionButton(
           ns("new_point"),
@@ -89,15 +95,19 @@ customGeoCov_UI <- function(id, value = NULL) {
       ),
       column(
         2,
-        actionButton(
-          ns("rmv"),"",
-          icon("trash"), 
-          class="danger"
+        fluidRow(
+          actionButton(
+            ns("rmv"),"",
+            icon("trash"), 
+            class="danger"
+          )
         ),
-        colorPickerInput(
-          ns("color"),
-          label = "",
-          width = "40px"
+        fluidRow(
+          colorPickerInput(
+            ns("color"),
+            label = "",
+            width = "40px"
+          )
         )
       )
     ),
@@ -114,8 +124,8 @@ customGeoCov <- function(id, main.env) {
     
     # Set reactive value ----
     # Do not set if already set
-    main.env$custom[[id]] <- optional(
-      main.env$custom[[id]],
+    main.env$local.rv$custom[[id]] <- optional(
+      main.env$local.rv$custom[[id]],
       reactiveValues(
         count = 3, # number of locationInputs
         # Values 
@@ -131,24 +141,24 @@ customGeoCov <- function(id, main.env) {
       )
     )
     
-    # Load [WIP] ====
+    # Load ====
     # Adds as many locations input as necessary
-    if(nrow(main.env$custom[[id]]$points) > 3) {
+    if(nrow(main.env$local.rv$custom[[id]]$points) > 3) {
       sapply(
-        main.env$custom[[id]]$points$id[
-          4:nrow(main.env$custom[[id]]$points)
+        main.env$local.rv$custom[[id]]$points$id[
+          4:nrow(main.env$local.rv$custom[[id]]$points)
         ],
         function(rowid) {
-          main.env$custom[[id]]$count <<- main.env$custom[[id]]$count+1
+          main.env$local.rv$custom[[id]]$count <<- main.env$local.rv$custom[[id]]$count+1
           
           insertCustomLocationInput(
-            session$ns(as.character(main.env$custom[[id]]$count)), 
+            session$ns(as.character(main.env$local.rv$custom[[id]]$count)), 
             outer.id = id,
-            default = main.env$custom[[id]]$points |>
+            default = main.env$local.rv$custom[[id]]$points |>
               filter(id == rowid) |>
               select(c("lat","lon")),
             selector = sprintf("#inserthere_eal5_custom_%s", id),
-            main.env = main.env
+            local.rv = main.env$local.rv
           )
         }
       )
@@ -156,17 +166,21 @@ customGeoCov <- function(id, main.env) {
     
     # Change type ====
     observeEvent(input$type, {
-      main.env$custom[[id]]$type <- input$type
+      # Number of points in polygon
+      .polygon.points.ids <- (1:nrow(main.env$local.rv$custom[[id]]$points))[-c(1,2)]
+      # Keep old type in local
+      .old.type <- main.env$local.rv$custom[[id]]$type
+      # Properly change type of spatial feature
+      main.env$local.rv$custom[[id]]$type <- input$type
       
-      .polygon.points.ids <- (1:nrow(main.env$custom[[id]]$points))[-c(1,2)]
-      
+      # Change to marker
       if(input$type == "marker") {
         shinyjs::hide("2-box")
         shinyjs::hide("new_point")
         if(length(.polygon.points.ids) > 0){
           sapply(
             paste0(
-              main.env$custom[[id]]$points[.polygon.points.ids, "id"],
+              main.env$local.rv$custom[[id]]$points[.polygon.points.ids, "id"],
               "-box"
             ),
             shinyjs::hide
@@ -174,13 +188,19 @@ customGeoCov <- function(id, main.env) {
         }
       } 
       
+      # Change to rectangle
       if(input$type == "rectangle") {
         shinyjs::show("2-box")
         shinyjs::hide("new_point")
+        # newly created rectangle
+        if(.old.type == input$type){
+          main.env$local.rv$custom[[id]]$points$lat[3] <- mean(main.env$local.rv$custom[[id]]$points$lat[1:2])
+          main.env$local.rv$custom[[id]]$points$lon[3] <- mean(main.env$local.rv$custom[[id]]$points$lon[1:2])
+        }
         if(length(.polygon.points.ids) > 0){
           sapply(
             paste0(
-              main.env$custom[[id]]$points[.polygon.points.ids, "id"],
+              main.env$local.rv$custom[[id]]$points[.polygon.points.ids, "id"],
               "-box"
             ),
             shinyjs::hide
@@ -189,13 +209,14 @@ customGeoCov <- function(id, main.env) {
         
       } 
       
+      # Change to polygon
       if(input$type == "polygon") {
         shinyjs::show("2-box")
         shinyjs::show("new_point")
         if(length(.polygon.points.ids) > 0){
           sapply(
             paste0(
-              main.env$custom[[id]]$points[.polygon.points.ids, "id"],
+              main.env$local.rv$custom[[id]]$points[.polygon.points.ids, "id"],
               "-box"
             ),
             shinyjs::show
@@ -206,41 +227,69 @@ customGeoCov <- function(id, main.env) {
     })
     
     # Add points ====
-    customLocationInput("1", outer.id = id, main.env)
-    customLocationInput("2", outer.id = id, main.env)
-    customLocationInput("3", outer.id = id, main.env)
+    customLocationInput("1", outer.id = id, main.env$local.rv)
+    customLocationInput("2", outer.id = id, main.env$local.rv)
+    customLocationInput("3", outer.id = id, main.env$local.rv)
     
     observeEvent(input$new_point, {
-      main.env$custom[[id]]$count <<- main.env$custom[[id]]$count+1
+      main.env$local.rv$custom[[id]]$count <<- main.env$local.rv$custom[[id]]$count+1
       
       insertCustomLocationInput(
-        session$ns(as.character(main.env$custom[[id]]$count)), 
+        session$ns(as.character(main.env$local.rv$custom[[id]]$count)), 
         outer.id = id,
         default = list(lat = 0, lon = 0),
         selector = sprintf("#inserthere_eal5_custom_%s", id),
-        main.env = main.env
+        local.rv = main.env$local.rv
       )
     })
     
     # Get color ====
     observeEvent(input$color, {
       req(isTruthy(input$color))
-      main.env$custom[[id]]$color <- input$color
+      main.env$local.rv$custom[[id]]$color <- input$color
     })
     
     # Remove ====
     observeEvent(input$rmv, {
       message(paste0("#", NS(id, "box")))
       # remove UI
-      removeUI(selector = paste0("#", NS(id, "box")), immediate = TRUE)
+      removeUI(selector = paste0("#", session$ns("box")), immediate = TRUE)
       # remove data
-      main.env$custom[[id]] <- NULL
+      main.env$local.rv$custom[[id]] <- NULL
     })
     
   })
 }
 
-
+saveCustomGeoCov <- function() {
+  .local.rv <- main.env$local.rv$custom
+  .features.ids <- names(.local.rv)[names(.local.rv) != "count"]
+  
+  out <- lapply(.features.ids, function(feat.id) {
+    .points <- .local.rv[[feat.id]]$points
+    if(.local.rv[[feat.id]]$type == "marker")
+      .points <- .points[1,]
+    if(.local.rv[[feat.id]]$type == "rectangle")
+      .points <- .points[1:2,]
+    
+    data.frame(
+      geographicDescription = .local.rv[[feat.id]]$description, 
+      northBoundingCoordinate = max(.points$lat),
+      southBoundingCoordinate = min(.points$lat),
+      eastBoundingCoordinate = max(.points$lon),
+      westBoundingCoordinate = min(.points$lon),
+      wkt = if(.local.rv[[feat.id]]$type == "polygon") {
+        .points[c(1:nrow(.points), 1), 2:3] |>
+          as.matrix() |>
+          list() |>
+          st_polygon() |>
+          st_as_text()
+        
+      } else ""
+    ) # end of data.frame
+  }) |>
+    bind_rows()
+}
 
 # TEST ====
 testCustomInput <- function() {
@@ -256,7 +305,7 @@ testCustomInput <- function() {
         shinyWidgets::actionBttn(
           "add", "", icon("plus"), style = "simple", color="primary"
         ),
-        tags$div(id="inserthere")
+        tags$div(id="inserthere_eal5")
       ),
       column(
         5,
@@ -272,10 +321,12 @@ testCustomInput <- function() {
     
     main.env <- new.env()
     assign(
-      "custom",
+      "local.rv",
       reactiveValues(
-        # will be inserted reactiveValues() named as numbers
-        count = 0
+        custom = reactiveValues(
+          # will be inserted reactiveValues() named as numbers
+          count = 0
+        )
       ),
       envir = main.env
     )
@@ -283,46 +334,47 @@ testCustomInput <- function() {
     # Add UIs ====
     ## Click add ----
     observeEvent(input$add, {
-      main.env$custom$count <<- main.env$custom$count+1
+      main.env$local.rv$custom$count <<- main.env$local.rv$custom$count+1
       
       ## proper insert
-      insertCustomGeoCov(as.character(main.env$custom$count), main.env)
+      insertCustomGeoCov(as.character(main.env$local.rv$custom$count), main.env)
     }, ignoreInit = TRUE)
     
     ## Get leaflet drawing ----
     observeEvent(input$leaflet_draw_new_feature,{
-      main.env$custom$count <<- main.env$custom$count+1
+      main.env$local.rv$custom$count <<- main.env$local.rv$custom$count+1
       
-      .nm <- as.character(main.env$custom$count)
-      main.env$custom[[as.character(.nm)]] <- reactiveValues(
+      .nm <- as.character(main.env$local.rv$custom$count)
+      main.env$local.rv$custom[[as.character(.nm)]] <- reactiveValues(
         count = 3,
         # get feature type
         type = input$leaflet_draw_new_feature$properties$feature_type,
         # get site description
-        description = sprintf("site %s", main.env$custom$count),
+        description = sprintf("site %s", main.env$local.rv$custom$count),
         # set default color
         color = "#03f"
       )
+      
       # add coordinates
       .coor <- unlist(input$leaflet_draw_new_feature$geometry$coordinates)
       .lat = .coor[seq(2,length(.coor), 2)]
       .lon = .coor[seq(1,length(.coor), 2)]
       
       .points = switch(
-        main.env$custom[[as.character(.nm)]]$type,
+        main.env$local.rv$custom[[as.character(.nm)]]$type,
         marker = {
           data.frame(
             id = 1:3, 
-            lat = c(.lat,60,45),
-            lon = c(.lon,35,-15),
+            lat = c(.lat,60,mean(c(.lat, 60))),
+            lon = c(.lon,35,mean(c(.lat, 35))),
             stringsAsFactors = FALSE
           )
         },
         rectangle = {
           data.frame(
             id = 1:3,
-            lat = c(min(.lat), max(.lat), 45),
-            lon = c(min(.lon), max(.lon), -15),
+            lat = c(min(.lat), max(.lat), mean(.lat)),
+            lon = c(min(.lon), max(.lon), mean(.lon)),
             stringsAsFactors = FALSE
           )
         },
@@ -332,59 +384,60 @@ testCustomInput <- function() {
             lat = .lat,
             lon = .lon,
             stringsAsFactors = FALSE
-          ) |> tail(-1)
+          ) |>
+            tail(-1) # do not repeat last point
         }
       )
-      main.env$custom[[as.character(.nm)]]$points <- .points
+      main.env$local.rv$custom[[as.character(.nm)]]$points <- .points
       
-      insertCustomGeoCov(as.character(main.env$custom$count), main.env)
+      insertCustomGeoCov(as.character(main.env$local.rv$custom$count), main.env)
     })
     
     # Render leaflet ====
     ## Get values ----
     areas <- reactive({
-      .nms <- names(main.env$custom)[
+      .nms <- names(main.env$local.rv$custom)[
         sapply(
-          names(main.env$custom), 
+          names(main.env$local.rv$custom), 
           function(n) 
             n != "count" &&
-            isContentTruthy(main.env$custom[[n]])
+            isContentTruthy(main.env$local.rv$custom[[n]])
         )
       ]
       
       lapply(.nms, function(id) {
         switch(
-          main.env$custom[[id]]$type,
+          main.env$local.rv$custom[[id]]$type,
           marker = {
             list(
-              type = main.env$custom[[id]]$type,
-              lat = main.env$custom[[id]]$points$lat[1],
-              lon = main.env$custom[[id]]$points$lon[1],
-              col = main.env$custom[[id]]$color
+              type = main.env$local.rv$custom[[id]]$type,
+              lat = main.env$local.rv$custom[[id]]$points$lat[1],
+              lon = main.env$local.rv$custom[[id]]$points$lon[1],
+              col = main.env$local.rv$custom[[id]]$color
             )
           },
           rectangle = {
             list(
-              type = main.env$custom[[id]]$type,
-              lat1 = min(main.env$custom[[id]]$points$lat[1:2]),
-              lat2 = max(main.env$custom[[id]]$points$lat[1:2]),
-              lon1 = min(main.env$custom[[id]]$points$lon[1:2]),
-              lon2 = max(main.env$custom[[id]]$points$lon[1:2]),
-              col = main.env$custom[[id]]$color
+              type = main.env$local.rv$custom[[id]]$type,
+              lat1 = min(main.env$local.rv$custom[[id]]$points$lat),
+              lat2 = max(main.env$local.rv$custom[[id]]$points$lat),
+              lon1 = min(main.env$local.rv$custom[[id]]$points$lon),
+              lon2 = max(main.env$local.rv$custom[[id]]$points$lon),
+              col = main.env$local.rv$custom[[id]]$color
             )
           },
           polygon = {
             list(
-              type = main.env$custom[[id]]$type,
+              type = main.env$local.rv$custom[[id]]$type,
               lat = c(
-                main.env$custom[[id]]$points$lat,
-                main.env$custom[[id]]$points$lat[1]
+                main.env$local.rv$custom[[id]]$points$lat,
+                main.env$local.rv$custom[[id]]$points$lat[1]
               ),
               lon = c(
-                main.env$custom[[id]]$points$lon,
-                main.env$custom[[id]]$points$lon[1]
+                main.env$local.rv$custom[[id]]$points$lon,
+                main.env$local.rv$custom[[id]]$points$lon[1]
               ),
-              col = main.env$custom[[id]]$color
+              col = main.env$local.rv$custom[[id]]$color
             )
           }
         )
