@@ -59,7 +59,7 @@ Personnel <- function(id, main.env) {
           
           insertPersonnelInput(
             session$ns(row$id),
-            hidden = FALSE,
+            # hidden = FALSE,
             main.env
           )
         })
@@ -78,11 +78,13 @@ Personnel <- function(id, main.env) {
       }
     }, priority = 1)
     
+    # Add form ====
     # User's additional UI
     observeEvent(input$addui, {
       insertPersonnelInput(
         session$ns(as.character(input$addui)),
         main.env
+        # hidden = FALSE
       ) 
     },
     label = "EAL7 add personnel UI"

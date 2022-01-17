@@ -1,7 +1,7 @@
 #' @import shiny
 #'
 #' @noRd
-insertPersonnelInput <- function(id, main.env, hidden = TRUE) {
+insertPersonnelInput <- function(id, main.env) {
   # Add row
   .id <- unns(id)
   if(!grepl("^_", .id)) {
@@ -10,8 +10,9 @@ insertPersonnelInput <- function(id, main.env, hidden = TRUE) {
       c(rep("", ncol(main.env$local.rv$Personnel)-1), id = .id)
   }
   # create the UI
-  new.ui <- PersonnelInputUI(id, main.env, hidden = hidden)
+  new.ui <- PersonnelInputUI(id, main.env)
   # insert the UI
+  # insertUI("#inserthere_eal7", ui = shinydashboard::box("OK", title = textInput("ok","ok"), collapsible = TRUE) )
   insertUI(selector = "#inserthere_eal7", ui = new.ui, immediate = TRUE)
   # create the server
   PersonnelInput(.id, main.env)
@@ -21,7 +22,7 @@ insertPersonnelInput <- function(id, main.env, hidden = TRUE) {
 #' @importFrom shinyjs hidden
 #'
 #' @noRd
-PersonnelInputUI <- function(id, main.env, hidden = TRUE) {
+PersonnelInputUI <- function(id, main.env) {
   # Setup
   ref <- unns(id)
   .value <- main.env$local.rv$Personnel[
@@ -29,36 +30,44 @@ PersonnelInputUI <- function(id, main.env, hidden = TRUE) {
   ]
   
   # Form ====
+  # ui <- tags$div(
   ui <- tags$div(
+    useShinyjs(),
     id = NS(id, "container"),
-    class = "inputBox",
-    # * Header ----
-    tags$div(
-      class = "topInputRow",
-      # Collapse
-      actionLink(NS(id, "collapse"), "", icon("chevron-circle-right")),
-      tags$span(
-        style="width: calc(100% - 100px); margin: 0 5px 0;",
-        # Role
-        roleInputUI(
-          NS(id, "role"),
-          main.env$local.rv$role.choices,
-          val = .value$role,
-          width = "50%"
+    shinydashboard::box(
+      id = NS(id, "box"),
+      collapsible = TRUE,
+      collapsed = TRUE,
+      width = 12,
+      
+      # * Header ----
+      title = tags$div(
+        id = NS(id, "box-header-title"),
+        # class = "topInputRow",
+        class = "box-title-row",
+        # Collapse
+        # actionLink(NS(id, "collapse"), "", icon("chevron-circle-right")),
+        tags$span(
+          class = "box-title-form",
+          # Role
+          roleInputUI(
+            NS(id, "role"),
+            main.env$local.rv$role.choices,
+            val = .value$role,
+            width = "50%"
+          ),
+          # Show name
+          tags$div(
+            uiOutput(NS(id, "name")),
+            style="margin-top: 20px; padding: 6px; height: 40px; width: 50%;"
+          )
         ),
-        # Show name
-        tags$div(
-          uiOutput(NS(id, "name")),
-          style="margin-top: 20px; padding: 6px; height: 40px; width: 50%;"
-        )
-      ),
-      # Remove UI
-      actionButton(NS(id, "remove"), "", icon("trash"), class = "redButton")
-    ), # end of header
-    {
-      .content <- tags$div(
+        # Remove UI
+        actionButton(NS(id, "remove"), "", icon("trash"), class = "redButton")
+      ), # end of header
+      tags$div(
         id = NS(id, "content"),
-        class = "contentRow",
+        # class = "contentRow",
         # * Identity ----
         fluidRow(
           # ORCID input
@@ -147,14 +156,9 @@ PersonnelInputUI <- function(id, main.env, hidden = TRUE) {
             )
           )
         ) # end of hidden PI fields
-      )
-      .content <- if(.hidden)
-        shinyjs::hidden(.content)
-      
-      .content
-    } # end of content
+      ) # end of content
+    )
   )
-  
   # Output ====
   return(ui)
 }
@@ -172,23 +176,32 @@ PersonnelInput <- function(id, main.env) {
     mail.pattern <- main.env$PATTERNS$email
     
     # [U] Collapse ====
-    observeEvent(input$collapse, {
-      shinyjs::toggle(
-        id = "content",
-        anim = TRUE,
-        animType = "slide",
-        time = 0.25,
-        condition = input$collapse %% 2 == 1
-      )
-      
-      updateActionButton(
-        session, 
-        "collapse", 
-        icon = icon(
-          ifelse(input$collapse %% 2 == 0, "chevron-right", "chevron-down")
-        )
+    onclick("box-header-title", {
+      shinyjs::runjs(
+        sprintf("$('#%s').closest('.box').find('[data-widget=collapse]').click();",
+                session$ns("box"))
       )
     })
+    
+    # observeEvent(input$collapse, {
+    #   browser()
+    #   shinyjs::toggle(
+    #     id = "content",
+    #     anim = TRUE,
+    #     animType = "slide",
+    #     time = 0.25,
+    #     condition = input$collapse %% 2 == 1
+    #   )
+    #   
+    #   updateActionButton(
+    #     session, 
+    #     "collapse", 
+    #     icon = icon(
+    #       ifelse(input$collapse %% 2 == 0, "chevron-right", "chevron-down")
+    #     )
+    #   )
+    # })
+    # 
     
     # [I] Role ====
     roleInput("role", main.env, row = row)
