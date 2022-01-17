@@ -32,8 +32,9 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
       }
       
       # Template ----
-      if(isTRUE(do.template))
+      if(isTRUE(do.template)){
         templateModules(main.env, page)
+      }
       
       # Save JSON ----
       setProgress(2 / 3, "Write JSON")
@@ -181,7 +182,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
   }
 
   # Add use of categorical variables (or not)
-  .sv$Attributes$use.catvars <- isTRUE(content$use.catvars())
+  # .sv$Attributes$use.catvars <- isTRUE(content$use.catvars())
   
   return(.sv)
 }
@@ -216,6 +217,8 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
 #' @noRd
 #'
 #' @importFrom data.table fwrite
+#' @importFrom sf st_polygon st_as_text
+#' @importFrom dplyr bind_rows
 #' @import shiny
 .saveGeoCov <- function(main.env){
   .sv <- main.env$save.variable
@@ -224,7 +227,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
   .method <- main.env$local.rv$method
 
   data.files <- .sv$DataFiles$datapath
-  data.content <- lapply(data.files, readDataTable, stringsAsFactors = FALSE)
+  data.content <- lapply(data.files, readDataTable)
   names(data.content) <- basename(data.files)
 
   # format extracted content - keep latlon-valid columns
@@ -254,7 +257,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
   .sv$GeoCov <- reactiveValues() # reset
   .sv$GeoCov$method <- .method
 
-  # GeoCov written if .method filled
+  # Columns ----
   if (.method == "columns" &&
       isContentTruthy(main.env$local.rv$columns$site) &&
       isContentTruthy(main.env$local.rv$columns)) {
@@ -299,18 +302,53 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
       westBoundingCoordinate = .westBoundingCoordinate,
       stringsAsFactors = FALSE
     )
-  } else if (.method == "custom") {
+  } 
+  # Custom ----
+  if (.method == "custom") {
+    # browser()
+    # shortcuts
+    .local.rv <- main.env$local.rv$custom
+    .features.ids <- names(.local.rv)[
+      !names(.local.rv) %in% c("count", "complete")
+    ]
+    
+    # build coverage table from local.rv
+    .custom.coordinates <- lapply(.features.ids, function(feat.id) {
+      .points <- .local.rv[[feat.id]]$points
+      if(.local.rv[[feat.id]]$type == "marker")
+        .points <- .points[1,]
+      if(.local.rv[[feat.id]]$type == "rectangle")
+        .points <- .points[1:2,]
+      
+      data.frame(
+        geographicDescription = .local.rv[[feat.id]]$description, 
+        northBoundingCoordinate = max(.points$lat),
+        southBoundingCoordinate = min(.points$lat),
+        eastBoundingCoordinate = max(.points$lon),
+        westBoundingCoordinate = min(.points$lon),
+        wkt = if(.local.rv[[feat.id]]$type == "polygon") {
+          .points[c(1:nrow(.points), 1), 2:3] |>
+            as.matrix() |>
+            list() |>
+            st_polygon() |>
+            st_as_text()
+          
+        } else ""
+      ) # end of data.frame
+    }) |>
+      bind_rows()
+    
     # save
-    .sv$GeoCov <- reactiveValues()
     .sv$GeoCov$custom <- main.env$local.rv$custom
 
     # fill
-    geocov <- main.env$local.rv$custom$coordinates
+    geocov <- .custom.coordinates
   }
+  
   # Write data
-  if (isContentTruthy(geocov))
+  if (isContentTruthy(geocov)){
     data.table::fwrite(
-      geocov,
+      geocov[,1:5], # do not write wkt column in geocov
       paste(
         .sv$SelectDP$dp.metadata.path,
         "geographic_coverage.txt",
@@ -318,6 +356,19 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
       ),
       sep = "\t"
     )
+    
+    if("wkt" %in% names(geocov))
+      data.table::fwrite(
+        geocov["wkt"], # do not write wkt column in geocov
+        paste(
+          .sv$SelectDP$dp.metadata.path,
+          ".spatial_coverage.txt",
+          sep = "/"
+        ),
+        sep = "\t"
+      )
+      
+  }
   
   # Output
   return(.sv)

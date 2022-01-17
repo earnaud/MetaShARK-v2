@@ -48,7 +48,7 @@ setDateSelection <- function(dates.sample){
 
 
 #' @importFrom lubridate guess_formats
-guessDateTimeFormat <- function(date) {
+guessDateTimeFormat <- function(date, lubridate_formats) {
   # guess format by lubridate
   date.formats <- date |>
     lubridate::guess_formats(lubridate_formats) |>
@@ -59,6 +59,8 @@ guessDateTimeFormat <- function(date) {
   
   return(date.formats)
 }
+
+
 #' Convert lubridate to common format
 convertLubridateFormat <- function(date.formats) {
   date.formats |>

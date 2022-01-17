@@ -9,28 +9,8 @@
 
 /* -- Overwrite -- */
 
-.welcome-row {
-  background: #fff;
-  padding: 0em calc(1000px + 3em) 0.5em 3em;
-  margin: 1em -1000px 2em 5em;
-  transform: skewX(-5deg);
-}
-
-.welcome-outer {
-  align-items: stretch;
-  display: flex;
-  transform: skewX(5deg);
-}
-
-.welcome-innerright {
-  columns: 3;
-  width: calc(100% - 200px);
-}
-
-.welcome-innerleft {
-  margin-top: auto;
-  margin-bottom: auto;
-  width: 200px;
+.form-control.selectize-control {
+  background: none !important;
 }
 
 .bttn.disabled, .bttn.disabled::after, .bttn.disabled::before  {
@@ -46,11 +26,11 @@
   background-color: #fff !important;
 }
 
-.headband {
-	background: white;
-	padding: 1em;
-	border-top: 2px darkgray solid;
-	border-bottom: 2px darkgray solid;
+.welcome-row {
+  background: #fff;
+  padding: 0em calc(1000px + 3em) 0.5em 3em;
+  margin: 1em -1000px 2em 5em;
+  transform: skewX(-5deg);
 }
 
 img {
@@ -146,8 +126,35 @@ textarea {
   margin-right: auto;
 }
 
-.contentRow {
-  background-color: #f6f6f6;
+div.box-title-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: auto;
+  margin-right: auto;
+  align-content: center;
+  flex-direction: row;
+}
+
+span.box-title-form {
+  width: calc(100% - 100px);
+  margin: 0 5px 0;
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.box {
+  background: #ffffff3a;
+}
+        
+.box-header {
+  background: #ffffff3a;
+}
+        
+h3.box-title {
+  width: 100%;
 }
 
 .coordinate-input {
@@ -168,6 +175,13 @@ textarea {
 
 .form-group.shiny-input-container.has-feedback {
   width: 300px !important;
+}
+
+.headband {
+	background: white;
+	padding: 1em;
+	border-top: 2px darkgray solid;
+	border-bottom: 2px darkgray solid;
 }
 
 .topInputRow span {
@@ -212,6 +226,24 @@ textarea {
 
 .valid {
   color: green;
+}
+
+
+.welcome-outer {
+  align-items: stretch;
+  display: flex;
+  transform: skewX(5deg);
+}
+
+.welcome-innerright {
+  columns: 3;
+  width: calc(100% - 200px);
+}
+
+.welcome-innerleft {
+  margin-top: auto;
+  margin-bottom: auto;
+  width: 200px;
 }
 
 .wip {

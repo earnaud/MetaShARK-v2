@@ -52,9 +52,8 @@ SelectDPUI <- function(id) {
               helpText("No dp has been found")
             )
           ),
-          tags$style(
-            ".eal1radio {overflow: scroll; width: auto; max-height: 500px;}"
-          ),
+          
+          # DP list
           tags$div(
             radioButtons(
               NS(id, "dp_list"),
@@ -62,26 +61,29 @@ SelectDPUI <- function(id) {
               choiceNames = c("None selected"),
               choiceValues = c("")
             ),
-            class = "eal1radio"
+            style = "overflow: scroll; width: auto; max-height: 500px;"
           ),
           
-          
+          # Load button
           actionButton(
             NS(id, "dp_load"),
             "Load",
             icon = icon("folder-open")
           ),
+          # Delete button
           actionButton(
             NS(id, "dp_delete"),
             "Delete",
             icon = icon("minus-circle"),
             class = "redButton"
           ),
+          # Download button
           downloadButton(
             NS(id, "dp_download"),
             label = "Download .zip",
             icon = icon("file-download")
           ),
+          # Warning -- manual handling
           tags$p(
             "If you have handled manually some packages in ",
             tags$code("~/dataPackagesOutput/emlassemblyline"),
@@ -102,15 +104,16 @@ SelectDPUI <- function(id) {
             ),
             value = TRUE
           ),
-          # Data package title
+          # Data package name
           textInput(
             NS(id, "dp_name"),
-            "Data package name",
+            "Data package name (displayed)",
             placeholder = "my_project"
           ),
+          # Title
           textInput(
             NS(id, "dp_title"),
-            "Dataset title",
+            "Dataset title (file name)",
             placeholder = "Any title is a title"
           ),
           tags$p(
@@ -121,6 +124,7 @@ SelectDPUI <- function(id) {
               sep = "&nbsp&nbsp"
             ))
           ),
+          # License
           tags$div(
             id = "license-help",
             selectInput(
@@ -153,6 +157,7 @@ SelectDPUI <- function(id) {
 #' @noRd
 SelectDP <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
+    # Dev zone
     if (main.env$dev){
       observeEvent(
         main.env$dev.browse(),
@@ -166,7 +171,7 @@ SelectDP <- function(id, main.env) {
       )
     }
     
-    # Help server
+    # Help button -- server call
     collapsible("usage")
     
     # variable initialization ----
@@ -227,52 +232,26 @@ SelectDP <- function(id, main.env) {
     label = "EAL1: toggle dp buttons"
     )
     
-    # Manage DP download ----
-    output$dp_download <- downloadHandler(
-      filename = function() {
-        paste0(input$dp_list, "_emldp.zip")
-      },
-      content = function(file) {
-        .path <- getwd()
-        setwd(main.env$PATHS$eal.dp)
-        utils::zip(
-          zipfile = file,
-          files = dir(
-            gsub(
-              "/+",
-              "/",
-              dir(
-                ".",
-                full.names = TRUE,
-                pattern = input$dp_list
-              )
-            ),
-            recursive = TRUE,
-            full.names = TRUE
-          )
-        )
-        setwd(.path)
-      },
-      contentType = "application/zip"
-    )
-    
-    # DP create ----
-    # * Check name ----
+    # DP create ====
+    ## Check name ----
     observeEvent(input$dp_name, {
       shinyjs::disable("dp_create") # default
       shinyFeedback::hideFeedback("dp_name")
       
+      # Ask for > 3 characters
       if(nchar(input$dp_name) <= 3) {
         shinyFeedback::showFeedbackDanger(
           "dp_name",
           "Not enough characters."
         )
-      } else if(isFALSE(grepl("^[[:alnum:]_-]+$", input$dp_name))) {
+      } else if( # Asks only for valid characters
+        isFALSE(grepl("^[[:alnum:]_-]+$", input$dp_name))
+      ) { 
         shinyFeedback::showFeedbackDanger(
           "dp_name",
           "Only use alphanumeric, '_' and '-' characters."
         )
-      } else if(input$dp_name %in% main.env$local.rv$dp.list) {
+      } else if(input$dp_name %in% main.env$local.rv$dp.list) { # already exist
         shinyFeedback::showFeedbackDanger(
           "dp_name",
           "Already used."
@@ -285,24 +264,25 @@ SelectDP <- function(id, main.env) {
     label = "EAL1: dp name input"
     )
     
-    # * Check title ----
+    ## Check title ----
     observeEvent(input$dp_title, {
       shinyjs::disable("dp_create")
       shinyFeedback::hideFeedback("dp_title")
       
+      # Ask for > 3 characters
       if(nchar(input$dp_title) <= 3) {
         shinyFeedback::showFeedbackDanger(
           "dp_title",
           "Not enough characters."
         )
-      } else if(isFALSE(
+      } else if(isFALSE( # Asks only for valid characters
         grepl("^[[:alnum:]\\ \\.,:_-]+$", input$dp_title)
       )) {
         shinyFeedback::showFeedbackDanger(
           "dp_title",
           "Invalid characters used."
         )
-      } else {
+      } else { # do not check against other titles # NOTE shall we ?
         shinyFeedback::showFeedbackSuccess(
           "dp_title"
         )
@@ -312,6 +292,9 @@ SelectDP <- function(id, main.env) {
     label = "EAL1: dp title input"
     )
     
+    # Quick mode
+    # TODO depreciated -- only quick mode used
+    # Transform it in "if ORCID-connected" grab ontologies terms ?
     observeEvent(input$quick, {
       req(input$dp_name %in% c("", "my_project", paste0(Sys.Date(), "_project"))) # Do not change a yet changed name
       if(isTRUE(getOption("shiny.testmode"))) {
@@ -326,7 +309,7 @@ SelectDP <- function(id, main.env) {
     )
     
     # DP management - on clicks ----
-    # * Create DP ----
+    ## Create DP ----
     observeEvent(input$dp_create, {
       req(input$dp_create)
       req(main.env$local.rv$dp.name())
@@ -349,7 +332,7 @@ SelectDP <- function(id, main.env) {
     label = "EAL1: create DP"
     )
     
-    # * Load DP ----
+    ## Load DP ----
     observeEvent(input$dp_load, {
       req(input$dp_list)
       shinyjs::disable("dp_load")
@@ -366,7 +349,7 @@ SelectDP <- function(id, main.env) {
       
       # read variables
       main.env$save.variable <- initReactive("emlal", main.env$save.variable, main.env)
-      
+      # Read json in a tmp variable to let it be curated
       .tmp <- jsonlite::read_json(paste0(path, "/", dp, ".json"))[[1]] |>
         jsonlite::unserializeJSON()
       
@@ -374,7 +357,8 @@ SelectDP <- function(id, main.env) {
       # TODO remove this later
       
       # - keywords.thesaurus replaced by keywordThesaurus
-      if("Misc" %in% names(.tmp) && "keyword.thesaurus" %in% names(.tmp$Misc$keywords))
+      if("Misc" %in% names(.tmp) && 
+         "keyword.thesaurus" %in% names(.tmp$Misc$keywords))
         names(.tmp$Misc$keywords)[2] <- "keywordThesaurus"
       
       # - emlal/metafin difference
@@ -406,7 +390,12 @@ SelectDP <- function(id, main.env) {
       # - for elder DP, add use.catvars boolean variable
       if("Attributes" %in% .tmp$history && 
          isFALSE("use.catvars" %in% names(.tmp$Attributes))) # if attributes has been met
-        .tmp$Attributes$use.catvars <- FALSE
+        .tmp$Attributes$use.catvars <- any(
+          sapply(
+            main.env$save.variable$Attributes$content,
+            function(table) any(table$class == "categorical")
+          )
+        )
       
       # if("Miscellaneous" %in% .tmp$history &&
       #    "additional.information" %in% names(.tmp$Misc))
@@ -416,7 +405,7 @@ SelectDP <- function(id, main.env) {
       main.env$save.variable <- setSaveVariable(.tmp, main.env$save.variable)
       
       # Update paths from another file system
-      # * selectDP
+      ## selectDP
       sapply(
         names(main.env$save.variable$SelectDP),
         function(.dp.item) {
@@ -428,7 +417,7 @@ SelectDP <- function(id, main.env) {
         }
       )
       
-      # * datafiles
+      ## datafiles
       if (isContentTruthy(main.env$save.variable$DataFiles)) {
         sapply(names(main.env$save.variable$DataFiles), function(col) {
           main.env$save.variable$DataFiles[, col] <- gsub(
@@ -444,7 +433,7 @@ SelectDP <- function(id, main.env) {
         })
       }
       
-      # * miscellaneous
+      ## miscellaneous
       if (isContentTruthy(main.env$save.variable$Misc$abstract)) {
         main.env$save.variable$Misc$abstract <- gsub(
           ".*/dataPackagesOutput/emlAssemblyLine/",
@@ -478,7 +467,7 @@ SelectDP <- function(id, main.env) {
     label = "EAL1: load DP"
     )
     
-    # * Delete DP ----
+    ## Delete DP ----
     observeEvent(input$dp_delete, {
       req(isTruthy(input$dp_list))
       
@@ -521,5 +510,35 @@ SelectDP <- function(id, main.env) {
     },
     label = "EAL1: confirm delete DP"
     )
+    
+    ## Manage DP download ----
+    output$dp_download <- downloadHandler(
+      filename = function() {
+        paste0(input$dp_list, "_emldp.zip")
+      },
+      content = function(file) {
+        .path <- getwd()
+        setwd(main.env$PATHS$eal.dp)
+        utils::zip(
+          zipfile = file,
+          files = dir(
+            gsub(
+              "/+",
+              "/",
+              dir(
+                ".",
+                full.names = TRUE,
+                pattern = input$dp_list
+              )
+            ),
+            recursive = TRUE,
+            full.names = TRUE
+          )
+        )
+        setwd(.path)
+      },
+      contentType = "application/zip"
+    )
+    
   })
 }
