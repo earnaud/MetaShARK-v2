@@ -92,35 +92,37 @@ pagesServer <- function(id, main.env) {
     
     changePage <- function(from, to, input, main.env) {
       observeEvent(input[[paste(from, to, sep = "_")]], {
-        
         main.env$EAL$old.page <- main.env$EAL$page
         
         # Two times computing required for ifelse clause following
         .tmp <- main.env$EAL$page + to - from
-        if(main.env$EAL$old.page == 3)
-          browser()
-        main.env$EAL$page <- .tmp + if({
-          # do catvars are required to be reached? ..
-          .use.catvars <- if(main.env$EAL$old.page == 3)
-            main.env$local.rv$use.catvars() else
-              main.env$save.variable$Attributes$use.catvars
-          .tmp == 4 && isFALSE(.use.catvars)
-        }) {
-          # tell the user
-          showNotification(
-            "Skipped categorical variables (not required)"
-          )
-          # .. no, avoid step ..
-          switch(
-            as.character(main.env$EAL$old.page),
-            "3" = 1,
-            "5" = -1
-          )
-        } else {
-          # .. else let step be reached
-          0
+        if(.tmp == 4) {
+          .use.catvars <- if("Attributes" %in% main.env$EAL$history)
+            any(sapply(
+              main.env$save.variable$Attributes$content,
+              function(table) any(table$class == "categorical")
+            )) else if(main.env$EAL$old.page == 3)
+              main.env$local.rv$use.catvars() else
+                FALSE
+          
+          .tmp <- .tmp  + if(isFALSE(.use.catvars)) {
+            # tell the user if going from Attributes to GeoCov
+            if(main.env$EAL$old.page == 3)
+              showNotification(
+                "Skipped categorical variables (not required)"
+              )
+            # .. no, avoid step ..
+            switch(
+              as.character(main.env$EAL$old.page),
+              "3" = 1,
+              "5" = -1
+            )
+          } else if(isTRUE(.use.catvars)) {
+            # let it goooo !! ♪♪ 
+            0
+          }
         }
-        
+        main.env$EAL$page <- .tmp
       },
       label = paste("changePage", from, to)
       )
