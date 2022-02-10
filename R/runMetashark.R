@@ -64,20 +64,6 @@ runMetashark <- function(...) {
   on.exit(rm("metashark.args", envir = .GlobalEnv))
   
   # Settings =====
-  # Set steps in .GlobalEnv for UI purposes
-  assign("ui.steps", c(
-    "SelectDP",
-    "Data_Files",
-    "Attributes",
-    "Categorical_Variables",
-    "Geographic_Coverage",
-    "Taxonomic_Coverage",
-    "Personnel",
-    "Miscellaneous",
-    "Make_EML"
-  ), envir = .GlobalEnv)
-  on.exit(rm("ui.steps", envir = .GlobalEnv))
-  
   # Set resourcePaths
   addResourcePath("media", system.file("media/", package = "MetaShARK"))
   on.exit(removeResourcePath("media"))

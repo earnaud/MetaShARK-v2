@@ -18,10 +18,6 @@
 ) {
   # handle additional arguments in ...
   other.items <- c(...)
-  if("ui.steps" %in% names(other.items)) {
-    ui.steps <- other.items$ui.steps
-    other.items <- other.items[-which(names(other.items) == "ui.steps")]
-  }
   
   # Options setup ====
   options(stringsAsFactors = FALSE)
@@ -160,7 +156,17 @@
       thresholds = reactiveValues(
         files.size.max = 500000 
       ),
-      steps = ui.steps,
+      steps = c(
+        "SelectDP",
+        "Data_Files",
+        "Attributes",
+        "Categorical_Variables",
+        "Geographic_Coverage",
+        "Taxonomic_Coverage",
+        "Personnel",
+        "Miscellaneous",
+        "Make_EML"
+      ),
       last.timer = Sys.time()
     ),
     envir = main.env

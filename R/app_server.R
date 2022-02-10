@@ -11,14 +11,11 @@ server <- function(input, output, session) {
   # get variables & clean
   args <- base::get("metashark.args", envir = .GlobalEnv)
   rm("metashark.args", envir = .GlobalEnv)
-  ui.steps <- base::get("ui.steps", envir = .GlobalEnv)
-  rm("ui.steps", envir = .GlobalEnv)
   
   # Setup environment
   main.env <- .globalScript(
     .args = args, 
-    envir = session$userData, 
-    list(ui.steps = ui.steps)
+    envir = session$userData
   )
   # Locate "media/" for app
   addResourcePath("media", system.file("media/", package = "MetaShARK"))
