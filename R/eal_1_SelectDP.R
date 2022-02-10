@@ -48,8 +48,8 @@ SelectDPUI <- function(id) {
           ),
           shinyjs::hidden(
             tags$div(
-              id = NS(id, "no_dp_found"),
-              helpText("No dp has been found")
+              id = NS(id, "dp_list_empty"),
+              helpText("No data package has been found.")
             )
           ),
           
@@ -193,34 +193,43 @@ SelectDP <- function(id, main.env) {
       pattern = "_emldp$"
     )
     
+    files.poll.reactive <- reactive(.files.poll())
+    
     # set it up
     observe({
-      validate(
-        need(isTruthy(.files.poll()), "No files found")
-      )
-      dp.list <- gsub(.files.poll(), pattern = "_emldp$", replacement = "")
+      # validate(
+      #   need(isTruthy(.files.poll()), "No files found")
+      # )
+      dp.list <- gsub(files.poll.reactive(), pattern = "_emldp$", replacement = "")
       changed <- isFALSE(identical(dp.list, main.env$local.rv$dp.list))
+      message(length(dp.list))
+      # Changed and files present: update file list
       if(changed) {
         main.env$local.rv$dp.list <- dp.list
         
-        # update list
-        updateRadioButtons(
-          session,
-          "dp_list",
-          choiceNames = c("None selected", main.env$local.rv$dp.list),
-          choiceValues = c("", gsub(" \\(.*\\)$", "", main.env$local.rv$dp.list))
-        )
+        if(isContentTruthy(dp.list))
+          # update list
+          updateRadioButtons(
+            session,
+            "dp_list",
+            choiceNames = c("None selected", main.env$local.rv$dp.list),
+            choiceValues = c("", gsub(" \\(.*\\)$", "", main.env$local.rv$dp.list))
+          )
+        
+        # toggle messages
+        shinyjs::toggle("dp_list_empty", condition = !isContentTruthy(dp.list))
+        shinyjs::toggle("dp_list", condition = isContentTruthy(dp.list))
       }
     },
     label = "EAL 1: dp list")
     
     # toggles
-    observe({
-      truthy.dp.list <- isContentTruthy(main.env$local.rv$dp.list)
-      shinyjs::toggle("dp_list", condition = truthy.dp.list)
-      shinyjs::toggle("no_dp_found", condition = isFALSE(truthy.dp.list))
-    }, 
-    label = "EAL1: update dp list")
+    # observe({
+    #   truthy.dp.list <- isContentTruthy(main.env$local.rv$dp.list)
+    #   shinyjs::toggle("dp_list", condition = truthy.dp.list)
+    #   shinyjs::toggle("no_dp_found", condition = isFALSE(truthy.dp.list))
+    # }, 
+    # label = "EAL1: toggle dp list")
     
     # toggle Load and Delete buttons
     observeEvent(input$dp_list, {
@@ -464,6 +473,7 @@ SelectDP <- function(id, main.env) {
       
       shinyjs::enable("dp_load")
     },
+    ignoreInit = TRUE,
     label = "EAL1: load DP"
     )
     
