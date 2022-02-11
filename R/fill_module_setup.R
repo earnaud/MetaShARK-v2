@@ -195,7 +195,7 @@ setLocalRV <- function(main.env){
             "(.*)\\..*$",
             "\\1.txt",
             basename(main.env$save.variable$DataFiles$datapath)
-            )
+          )
           )
         out
       }
@@ -293,7 +293,7 @@ setLocalRV <- function(main.env){
         )
         if("keywordThesaurus" %in% names(kw))
           colnames(kw)[2] <- "keywordThesaurus"
-          
+        
         # Collapse --get by same thesaurus -- set the keyword set
         if(isContentTruthy(kw))
           kw <- data.frame(
@@ -407,8 +407,8 @@ setLocalRV <- function(main.env){
             
             # do not work on date row filled (except by !Add.*here!)
             .filled.date <- (sapply(.md.table$dateTimeFormatString, isContentTruthy) & 
-                          !sapply(.md.table$dateTimeFormatString, grepl, "!Add.*here!")
-                        )[.date.row]
+                               !sapply(.md.table$dateTimeFormatString, grepl, "!Add.*here!")
+            )[.date.row]
             if(any(!.filled.date)){ # if any date is not filled
               # Read 100 first rows
               .data.table <- readDataTable(.data.path, nrows = 100)
@@ -727,36 +727,32 @@ setLocalRV <- function(main.env){
       }
       
       ### Custom ----
+      browser()
       if (main.env$local.rv$method == "custom" &&
           isContentTruthy(main.env$save.variable$GeoCov$custom)) {
-        saved_table <- main.env$save.variable$GeoCov$custom$coordinates
-        if (isContentTruthy(saved_table)) {
-          count <- 1
+        # shortcut save variable
+        saved_tables <- main.env$save.variable$GeoCov$custom
+        
+        if (isContentTruthy(saved_tables)) {
+          count <- 0
           
-          sapply(1:nrow(saved_table), function(row.ind) {
-            row <- saved.table[row.ind,]
-            count <- count+1
-            
-            main.env$local.rv$custom[[count]] <- reactiveValues(
-              count = 3, # number of locationInputs
-              # Values 
-              type = if("wkt" %in% names(row) && isContentTruthy(row["wkt"])) {
-                "polygon"
-              } else if(row$northBoundingCoordinate == row$southBoundingCoordinate &&
-                        row$westBoundingCoordinate == row$eastBoundingCoordinate) {
-                "marker"
-              } else "rectangle",
-              description = row$description, # length == 1
-              # FIXME continue here
-              points = data.frame( # length >= 1
-                id = 1:3, 
-                lat = c(30,60,45),
-                lon = c(-15,35,-15),# lon of the point
-                stringsAsFactors = FALSE
-              ),
-              color = "#03f" # length == 1
-            )
-          })
+          sapply(
+            names(saved_tables)[isFALSE(names(saved_tables) %in% c("count", "complete"))], 
+            function(row.ind) {
+              row <- saved_tables[[row.ind]]
+              # Recount number of items from 1:n
+              count <<- count+1
+              main.env$local.rv$custom[[as.character(count)]] <- reactiveValues(
+                # number of locationInputs
+                count = nrow(row$points), 
+                # Values 
+                type = row$type,
+                description = row$description, # length == 1
+                points = row$points,
+                color = row$color # length == 1
+              )
+            }
+          )
         }
       }
     }

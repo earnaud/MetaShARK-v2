@@ -86,7 +86,9 @@ GeoCov <- function(id, main.env) {
       )
     }
     
-    # Setup ====
+    # Columns method ====
+    
+    ## Setup ====
     observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page == 5)
       req(main.env$local.rv$method)
@@ -117,7 +119,7 @@ GeoCov <- function(id, main.env) {
     priority = -1
     )
     
-    # Method selection ====
+    ## Method selection ====
     observeEvent(input$method, {
       req(main.env$EAL$page == 5)
       devmsg(tag="Geocov", "method")
@@ -138,8 +140,8 @@ GeoCov <- function(id, main.env) {
     
     # output$selected_method <- renderText(main.env$local.rv$method)
     
-    # Variables input ====
-    ## Set inputs ----
+    ## Variables input ====
+    ### Set inputs ----
     # Site description
     output$site <- renderUI({
       req(main.env$EAL$page == 5)
@@ -197,7 +199,7 @@ GeoCov <- function(id, main.env) {
       )
     })
     
-    ## Get input ----
+    ### Get input ----
     # Site description
     observeEvent(input$site, {
       req(main.env$EAL$page == 5)
@@ -275,56 +277,22 @@ GeoCov <- function(id, main.env) {
     label = "EAL5: get longitude"
     )
     
-    # Fill custom ====
-    # # * Setup ----
-    # observeEvent(main.env$EAL$page, { # on load
-    #   req(main.env$EAL$page == 5)
-    #   
-    #   if (dim(main.env$local.rv$custom$coordinates)[1] > 0)
-    #     sapply(1:nrow(main.env$local.rv$custom$coordinates), function(.ind) {
-    #       insertGeoCovInput(
-    #         session$ns(as.character(-.ind)), # from -n to -1, NS-ed
-    #         main.env,
-    #         default = main.env$local.rv$custom$coordinates[.ind,]
-    #       )
-    #     })
-    # },
-    # priority = -1,
-    # label = "EAL5: set custom UI"
-    # )
-    # 
-    # observeEvent(main.env$EAL$page, { # on load
-    #   req(main.env$EAL$old.page == 5)
-    #   
-    #   if (dim(main.env$local.rv$custom$coordinates)[1] > 0)
-    #     sapply(1:nrow(main.env$local.rv$custom$coordinates), function(.ind) {
-    #       
-    #       removeUI(
-    #         sprintf("#%s-container", session$ns(as.character(-.ind)))
-    #       )
-    #     })
-    # },
-    # priority = 1,
-    # label = "EAL5: remove custom UI"
-    # )
-    # 
-    # # * Manage input ----
-    # observeEvent(input$addui, {
-    #   insertGeoCovInput(
-    #     session$ns(as.numeric(input$addui)), # from 1 to n, NS-ed
-    #     main.env
-    #   )
-    # },
-    # label = "EAL5: get custom"
-    # )
-    # 
-    # 
-    
     # Custom server =====
-    ### Setup ----
+    ## Setup ----
+    observeEvent(main.env$EAL$page, {
+      req(main.env$EAL$page == 5)
+      req(main.env$local.rv$method == "custom")
+      req(main.env$local.rv$custom$count > 0)
+      
+      insertCustomGeoCov(
+        session$ns(as.character(.count)),
+        main.env
+      )
+      browser()
+    })
     # TODO !!!
     
-    ### Click add ----
+    ## Click add ----
     observeEvent(input$add, {
       req(input$add)
       req(main.env$EAL$page == 5)
@@ -340,7 +308,7 @@ GeoCov <- function(id, main.env) {
     },
     ignoreInit = TRUE)
     
-    ### Get leaflet drawing ----
+    ## Get leaflet drawing ----
     observeEvent(input$leaflet_draw_new_feature, {
       req(main.env$EAL$page == 5)
       devmsg(tag="Geocov", "leaflet draw")
@@ -401,12 +369,12 @@ GeoCov <- function(id, main.env) {
     
     ## Render leaflet ====
     
-    #### Output ----
+    ### Output ----
     output$leaflet <- leaflet::renderLeaflet({
       req(main.env$EAL$page == 5)
       devmsg(tag="Geocov", "leaflet render")
       
-      ###### Get names ----
+      #### Get names ----
       .nms <- names(main.env$local.rv$custom)[
         sapply(
           names(main.env$local.rv$custom),

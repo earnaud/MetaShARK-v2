@@ -177,7 +177,7 @@ customGeoCov <- function(id, main.env) {
       # Properly change type of spatial feature
       main.env$local.rv$custom[[id]]$type <- input$type
       
-      # Change to marker
+      ## Set to marker ----
       if(input$type == "marker") {
         shinyjs::hide("2-box")
         shinyjs::hide("new_point")
@@ -192,7 +192,7 @@ customGeoCov <- function(id, main.env) {
         }
       } 
       
-      # Change to rectangle
+      ## Set to rectangle ----
       if(input$type == "rectangle") {
         shinyjs::show("2-box")
         shinyjs::hide("new_point")
@@ -213,7 +213,7 @@ customGeoCov <- function(id, main.env) {
         
       } 
       
-      # Change to polygon
+      ## Set to polygon ----
       if(input$type == "polygon") {
         shinyjs::show("2-box")
         shinyjs::show("new_point")
@@ -230,11 +230,12 @@ customGeoCov <- function(id, main.env) {
       }
     })
     
-    # Add points ====
+    # Serve first three points ====
     customLocationInput("1", outer.id = id, main.env$local.rv)
     customLocationInput("2", outer.id = id, main.env$local.rv)
     customLocationInput("3", outer.id = id, main.env$local.rv)
     
+    # Add points ====
     observeEvent(input$new_point, {
       main.env$local.rv$custom[[id]]$count <<- main.env$local.rv$custom[[id]]$count+1
       

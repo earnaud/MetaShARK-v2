@@ -317,6 +317,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
   }
   
   # Custom ----
+  browser()
   if (.method == "custom") {
     # shortcuts
     .local.rv <- main.env$local.rv$custom
@@ -349,7 +350,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
       ) # end of data.frame
     }) |>
       bind_rows()
-    
+    browser()
     # save
     .sv$GeoCov$custom <- main.env$local.rv$custom
 
@@ -781,11 +782,10 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
 #' @importFrom dplyr bind_rows
 #' @import shiny
 .saveGeoCov <- function(main.env){
+  # Shortcut variables
   .sv <- main.env$save.variable
-  browser()
-  # Initialize variables
   .method <- main.env$local.rv$method
-
+  
   data.files <- .sv$DataFiles$datapath
   data.content <- lapply(data.files, readDataTable)
   names(data.content) <- basename(data.files)
@@ -865,6 +865,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
   }
   
   # Custom ----
+  browser()
   if (.method == "custom") {
     # shortcuts
     .local.rv <- main.env$local.rv$custom
