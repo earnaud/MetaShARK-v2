@@ -143,10 +143,11 @@ customGeoCov <- function(id, main.env) {
     
     # Load ====
     # Adds as many locations input as necessary
-    if(nrow(main.env$local.rv$custom[[id]]$points) > 3) {
+    .npoints = nrow(main.env$local.rv$custom[[id]]$points)
+    if(.npoints > 3) {
       sapply(
         main.env$local.rv$custom[[id]]$points$id[
-          4:nrow(main.env$local.rv$custom[[id]]$points)
+          4:.npoints
         ],
         function(rowid) {
           main.env$local.rv$custom[[id]]$count <<- main.env$local.rv$custom[[id]]$count+1
@@ -162,6 +163,9 @@ customGeoCov <- function(id, main.env) {
           )
         }
       )
+    } else { # <= 3# 
+      shinyjs::toggle("3-box", condition = main.env$local.rv$custom[[id]]$type %in% c("rectangle", "marker"))
+      shinyjs::toggle("2-box", condition = main.env$local.rv$custom[[id]]$type == "marker")
     }
     
     # Change type ====

@@ -5,7 +5,7 @@ templateModules <- function(main.env, page){
   if(is.null(main.env$save.variable))
     stop("No save variable provided")
   
-  if(page %in% c(1,2,3,6))
+  out <- if(page %in% c(1,2,3,6)){
     do.call(
       what = switch(
         as.character(page),
@@ -18,6 +18,11 @@ templateModules <- function(main.env, page){
         main.env
       )
     )
+  } else {
+    TRUE
+  }
+  
+  return(out)
 }
 
 #' @import shiny
@@ -65,11 +70,14 @@ templateModules <- function(main.env, page){
     main.env$EAL$old.page <- main.env$EAL$page
     main.env$EAL$page <- main.env$EAL$page + 1
   } else { # Remove all that has been done
+    # Remove DP folder
     unlink(
       main.env$save.variable$SelectDP$dp.path,
       recursive = TRUE
     )
+    # Re-initialize save variable
     main.env$save.variable <- initReactive(main.env = main.env$EAL)
+    # Tell the user
     showNotification(
       x,
       type = "error",
@@ -114,7 +122,6 @@ templateModules <- function(main.env, page){
   })
   
   if(class(x) == "try-error") {
-    isolate({main.env$EAL$page <- main.env$EAL$page - 1})
     showNotification(
       x,
       type = "error",
@@ -186,7 +193,6 @@ templateModules <- function(main.env, page){
   })
   
   if(class(x) == "try-error") {
-    isolate({main.env$EAL$page <- main.env$EAL$page - 1})
     devmsg(x[1], tag = "on template", timer.env = main.env)
     showNotification(
       x,
@@ -194,9 +200,6 @@ templateModules <- function(main.env, page){
       closeButton = TRUE,
       duration = NULL
     )
-  } else # skip to Geographic Coverage
-  if (isFALSE(.do.template.catvars)) {
-    isolate({main.env$EAL$page <- main.env$EAL$page + 1})
   }
 }
 
@@ -281,8 +284,7 @@ checkTemplates <- function(main.env) {
       main.env$save.variable$SelectDP$dp.metadata.path,
       pattern = pat
     ) 
-  ) || # Or
-    # Clicked "Previous"
+  ) || # Or Clicked "Previous"
     main.env$EAL$page < main.env$EAL$old.page
   
   if(isFALSE(check)) # clicked next and didn't found template

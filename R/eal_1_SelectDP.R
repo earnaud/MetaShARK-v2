@@ -193,16 +193,14 @@ SelectDP <- function(id, main.env) {
       pattern = "_emldp$"
     )
     
+    # Extra reactive: makes sure files are returned reactively
     files.poll.reactive <- reactive(.files.poll())
     
     # set it up
     observe({
-      # validate(
-      #   need(isTruthy(.files.poll()), "No files found")
-      # )
       dp.list <- gsub(files.poll.reactive(), pattern = "_emldp$", replacement = "")
       changed <- isFALSE(identical(dp.list, main.env$local.rv$dp.list))
-      message(length(dp.list))
+      
       # Changed and files present: update file list
       if(changed) {
         main.env$local.rv$dp.list <- dp.list

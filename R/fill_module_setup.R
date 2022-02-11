@@ -680,14 +680,14 @@ setLocalRV <- function(main.env){
         select(datapath) |> # full matching data path
         unlist() |>
         basename()
-      # Set sites
+      # Set potential sites choices from attributes
       .site[[.data.file]] <<- .att[[.md.file]] |> 
         dplyr::filter(class %in% c("character", "categorical")) |> 
         dplyr::select(attributeName) |>
         unlist()
       .site[[.data.file]] <<- paste(.data.file, .site[[.data.file]], sep="/") |>
         setNames(nm = .site[[.data.file]])
-      # Set columns
+      # Set columns choices
       .col[[.data.file]] <<- .att[[.md.file]] |> 
         dplyr::filter(class == "numeric") |> 
         dplyr::select(attributeName) |> 

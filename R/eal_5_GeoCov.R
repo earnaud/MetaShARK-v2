@@ -86,10 +86,11 @@ GeoCov <- function(id, main.env) {
       )
     }
     
-    observe({
+    # Setup ====
+    observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page == 5)
-      main.env$EAL$page.load$depend()
       req(main.env$local.rv$method)
+      devmsg(tag="Geocov", "load")
       
       shinyWidgets::updateMaterialSwitch(
         session,
@@ -119,6 +120,7 @@ GeoCov <- function(id, main.env) {
     # Method selection ====
     observeEvent(input$method, {
       req(main.env$EAL$page == 5)
+      devmsg(tag="Geocov", "method")
       main.env$local.rv$method <- ifelse(input$method, "custom", "columns")
       
       shinyjs::toggle(
@@ -142,6 +144,7 @@ GeoCov <- function(id, main.env) {
     output$site <- renderUI({
       req(main.env$EAL$page == 5)
       req(isContentTruthy(main.env$local.rv$columns$choices$sites))
+      devmsg(tag="Geocov", "render site")
       
       # Site description
       selectInput(
@@ -160,6 +163,7 @@ GeoCov <- function(id, main.env) {
     output$latitude <- renderUI({
       req(main.env$EAL$page == 5)
       req(isContentTruthy(main.env$local.rv$columns$choices$coords))
+      devmsg(tag="Geocov", "render latitude")
       
       selectizeInput(
         session$ns("latitude"),
@@ -178,6 +182,7 @@ GeoCov <- function(id, main.env) {
     output$longitude <- renderUI({
       req(main.env$EAL$page == 5)
       req(isContentTruthy(main.env$local.rv$columns$choices$coords))
+      devmsg(tag="Geocov", "render longitude")
       
       selectizeInput(
         session$ns("longitude"),
@@ -196,6 +201,7 @@ GeoCov <- function(id, main.env) {
     # Site description
     observeEvent(input$site, {
       req(main.env$EAL$page == 5)
+      devmsg(tag="Geocov", "input site")
       
       if (!isTruthy(input$site)) {
         main.env$local.rv$columns$site$col <- ""
@@ -220,6 +226,7 @@ GeoCov <- function(id, main.env) {
     # Latitude
     observeEvent(input$latitude, {
       req(main.env$EAL$page == 5)
+      devmsg(tag="Geocov", "input latitude")
       
       if (!isTruthy(input$latitude)) {
         main.env$local.rv$columns$lat$col <- ""
@@ -245,6 +252,7 @@ GeoCov <- function(id, main.env) {
     # Longitude
     observeEvent(input$longitude, {
       req(main.env$EAL$page == 5)
+      devmsg(tag="Geocov", "input longitude")
       
       if (!isTruthy(input$longitude)) {
         main.env$local.rv$columns$lon$col <- ""
@@ -313,14 +321,14 @@ GeoCov <- function(id, main.env) {
     # 
     
     # Custom server =====
-    ## Add UIs ----
-    
-    ### Setup ----    
+    ### Setup ----
+    # TODO !!!
     
     ### Click add ----
     observeEvent(input$add, {
       req(input$add)
       req(main.env$EAL$page == 5)
+      devmsg(tag="Geocov", "custom add")
       
       main.env$local.rv$custom$count <<- main.env$local.rv$custom$count+1
       
@@ -335,6 +343,7 @@ GeoCov <- function(id, main.env) {
     ### Get leaflet drawing ----
     observeEvent(input$leaflet_draw_new_feature, {
       req(main.env$EAL$page == 5)
+      devmsg(tag="Geocov", "leaflet draw")
       
       main.env$local.rv$custom$count <<- main.env$local.rv$custom$count+1
       
@@ -391,20 +400,13 @@ GeoCov <- function(id, main.env) {
     })
     
     ## Render leaflet ====
-    # map <- reactiveVal(list())
-    # 
-    # # map <- eventReactive(main.env$local.rv$custom, {
-    # observeEvent(main.env$local.rv$custom, {
-    #   
-    #   map(.map)
-    # }) #|> 
-    #   #debounce(1000)
     
-    ## Output ----
+    #### Output ----
     output$leaflet <- leaflet::renderLeaflet({
       req(main.env$EAL$page == 5)
+      devmsg(tag="Geocov", "leaflet render")
       
-      ### Get names ----
+      ###### Get names ----
       .nms <- names(main.env$local.rv$custom)[
         sapply(
           names(main.env$local.rv$custom),
@@ -415,7 +417,7 @@ GeoCov <- function(id, main.env) {
         )
       ]
       
-      ## Get values ----
+      #### Get values ----
       areas <- lapply(.nms, function(id) {
         switch(
           main.env$local.rv$custom[[id]]$type,
@@ -455,7 +457,7 @@ GeoCov <- function(id, main.env) {
       }) |>
         setNames(.nms)
       
-      ## Render map ----
+      #### Render map ----
       .map <- leaflet::leaflet("geocov") |>
         leaflet::addTiles() |>
         leaflet.extras::addDrawToolbar(
@@ -508,6 +510,7 @@ GeoCov <- function(id, main.env) {
       req(main.env$EAL$page == 5)
       invalidateLater(1000)
       req(main.env$local.rv$method %in% c("columns", "custom"))
+      devmsg(tag="Geocov", "saves")
       
       # Set full completeness according to selected method
       main.env$EAL$completed <- switch(
@@ -519,6 +522,5 @@ GeoCov <- function(id, main.env) {
     label = "EAL5 module completed"
     )
     
-    # Process data (deprecated)
   }) # end of server
 }

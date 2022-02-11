@@ -23,8 +23,17 @@ tabPage <- function(id, title, ui, navTagList = NULL) {
 #'
 #' @noRd
 pagesUI <- function(id, parent.id) {
-  steps <- base::get("ui.steps", envir = .GlobalEnv)
-  # rm("ui.steps", envir = .GlobalEnv)
+  steps <- c(
+    "SelectDP",
+    "Data_Files",
+    "Attributes",
+    "Categorical_Variables",
+    "Geographic_Coverage",
+    "Taxonomic_Coverage",
+    "Personnel",
+    "Miscellaneous",
+    "Make_EML"
+  )
   .nb <- length(steps)
   .ui.args <- vector("list", .nb)
   
@@ -96,6 +105,7 @@ pagesServer <- function(id, main.env) {
         
         # Two times computing required for ifelse clause following
         .tmp <- main.env$EAL$page + to - from
+        # Do catvars?
         if(.tmp == 4) {
           .use.catvars <- if("Attributes" %in% main.env$EAL$history)
             any(sapply(
@@ -137,7 +147,7 @@ pagesServer <- function(id, main.env) {
       })
     }
     
-    # * Servers ====
+    ## Servers ====
     ids <- seq_along(steps)
     # Generate observers
     # Previous page
@@ -150,13 +160,13 @@ pagesServer <- function(id, main.env) {
       completeToggle(i, i+1, main.env)
     })
     
-    # * Side UI ====
+    ## Side UI ====
     # Fully functional? 
     sapply(isolate(main.env$VALUES$steps), function(page) {
       output[[paste0(page, "-tag_list")]] <- renderUI(main.env$EAL$tag.list)
     })
     
-    # * Annotation ====
+    ## Annotation ====
     # annotation_modal <- annotationsUI(session$ns("annotations"))
     # annotations("annotations")
     # observeEvent(input$open_annotation, {
@@ -195,12 +205,12 @@ pagesServer <- function(id, main.env) {
     # },
     # label = "open annotation")
     
-    # * Chain ====
+    ## Chain ====
     # TODO fun things to use: bsButton() bsTooltip()
   })
 }
 
-# * Next ====
+## Next ====
 
 #' @import shiny
 #'
@@ -221,7 +231,7 @@ nextTabButton <- function(id, i) {
   # )
 }
 
-# * Previous ====
+## Previous ====
 
 #' @import shiny
 #'
