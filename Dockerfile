@@ -29,6 +29,8 @@ RUN aptitude install -y -f -o APT::Get::Fix-Missing=true \
 	libharfbuzz-dev \
 	libfribidi-dev \
 	mesa-common-dev \
+	libudunits2-dev \
+	libgdal-dev \
   && apt-get clean \ 
   && rm -rf /var/lib/apt/lists/*
 
@@ -41,8 +43,8 @@ RUN dpkg -S /usr/include/GL/gl.h \
 && R -e 'install.packages("devtools")' \
 && R -e 'devtools::install_version("remotes", version = "2.3.0")'
 
-RUN R -e 'remotes::install_github("EDIorg/EMLassemblyline@ad838f970ee259eda7f96d6a0bbe7f9fa509c66e")' 
-RUN Rscript -e 'remotes::install_github("LukasK13/SummeRnote@7c404e1578ab3567fdb331716ca831913ccf645a")'
+RUN R -e 'remotes::install_github("EDIorg/EMLassemblyline@d3d2eb90a67370c1138e234c09dd96c529408f90")' 
+RUN Rscript -e 'remotes::install_github("earnaud/SummeRnote")'
 
 RUN  R -e 'remotes::install_version("RCurl",upgrade="never", version = "1.98-1.3")'\
 && R -e 'remotes::install_version("attempt",upgrade="never", version = "0.3.1")' \
@@ -66,7 +68,10 @@ RUN  R -e 'remotes::install_version("RCurl",upgrade="never", version = "1.98-1.3
 && R -e 'remotes::install_version("golem",upgrade="never", version = "0.3.1")' \
 && R -e 'remotes::install_version("textutils",upgrade="never", version = "0.2-1")' \
 && R -e 'remotes::install_version("tippy",upgrade="never", version = "0.1.0")' \
-&& R -e 'remotes::install_version("shinybusy",upgrade="never", version = "0.2.2")'
+&& R -e 'remotes::install_version("shinybusy",upgrade="never", version = "0.2.2")' \
+&& R -e 'remotes::install_version("units",upgrade="never", version = "0.7-2")'\
+&& R -e 'remotes::install_version("sf",upgrade="never", version = "1.0-5")' \
+&& R -e 'remotes::install_version("leaflet",upgrade="never", version = "2.0.4.1")' 
 
 
 RUN R -e 'remotes::install_local(dir(".", pattern = "MetaShARK_.*\\.tar.gz"), upgrade="never")'

@@ -8,7 +8,7 @@ fillUI <- function(id) {
       tags$h4("EML Assembly Line"),
       fluidPage(
         style = "padding-top:2.5%; background-color: #ffffff57",
-        # * Top row ----
+        ## Top row ----
         tags$table(
           style="width: 100%",
           HTML(
@@ -20,7 +20,10 @@ fillUI <- function(id) {
           ),
           tags$tr(
             tags$td(
-              style="width: 350px; min-width: 350px",
+              style="
+                width: 350px; min-width: 350px; max-width: 500px;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+              ",
               h3(
                 textOutput(NS(id, "current_step"))
               )
@@ -62,7 +65,7 @@ fillUI <- function(id) {
         ),
         
         # uiOutput(NS(id, "chain")),
-        # * Pages ----
+        ## Pages ----
         pagesUI(
           NS(id, "wizard"),
           parent.id = id
@@ -130,7 +133,7 @@ fill <- function(id, main.env) {
       )
     })
     
-    # * Quit ----
+    ## Quit ----
     {
       # show modal.state 'quit' button clicked
       observeEvent(input$quit, {
@@ -187,13 +190,22 @@ fill <- function(id, main.env) {
       )
     } # quit management
     
-    # * Save ----
+    ## Save ----
     observeEvent(input$save, {
       if(main.env$dev) 
         devmsg("saved: %s", main.env$EAL$page, timer.env = main.env)
       saveReactive(main.env, main.env$EAL$page, do.template = FALSE)
     })
     
+    ## Autosave ----
+    observeEvent(main.env$EAL$page, {
+      req(main.env$EAL$page != 1)
+      if(main.env$dev)
+        devmsg("autosaved: %s", main.env$EAL$page, timer.env = main.env)
+      saveReactive(main.env, main.env$EAL$page, do.template = FALSE)
+    }, priority = -2, label = "EAL: autosave") # important priority
+    
+    ## Current step ----
     output$current_step <- renderText({
       req(main.env$EAL$current)
       
@@ -214,18 +226,18 @@ fill <- function(id, main.env) {
       
       withProgress(
         {
-          # * Save  & Template ----
+          ## Save  & Template ----
           devmsg(tag="fill_module.R", "save & template", timer.env = main.env)
           if(main.env$EAL$old.page > 1)
             saveReactive(
               main.env, 
-              main.env$EAL$old.page, 
+              main.env$EAL$old.page,
               # do not template on 'previous'
               do.template = main.env$EAL$old.page < main.env$EAL$page
             )
           incProgress(1/7)
           
-          # * set EAL variables ----
+          ## set EAL variables ----
           devmsg(tag="fill_module.R", "set EAL variables", timer.env = main.env)
           # left Data Files
           if (main.env$EAL$old.page == 2) 
@@ -239,29 +251,29 @@ fill <- function(id, main.env) {
           main.env$EAL$tag.list <- tagList()
           incProgress(1/7)
           
-          # * Reset local.rv ----
+          ## Reset local.rv ----
           devmsg(tag="fill_module.R", "set local rv", timer.env = main.env)
           main.env <- setLocalRV(main.env)
           incProgress(1/7)
           
-          # * Change page ----
+          ## Change page ----
           devmsg(tag="fill_module.R", "change pane", timer.env = main.env)
           updateTabsetPanel(session, "wizard-wizard", selected = steps[main.env$EAL$page])
           incProgress(1/7)
           
-          # * Update history ----
+          ## Update history ----
           if (!main.env$EAL$current %in% main.env$EAL$history) {
             main.env$EAL$history <- c(main.env$EAL$history, main.env$EAL$current)
           }
           devmsg(tag="fill_module.R", "update history", timer.env = main.env)
           incProgress(1/7)
           
-          # * Savevar changes ----
+          ## Savevar changes ----
           devmsg(tag="fill_module.R", "save variables change", timer.env = main.env)
           main.env$save.variable$step <- main.env$EAL$page # save current location
           main.env$save.variable$history <- main.env$EAL$history # erase old save
           
-          # * Accessory UI elements ----
+          ## Accessory UI elements ----
           devmsg(tag="fill_module.R", "display UI", timer.env = main.env)
           if(main.env$EAL$page > 1) {
             shinyjs::show("top_row")
@@ -280,13 +292,13 @@ fill <- function(id, main.env) {
           
           devmsg(tag="fill_module.R", "ended", timer.env = main.env)
           
-          # * Helps ====
+          ## Helps ====
           {
             main.env$EAL$help <- modalDialog(
               title = paste0(main.env$EAL$current, " - Help"),
               switch(
                 main.env$EAL$page,
-                # ** SelectDP ====
+                ### SelectDP ====
                 tagList(
                   tags$p("This module allows you to manage your", tags$strong("data packages"), ".
                     A data package (aka DP) is a collection of a dataset and its associated metadata
@@ -308,7 +320,7 @@ fill <- function(id, main.env) {
                     fields in further steps. You still will be able to edit them at your 
                     convenience.")
                 ),
-                # ** Data Files ====
+                ### Data Files ====
                 tagList(
                   tags$p("This module allows you to load data files from the dataset you want to
             describe. Once uploaded, you can set:"),
@@ -323,7 +335,7 @@ fill <- function(id, main.env) {
                   tags$p("Recommended size per file is around 1 Gb. Such files and heavier ones might slow down the
             app.")
                 ),
-                # ** Attributes  ====
+                ### Attributes  ====
                 tagList(
                   tags$p("This module allows you to describe precisely each attribute of each file. Some of these metadata
             are guessed from the data files. Such fields are annoted with a star (*).
@@ -362,12 +374,12 @@ fill <- function(id, main.env) {
                     tags$li(tags$i("Unit description:"), "some additional notes about the unit, how to compute it.")
                   )
                 ),
-                # ** Catvars ====
+                ### Catvars ====
                 tagList(
                   tags$p("This module allows you to detail the categorical variables (class \"categorical\" in Attributes).
             For each variable, you will be able to detail each of its value by a short description.")
                 ),
-                # ** Geocov ====
+                ### Geocov ====
                 tagList(
                   tags$p("This module allows you to define the geographic area in which the data have been produced. 
             You have the choice between two methods to define geographic coverage:"),
@@ -393,14 +405,14 @@ fill <- function(id, main.env) {
                     )
                   )
                 ),
-                # ** Taxcov ====
+                ### Taxcov ====
                 tagList(
                   tags$p("This module allows you to define the taxonomical coverage of the study. You will be asked to 
             select columns among your files containing the species name. Also, let the app know if the taxonomic
             coverage shall be written with scientific, common or both names. At last, select at least one taxonomic
             authority among the ones suggested."),
                 ),
-                # ** Personnel ====
+                ### Personnel ====
                 tagList(
                   tags$p("This module allows you to get a full list of the people who contributed to the creation of 
             this dataset. The recommended best practice is to", tags$b("use the ORCID"), "of a person. With 
@@ -416,7 +428,7 @@ fill <- function(id, main.env) {
                     tags$li("Custom: as the list of roles is not exhaustive, feel free to add any role you consider important.")
                   )
                 ),
-                # ** Misc ====
+                ### Misc ====
                 tagList(
                   tags$p("This module allows you to define the last details of your data package. Note that you can write
             some of these metadata using the markdown syntax. Here are brief descriptions of the fields:"),
@@ -434,7 +446,7 @@ fill <- function(id, main.env) {
               from GBIF-EML).")
                   )
                 ),
-                # ** Make EML ====
+                ### Make EML ====
                 tagList(
                   tags$p("Here we are (well done) ! This is the final step to write EML. Just click the button and let the magic happen. If an 
             error occurs, this will be displayed to the screen. In this case, do not hesitate to get in touch with the dev team."),

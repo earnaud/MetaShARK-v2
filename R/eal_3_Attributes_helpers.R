@@ -65,11 +65,11 @@ setUnitList <- function(main.env, set = NULL) {
   types <- unique(names(choices[sapply(choices, length) != 1]))
   out <- choices[sapply(choices, length) == 1]
   out <- c(custom = out$custom, out[names(out) != "custom"])
-  # browser()
   
   sapply(types, function(type){
     out[[type]] <<- unname(choices[which(names(choices) == type)])[[1]]
   })
+  
   # Correct value set for updates
   if(!is.null(set)) {
     set <- set |>
@@ -82,8 +82,6 @@ setUnitList <- function(main.env, set = NULL) {
       ]) |>
       as.list()
   }
-  
-  # TODO rework unit listing
   
   # Output
   return(list(
