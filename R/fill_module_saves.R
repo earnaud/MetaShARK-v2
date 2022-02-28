@@ -234,7 +234,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
 #' @import shiny
 .saveGeoCov <- function(main.env){
   .sv <- main.env$save.variable
-  browser()
+  # browser()
   # Initialize variables
   .method <- main.env$local.rv$method
 
@@ -865,7 +865,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
   }
   
   # Custom ----
-  browser()
+  # browser()
   if (.method == "custom") {
     # shortcuts
     .local.rv <- main.env$local.rv$custom

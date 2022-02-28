@@ -727,7 +727,6 @@ setLocalRV <- function(main.env){
       }
       
       ### Custom ----
-      browser()
       if (main.env$local.rv$method == "custom" &&
           isContentTruthy(main.env$save.variable$GeoCov$custom)) {
         # shortcut save variable
@@ -736,13 +735,13 @@ setLocalRV <- function(main.env){
         if (isContentTruthy(saved_tables)) {
           count <- 0
           
-          sapply(
-            names(saved_tables)[isFALSE(names(saved_tables) %in% c("count", "complete"))], 
+          try(sapply(
+            names(saved_tables)[!(names(saved_tables) %in% c("count", "complete"))], 
             function(row.ind) {
               row <- saved_tables[[row.ind]]
               # Recount number of items from 1:n
               count <<- count+1
-              main.env$local.rv$custom[[as.character(count)]] <- reactiveValues(
+              main.env$local.rv$custom[[as.character(count)]] <<- reactiveValues(
                 # number of locationInputs
                 count = nrow(row$points), 
                 # Values 
@@ -751,15 +750,17 @@ setLocalRV <- function(main.env){
                 points = row$points,
                 color = row$color # length == 1
               )
+              return()
             }
-          )
+          ))
+          main.env$local.rv$custom$count <- count
         }
       }
     }
     
     makeReactiveBinding("main.env$local.rv$custom")
     
-    # Set completeness
+    #### Set completeness ----
     main.env$local.rv$columns$complete <- reactive(
       isTruthy(main.env$local.rv$columns$site$col) &&
         isTruthy(main.env$local.rv$columns$lat$col) &&

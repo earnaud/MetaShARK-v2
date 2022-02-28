@@ -1,29 +1,29 @@
 insertCustomLocationInput <- function(
-  id, outer.id, default, selector = "#inserthere", local.rv
+  id, outer.id, default, selector = "#inserthere", local.rv, removable = TRUE
 ) {
   # create the UI
-  new.ui <- customLocationInput_UI(id, default = default)
+  new.ui <- customLocationInput_UI(id, default = default, removable = removable)
   # insert the UI
   insertUI(selector, ui = new.ui, immediate = TRUE)
   # create the server
-  customLocationInput(unns(id), outer.id = outer.id, local.rv)
+  customLocationInput(unns(id), outer.id = outer.id, local.rv, removable = removable)
 }
 
 # Coordinate Input UI ====
-customLocationInput_UI <- function(id, default) {
+customLocationInput_UI <- function(id, default, removable) {
   ns <- NS(id)
   
   tags$div(
     id = ns("box"),
     coordinateInput_UI(ns("coordinate"), default),
-    if(as.numeric(unns(id)) > 3)
+    if(isTRUE(removable))
       actionLink(ns("rmv"), "", icon("times")),
     style = "display: flex; align-items: baseline;"
   )
 }
 
 # Coordinate Input Server ====
-customLocationInput <- function(id, outer.id, local.rv) {
+customLocationInput <- function(id, outer.id, local.rv, removable = TRUE) {
   moduleServer(id, function(input, output, session) {
     # grab values from inserted module
     rv <- coordinateInput("coordinate")
@@ -55,14 +55,16 @@ customLocationInput <- function(id, outer.id, local.rv) {
       }
     })
     
-    # remove ----
-    observeEvent(input$rmv, {
-      message(paste0("#", NS(outer.id, NS(id, "box"))))
-      # remove UI
-      removeUI(selector = paste0("#", NS(outer.id, NS(id, "box"))), immediate = TRUE)
-      # remove data
-      .ind <- which(local.rv$custom[[outer.id]]$points$id == id)
-      local.rv$custom[[outer.id]]$points <- local.rv$custom[[outer.id]]$points[-.ind,]
-    })
+    # remove point ----
+    if(isTRUE(removable)) { # no need for pointless observer
+      observeEvent(input$rmv, {
+        devmsg("Removing #%s", session$ns("box"), tag = "customLocationInput.R")
+        # remove UI
+        removeUI(selector = paste0("#", session$ns("box")), immediate = TRUE)
+        # remove data
+        .ind <- which(local.rv$custom[[outer.id]]$points$id == id) # might not be the same as index
+        local.rv$custom[[outer.id]]$points <- local.rv$custom[[outer.id]]$points[-.ind,]
+      })
+    }
   })
 }

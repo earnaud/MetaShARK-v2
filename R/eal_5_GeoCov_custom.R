@@ -7,6 +7,7 @@ insertCustomGeoCov <- function(id, main.env) {
   )
   # insert the UI
   insertUI(selector = "#inserthere_eal5", ui = new.ui, immediate = TRUE)
+  
   # create the server
   customGeoCov(unns(id), main.env)
 }
@@ -19,14 +20,14 @@ customGeoCov_UI <- function(id, value = NULL) {
     value,
     list(
       type = "rectangle",
-      description = "", # length == 1
+      description = sprintf("site %s", unns(id)), # length == 1
       points = data.frame( # length >= 1
         id = 1:3,
         lat = c(30,60,45),
         lon = c(-15,35,-15),# lon of the point
         stringsAsFactors = FALSE
       ),
-      color = "#03f" # length == 1
+      color = "#0033ff" # length == 1
     )
   )
   
@@ -35,13 +36,14 @@ customGeoCov_UI <- function(id, value = NULL) {
     class = "inputBox",
     style = "
     max-height: 10vw !important;
-    overflow-y: scroll;
     background: #ffffff57;
-    overflow-x: hidden",
+    overflow: hidden;",
     fluidRow(
+      # Form column ----
       column(
         10,
         fluidRow(
+          ## Site description ----
           column(
             6,
             textInput(
@@ -50,51 +52,61 @@ customGeoCov_UI <- function(id, value = NULL) {
               optional(value$description, "")
             )
           ),
+          ## Site type ----
           column(
             6,
-            shinyWidgets::radioGroupButtons(
+            radioButtons(
               inputId = ns("type"),
               label = "Type",
               choices =  c("marker", "rectangle", "polygon"),
               selected = optional(value$type, "rectangle"),
-              justified = TRUE
+              inline = TRUE
             )
+            # shinyWidgets::radioGroupButtons(
+            #   inputId = ns("type"),
+            #   label = "Type",
+            #   choices =  c("marker", "rectangle", "polygon"),
+            #   selected = optional(value$type, "rectangle"),
+            #   justified = TRUE
+            # )
           )
         ),
+        ## Points input ----
+        # tags$div(
+        #   customLocationInput_UI(
+        #     ns("1"), 
+        #     list(
+        #       lat = optional(value$points$lat[1], 35),
+        #       lon = optional(value$points$lon[1], -15)
+        #     )
+        #   ),
+        #   if(length(value$points$lat) > 1)
+        #     customLocationInput_UI(
+        #       ns("2"), 
+        #       list(
+        #         lat = optional(value$points$lat[2], 60),
+        #         lon = optional(value$points$lon[2], 35)
+        #       )
+        #     ),
+        #   if(length(value$points$lat) > 2)
+        #     customLocationInput_UI(
+        #       ns("3"), 
+        #       list(
+        #         lat = optional(value$points$lat[3], 45),
+        #         lon = optional(value$points$lon[3], -15)
+        #       )
+        #     )
+        # ),
         tags$div(
-          customLocationInput_UI(
-            ns("1"), 
-            list(
-              lat = optional(value$points$lat[1], 35),
-              lon = optional(value$points$lon[1], -15)
-            )
-          ),
-          if(length(value$points$lat) > 1)
-            customLocationInput_UI(
-              ns("2"), 
-              list(
-                lat = optional(value$points$lat[2], 60),
-                lon = optional(value$points$lon[2], 35)
-              )
-            ),
-          if(length(value$points$lat) > 2)
-            customLocationInput_UI(
-              ns("3"), 
-              list(
-                lat = optional(value$points$lat[3], 45),
-                lon = optional(value$points$lon[3], -15)
-              )
-            )
-        ),
-        tags$div(id=sprintf("inserthere_eal5_custom_%s", unns(id))),
-        actionButton(
-          ns("new_point"),
-          "New point", 
-          icon("map-marker-alt")
+          style = "overflow-y: scroll; height: 6vw;",
+          tags$div(id=sprintf("inserthere_eal5_custom_%s", unns(id))),
+          actionButton(ns("new_point"), "New point", icon("plus"))
         )
       ),
+      # Accessory column ----
       column(
         2,
+        style = "top: 2em",
         fluidRow(
           actionButton(
             ns("rmv"),"",
@@ -103,11 +115,18 @@ customGeoCov_UI <- function(id, value = NULL) {
           )
         ),
         fluidRow(
-          colorPickerInput(
+          colourpicker::colourInput(
             ns("color"),
-            label = "",
-            width = "40px"
-          )
+            label = "Color",
+            showColour = "background",
+            value = value$color
+          ) |>
+            tagAppendAttributes(style="width:40px;")
+          # colorPickerInput(
+          #   ns("color"),
+          #   label = "",
+          #   width = "40px"
+          # )
         )
       )
     ),
@@ -118,6 +137,7 @@ customGeoCov_UI <- function(id, value = NULL) {
 # Custom GeoCov Server ====
 customGeoCov <- function(id, main.env) {
   moduleServer(id, function(input, output, session) {
+    # Dev ----
     observeEvent(input$devinside, {
       browser()
     })
@@ -132,7 +152,7 @@ customGeoCov <- function(id, main.env) {
         type = "rectangle",
         description = "", # length == 1
         points = data.frame( # length >= 1
-          id = 1:3, 
+          id = 1:3,
           lat = c(30,60,45),
           lon = c(-15,35,-15),# lon of the point
           stringsAsFactors = FALSE
@@ -140,36 +160,62 @@ customGeoCov <- function(id, main.env) {
         color = "#03f" # length == 1
       )
     )
+    # Correct some values
+    .npoints = nrow(main.env$local.rv$custom[[id]]$points)
+    # Ensure points ids match the numbers of rows
+    main.env$local.rv$custom[[id]]$points$id <- 1:.npoints
+    # Fix the count
+    main.env$local.rv$custom[[id]]$count <- .npoints
     
     # Load ====
-    # Adds as many locations input as necessary
-    .npoints = nrow(main.env$local.rv$custom[[id]]$points)
-    if(.npoints > 3) {
-      sapply(
-        main.env$local.rv$custom[[id]]$points$id[
-          4:.npoints
-        ],
-        function(rowid) {
-          main.env$local.rv$custom[[id]]$count <<- main.env$local.rv$custom[[id]]$count+1
-          
-          insertCustomLocationInput(
-            session$ns(as.character(main.env$local.rv$custom[[id]]$count)), 
-            outer.id = id,
-            default = main.env$local.rv$custom[[id]]$points |>
-              filter(id == rowid) |>
-              select(c("lat","lon")),
-            selector = sprintf("#inserthere_eal5_custom_%s", id),
-            local.rv = main.env$local.rv
-          )
-        }
-      )
-    } else { # <= 3# 
-      shinyjs::toggle("3-box", condition = main.env$local.rv$custom[[id]]$type %in% c("rectangle", "marker"))
-      shinyjs::toggle("2-box", condition = main.env$local.rv$custom[[id]]$type == "marker")
-    }
+    # !!! Initialized on click, not with main.env$EAL$page
+    
+    # Count locations
+    # .npoints = nrow(main.env$local.rv$custom[[id]]$points)
+    
+    ## Adds as many locations input as necessary ----
+    # if(.npoints > 3) {
+    sapply(
+      1:.npoints,
+      function(rowid) { # enforced previously
+        insertCustomLocationInput(
+          session$ns(as.character(rowid)), # 1:nrow
+          outer.id = id,
+          default = main.env$local.rv$custom[[id]]$points |>
+            filter(id == rowid) |>
+            select(c("lat","lon")),
+          selector = sprintf("#inserthere_eal5_custom_%s", id),
+          local.rv = main.env$local.rv,
+          removable = main.env$local.rv$custom[[id]]$count > 3 # do not make first 3 points removable
+        )
+      }
+    ) # end of sapply
+    # }
+    
+    # # Serve first three points
+    # customLocationInput("1", outer.id = id, main.env$local.rv)
+    # customLocationInput("2", outer.id = id, main.env$local.rv)
+    # customLocationInput("3", outer.id = id, main.env$local.rv)
+    
+    ## Init visibility ----
+    # Hide 2nd box if marker
+    shinyjs::toggle("2-box", condition = main.env$local.rv$custom[[id]]$type != "marker")
+    # Hide 3rd box if not polygon
+    shinyjs::toggle("3-box", condition = main.env$local.rv$custom[[id]]$type == "polygon")
+    # Hide New point box unless type is polygon
+    shinyjs::toggle("new_point", condition = main.env$local.rv$custom[[id]]$type == "polygon")
+    
+    # Get description ====
+    observeEvent(input$site_description, {
+      req(main.env$EAL$page == 5)
+      req(isTruthy(input$site_description))
+      
+      main.env$local.rv$custom[[id]]$description <- input$site_description
+    }, label = session$ns("description"))
     
     # Change type ====
     observeEvent(input$type, {
+      req(main.env$EAL$page == 5)
       # Number of points in polygon
       .polygon.points.ids <- (1:nrow(main.env$local.rv$custom[[id]]$points))[-c(1,2)]
       # Keep old type in local
@@ -177,63 +223,124 @@ customGeoCov <- function(id, main.env) {
       # Properly change type of spatial feature
       main.env$local.rv$custom[[id]]$type <- input$type
       
-      ## Set to marker ----
-      if(input$type == "marker") {
-        shinyjs::hide("2-box")
-        shinyjs::hide("new_point")
-        if(length(.polygon.points.ids) > 0){
-          sapply(
-            paste0(
-              main.env$local.rv$custom[[id]]$points[.polygon.points.ids, "id"],
-              "-box"
-            ),
-            shinyjs::hide
-          )
-        }
-      } 
-      
-      ## Set to rectangle ----
-      if(input$type == "rectangle") {
-        shinyjs::show("2-box")
-        shinyjs::hide("new_point")
-        # newly created rectangle
-        if(.old.type == input$type){
-          main.env$local.rv$custom[[id]]$points$lat[3] <- mean(main.env$local.rv$custom[[id]]$points$lat[1:2])
-          main.env$local.rv$custom[[id]]$points$lon[3] <- mean(main.env$local.rv$custom[[id]]$points$lon[1:2])
-        }
-        if(length(.polygon.points.ids) > 0){
-          sapply(
-            paste0(
-              main.env$local.rv$custom[[id]]$points[.polygon.points.ids, "id"],
-              "-box"
-            ),
-            shinyjs::hide
-          )
-        }
-        
-      } 
-      
-      ## Set to polygon ----
-      if(input$type == "polygon") {
-        shinyjs::show("2-box")
-        shinyjs::show("new_point")
-        if(length(.polygon.points.ids) > 0){
-          sapply(
-            paste0(
-              main.env$local.rv$custom[[id]]$points[.polygon.points.ids, "id"],
-              "-box"
-            ),
-            shinyjs::show
-          )
-        }
-        
-      }
-    })
+      # ## Set to marker ---
+      # if(input$type == "marker") {
+      #   # if(length(.polygon.points.ids) > 0){
+      #   #   sapply(
+      #   #     # hide all point inputs whose ID > 1 (it can't have been added)
+      #   #     paste0(
+      #   #       main.env$local.rv$custom[[id]]$points |> 
+      #   #         filter(as.numeric(id) > 1) |>
+      #   #         select(id) |> 
+      #   #         unlist(),
+      #   #       # main.env$local.rv$custom[[id]]$points[.polygon.points.ids, "id"],
+      #   #       "-box"
+      #   #     ),
+      #   #     shinyjs::hide
+      #   #   )
+      #   # }
+      # }
+      # 
+      # # Set to rectangle ---
+      # if(input$type == "rectangle") {
+      #   # shinyjs::show("2-box")
+      #   # shinyjs::hide("new_point")
+      #   # newly created rectangle
+      #   # if(.old.type == input$type){
+      #   #   main.env$local.rv$custom[[id]]$points$lat[3] <- mean(main.env$local.rv$custom[[id]]$points$lat[1:2])
+      #   #   main.env$local.rv$custom[[id]]$points$lon[3] <- mean(main.env$local.rv$custom[[id]]$points$lon[1:2])
+      #   # }
+      #   # if(length(.polygon.points.ids) > 0){
+      #   #   sapply(
+      #   #     # hide all point inputs whose ID > 2 (they can't have been added)
+      #   #     paste0(
+      #   #       main.env$local.rv$custom[[id]]$points |> 
+      #   #         filter(as.numeric(id) > 2) |>
+      #   #         select(id) |> 
+      #   #         unlist(),
+      #   #       # main.env$local.rv$custom[[id]]$points[.polygon.points.ids, "id"],
+      #   #       "-box"
+      #   #     ),
+      #   #     shinyjs::hide
+      #   #   )
+      #   # }
+      # }
+      # 
+      # # Set to polygon ---
+      # if(input$type == "polygon") {
+      #   # shinyjs::show("2-box")
+      #   # shinyjs::show("new_point")
+      #   # if(length(.polygon.points.ids) > 0){
+      #   #   sapply(
+      #   #     paste0(
+      #   #       main.env$local.rv$custom[[id]]$points[.polygon.points.ids, "id"],
+      #   #       "-box"
+      #   #     ),
+      #   #     shinyjs::show
+      #   #   )
+      #   # }
+      #   
+      # }
+    },label = "change type")
     
-    # Serve first three points ====
-    customLocationInput("1", outer.id = id, main.env$local.rv)
-    customLocationInput("2", outer.id = id, main.env$local.rv)
-    customLocationInput("3", outer.id = id, main.env$local.rv)
+    # Hide/show divs ====
+    observe({
+      .type <- main.env$local.rv$custom[[id]]$type
+      req(!is.null(.type))
+      # hide all useless point
+      ## Marker ----
+      ## Hide all but 1-box (never hidden)
+      if(.type == "marker") {
+        sapply(
+          paste0(
+            main.env$local.rv$custom[[id]]$points |> 
+              filter(as.numeric(id) > 1) |>
+              select(id) |> 
+              unlist(),
+            "-box"
+          ),
+          shinyjs::hide
+        )
+      } 
+      
+      ## Rectangle ----
+      ## Hide all but 1-box (never hidden) and 2-box (show here)
+      if(.type == "rectangle") {
+        sapply(
+          paste0(
+            main.env$local.rv$custom[[id]]$points |> 
+              filter(as.numeric(id) > 2) |>
+              select(id) |> 
+              unlist(),
+            "-box"
+          ),
+          shinyjs::hide
+        )
+        shinyjs::show("2-box")
+      } 
+      
+      ## Polygon ----
+      ## Show all
+      if(.type == "polygon") {
+        sapply(
+          paste0(
+            main.env$local.rv$custom[[id]]$points |> 
+              filter(as.numeric(id) > 3) |>
+              select(id) |> 
+              unlist(),
+            "-box"
+          ),
+          shinyjs::show
+        )
+      }
+      # # Hide 2nd box if marker
+      # shinyjs::toggle("2-box", condition = main.env$local.rv$custom[[id]]$type != "marker")
+      # # Hide 3rd box if not polygon
+      # shinyjs::toggle("3-box", condition = main.env$local.rv$custom[[id]]$type == "polygon")
+      
+      # Hide New point box unless type is polygon
+      shinyjs::toggle("new_point", condition = main.env$local.rv$custom[[id]]$type == "polygon")
+    })
     
     # Add points ====
     observeEvent(input$new_point, {
@@ -251,6 +358,7 @@ customGeoCov <- function(id, main.env) {
     # Get color ====
     observeEvent(input$color, {
       req(isTruthy(input$color))
+      
       main.env$local.rv$custom[[id]]$color <- input$color
     })
     
@@ -261,6 +369,8 @@ customGeoCov <- function(id, main.env) {
       removeUI(selector = paste0("#", session$ns("box")), immediate = TRUE)
       # remove data
       main.env$local.rv$custom[[id]] <- NULL
+      # https://github.com/rstudio/shiny/issues/2439
+      .subset2(main.env$local.rv$custom, "impl")$.values$remove("1")
     })
     
   })
@@ -289,7 +399,6 @@ saveCustomGeoCov <- function() {
           list() |>
           st_polygon() |>
           st_as_text()
-        
       } else ""
     ) # end of data.frame
   }) |>
