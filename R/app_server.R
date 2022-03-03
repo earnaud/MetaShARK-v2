@@ -10,7 +10,8 @@ users = reactiveValues(count = 0)
 server <- function(input, output, session) {
   # get variables & clean
   args <- base::get("metashark.args", envir = .GlobalEnv)
-  rm("metashark.args", envir = .GlobalEnv)
+  if(main.env$dev)
+    rm("metashark.args", envir = .GlobalEnv)
   
   # Setup environment
   main.env <- .globalScript(

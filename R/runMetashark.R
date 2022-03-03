@@ -61,7 +61,7 @@ runMetashark <- function(...) {
   
   # Set args in environment
   assign("metashark.args", args, envir = .GlobalEnv)
-  on.exit(rm("metashark.args", envir = .GlobalEnv))
+  # on.exit(rm("metashark.args", envir = .GlobalEnv))
   
   # Settings =====
   # Set resourcePaths
