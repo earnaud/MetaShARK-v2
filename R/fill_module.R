@@ -192,17 +192,17 @@ fill <- function(id, main.env) {
     
     ## Save ----
     observeEvent(input$save, {
-      if(main.env$dev) 
-        devmsg("saved: %s", main.env$EAL$page, timer.env = main.env)
+      devmsg("saved: %s", main.env$EAL$page, timer.env = main.env)
       saveReactive(main.env, main.env$EAL$page, do.template = FALSE)
+      if(main.env$dev) devmsg("done", timer.env = main.env)
     })
     
     ## Autosave ----
     observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page != 1)
-      if(main.env$dev)
-        devmsg("autosaved: %s", main.env$EAL$page, timer.env = main.env)
+      devmsg("autosaved: %s", main.env$EAL$page, timer.env = main.env)
       saveReactive(main.env, main.env$EAL$page, do.template = FALSE)
+      if(main.env$dev) devmsg("done", timer.env = main.env)
     }, priority = -2, label = "EAL: autosave") # important priority
     
     ## Current step ----
@@ -223,7 +223,6 @@ fill <- function(id, main.env) {
     # Navigation ====
     observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page != main.env$EAL$old.page)
-      
       withProgress(
         {
           ## Save  & Template ----

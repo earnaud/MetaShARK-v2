@@ -1,5 +1,6 @@
 #' @import shiny
 #' @importFrom shinyWidgets materialSwitch
+#' @importFrom leaflet leafletOutput
 #'
 #' @noRd
 GeoCovUI <- function(id) {
@@ -70,6 +71,7 @@ GeoCovUI <- function(id) {
 #' @import shiny
 #' @importFrom shinyWidgets updateMaterialSwitch
 #' @importFrom shinyjs toggle
+#' @importFrom leaflet renderLeaflet leaflet addTiles addAwesomeMarkers makeAwesomeIcon addRectangles addPolygons
 #'
 #' @noRd
 GeoCov <- function(id, main.env) {

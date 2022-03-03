@@ -71,7 +71,9 @@ RUN  R -e 'remotes::install_version("RCurl",upgrade="never", version = "1.98-1.3
 && R -e 'remotes::install_version("shinybusy",upgrade="never", version = "0.2.2")' \
 && R -e 'remotes::install_version("units",upgrade="never", version = "0.7-2")'\
 && R -e 'remotes::install_version("sf",upgrade="never", version = "1.0-5")' \
-&& R -e 'remotes::install_version("leaflet",upgrade="never", version = "2.0.4.1")' 
+&& R -e 'remotes::install_version("leaflet",upgrade="never", version = "2.0.4.1")' \
+&& R -e 'remotes::install_version("leaflet.extras",upgrade="never", version = "1.0.0")' \
+&& R -e 'remotes::install_version("colourpicker",upgrade="never", version = "1.1.1")' 
 
 
 RUN R -e 'remotes::install_local(dir(".", pattern = "MetaShARK_.*\\.tar.gz"), upgrade="never")'

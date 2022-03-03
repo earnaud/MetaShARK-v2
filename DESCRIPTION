@@ -18,6 +18,7 @@ Depends:
     R (>= 2.10)
 Imports: 
     config,
+    colourpicker,
     data.table,
     dataone,
     datapack,
@@ -31,6 +32,7 @@ Imports:
     htmltools,
     httr,
     jsonlite,
+    leaflet,
     methods,
     mime,
     profvis,

@@ -13,6 +13,8 @@ insertCustomGeoCov <- function(id, main.env) {
 }
 
 # Custom GeoCov Form UI ====
+#' @noRd
+#' @importFrom colourpicker colourInput
 customGeoCov_UI <- function(id, value = NULL) {
   ns <- NS(id)
   
