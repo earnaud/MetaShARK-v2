@@ -1,3 +1,11 @@
+#' Preload & set variables
+#' 
+#' This function is used to prepare variables at the application startup.
+#' It takes up to a dozen of seconds.
+#' 
+#' CAPITAL written variables are constant variables.
+#' common written variables are regular variables.
+#' 
 #' @import shiny
 #' @importFrom EML get_unitList
 #' @importFrom data.table fread
@@ -8,12 +16,8 @@
   envir,
   ...
 ) {
-
+  # handle additional arguments in ...
   other.items <- c(...)
-  if("ui.steps" %in% names(other.items)) {
-    ui.steps <- other.items$ui.steps
-    other.items <- other.items[-which(names(other.items) == "ui.steps")]
-  }
   
   # Options setup ====
   options(stringsAsFactors = FALSE)
@@ -31,37 +35,46 @@
   assign("other.items", other.items, main.env)
   
   # Paths ====
-  wwwPaths <- system.file("resources", package = "MetaShARK") |>
+  # Paths contained in inst/resources
+  resourcePaths <- system.file("resources", package = "MetaShARK") |>
     dir(full.names = TRUE) |>
     as.list()
-  names(wwwPaths) <- basename(unlist(wwwPaths))
+  names(resourcePaths) <- basename(unlist(resourcePaths))
   
+  # Set Home -- different if testmode is on
   HOME <- if(isTRUE(getOption("shiny.testmode")))
     system.file("../tests/testthat/app/tests/shinytest/test_data_package/", package = "MetaShARK") else
       "~/dataPackagesOutput/emlAssemblyLine"
+  # Index interesting paths
   PATHS <- reactiveValues(
-    home = HOME,
-    eal.dp = sprintf(
-      "%s/",
-      HOME
-    ),
+    # home directory
+    eal.dp = paste0(HOME, "/"),
+    # path to index file
+    # FIXME later : still unused, shall handle users sessions & profiles
     eal.dp.index =sprintf(
       "%s/index.txt",
       HOME
     ),
+    # defined temp dir
     eal.tmp = tempdir(),
-    resources = wwwPaths
+    # paths to resources
+    resources = resourcePaths
   )
+  
+  # Test-specific path setup
   if(!isTRUE(getOption("shiny.testmode")))
     dir.create(isolate(PATHS$eal.dp), recursive = TRUE, showWarnings = FALSE)
-  dir.create(isolate(PATHS$eal.tmp), recursive = TRUE, showWarnings = FALSE)
+  # dir.create(isolate(PATHS$eal.tmp), recursive = TRUE, showWarnings = FALSE)
 
+  # save PATHS
   assign("PATHS", PATHS, envir = main.env)
 
   # Sessionning ====
-  
+
+  # In test, set DP list to empty
   if(isTRUE(getOption("shiny.testmode"))) {
     devmsg(tag = "test", "setting DP list")
+    # FIXME : add dp index
     DP.LIST <- data.frame(
       creator = character(),
       name = character(),
@@ -69,11 +82,11 @@
       path = character(),
       stringsAsFactors = FALSE
     )
-  } else if (isTRUE(file.exists(isolate(PATHS$eal.dp.index)))) {
+  } else if (isTRUE(file.exists(isolate(PATHS$eal.dp.index)))) { # if existing index: dp list
     DP.LIST <- readDataTable(isolate(PATHS$eal.dp.index), sep = "\t")
     DP.LIST$path <- DP.LIST$path |>
       gsub(pattern = "//+", replacement = "/")
-  } else {
+  } else { # if no index: empty list
     DP.LIST <- data.frame(
       creator = character(),
       name = character(),
@@ -82,8 +95,10 @@
       stringsAsFactors = FALSE
     )
     # Fill DP.LIST for first-time runs
+    # Get list of DPs
     .files <- dir(isolate(PATHS$eal.dp), full.names = TRUE) |>
       gsub(pattern = "//", replacement = "/")
+    # Set information per DP entry by reading json summary file
     if(length(.files) > 0) {
       sapply(.files, function(.file) {
         .info <- jsonlite::read_json(
@@ -95,17 +110,19 @@
           )
         )[[1]] |>
           jsonlite::unserializeJSON()
-        
+        # set row for the file
         .row <- c(
-          creator.orcid = "public",
+          creator.orcid = "public", # default to public access
           name = .info$SelectDP$dp.name,
           title = .info$SelectDP$dp.title,
           path = .file
         )
+        # Add to dp list
         DP.LIST <<- rbind(DP.LIST, .row)
       })
     }
   }
+  # check DP.LIST columns are well named
   colnames(DP.LIST) <- c("creator", "name", "title", "path")
   
   # Curate DP.LIST versus actual list
@@ -115,34 +132,50 @@
     full.names = TRUE
   ) |> 
     gsub(pattern = "//+", replacement = "/")
+  # Only keep really existing DP 
   DP.LIST <- dplyr::filter(DP.LIST, path %in% .actual.index)
+  
   # save actual index
   data.table::fwrite(DP.LIST, isolate(PATHS$eal.dp.index), sep = "\t")
-
+  # save DP.LIST
   assign("DP.LIST", DP.LIST, envir = main.env)
+  # Make it reactive 
   makeReactiveBinding("DP.LIST", env = main.env)
 
   # Values ====
-  # DataONE nodes
-  .ENDPOINTS <- readDataTable(
-    wwwPaths$registeredEndpoints.txt
-  )
+  # Multiple purposes data
   
+  # DataONE nodes
+  .ENDPOINTS <- readDataTable(resourcePaths$registeredEndpoints.txt)
+  
+  # Save 
   assign(
     "VALUES",
     reactiveValues(
       dataone.endpoints = .ENDPOINTS,
       thresholds = reactiveValues(
-        files.size.max = 500000
+        files.size.max = 500000 
       ),
-      steps = ui.steps
+      steps = c(
+        "SelectDP",
+        "Data_Files",
+        "Attributes",
+        "Categorical_Variables",
+        "Geographic_Coverage",
+        "Taxonomic_Coverage",
+        "Personnel",
+        "Miscellaneous",
+        "Make_EML"
+      ),
+      last.timer = Sys.time()
     ),
     envir = main.env
   )
+  
   # Formats ====
 
   # Taxa authorities
-  .TAXA.AUTHORITIES <- data.table::fread(wwwPaths$taxaAuthorities.txt)
+  .TAXA.AUTHORITIES <- data.table::fread(resourcePaths$taxaAuthorities.txt)
 
   # Unit types
   .all.units <- EML::get_unitList()$units
@@ -159,6 +192,7 @@
   .units <- "custom"
   names(.units) <- "custom"
   
+  # Structure unit list
   sapply(.unitList, function(unit) {
     .units <<- c(
       .units, 
@@ -168,7 +202,18 @@
       )
     )
   })
-
+  .units <- split(.units, names(.units)) |>
+    sapply(unname)
+  # Turn 1-length items' names to items themselves
+  sapply(
+    which(sapply(.units, length) == 1),
+    function(li) 
+      names(.units)[li] <<- .units[[li]]
+  )
+  # Set custom as first unit
+  .units <- c(.units["custom"], .units[names(.units) != "custom"])
+  
+  # Save
   assign(
     "FORMATS",
     reactiveValues(
@@ -178,6 +223,7 @@
         "MM-YYYY", "DD-MM-YYYY", "MM-DD-YYYY",
         "hh:mm:ss", "hh:mm", "mm:ss", "hh"
       ),
+      lubridate_formats = lubridate:::lubridate_formats,
       units = .units,
       taxa.authorities = .TAXA.AUTHORITIES
     ),
@@ -185,6 +231,7 @@
   )
 
   # Semantics ====
+  # FIXME load ontologies
   assign(
     "SEMANTICS",
     reactiveValues(

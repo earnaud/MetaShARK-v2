@@ -5,7 +5,7 @@ templateModules <- function(main.env, page){
   if(is.null(main.env$save.variable))
     stop("No save variable provided")
   
-  if(page %in% c(1,2,3,6))
+  out <- if(page %in% c(1,2,3,6)){
     do.call(
       what = switch(
         as.character(page),
@@ -18,6 +18,11 @@ templateModules <- function(main.env, page){
         main.env
       )
     )
+  } else {
+    TRUE
+  }
+  
+  return(out)
 }
 
 #' @import shiny
@@ -44,12 +49,12 @@ templateModules <- function(main.env, page){
       main.env$local.rv$dp.license()
     )
     
-    if(isTRUE(main.env$wip))
-      EMLassemblyline::template_annotations(
-        main.env$save.variable$SelectDP$dp.metadata.path,
-        main.env$save.variable$SelectDP$dp.data.path,
-        dir(main.env$save.variable$SelectDP$dp.data.path)
-      )
+    # if(isTRUE(main.env$wip))
+      # EMLassemblyline::template_annotations(
+      #   main.env$save.variable$SelectDP$dp.metadata.path,
+      #   main.env$save.variable$SelectDP$dp.data.path,
+      #   dir(main.env$save.variable$SelectDP$dp.data.path)
+      # )
     
     # Check for EAL issues
     if(exists("template_issues")) 
@@ -65,11 +70,14 @@ templateModules <- function(main.env, page){
     main.env$EAL$old.page <- main.env$EAL$page
     main.env$EAL$page <- main.env$EAL$page + 1
   } else { # Remove all that has been done
+    # Remove DP folder
     unlink(
       main.env$save.variable$SelectDP$dp.path,
       recursive = TRUE
     )
+    # Re-initialize save variable
     main.env$save.variable <- initReactive(main.env = main.env$EAL)
+    # Tell the user
     showNotification(
       x,
       type = "error",
@@ -89,6 +97,18 @@ templateModules <- function(main.env, page){
   if(exists("template_issues")) 
     rm("template_issues", envir = .GlobalEnv)
   
+  # Clean non matching attributes files
+  .att.filenames <- dir(main.env$save.variable$SelectDP$dp.metadata.path, full.names = TRUE, pattern = "^attrib")
+  .data.filenames <- dir(main.env$save.variable$SelectDP$dp.data.path, full.names = TRUE)
+  .short.att.names <- basename(.att.filenames) |> 
+    gsub(pattern = "\\..*$", replacement = "") |> 
+    gsub(pattern = "^attributes_", replacement = "")
+  .short.data.names <- basename(.data.filenames) |> 
+    gsub(pattern = "\\..*$", replacement = "")
+  .to.remove <- which(!.short.att.names %in% .short.data.names)
+  try(file.remove(.att.filenames[.to.remove])) # file may not actually exist
+  
+  # Template attributes
   x <- try({
     EMLassemblyline::template_table_attributes(
       path = isolate(main.env$save.variable$SelectDP$dp.metadata.path),
@@ -102,7 +122,6 @@ templateModules <- function(main.env, page){
   })
   
   if(class(x) == "try-error") {
-    isolate({main.env$EAL$page <- main.env$EAL$page - 1})
     showNotification(
       x,
       type = "error",
@@ -126,7 +145,10 @@ templateModules <- function(main.env, page){
   # loop required to check each 'class' column -- replaced in savevariable_functions.R by a reactive()
   .do.template.catvars <- if(main.env$EAL$page == 3)
     main.env$local.rv$use.catvars() else
-      main.env$save.variable$Attributes$use.catvars
+      any(sapply(
+        main.env$save.variable$Attributes$content,
+        function(table) any(table$class == "categorical")
+      ))
   
   if(exists("template_issues")) 
     rm("template_issues", envir = .GlobalEnv)
@@ -152,7 +174,17 @@ templateModules <- function(main.env, page){
         empty = TRUE,
         write.file = TRUE
       )
+      
+      # add templating for spatial coverage
+      # .are.shp.files <- sapply(main.env$local.rv$data.filepath, EMLassemblyline:::is.shp.dir)
+      # if(any(.are.shp.files)) {
+      #   EMLassemblyline:::template_spatial_coverage(
+      #     path = main.env$save.variable$SelectDP$dp.metadata.path,
+      #     data.path = main.env$save.variable$SelectDP$dp.data.path
+      #   )
+      # }
     }
+    
     # Check for EAL issues
     if(exists("template_issues"))
       stop("EAL template issues - GeoCov")
@@ -161,17 +193,13 @@ templateModules <- function(main.env, page){
   })
   
   if(class(x) == "try-error") {
-    isolate({main.env$EAL$page <- main.env$EAL$page - 1})
-    devmsg(EMLassemblyline::issues(), tag = "on template")
+    devmsg(x[1], tag = "on template", timer.env = main.env)
     showNotification(
       x,
       type = "error",
       closeButton = TRUE,
       duration = NULL
     )
-  } else # skip to Geographic Coverage
-  if (isFALSE(.do.template.catvars)) {
-    isolate({main.env$EAL$page <- main.env$EAL$page + 1})
   }
 }
 
@@ -192,7 +220,7 @@ templateModules <- function(main.env, page){
           "Please wait until completion. This might take minutes.",
           "Selected authorities being queried:",
           main.env$FORMATS$taxa.authorities |>
-            filter(id == main.env$local.rv$taxa.authority) |>
+            filter(id %in% main.env$local.rv$taxa.authority) |>
             select(authority) |>
             unlist() |> 
             lapply(tags$li) |> 
@@ -251,14 +279,15 @@ checkTemplates <- function(main.env) {
     ""
   )
   
-  check <- isContentTruthy(
+  check <- isContentTruthy( # Found at least one template file matching 'pat'
     dir(
       main.env$save.variable$SelectDP$dp.metadata.path,
       pattern = pat
-    )
-  )
+    ) 
+  ) || # Or Clicked "Previous"
+    main.env$EAL$page < main.env$EAL$old.page
   
-  if(isFALSE(check))
+  if(isFALSE(check)) # clicked next and didn't found template
     templateModules(
       main.env, 
       switch(
@@ -267,5 +296,6 @@ checkTemplates <- function(main.env) {
         `4` = 3,
         `5` = 3,
         `6` = 6
-      ))
+      )
+    )
 }

@@ -62,19 +62,21 @@ setUnitList <- function(main.env, set = NULL) {
   )
   
   # Input format
-  types <- unique(names(choices))
-  out <- list()
+  types <- unique(names(choices[sapply(choices, length) != 1]))
+  out <- choices[sapply(choices, length) == 1]
+  out <- c(custom = out$custom, out[names(out) != "custom"])
   
   sapply(types, function(type){
-    out[[type]] <<- unname(choices[which(names(choices) == type)])
+    out[[type]] <<- unname(choices[which(names(choices) == type)])[[1]]
   })
+  
   # Correct value set for updates
   if(!is.null(set)) {
     set <- set |>
       setNames(nm = names(out)[
         which(sapply(
           out,
-          function(.ul) 
+          function(.ul)
             set %in% .ul
         ))
       ]) |>
@@ -118,10 +120,14 @@ customUnitsUI <- function(id, values = rep(NA, 5), main.env) {
           selectInput(
             NS(id, "modal_parentSI"),
             label = "Parent unit in SI",
-            choices = split(
-              unname(main.env$FORMATS$units[-1]),
-              as.factor(names(main.env$FORMATS$units[-1]))
-            ),
+            choices = {
+              main.env$FORMATS$units
+              # browser()
+              # split(
+              #   unname(main.env$FORMATS$units[-1]),
+              #   as.factor(names(main.env$FORMATS$units[-1]))
+              # )
+            },
             selected = optional(values[3])
           ),
           # MultiplierToSI

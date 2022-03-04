@@ -10,14 +10,35 @@
 ui <- function() {
   # body
   tagList(
-    # Enables packages support
+    # Web header ====
+    ## Enable Matomo support ----
+    tags$head(
+      tags$script(
+        HTML(
+         "<script type=\"text/javascript\">
+            var _paq = window._paq = window._paq || [];
+            _paq.push(['trackPageView']);
+          _paq.push(['enableLinkTracking']);
+          (function() {
+            var u=\"//matomo.mnhn.fr/\";
+            _paq.push(['setTrackerUrl', u+'matomo.php']);
+            _paq.push(['setSiteId', '54']);
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.type='text/javascript'; g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+          })();
+          </script>"
+        )
+      )
+    ),
+    ## Enables packages support ----
     shinyjs::useShinyjs(),
     shinyFeedback::useShinyFeedback(),
-    # Add style
+    
+    ## Add style ----
     shinyjs::inlineCSS("
       #loading-content {
         position: absolute;
-        background: #000000;
+        background: black;
         opacity: 0.9;
         z-index: 100;
         left: 0;
@@ -35,7 +56,7 @@ ui <- function() {
     htmltools::includeCSS(
       system.file("app/www/styles.css", package = "MetaShARK")
     ),
-    # App business spinner
+    ## App business spinner ----
     shinybusy::add_busy_spinner(
       spin = "spring",
       position = "bottom-left",
@@ -57,7 +78,7 @@ ui <- function() {
         id = "app-content",
         shinydashboardPlus::dashboardPage(
           title = "MetaShARK",
-          ## Header ====
+          # Header ====
           header = shinydashboardPlus::dashboardHeader(
             title = tagList(
               span(
@@ -76,9 +97,9 @@ ui <- function() {
             ),
             titleWidth = "250px"
           ),
-          ## Menus ====
-          ## * Tools ----
+          # Menus ====
           sidebar = shinydashboard::dashboardSidebar(
+            ## Tools ----
             shinydashboard::sidebarMenu(
               id = "sidemenu",
               shinydashboard::menuItem(
@@ -112,6 +133,9 @@ ui <- function() {
                   actionButton("dev", "DEV CHECK")
                 ),
                 shinyjs::hidden(
+                  textOutput("eal_complete")
+                ),
+                shinyjs::hidden(
                   actionButton("test_end", "END TEST")
                 ),
                 tags$p(textOutput("version")),
@@ -120,11 +144,11 @@ ui <- function() {
             ),
             width = "250px"
           ), # end sidebar
-          # * Settings ----
+          ## Settings ----
           controlbar = rightSidebarSettings(
             "settings"
           ),
-          ## Content ====
+          # Content ====
           body = shinydashboard::dashboardBody(
             tags$script(HTML("$('body').addClass('fixed');")),
             shinydashboard::tabItems(

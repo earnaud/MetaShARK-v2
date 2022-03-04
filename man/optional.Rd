@@ -4,7 +4,7 @@
 \alias{optional}
 \title{optional}
 \usage{
-optional(x, default = NULL)
+optional(x, default = NULL, quiet = FALSE)
 }
 \arguments{
 \item{x}{value provided for the argument}

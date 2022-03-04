@@ -1,5 +1,6 @@
 #' @import shiny
 #' @importFrom shinyWidgets materialSwitch
+#' @importFrom leaflet leafletOutput
 #'
 #' @noRd
 GeoCovUI <- function(id) {
@@ -9,7 +10,7 @@ GeoCovUI <- function(id) {
         tags$p("You can fill in geographic coverage through two methods: either 
           by chosing variables from your files, or manually define it. Mixed 
           approach is not supported. Check the help above for more details.",
-          tags$b("Only WGS84 is currently supported.")),
+               tags$b("Only WGS84 is currently supported.")),
         # Method ====
         # - method choice itself
         tags$span(
@@ -43,9 +44,23 @@ GeoCovUI <- function(id) {
           tags$div(
             id = NS(id, "custom_input"),
             fluidRow(
-              column(1, actionButton(NS(id, "addui"), "", icon("plus"))),
-              column(11, tags$div(id = "inserthere_eal5"))
+              column(
+                7,
+                shinyWidgets::actionBttn(
+                  NS(id, "add"), "Add site", icon("plus"), style = "simple", color="primary"
+                ),
+                tags$div(id="inserthere_eal5")
+              ),
+              column(
+                5,
+                leaflet::leafletOutput(NS(id, "leaflet")) |>
+                  withSpinner()
+              )
             )
+            # fluidRow(
+            #   column(1, actionButton(NS(id, "addui"), "", icon("plus"))),
+            #   column(11, tags$div(id = "inserthere_eal5"))
+            # )
           ) 
         )# end of custom
       )
@@ -56,6 +71,7 @@ GeoCovUI <- function(id) {
 #' @import shiny
 #' @importFrom shinyWidgets updateMaterialSwitch
 #' @importFrom shinyjs toggle
+#' @importFrom leaflet renderLeaflet leaflet addTiles addAwesomeMarkers makeAwesomeIcon addRectangles addPolygons
 #'
 #' @noRd
 GeoCov <- function(id, main.env) {
@@ -73,10 +89,13 @@ GeoCov <- function(id, main.env) {
       )
     }
     
-    observe({
+    # Columns method ====
+    
+    ## Setup ====
+    observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page == 5)
-      main.env$EAL$page.load$depend()
       req(main.env$local.rv$method)
+      devmsg(tag="Geocov", "load")
       
       shinyWidgets::updateMaterialSwitch(
         session,
@@ -102,10 +121,11 @@ GeoCov <- function(id, main.env) {
     label = "EAL5 set method switch",
     priority = -1
     )
-
-    # Method selection ====
+    
+    ## Method selection ====
     observeEvent(input$method, {
       req(main.env$EAL$page == 5)
+      devmsg(tag="Geocov", "method")
       main.env$local.rv$method <- ifelse(input$method, "custom", "columns")
       
       shinyjs::toggle(
@@ -123,12 +143,13 @@ GeoCov <- function(id, main.env) {
     
     # output$selected_method <- renderText(main.env$local.rv$method)
     
-    # Variables input ====
-    # * Set inputs ----
+    ## Variables input ====
+    ### Set inputs ----
     # Site description
     output$site <- renderUI({
       req(main.env$EAL$page == 5)
       req(isContentTruthy(main.env$local.rv$columns$choices$sites))
+      devmsg(tag="Geocov", "render site")
       
       # Site description
       selectInput(
@@ -147,7 +168,8 @@ GeoCov <- function(id, main.env) {
     output$latitude <- renderUI({
       req(main.env$EAL$page == 5)
       req(isContentTruthy(main.env$local.rv$columns$choices$coords))
-
+      devmsg(tag="Geocov", "render latitude")
+      
       selectizeInput(
         session$ns("latitude"),
         "Choose a column for latitude values",
@@ -165,6 +187,7 @@ GeoCov <- function(id, main.env) {
     output$longitude <- renderUI({
       req(main.env$EAL$page == 5)
       req(isContentTruthy(main.env$local.rv$columns$choices$coords))
+      devmsg(tag="Geocov", "render longitude")
       
       selectizeInput(
         session$ns("longitude"),
@@ -179,10 +202,11 @@ GeoCov <- function(id, main.env) {
       )
     })
     
-    # * Get input ----
+    ### Get input ----
     # Site description
     observeEvent(input$site, {
       req(main.env$EAL$page == 5)
+      devmsg(tag="Geocov", "input site")
       
       if (!isTruthy(input$site)) {
         main.env$local.rv$columns$site$col <- ""
@@ -207,6 +231,7 @@ GeoCov <- function(id, main.env) {
     # Latitude
     observeEvent(input$latitude, {
       req(main.env$EAL$page == 5)
+      devmsg(tag="Geocov", "input latitude")
       
       if (!isTruthy(input$latitude)) {
         main.env$local.rv$columns$lat$col <- ""
@@ -232,6 +257,7 @@ GeoCov <- function(id, main.env) {
     # Longitude
     observeEvent(input$longitude, {
       req(main.env$EAL$page == 5)
+      devmsg(tag="Geocov", "input longitude")
       
       if (!isTruthy(input$longitude)) {
         main.env$local.rv$columns$lon$col <- ""
@@ -253,66 +279,270 @@ GeoCov <- function(id, main.env) {
     ignoreNULL = FALSE,
     label = "EAL5: get longitude"
     )
-
-    # Fill custom ====
-    # * Setup ----
-    observeEvent(main.env$EAL$page, { # on load
-      req(main.env$EAL$page == 5)
-      
-      if (dim(main.env$local.rv$custom$coordinates)[1] > 0)
-        sapply(1:nrow(main.env$local.rv$custom$coordinates), function(.ind) {
-          insertGeoCovInput(
-            session$ns(as.character(-.ind)), # from -n to -1, NS-ed
-            main.env,
-            default = main.env$local.rv$custom$coordinates[.ind,]
-          )
-        })
-    },
-    priority = -1,
-    label = "EAL5: set custom UI"
-    )
     
-    observeEvent(main.env$EAL$page, { # on load
-      req(main.env$EAL$old.page == 5)
+    # Custom server =====
+    ## Setup ----
+    # TODO !!!
+    observeEvent(main.env$EAL$page, {
+      req(main.env$EAL$page == 5)
+      req(main.env$local.rv$method == "custom")
+      req(main.env$local.rv$custom$count > 0)
       
-      if (dim(main.env$local.rv$custom$coordinates)[1] > 0)
-        sapply(1:nrow(main.env$local.rv$custom$coordinates), function(.ind) {
-          
-          removeUI(
-            sprintf("#%s-container", session$ns(as.character(-.ind)))
-          )
-        })
-    },
-    priority = 1,
-    label = "EAL5: remove custom UI"
-    )
-
-    # * Manage input ----
-    observeEvent(input$addui, {
-      insertGeoCovInput(
-        session$ns(as.numeric(input$addui)), # from 1 to n, NS-ed
+      try(sapply(1:main.env$local.rv$custom$count, function(.count) {
+        insertCustomGeoCov(
+          session$ns(as.character(.count)),
+          main.env
+        )
+      }))
+    }, priority = -2)
+    
+    
+    ## Click add ----
+    observeEvent(input$add, {
+      req(input$add)
+      req(main.env$EAL$page == 5)
+      devmsg(tag="Geocov", "custom add")
+      
+      main.env$local.rv$custom$count <<- main.env$local.rv$custom$count+1
+      
+      ## proper insert
+      insertCustomGeoCov(
+        session$ns(as.character(main.env$local.rv$custom$count)),
         main.env
       )
     },
-    label = "EAL5: get custom"
-    )
-
-    # Saves ====
+    ignoreInit = TRUE)
+    
+    ## Get leaflet drawing ----
+    observeEvent(input$leaflet_draw_new_feature, {
+      req(main.env$EAL$page == 5)
+      devmsg(tag="Geocov", "leaflet draw")
+      
+      main.env$local.rv$custom$count <<- main.env$local.rv$custom$count+1
+      
+      .nm <- as.character(main.env$local.rv$custom$count)
+      main.env$local.rv$custom[[as.character(.nm)]] <- reactiveValues(
+        count = 0,
+        # get feature type
+        type = input$leaflet_draw_new_feature$properties$feature_type,
+        # get site description
+        description = sprintf("site %s", main.env$local.rv$custom$count),
+        # set default color
+        color = "#03f"
+      )
+      
+      # add coordinates
+      .coor <- unlist(input$leaflet_draw_new_feature$geometry$coordinates)
+      .lat = .coor[seq(2,length(.coor), 2)]
+      .lon = .coor[seq(1,length(.coor), 2)]
+      
+      .points = switch(
+        main.env$local.rv$custom[[as.character(.nm)]]$type,
+        marker = {
+          data.frame(
+            id = 1:3, 
+            lat = c(.lat,60,mean(c(.lat, 60))),
+            lon = c(.lon,35,mean(c(.lat, 35))),
+            stringsAsFactors = FALSE
+          )
+        },
+        rectangle = {
+          data.frame(
+            id = 1:3,
+            lat = c(min(.lat), max(.lat), mean(.lat)),
+            lon = c(min(.lon), max(.lon), mean(.lon)),
+            stringsAsFactors = FALSE
+          )
+        },
+        polygon = {
+          data.frame(
+            id = 1:(length(.coor)/2),
+            # id = seq_along(.coor[seq(2,length(.coor), 2)]),
+            lat = .lat,
+            lon = .lon,
+            stringsAsFactors = FALSE
+          ) |> 
+            tail(-1) # save without repeating last point
+        }
+      )
+      main.env$local.rv$custom[[as.character(.nm)]]$points <- .points
+      
+      insertCustomGeoCov(
+        session$ns(as.character(main.env$local.rv$custom$count)),
+        main.env
+      )
+    })
+    
+    ## Render leaflet ====
+    
+    ### Output ----
+    ### TODO optimize the input$leaflet_drawing_* to get only the full feature, not react to each point
+    output$leaflet <- leaflet::renderLeaflet({
+      req(main.env$EAL$page == 5)
+      devmsg(tag="Geocov", "leaflet render")
+      
+      #### Get names ----
+      
+      .nms <- try(names(main.env$local.rv$custom)[
+        sapply(
+          names(main.env$local.rv$custom),
+          function(n) 
+            n != "count" &&
+            n != "complete" &&
+            isContentTruthy(main.env$local.rv$custom[[n]])
+        )
+      ])
+      
+      validate(
+        need(class(.nms) != "try-error", "Error in main.env$local.rv$custom")
+      )
+      
+      #### Get values ----
+      areas <- try({
+        lapply(.nms, function(id) {
+        switch(
+          main.env$local.rv$custom[[id]]$type,
+          marker = {
+            list(
+              type = main.env$local.rv$custom[[id]]$type,
+              lat = main.env$local.rv$custom[[id]]$points$lat[1],
+              lon = main.env$local.rv$custom[[id]]$points$lon[1],
+              col = main.env$local.rv$custom[[id]]$color
+            )
+          },
+          rectangle = {
+            list(
+              type = main.env$local.rv$custom[[id]]$type,
+              lat1 = min(main.env$local.rv$custom[[id]]$points$lat),
+              lat2 = max(main.env$local.rv$custom[[id]]$points$lat),
+              lon1 = min(main.env$local.rv$custom[[id]]$points$lon),
+              lon2 = max(main.env$local.rv$custom[[id]]$points$lon),
+              col = main.env$local.rv$custom[[id]]$color
+            )
+          },
+          polygon = {
+            list(
+              type = main.env$local.rv$custom[[id]]$type,
+              lat = c(
+                main.env$local.rv$custom[[id]]$points$lat,
+                main.env$local.rv$custom[[id]]$points$lat[1]
+              ),
+              lon = c(
+                main.env$local.rv$custom[[id]]$points$lon,
+                main.env$local.rv$custom[[id]]$points$lon[1]
+              ),
+              col = main.env$local.rv$custom[[id]]$color
+            )
+          }
+        )
+      }) |>
+          setNames(.nms)
+      })
+      
+      validate(
+        need(class(areas) != "try-error", "Error while defining areas to draw")
+      )
+      
+      #### Render map ----
+      .map <- try({
+        .map <- leaflet::leaflet("geocov") |>
+          leaflet::addTiles() |>
+          leaflet.extras::addDrawToolbar(
+            polylineOptions = FALSE,
+            circleOptions = FALSE,
+            circleMarkerOptions = FALSE
+          )
+        
+        if(isContentTruthy(areas)){
+          .nms <- names(areas)
+          sapply(names(areas), function(nm) {
+            if(areas[[nm]]$type == "marker") {
+              .map <<- leaflet::addAwesomeMarkers(
+                .map,
+                lng = areas[[nm]]$lon,
+                lat = areas[[nm]]$lat,
+                icon = leaflet::makeAwesomeIcon(
+                  "circle",
+                  library = "fa",
+                  markerColor = areas[[nm]]$col,
+                  iconColor = "black"
+                )
+              )
+            } else if(areas[[nm]]$type == "rectangle") {
+              .map <<- leaflet::addRectangles(
+                .map,
+                lat1=areas[[nm]]$lat1,
+                lat2=areas[[nm]]$lat2,
+                lng1=areas[[nm]]$lon1,
+                lng2=areas[[nm]]$lon2,
+                color=areas[[nm]]$col
+              )
+            } else if(areas[[nm]]$type == "polygon") {
+              .map <<- leaflet::addPolygons(
+                .map,
+                lng = areas[[nm]]$lon,
+                lat = areas[[nm]]$lat,
+                color=areas[[nm]]$col
+              )
+            }
+            
+          })
+        }
+        
+        .map
+      })
+      
+      
+      validate(
+        need(class(.map) != "try-error", "Error in main.env$local.rv$custom")
+      )
+      
+      .map
+    })
+    
+    # Completeness ====
+    columns.complete <- reactive({
+      req(main.env$EAL$page == 5)
+      devmsg(main.env$local.rv$columns$complete())
+      main.env$local.rv$columns$complete()
+    })
+    
+    custom.complete <- reactive({
+      req(main.env$EAL$page == 5)
+      devmsg(main.env$local.rv$custom$complete())
+      main.env$local.rv$custom$complete()
+    })
+    
     observe({
       req(main.env$EAL$page == 5)
-      invalidateLater(1000)
-      req(main.env$local.rv$method %in% c("columns", "custom"))
+      # trigger test
+      .trig <- isTRUE(columns.complete()) || isTRUE(custom.complete())
+      # invalidateLater(1000)
+      # req(main.env$local.rv$method %in% c("columns", "custom"))
+      if(main.env$dev)
+        devmsg(tag="Geocov", "completeness")
       
       # Set full completeness according to selected method
       main.env$EAL$completed <- switch(
         main.env$local.rv$method,
-        columns = isTRUE(main.env$local.rv$columns$complete()),
-        custom = isTRUE(main.env$local.rv$custom$complete())
+        columns = isTRUE(columns.complete()),
+        custom = isTRUE(custom.complete())
       )
     },
-    label = "EAL5 module completed"
+    label = "EAL5 module completed",
+    priority = -1
     )
-
-    # Process data (deprecated)
+    
+    # Remove inserted UI ----
+    observeEvent(main.env$EAL$page, {
+      req(main.env$EAL$old.page == 5) # left the GeoCov step
+      .ids <- names(main.env$local.rv$custom)
+      .ids <- .ids[!.ids %in% c("complete", "count")]
+      sapply(paste0(.ids, "-box"), function(id) {
+        removeUI(sprintf("#%s", session$ns(id)), immediate = TRUE)
+      })
+    },
+    priority = 1)
+    
   }) # end of server
 }

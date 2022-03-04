@@ -57,8 +57,9 @@ wipRow <- function(..., id = NULL) {
   tags$div(
     id = id,
     tags$div(style = "height: 10px", class = "topInputRow wip"),
+    tags$hr(),
     ...,
-    class = "inputBox"
+    class = "inputBox wipbox"
   )
 }
 

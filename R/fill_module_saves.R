@@ -14,8 +14,9 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
     isolate({
       # Save local variable content ----
       setProgress(1 / 3, "Save metadata")
+      .tmp.save = NULL
       if(page != 9) {
-        main.env$save.variable <- do.call(
+        .tmp.save <- do.call(
           what = switch(
             page,
             ".saveSelectDP",
@@ -29,30 +30,51 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
           ),
           args = list(main.env)
         )
+      
+        if(class(.tmp.save) != "try-error" || !is.null(.tmp.save)) {
+          main.env$save.variable <- .tmp.save
+        }
       }
       
       # Template ----
-      if(isTRUE(do.template))
-        templateModules(main.env, page)
+      .tmp.template <- TRUE
+      if(isTRUE(do.template)) {
+        .tmp.template <- templateModules(main.env, page)
+      }
+      
+      # Error catching ----
+      # If an error came out, do not go further
+      if(class(.tmp.save) == "try-error" || class(.tmp.template) == "try-error") {
+        browser() # not page-1 but page <- oldpage: comes back to previously visited
+        isolate({main.env$EAL$page <- main.env$EAL$old.page})
+        setProgress(1, "Exit save")
+        stop("Error arose while saving.")
+      }
       
       # Save JSON ----
       setProgress(2 / 3, "Write JSON")
+      
       # set files + path
       path <- main.env$save.variable$SelectDP$dp.path
       filename <- main.env$save.variable$SelectDP$dp.name
       location <- paste0(path, "/", filename, ".json")
-      # write files
-      if (file.exists(location))
-        file.remove(location)
-      jsonlite::write_json(
-        jsonlite::serializeJSON(
-          listReactiveValues(main.env$save.variable)
-        ),
-        location
-      )
       
-      incProgress(1 / 3)
-    })
+      # overwrite files
+      if(dir.exists(path)) {
+        if (file.exists(location))
+          file.remove(location)
+        jsonlite::write_json(
+          jsonlite::serializeJSON(
+            listReactiveValues(main.env$save.variable)
+          ),
+          location
+        )
+      } else {
+        devmsg("%s not found.", path, tag = "fill_module_saves.R")
+      }
+      
+      setProgress(1)
+    }) # end of isolate
   })
   
   showNotification(
@@ -60,6 +82,8 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
     duration = 2.5,
     type = "message"
   )
+  
+  return(NULL)
 }
 
 #' @noRd
@@ -67,7 +91,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
   # Shortcuts
   .sv <- main.env$save.variable
   content <- main.env$local.rv
-  
+  # browser()
   # Save content in sv
   .sv$SelectDP$dp.name <- content$dp.name()
   .sv$SelectDP$dp.path <- paste0(
@@ -109,13 +133,11 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
 .saveDataFiles <- function(main.env){
   .sv <- main.env$save.variable
   .tmp <- main.env$local.rv$data.files
-  .tmp <- try(dplyr::select(.tmp, -id))
-  
+  .tmp <- try(dplyr::select(.tmp, -id), silent = TRUE)
   # Format content
   if (!isContentTruthy(.tmp)) {
     message("Invalid content")
-  }
-  else {
+  } else {
     # -- Get files data
     .from <- .tmp$datapath
     .to <- paste0(
@@ -182,7 +204,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
   }
 
   # Add use of categorical variables (or not)
-  .sv$Attributes$use.catvars <- isTRUE(content$use.catvars())
+  # .sv$Attributes$use.catvars <- isTRUE(content$use.catvars())
   
   return(.sv)
 }
@@ -217,15 +239,17 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
 #' @noRd
 #'
 #' @importFrom data.table fwrite
+#' @importFrom sf st_polygon st_as_text
+#' @importFrom dplyr bind_rows
 #' @import shiny
 .saveGeoCov <- function(main.env){
   .sv <- main.env$save.variable
-  
+  # browser()
   # Initialize variables
   .method <- main.env$local.rv$method
 
   data.files <- .sv$DataFiles$datapath
-  data.content <- lapply(data.files, readDataTable, stringsAsFactors = FALSE)
+  data.content <- lapply(data.files, readDataTable)
   names(data.content) <- basename(data.files)
 
   # format extracted content - keep latlon-valid columns
@@ -255,7 +279,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
   .sv$GeoCov <- reactiveValues() # reset
   .sv$GeoCov$method <- .method
 
-  # GeoCov written if .method filled
+  # Columns ----
   if (.method == "columns" &&
       isContentTruthy(main.env$local.rv$columns$site) &&
       isContentTruthy(main.env$local.rv$columns)) {
@@ -300,18 +324,53 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
       westBoundingCoordinate = .westBoundingCoordinate,
       stringsAsFactors = FALSE
     )
-  } else if (.method == "custom") {
+  }
+  
+  # Custom ----
+  if (.method == "custom") {
+    # shortcuts
+    .local.rv <- main.env$local.rv$custom
+    .features.ids <- names(.local.rv)[
+      !names(.local.rv) %in% c("count", "complete")
+    ]
+    
+    # build coverage table from local.rv
+    .custom.coordinates <- lapply(.features.ids, function(feat.id) {
+      .points <- .local.rv[[feat.id]]$points
+      if(.local.rv[[feat.id]]$type == "marker")
+        .points <- .points[1,]
+      if(.local.rv[[feat.id]]$type == "rectangle")
+        .points <- .points[1:2,]
+      
+      data.frame(
+        geographicDescription = .local.rv[[feat.id]]$description, 
+        northBoundingCoordinate = max(.points$lat),
+        southBoundingCoordinate = min(.points$lat),
+        eastBoundingCoordinate = max(.points$lon),
+        westBoundingCoordinate = min(.points$lon),
+        wkt = if(.local.rv[[feat.id]]$type == "polygon") {
+          .points[c(1:nrow(.points), 1), 2:3] |>
+            as.matrix() |>
+            list() |>
+            st_polygon() |>
+            st_as_text()
+          
+        } else ""
+      ) # end of data.frame
+    }) |>
+      bind_rows()
+    
     # save
-    .sv$GeoCov <- reactiveValues()
     .sv$GeoCov$custom <- main.env$local.rv$custom
 
     # fill
-    geocov <- main.env$local.rv$custom$coordinates
+    geocov <- .custom.coordinates
   }
+  
   # Write data
-  if (isContentTruthy(geocov))
+  if (isContentTruthy(geocov)){
     data.table::fwrite(
-      geocov,
+      geocov[,1:5], # do not write wkt column in geocov
       paste(
         .sv$SelectDP$dp.metadata.path,
         "geographic_coverage.txt",
@@ -319,6 +378,18 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
       ),
       sep = "\t"
     )
+    
+    if("wkt" %in% names(geocov))
+      data.table::fwrite(
+        geocov["wkt"], # do not write wkt column in geocov
+        paste(
+          .sv$SelectDP$dp.metadata.path,
+          ".spatial_coverage.txt",
+          sep = "/"
+        ),
+        sep = "\t"
+      )
+  }
   
   # Output
   return(.sv)
@@ -439,15 +510,16 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
   removeDuplicateFiles(content$methods$file)
   
   # keywords ----
-  # Merge NA thesaurus with "" thesaurus
-  content$keywords$keyword.thesaurus <- replace(
-    content$keywords$keyword.thesaurus, 
-    which(is.na(content$keywords$keyword.thesaurus)),
+  # Set NA thesaurus as "" thesaurus
+  content$keywords$keywordThesaurus <- replace(
+    content$keywords$keywordThesaurus, 
+    which(is.na(content$keywords$keywordThesaurus)),
     ""
   )
+  
   # build keywords data.frame
-  .keywords <- lapply(unique(content$keywords$keyword.thesaurus), function(kwt) {
-    row.ind <- which(content$keywords$keyword.thesaurus == kwt)
+  .keywords <- lapply(unique(content$keywords$keywordThesaurus), function(kwt) {
+    row.ind <- which(content$keywords$keywordThesaurus == kwt)
     
     data.frame(
       keyword = strsplit(content$keywords$keyword[row.ind], ",") |> 
@@ -456,6 +528,8 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
     )
   }) |> 
     dplyr::bind_rows()
+  
+  # write files
   data.table::fwrite(
     .keywords,
     paste0(

@@ -54,7 +54,7 @@ initReactive <- function(sub.list = NULL, save.variable = NULL, main.env) {
         ),
         keywords = data.frame(
           keyword = character(),
-          keyword.thesaurus = character(),
+          keywordThesaurus = character(),
           keyword.set = character()
         ),
         temporal.coverage = c(NA, NA),
@@ -128,54 +128,57 @@ setLocalRV <- function(main.env){
     checkTemplates(main.env)
   
   # Set variable ====
-  devmsg(tag = "fill-module-setup.R", "set variable")
+  main.env$VALUES$last.timer = Sys.time()
+  devmsg(tag = "fill-module-setup.R", "set variable", timer.env = main.env)
   main.env$local.rv <- switch(
     main.env$EAL$page,
-    # * SelectDP ----
+    ##SelectDP ----
     reactiveValues(
       dp.name = character(),
       dp.title = character(),
       dp.list = listDP(main.env),
       dp.license = NULL
     ),
-    # * DataFiles ----
-    reactiveValues(
-      data.files = if (isContentTruthy(main.env$save.variable$DataFiles)) { # from create button in SelectDP
-        .ind <- which(file.exists(main.env$save.variable$DataFiles$datapath))
-        .col <- which(names(main.env$save.variable$DataFiles) != "metadatapath")
-        cbind(
-          id = paste0("_", seq(.ind)),
-          main.env$save.variable$DataFiles[.ind, .col]
-        )
-      }
-      else
-        data.frame(stringsAsFactors = FALSE),
-      counter = 1
-    ),
-    # * Attributes ----
+    ##DataFiles ----
+    {
+      reactiveValues(
+        data.files = if (isContentTruthy(main.env$save.variable$DataFiles) &&
+                         any(file.exists(main.env$save.variable$DataFiles$datapath))) { # from create button in SelectDP
+          .ind <- which(file.exists(main.env$save.variable$DataFiles$datapath))
+          .col <- which(names(main.env$save.variable$DataFiles) != "metadatapath")
+          cbind(
+            id = paste0("_", seq(.ind)),
+            main.env$save.variable$DataFiles[.ind, .col]
+          )
+        }
+        else
+          data.frame(stringsAsFactors = FALSE),
+        counter = 1
+      )
+    },
+    ## Attributes ----
     reactiveValues(
       md.tables = reactiveValues(),
-      rv.tables = reactiveValues(),
       # checked = FALSE,
       completed = reactiveValues(),
       data.filepath = main.env$save.variable$DataFiles$datapath,
       md.filenames = basename(main.env$save.variable$DataFiles$metadatapath),
       tree.content = c(),
+      use.catvars = reactive({FALSE}),
       custom.units = reactiveValues(
         table = readDataTable(
           dir(
             isolate(main.env$save.variable$SelectDP$dp.metadata.path),
             pattern = "^custom_units",
             full.names = TRUE
-          ),
-          stringsAsFactors = FALSE
+          )
         )
       ),
       preview = {
         out <- lapply(
           main.env$save.variable$DataFiles$datapath,
           function(file.path) {
-            table <- readDataTable(file.path, stringsAsFactors = FALSE)
+            table <- readDataTable(file.path)
             out <- lapply(colnames(table), function(col) {
               .out <- table[,col][which(sapply(table[,col], isContentTruthy))]
               if(length(.out) < 5){
@@ -192,12 +195,12 @@ setLocalRV <- function(main.env){
             "(.*)\\..*$",
             "\\1.txt",
             basename(main.env$save.variable$DataFiles$datapath)
-            )
+          )
           )
         out
       }
     ),
-    # * CatVars ----
+    ## CatVars ----
     reactiveValues(
       current = reactiveValues(
         index = numeric(),
@@ -209,9 +212,10 @@ setLocalRV <- function(main.env){
       completed = reactiveValues(),
       tree.content = c()
     ),
-    # * GeoCov ----
+    ## GeoCov ----
     reactiveValues(
       method = "columns",
+      ### Columns ----
       columns = reactiveValues(
         choices = reactiveValues(
           files = "all",
@@ -231,19 +235,24 @@ setLocalRV <- function(main.env){
           file = character()
         )
       ),
+      ### Custom ----
       custom = reactiveValues(
-        id = numeric(),
-        coordinates = data.frame(
-          geographicDescription = character(),
-          northBoundingCoordinate = numeric(),
-          southBoundingCoordinate = numeric(),
-          eastBoundingCoordinate = numeric(),
-          westBoundingCoordinate = numeric(),
-          stringsAsFactors = FALSE
-        )
+        # will be inserted reactiveValues() named as numbers
+        count = 0
       )
+      # custom = reactiveValues(
+      #   id = numeric(),
+      #   coordinates = data.frame(
+      #     geographicDescription = character(),
+      #     northBoundingCoordinate = numeric(),
+      #     southBoundingCoordinate = numeric(),
+      #     eastBoundingCoordinate = numeric(),
+      #     westBoundingCoordinate = numeric(),
+      #     stringsAsFactors = FALSE
+      #   )
+      # )
     ),
-    # * TaxCov ----
+    ## TaxCov ----
     reactiveValues(
       taxa.table = character(),
       taxa.col = character(),
@@ -251,7 +260,7 @@ setLocalRV <- function(main.env){
       taxa.authority = character(),
       complete = FALSE
     ),
-    # * Personnel ----
+    ## Personnel ----
     reactiveValues(
       role.choices = list(Base = list("creator", "contact", "PI"), Other = list("Other")),
       last.modified = 0,
@@ -274,27 +283,29 @@ setLocalRV <- function(main.env){
         stringsAsFactors = FALSE
       )
     ),
-    # * Misc ----
+    ##Misc ----
     {
       # Get keywords
       kw <- data.frame()
       if (isContentTruthy(isolate(main.env$save.variable$SelectDP$dp.metadata.path))) {
         kw <- readDataTable(
-          paste0(isolate(main.env$save.variable$SelectDP$dp.metadata.path), "/keywords.txt"),
-          data.table = FALSE, stringsAsFactors = FALSE
+          paste0(isolate(main.env$save.variable$SelectDP$dp.metadata.path), "/keywords.txt")
         )
+        if("keywordThesaurus" %in% names(kw))
+          colnames(kw)[2] <- "keywordThesaurus"
+        
         # Collapse --get by same thesaurus -- set the keyword set
         if(isContentTruthy(kw))
           kw <- data.frame(
-            keyword = sapply(unique(kw$keyword.thesaurus), function(kwt) {
+            keyword = sapply(unique(kw$keywordThesaurus), function(kwt) {
               paste(kw |> 
-                      dplyr::filter(identical(keyword.thesaurus,kwt)) |> 
+                      dplyr::filter(identical(keywordThesaurus,kwt)) |> 
                       dplyr::select(keyword) |> 
                       unlist(),
                     collapse = ",")
             }),
-            keyword.thesaurus = unique(kw$keyword.thesaurus),
-            keyword.set = paste0("_", seq(unique(kw$keyword.thesaurus))),
+            keywordThesaurus = unique(kw$keywordThesaurus),
+            keyword.set = paste0("_", seq(unique(kw$keywordThesaurus))),
             stringsAsFactors = FALSE,
             row.names = c()
           )
@@ -302,7 +313,7 @@ setLocalRV <- function(main.env){
       if (!isContentTruthy(kw)) {
         kw <- data.frame(
           keyword = character(),
-          keyword.thesaurus = character(),
+          keywordThesaurus = character(),
           keyword.set = character(),
           stringsAsFactors = FALSE
         )
@@ -343,7 +354,7 @@ setLocalRV <- function(main.env){
         )
       )
     },
-    # * Make EML ----
+    ##Make EML ----
     # empty RV to be able at last to save the step
     {
       reactiveValues(
@@ -354,50 +365,97 @@ setLocalRV <- function(main.env){
   )
   
   # Post-modifications ====
-  devmsg(tag = "fill-module-setup.R", "post-modification")
-  # * Attributes ----
+  devmsg(tag = "fill-module-setup.R", "post-modification", timer.env = main.env)
+  ## Attributes ----
   if(main.env$EAL$page == 3) {
     devmsg(tag = "setup", "3")
+    
     # Path to metadata templates empty?
+    ### Set variable ----
     if (isContentTruthy(main.env$save.variable$DataFiles$metadatapath)) {
       # Set content
-      lapply(
-        main.env$save.variable$DataFiles$metadatapath,
-        function(path){
+      lapply( # iterate over number of data files
+        1:length(main.env$save.variable$DataFiles$datapath),
+        function(.ind){
+          
+          # local shortcuts for data path and metadata path
+          .md.path <- main.env$save.variable$DataFiles$metadatapath[.ind]
+          .data.path <- main.env$save.variable$DataFiles$datapath[.ind]
           # Use data file name as reference
-          .rv.name <- gsub("attributes_", "", basename(path))
-          # Populate metadata table
-          .table <- readDataTable(
-            path, data.table = FALSE, stringsAsFactors = FALSE
-          )
+          .rv.name <- gsub("^attributes_", "", basename(.md.path))
+          # Load metadata table
+          .md.table <- readDataTable(.md.path)
           # Curates table content
-          .table[is.na(.table)] <- ""
-          .table$attributeDefinition <- paste("Description for:", .table$attributeName)
-          # dateTimeFormatString
-          .date.row <- which(.table$class == "Date")
-          .table$dateTimeFormatString <- rep("", nrow(.table))
+          .md.table[is.na(.md.table)] <- ""
+          
+          #### Attribute Definition ----
+          .to.fill <- which(!sapply(.md.table$attributeDefinition, isContentTruthy))
+          .md.table$attributeDefinition[.to.fill] <- paste("Description for:", .md.table$attributeName[.to.fill])
+          
+          #### Curate date ----
+          .date.row <- which(.md.table$class == "Date")
+          # Ensure removing "!Add.*here!"
+          .to.replace <- which(grepl("!Add.*here!", .md.table$dateTimeFormatString))
+          if(isTruthy(.to.replace))
+            .md.table$dateTimeFormatString[.to.replace] <- ""
+          
+          # If any date, fill rows
           if (isTruthy(.date.row)) {
-            .table$dateTimeFormatString[.date.row] <- rep(main.env$FORMATS$dates[3], length(.date.row))
+            # default option
+            # .md.table$dateTimeFormatString[.date.row] <- rep(main.env$FORMATS$dates[3], length(.date.row))
+            # let's do it better:
+            
+            # do not work on date row filled (except by !Add.*here!)
+            .filled.date <- (sapply(.md.table$dateTimeFormatString, isContentTruthy) & 
+                               !sapply(.md.table$dateTimeFormatString, grepl, "!Add.*here!")
+            )[.date.row]
+            if(any(!.filled.date)){ # if any date is not filled
+              # Read 100 first rows
+              .data.table <- readDataTable(.data.path, nrows = 100)
+              # Guess date for date rows not filled
+              .md.table$dateTimeFormatString[.date.row] <- sapply(
+                .date.row[!.filled.date],
+                function(.row) {
+                  # .row is attributes row and data column
+                  .dates <- .data.table[[.row]] |> as.character()
+                  .date.formats <- guessDateTimeFormat(
+                    .dates, main.env$FORMATS$lubridate_formats) |>
+                    convertLubridateFormat() |>
+                    unique()
+                  
+                  # If no result, default format string
+                  if(length(.date.formats) == 0){
+                    .date.formats <- main.env$FORMATS$dates[1]
+                  }
+                  
+                  return(.date.formats[1])
+                }
+              )
+            }
           }
-          # Curate unit 
-          .nonunit.rows <- which(.table$class != "numeric")
-          .unit.rows <- which(.table$class == "numeric")
+          
+          #### Curate unit ----
+          .nonunit.rows <- which(.md.table$class != "numeric")
+          .unit.rows <- which(.md.table$class == "numeric")
           if (isTruthy(.nonunit.rows))
-            .table$unit[.nonunit.rows] <- rep("", length(.nonunit.rows))
+            .md.table$unit[.nonunit.rows] <- rep("", length(.nonunit.rows))
           if (isTruthy(.unit.rows)){
-            .val <- .table$unit[.unit.rows]
+            .val <- .md.table$unit[.unit.rows]
             .val[sapply(.val, function(v) 
-              v == main.env$FORMATS$units[2] ||
+              v == main.env$FORMATS$units$dimensionless[1] ||
                 !isTruthy(v) ||
                 grepl("!Ad.*ere!", v)
-            )] <- main.env$FORMATS$units[2] # dimensionless
-            .table$unit[.unit.rows] <- .val
+            )] <- main.env$FORMATS$units$dimensionless[1]
+            .md.table$unit[.unit.rows] <- .val
           }
           # Add units for 'latitude' and 'longitude'
-          .degree.attributes <- .table$attributeName %in% c("latitude", "longitude")
+          .degree.attributes <- .md.table$attributeName %in% c("latitude", "longitude")
           if(any(.degree.attributes))
-            .table$unit[.degree.attributes] <- "degree"
-          main.env$local.rv$md.tables[[.rv.name]] <<- .table
+            .md.table$unit[.degree.attributes] <- "degree"
+          
+          # Commit changes
+          main.env$local.rv$md.tables[[.rv.name]] <<- .md.table
+          
           # Add reactivity to each table
           makeReactiveBinding(
             sprintf(
@@ -405,16 +463,12 @@ setLocalRV <- function(main.env){
               .rv.name
             )
           )
-          # Add a reactive to read each table
-          main.env$local.rv$rv.tables[[.rv.name]] <- reactive({
-            .table
-          })
           
           # Add completed status for each attribute of each table
           main.env$local.rv$completed[[.rv.name]] <- reactiveValues()
-          lapply(seq(nrow(.table)), function(row.index) {
+          lapply(seq(nrow(.md.table)), function(row.index) {
             # Set completed per row by class
-            .attribute <- .table[row.index, 1]
+            .attribute <- .md.table$attributeName[row.index]
             # Just use the attribute since checking the attribute makes checking all fields
             main.env$local.rv$completed[[.rv.name]][[.attribute]] <- TRUE
           }) # end lapply:row
@@ -435,70 +489,69 @@ setLocalRV <- function(main.env){
       Incorrect value for variable:
       main.env$save.variable$DataFiles$metadatapath")
     
-    # Fill 
-    lapply(names(main.env$local.rv$md.tables), function(table.name) {
-      sapply(colnames(main.env$local.rv$md.tables[[table.name]]), function(col) {
-        # local shortcut
-        .table <- main.env$local.rv$md.tables[[table.name]]
-        
-        # Set values
-        if (col == "attributeDefinition") {
-          .table[[col]] <- paste("Description for", .table[["attributeName"]])
-        }
-        
-        if (col == "dateTimeFormatString") {
-          .date.row <- which(.table$class == "Date")
-          .table[[col]] <- rep("", nrow(.table))
-          if (isTruthy(.date.row)) {
-            .table[.date.row, col] <- rep(main.env$FORMATS$dates[3], length(.date.row))
-          }
-        }
-        
-        if (col == "unit") {
-          .nonunit.rows <- which(.table$class != "numeric")
-          .unit.rows <- which(.table$class == "numeric")
-          if (isTruthy(.nonunit.rows))
-            .table[[col]][.nonunit.rows] <- rep("", length(.nonunit.rows))
-          if (isTruthy(.unit.rows)){
-            .val <- .table[.unit.rows, col]
-            .val[sapply(.val, function(v) 
-              v == main.env$FORMATS$units[2] ||
-                !isTruthy(v) ||
-                grepl("!Ad.*ere!", v)
-            )] <- main.env$FORMATS$units[2]
-            .table[.unit.rows, col] <- .val
-          }
-        }
-        .table[is.na(.table)] <- ""
-        main.env$local.rv$md.tables[[table.name]] <<- .table
-      }) # end of sapply:col
-    }) # end of lapply:files
-  
+    ### Fill variable
+    # lapply(names(main.env$local.rv$md.tables), function(table.name) {
+    #   sapply(colnames(main.env$local.rv$md.tables[[table.name]]), function(col) {
+    #     # local shortcut
+    #     .table <- main.env$local.rv$md.tables[[table.name]]
+    #     
+    #     # Set values
+    #     if (col == "attributeDefinition") {
+    #       .tofill <- which(!isContentTruthy(.table[[col]]))
+    #       .table[.tofill, col] <- paste("Description for", .table[["attributeName"]])
+    #     }
+    #     
+    #     if (col == "dateTimeFormatString") {
+    #       .date.row <- which(.table$class == "Date")
+    #       .table[[col]] <- rep("", nrow(.table))
+    #       if (isTruthy(.date.row)) {
+    #         .table[.date.row, col] <- rep(main.env$FORMATS$dates[3], length(.date.row))
+    #       }
+    #     }
+    #     
+    #     if (col == "unit") {
+    #       .nonunit.rows <- which(.table$class != "numeric")
+    #       .unit.rows <- which(.table$class == "numeric")
+    #       if (isTruthy(.nonunit.rows))
+    #         .table[[col]][.nonunit.rows] <- rep("", length(.nonunit.rows))
+    #       if (isTruthy(.unit.rows)){
+    #         .val <- .table[.unit.rows, col]
+    #         .val[sapply(.val, function(v) 
+    #           v == main.env$FORMATS$units$dimensionless[1] ||
+    #             !isTruthy(v) ||
+    #             grepl("!Ad.*ere!", v)
+    #         )] <- main.env$FORMATS$units$dimensionless[1]
+    #         .table[.unit.rows, col] <- .val
+    #       }
+    #     }
+    #     .table[is.na(.table)] <- ""
+    #     main.env$local.rv$md.tables[[table.name]] <<- .table
+    #   }) # end of sapply:col
+    # }) # end of lapply:md.tables
+    
+    ### Set catvar need ----
     # Add reactive check for catvars templating
     main.env$local.rv$use.catvars <- reactive({
-      .check <- sapply(
-        names(main.env$local.rv$rv.tables),
-        function(md.table) {
-          # check for direction: CustomUnits or CatVars
-          .table <- main.env$local.rv$rv.tables[[md.table]]()
-          .check <- isTRUE("categorical" %in% .table[,"class"])
-          return(.check)
-        }
-      ) |>
+      # Shortcut variable
+      .md.tables <- main.env$local.rv$md.tables
+      # check for direction: CustomUnits or CatVars
+      .check <- sapply(.md.tables, function(.table) {
+        isTRUE("categorical" %in% .table[,"class"])
+      }) |>
         unlist() |>
         any()
+      return(.check)
     })
     
-    # Check completeness
+    ### Init completeness ----
     main.env$EAL$completed <- main.env$local.rv$completed |>
       listReactiveValues() |>
       unlist() |>
       all()
-    
-    # Add side tag list rv
+    # Set tag list rv
     main.env$local.rv$tag.list <- reactiveValues()
   }
-  # * Catvars ----
+  ##Catvars ----
   if(main.env$EAL$page == 4) {
     devmsg(tag = "setup", "4")
     # read metadata folder path
@@ -520,11 +573,21 @@ setLocalRV <- function(main.env){
     sapply(main.env$local.rv$cv.files, function(file.path) {
       # Set each table per file
       file.name <- basename(file.path)
-      main.env$local.rv$cv.tables[[file.name]] <- data.table::fread(
-        file.path,
-        data.table = FALSE, stringsAsFactors = FALSE,
-        na.strings = "NA"
-      ) |>
+      main.env$local.rv$cv.tables[[file.name]] <- readDataTable(file.path)
+      # Compare saved categorical variables to actual ones, if they changed
+      .catvar.attributes.names <- c()
+      sapply(main.env$save.variable$Attributes$content, function(md.table) {
+        .catvar.attributes.names <<- c(
+          .catvar.attributes.names,
+          md.table$attributeName[md.table$class == "categorical"]
+        )
+      })
+      
+      # Curate catvars
+      main.env$local.rv$cv.tables[[file.name]] <- main.env$local.rv$cv.tables[[file.name]] |> 
+        # keep attributes actually found as categorical
+        dplyr::filter(attributeName %in% .catvar.attributes.names) |>
+        # Fill in automated definitions
         dplyr::mutate(
           definition = if (definition == "NA" || !isTruthy(definition)) {
             paste("Value:", code, "for attribute:", attributeName)
@@ -532,9 +595,11 @@ setLocalRV <- function(main.env){
             definition
           }
         ) |>
+        # avoid "" in code
         dplyr::mutate(
           code = gsub("^$","\"\"", code)
         )
+      
       makeReactiveBinding(
         sprintf("main.env$local.rv$cv.tables$%s", file.name)
       )
@@ -599,10 +664,13 @@ setLocalRV <- function(main.env){
     }) # end lapply:file
   }
   
-  # * GeoCov ----
+  ## GeoCov ----
   if(main.env$EAL$page == 5) {
     devmsg(tag = "setup", "5")
-    # Set choices for selectInput -- reuse Attributes
+    
+    ### Columns ----
+    #### Set choices ----
+    # for selectInput -- reuse Attributes
     .att <- main.env$save.variable$Attributes$content
     .site <- main.env$local.rv$columns$choices$sites <- list()
     .col <- main.env$local.rv$columns$choices$coords <- list()
@@ -612,17 +680,17 @@ setLocalRV <- function(main.env){
         select(datapath) |> # full matching data path
         unlist() |>
         basename()
-      # Set sites
+      # Set potential sites choices from attributes
       .site[[.data.file]] <<- .att[[.md.file]] |> 
         dplyr::filter(class %in% c("character", "categorical")) |> 
         dplyr::select(attributeName) |>
         unlist()
       .site[[.data.file]] <<- paste(.data.file, .site[[.data.file]], sep="/") |>
         setNames(nm = .site[[.data.file]])
-      # Set columns
+      # Set columns choices
       .col[[.data.file]] <<- .att[[.md.file]] |> 
-        dplyr::filter(class == "numeric") |>
-        dplyr::select(attributeName) |>
+        dplyr::filter(class == "numeric") |> 
+        dplyr::select(attributeName) |> 
         unlist()
       .col[[.data.file]] <<- paste(.data.file, .col[[.data.file]], sep="/") |>
         setNames(nm = .col[[.data.file]])
@@ -630,20 +698,21 @@ setLocalRV <- function(main.env){
     main.env$local.rv$columns$choices$sites <- .site
     main.env$local.rv$columns$choices$coords <- .col
     
-    # Read saved values
+    #### Read saved values ----
     if(isContentTruthy(listReactiveValues(main.env$save.variable$GeoCov))) {
       if(is.null(main.env$save.variable$GeoCov$method)) {
         main.env$local.rv$method <- names(main.env$save.variable$GeoCov)
       } else
         main.env$local.rv$method <- main.env$save.variable$GeoCov$method
       
-      # * Columns
+      ## Columns
       if(main.env$local.rv$method == "columns" && 
          isContentTruthy(main.env$save.variable$GeoCov$columns)) {
         site.name <- main.env$save.variable$GeoCov$columns$site$col
         lat.col <- main.env$save.variable$GeoCov$columns$lat$col
         lon.col <- main.env$save.variable$GeoCov$columns$lon$col
         
+        # Each time, only set previous values if they are matched in the data 
         if (site.name %grep% main.env$local.rv$columns$choices$sites) {
           main.env$local.rv$columns$site <- main.env$save.variable$GeoCov$columns$site
         }
@@ -656,27 +725,57 @@ setLocalRV <- function(main.env){
           main.env$local.rv$columns$lon$file <- main.env$save.variable$GeoCov$columns$lon$file
         }
       }
-      # * Custom
+      
+      ### Custom ----
       if (main.env$local.rv$method == "custom" &&
           isContentTruthy(main.env$save.variable$GeoCov$custom)) {
-        saved_table <- main.env$save.variable$GeoCov$custom$coordinates
-        if (isContentTruthy(saved_table)) 
-          main.env$local.rv$custom$coordinates <- saved_table
+        # shortcut save variable
+        saved_tables <- main.env$save.variable$GeoCov$custom
+        
+        if (isContentTruthy(saved_tables)) {
+          count <- 0
+          
+          try(sapply(
+            names(saved_tables)[!(names(saved_tables) %in% c("count", "complete"))], 
+            function(row.ind) {
+              row <- saved_tables[[row.ind]]
+              # Recount number of items from 1:n
+              count <<- count+1
+              main.env$local.rv$custom[[as.character(count)]] <<- reactiveValues(
+                # number of locationInputs
+                count = nrow(row$points), 
+                # Values 
+                type = row$type,
+                description = row$description, # length == 1
+                points = row$points,
+                color = row$color # length == 1
+              )
+              return()
+            }
+          ))
+          main.env$local.rv$custom$count <- count
+        }
       }
     }
     
-    # Set completeness
+    makeReactiveBinding("main.env$local.rv$custom")
+    
+    #### Set completeness ----
     main.env$local.rv$columns$complete <- reactive(
       isTruthy(main.env$local.rv$columns$site$col) &&
         isTruthy(main.env$local.rv$columns$lat$col) &&
         isTruthy(main.env$local.rv$columns$lon$col)
     )
-    main.env$local.rv$custom$complete <-reactive(
-      isContentTruthy(main.env$local.rv$custom$coordinates)
-    )
+    main.env$local.rv$custom$complete <-reactive({
+      .nm <- names(main.env$local.rv$custom)[!names(main.env$local.rv$custom) %in% c("complete", "count")]
+      if(length(.nm) == 0) FALSE else
+        all(sapply(.nm, function(name) {
+          isContentTruthy(main.env$local.rv$custom[[name]])
+        }))
+    })
   }
   
-  # * TaxCov ----
+  ## TaxCov ----
   if(main.env$EAL$page == 6) {
     devmsg(tag = "setup", "6")
     # File
@@ -701,7 +800,7 @@ setLocalRV <- function(main.env){
       main.env$local.rv$taxa.authority <- main.env$save.variable$TaxCov$taxa.authority
   }
   
-  # * Personnel ----
+  ##Personnel ----
   if(main.env$EAL$page == 7) {
     devmsg(tag = "setup", "7")
     # Read template
@@ -734,7 +833,7 @@ setLocalRV <- function(main.env){
     })
   }
   
-  # * Misc ----
+  ##Misc ----
   if (main.env$EAL$page == 8) {
     devmsg(tag = "setup", "8")
     # markdown files
@@ -747,7 +846,7 @@ setLocalRV <- function(main.env){
   }
   
   # (End) ====
-  devmsg(tag = "fill-module-setup", "passed")
+  devmsg(tag = "fill-module-setup", "passed", timer.env = main.env)
   
   return(main.env)
 }

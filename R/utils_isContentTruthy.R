@@ -13,6 +13,7 @@
 isContentTruthy <- function(x) {
   if (missing(x)) 
     stop("'x' is missing with no default.")
+  if(is.reactivevalues(x)) x <- listReactiveValues(x)
   
   return(isTruthy(x) && 
            ifelse(isTruthy(unlist(x)), sapply(unlist(x), isTruthy), FALSE))
@@ -46,8 +47,11 @@ isHTMLTruthy <- function(x) {
 #' @param default default value (e.g. character()) in case option is invalid.
 #' 
 #' @export
-optional <- function(x, default = NULL) {
-  if(isContentTruthy(x))
+optional <- function(x, default = NULL, quiet = FALSE) {
+  x <- try(x, silent = TRUE)
+  if(class(x) == "try-error" && quiet == FALSE)
+    warning(x)
+  if(isContentTruthy(x) && class(x) != "try-error")
     return(x)
   else
     return(default)

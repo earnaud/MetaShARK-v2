@@ -10,6 +10,7 @@ listToXML <- function(node, sublist){
     child_attr <- if(".attrs" %in% names(sublist[[child]]))
       sublist[[child]]$.attrs else
         NULL
+    if(!is.character(child_name) || child_name == "") browser()
     child_node <- XML::newXMLNode(child_name, parent=node, attrs = child_attr)
     
     if (typeof(sublist[[child]]) == "list"){

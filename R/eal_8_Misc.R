@@ -141,7 +141,7 @@ Misc <- function(id, main.env) {
         tagList(
           lapply(seq_along(main.env$local.rv$keywords$keyword), function(kid) {
             keyword <- main.env$local.rv$keywords$keyword[kid]
-            .val <- main.env$local.rv$keywords$keyword.thesaurus[kid]
+            .val <- main.env$local.rv$keywords$keywordThesaurus[kid]
             
             textInput(
               session$ns(paste0("thesaurus_for_", keyword)),
@@ -165,7 +165,7 @@ Misc <- function(id, main.env) {
         input_id <- paste0("thesaurus_for_", keyword)
         .val <- if (isTruthy(input[[input_id]])) input[[input_id]] else ""
         
-        main.env$local.rv$keywords$keyword.thesaurus[kid] <- .val
+        main.env$local.rv$keywords$keywordThesaurus[kid] <- .val
       })
     },
     label = "EAL8: more keywords"

@@ -54,7 +54,7 @@ DataFileInputUI2 <- function(id, main.env) {
     shinyjs::hidden(
       tags$div(
         id = NS(id, "content"),
-        class = "contentRow",
+        # class = "contentRow",
         tagList(
           fluidRow(
             column(
