@@ -8,17 +8,13 @@
 
 * Navigation issues fixed
 
-* Geospatial data support
+* Geospatial custom coverage support
 
 ## Work in progress
-
-* Bugs: test and stabilize this version
 
 * MetaFIN: continue `dev-metafin` branch
 
 * Annotations: add annotations module
-
-* Docker: optimize docker image
 
 * Tests: continue writing tests
 
