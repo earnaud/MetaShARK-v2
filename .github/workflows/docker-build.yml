@@ -17,3 +17,5 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag eliearnaud/metashark:latest-dev
+    - name: Push the Docker image
+      run: docker push eliearnaud/metashark:latest-dev
