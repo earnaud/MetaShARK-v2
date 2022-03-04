@@ -42,9 +42,9 @@ RUN dpkg -S /usr/include/GL/gl.h \
 && echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), download.file.method = 'libcurl')" >> /usr/local/lib/R/etc/Rprofile.site \
 && R -e 'install.packages("devtools")' \
 && R -e 'devtools::install_version("remotes", version = "2.3.0")'
-
 RUN R -e 'remotes::install_github("EDIorg/EMLassemblyline@d3d2eb90a67370c1138e234c09dd96c529408f90")' 
 RUN Rscript -e 'remotes::install_github("earnaud/SummeRnote")'
+
 
 RUN  R -e 'remotes::install_version("RCurl",upgrade="never", version = "1.98-1.3")'\
 && R -e 'remotes::install_version("attempt",upgrade="never", version = "0.3.1")' \
