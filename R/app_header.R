@@ -266,7 +266,8 @@
       current = isolate(main.env$VALUES$steps[1]), # last of history
       completed = FALSE, # is current page completed?
       tag.list = tagList(), # side HTML tags to display
-      help = character()
+      help = character(),
+      ping = "" # change character to ping EAL and trigger an observer
     ),
     envir = main.env
   )

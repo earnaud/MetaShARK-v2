@@ -313,11 +313,11 @@ fill <- function(id, main.env) {
                       tags$i("Data package license"), "is the license assigned to this production for
                         intellectual rights properties"
                     )
-                  ),
-                  tags$p("Also, notice the", tags$strong("quick"), "check box above DP name.
-                    Checking this box enables \"quick mode\" which will pre-fill most of the 
-                    fields in further steps. You still will be able to edit them at your 
-                    convenience.")
+                  )
+                  # , tags$p("Also, notice the", tags$strong("quick"), "check box above DP name.
+                  #   Checking this box enables \"quick mode\" which will pre-fill most of the 
+                  #   fields in further steps. You still will be able to edit them at your 
+                  #   convenience.")
                 ),
                 ### Data Files ====
                 tagList(

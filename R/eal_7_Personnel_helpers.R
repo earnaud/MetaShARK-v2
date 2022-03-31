@@ -176,7 +176,7 @@ PersonnelInput <- function(id, main.env) {
     mail.pattern <- main.env$PATTERNS$email
     
     # [U] Collapse ====
-    onclick("box-header-title", {
+    shinyjs::onclick("box-header-title", {
       shinyjs::runjs(
         sprintf("$('#%s').closest('.box').find('[data-widget=collapse]').click();",
                 session$ns("box"))

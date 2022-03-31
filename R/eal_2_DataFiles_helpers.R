@@ -16,39 +16,55 @@ insertDataFileInput <- function(id, main.env){
 #' @noRd
 DataFileInputUI <- function(id, main.env) {
   # Setup
+  ns <- NS(id)
   ref <- unns(id)
   .value <- main.env$local.rv$data.files[
     which(main.env$local.rv$data.files$id == ref),
   ]
   
   ui <- tags$div(
-    id = NS(id, "container"),
-    class = "inputBox",
-    tags$div(
-      class = "topInputRow",
-      # Collapse
-      actionLink(NS(id, "collapse"), "", icon("chevron-right")),
-      tags$span(
-        style="width: calc(100% - 100px); margin: 0 5px 0;",
-        # Show name
-        tags$div(
-          textOutput(NS(id, "name")),
-          style="margin-top: 20px; padding: 6px; height: 40px;"
-        )
+    id = ns("container"),
+    shinydashboard::box(
+      id = ns("box"),
+      collapsible = TRUE,
+      collapsed = TRUE,
+      width = 12,
+      # Header ----
+      title = tags$div(
+        id = ns("box-header-title"),
+        class = "box-title-row",
+        tags$span(
+          class = "box-title-form",
+          # Show name
+          tags$div(
+            tags$b(.value$name),
+            style="margin-top: 20px; padding: 6px; height: 40px; width: 100%;"
+          )
+        ),
+        # Remove UI
+        actionButton(ns("remove"), "", icon("trash"), class = "redButton")
       ),
-      # Remove UI
-      actionButton(NS(id, "remove"), "", icon("trash"), class = "redButton")
-    ), # end of header
-    shinyjs::hidden(
+      # title = tags$span(
+      #   class = "box-title-form",
+      #   # style="width: calc(100% - 100px); margin: 0 5px 0;",
+      #   # Show name
+      #   tags$div(
+      #     tags$b(.value$name),
+      #     # style="margin-top: 20px; padding: 6px; height: 40px;"
+      #   ),
+      #   # Remove UI
+      #   actionButton(ns("remove"), "", icon("trash"), class = "redButton")
+      # ), # end of header
+      # Content ----
       tags$div(
-        id = NS(id, "content"),
+        id = ns("content"),
         # class = "contentRow",
         tagList(
           fluidRow(
             column(
               6,
               textInput(
-                NS(id, "data.name"),
+                ns("data.name"),
                 "Data table name",
                 value = .value$name
               )
@@ -56,7 +72,7 @@ DataFileInputUI <- function(id, main.env) {
             column(
               6,
               URL_Input_UI(
-                NS(id, "data.url"),
+                ns("data.url"),
                 label = "Data remote location"
               )
             ),
@@ -65,7 +81,7 @@ DataFileInputUI <- function(id, main.env) {
             column(
               12,
               textAreaInput(
-                NS(id, "data.description"),
+                ns("data.description"),
                 "Data Table Description",
                 value = if(isTruthy(.value$description)) 
                   .value$description else
@@ -75,8 +91,8 @@ DataFileInputUI <- function(id, main.env) {
             )
           )
         )
-      )
-    ) # end of content
+      ) # end of content
+    ) # end of box
   )
   
   return(ui)
@@ -93,37 +109,43 @@ DataFileInput <- function(id, main.env) {
     row <- reactive({which(main.env$local.rv$data.files$id == id)})
     
     # [U] Collapse ====
-    observeEvent(input$collapse, {
-      shinyjs::toggle(
-        id = "content",
-        anim = TRUE,
-        animType = "slide",
-        time = 0.25,
-        condition = input$collapse %% 2 == 1
+    shinyjs::onclick("box-header-title", {
+      shinyjs::runjs(
+        sprintf("$('#%s').closest('.box').find('[data-widget=collapse]').click();",
+                session$ns("box"))
       )
-      
-      updateActionButton(
-        session, 
-        "collapse", 
-        icon = icon(
-          ifelse(input$collapse %% 2 == 0, "chevron-right", "chevron-down")
-        )
-      )
-    },
-    label = sprintf("EAL2 %s", unns(id))
-    )
+    })
+    # observeEvent(input$collapse, {
+    #   shinyjs::toggle(
+    #     id = "content",
+    #     anim = TRUE,
+    #     animType = "slide",
+    #     time = 0.25,
+    #     condition = input$collapse %% 2 == 1
+    #   )
+    #   
+    #   updateActionButton(
+    #     session, 
+    #     "collapse", 
+    #     icon = icon(
+    #       ifelse(input$collapse %% 2 == 0, "chevron-right", "chevron-down")
+    #     )
+    #   )
+    # },
+    # label = sprintf("EAL2 %s", unns(id))
+    # )
     
     # [U] Verbose name ====
-    output$name <- renderText({
-      
-      .name <- main.env$local.rv$data.files$name[row()]
-      
-      validate(
-        need(.name != "", "No provided name")
-      )
-      
-      return(.name)
-    })
+    # output$name <- renderText({
+    #   
+    #   .name <- main.env$local.rv$data.files$name[row()]
+    #   
+    #   validate(
+    #     need(.name != "", "No provided name")
+    #   )
+    #   
+    #   return(.name)
+    # })
     
     # [U] Remove ====
     observeEvent(input$remove, {

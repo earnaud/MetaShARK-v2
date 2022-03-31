@@ -118,7 +118,7 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
     sep = "/"
   )
   .sv$SelectDP$dp.title <- content$dp.title()
-  .sv$quick <- content$quick
+  # .sv$quick <- content$quick
   .sv$creator <- if(isTRUE(main.env$SETTINGS$logged))
     main.env$SETTINGS$user
   else
@@ -135,8 +135,9 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
   .tmp <- main.env$local.rv$data.files
   .tmp <- try(dplyr::select(.tmp, -id), silent = TRUE)
   # Format content
-  if (!isContentTruthy(.tmp)) {
-    message("Invalid content")
+  if (!isContentTruthy(.tmp) || class(.tmp) == "try-error") {
+    devmsg("Invalid content.", tag="fill_module_saves.R")
+    # don't change .sv
   } else {
     # -- Get files data
     .from <- .tmp$datapath
@@ -160,12 +161,12 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
       ),
       sep = "/"
     )
+    .tmp[] <- lapply(.tmp, as.character)
+    
+    # Save
+    .sv$DataFiles <- .tmp
+    try(main.env$local.rv$data.files$datapath <- .tmp$datapath)
   }
-  .tmp[] <- lapply(.tmp, as.character)
-  
-  # Save
-  .sv$DataFiles <- .tmp
-  try(main.env$local.rv$data.files$datapath <- .tmp$datapath)
 
   return(.sv)
 }
@@ -283,51 +284,59 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
   if (.method == "columns" &&
       isContentTruthy(main.env$local.rv$columns$site) &&
       isContentTruthy(main.env$local.rv$columns)) {
+    devmsg("Geographic Coverage saved with columns", tag = "fill_module_saves.R")
     .sv$GeoCov$columns <- main.env$local.rv$columns
 
     # Site
-    site <- listReactiveValues(main.env$local.rv$columns$site)
-    .geographicDescription <- .values$data.content[[site$file]][[site$col]]
-
-    # extract queried
-    .tmp <- extractCoordinates(
-      main.env,
-      "lat",
-      main.env$PATTERNS$coordinates,
-      .values$data.content
-    )
-    .northBoundingCoordinate <- .tmp$coordinates$N
-    .southBoundingCoordinate <- .tmp$coordinates$S
-    .lat.index <- .tmp$coord.index
-
-    .tmp <- extractCoordinates(
-      main.env,
-      "lon",
-      main.env$PATTERNS$coordinates,
-      .values$data.content
-    )
-    .eastBoundingCoordinate <- .tmp$coordinates$E
-    .westBoundingCoordinate <- .tmp$coordinates$W
-    .lon.index <- .tmp$coord.index
-
-    # Get only lines fully completed
-    .geographicDescription <- .geographicDescription[
-      .lat.index[which(.lat.index %in% .lon.index)]
-    ]
-
-    # Final
-    geocov <- data.frame(
-      geographicDescription = .geographicDescription,
-      northBoundingCoordinate = .northBoundingCoordinate,
-      southBoundingCoordinate = .southBoundingCoordinate,
-      eastBoundingCoordinate = .eastBoundingCoordinate,
-      westBoundingCoordinate = .westBoundingCoordinate,
-      stringsAsFactors = FALSE
-    )
+    # site <- listReactiveValues(main.env$local.rv$columns$site)
+    # .geographicDescription <- .values$data.content[[site$file]][[site$col]]
+    # 
+    # # extract queried
+    # .tmp <- extractCoordinates(
+    #   main.env,
+    #   "lat",
+    #   main.env$PATTERNS$coordinates,
+    #   .values$data.content
+    # )
+    # .northBoundingCoordinate <- .tmp$coordinates$N
+    # .southBoundingCoordinate <- .tmp$coordinates$S
+    # .lat.index <- .tmp$coord.index
+    # 
+    # .tmp <- extractCoordinates(
+    #   main.env,
+    #   "lon",
+    #   main.env$PATTERNS$coordinates,
+    #   .values$data.content
+    # )
+    # .eastBoundingCoordinate <- .tmp$coordinates$E
+    # .westBoundingCoordinate <- .tmp$coordinates$W
+    # .lon.index <- .tmp$coord.index
+    # 
+    # # Get only lines fully completed
+    # .index <- intersect(.lat.index, .lon.index)
+    # # .northBoundingCoordinate <- .northBoundingCoordinate[.lat.index[.lat.index %in% .index]]
+    # # .southBoundingCoordinate <- .southBoundingCoordinate[.lat.index[.lat.index %in% .index]]
+    # # .eastBoundingCoordinate <- .eastBoundingCoordinate[.lon.index[.lon.index %in% .index]]
+    # # .westBoundingCoordinate <- .westBoundingCoordinate[.lon.index[.lon.index %in% .index]]
+    # .geographicDescription <- .geographicDescription[.index]
+    # 
+    # # Final
+    # geocov <- data.frame(
+    #   geographicDescription = .geographicDescription,
+    #   northBoundingCoordinate = .northBoundingCoordinate,
+    #   southBoundingCoordinate = .southBoundingCoordinate,
+    #   eastBoundingCoordinate = .eastBoundingCoordinate,
+    #   westBoundingCoordinate = .westBoundingCoordinate,
+    #   stringsAsFactors = FALSE
+    # )
+    
+    # Templated
+    geocov <- NULL
   }
   
   # Custom ----
   if (.method == "custom") {
+    devmsg("Geographic Coverage saved with custom", tag = "fill_module_saves.R")
     # shortcuts
     .local.rv <- main.env$local.rv$custom
     .features.ids <- names(.local.rv)[

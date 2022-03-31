@@ -2,39 +2,52 @@
 
 #' @noRd
 extractCoordinates <- function(main.env, coord.cols, .pattern, files.data) {
-  # initialize variables
+  # initialize variables -- replace by column names
   if (coord.cols == "lat") {
     coord.cols <- main.env$local.rv$columns$lat
     coord.tags <- c("N", "S")
-  }
-  else if (coord.cols == "lon") {
+  } else if (coord.cols == "lon") {
     coord.cols <- main.env$local.rv$columns$lon
     coord.tags <- c("E", "W")
   }
   
-  # Extract proper coordinates
-  coordinates <- files.data[[coord.cols$file]][[coord.cols$col]] |> # uniformize decimal separators
-    sapply(gsub, pattern = ",", replacement = ".")
-  coord.index <- which(grepl(.pattern, coordinates))
-  coordinates <- coordinates[coord.index] |>
-    unname() |>
-    as.numeric()
+  # Extract proper coordinates ----
+  # Get coordinates written in data file
+  coordinates <- files.data[[coord.cols$file]][,coord.cols$col] |> 
+    sapply(gsub, pattern = ",", replacement = ".") |> # uniformize decimal separators
+    as.data.frame() |>
+    setNames(coord.cols$col)
+  # coord.index <- which(grepl(.pattern, coordinates))
+  # Get indexes at which valid coordinates are
+  coord.index <- which(
+    sapply(
+      1:nrow(coordinates),
+      function(i) all(sapply(coordinates[i,], grepl, pattern = .pattern))
+    )
+  )
+  # Work only with valid coordinates
+  coordinates <- coordinates[coord.index,] |>
+    sapply(as.numeric) |>
+    as.data.frame()
+  # NA removed: number of lines does not reflect the total number
   
   if (!is.data.frame(coordinates)) {
     coordinates <- data.frame(
-      coordinates,
+      # id = coord.index, # different from simple line number
+      coord = coordinates,
       stringsAsFactors = FALSE
     )
   }
-  
+
   # Check for having only two columns
   if (dim(coordinates)[2] > 2) {
     coordinates <- coordinates[, 1:2]
   }
+  # Work on two columns
   if (dim(coordinates)[2] == 1) {
     coordinates <- cbind(coordinates, coordinates)
   }
-  
+  # order from east to east (leave rows order unchanged)
   if (dim(coordinates)[2] <= 2 && dim(coordinates)[2] > 0) {
     # assign West and East / North and South to columns
     coordinates[
@@ -42,16 +55,16 @@ extractCoordinates <- function(main.env, coord.cols, .pattern, files.data) {
     ] <- rev(coordinates[
       coordinates[, 1] <= coordinates[, 2],
     ])
-    
-    colnames(coordinates) <- coord.tags
+    # Set tags to columns
+    colnames(coordinates) <- coord.tags # WE / SN
     if (all(coordinates[, 1] <= coordinates[, 2])) {
-      colnames(coordinates) <- rev(coord.tags)
+      colnames(coordinates) <- rev(coord.tags) # EW / NS
     }
   }
   
   return(
-    list(
-      coordinates = coordinates,
+    cbind(
+      coordinates,
       coord.index = coord.index
     )
   )

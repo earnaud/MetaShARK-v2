@@ -56,7 +56,7 @@ ui <- function() {
     htmltools::includeCSS(
       system.file("app/www/styles.css", package = "MetaShARK")
     ),
-    ## App business spinner ----
+    ## App busy status spinner ----
     shinybusy::add_busy_spinner(
       spin = "spring",
       position = "bottom-left",

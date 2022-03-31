@@ -12,6 +12,7 @@ templateModules <- function(main.env, page){
         "1" = ".templateInit",
         "2" = ".templateAttributes",
         "3" = ".templateCV_GeoCov",
+        "5" = ".templateGeoCov_column",
         "6" = ".templateTaxCov"
       ),
       args = list(
@@ -201,6 +202,27 @@ templateModules <- function(main.env, page){
       duration = NULL
     )
   }
+}
+
+.templateGeoCov_column <- function(main.env) {
+  if(exists("template_issues")) 
+    rm("template_issues", envir = .GlobalEnv)
+  
+  # expected to have common file between lat and lon
+  # FIXME check this better
+  data.file = main.env$local.rv$columns$lat$file
+  
+  x <- try({
+    EMLassemblyline::template_geographic_coverage(
+      path = main.env$save.variable$SelectDP$dp.metadata.path,
+      data.path = main.env$save.variable$SelectDP$dp.data.path,
+      data.table = data.file,
+      site.col = main.env$local.rv$columns$site$col,
+      lat.col = main.env$local.rv$columns$lat$col,
+      lon.col = main.env$local.rv$columns$lon$col,
+      write.file = TRUE
+    )
+  })
 }
 
 #' @import shiny

@@ -15,22 +15,31 @@
 #'
 #' @noRd
 DataFilesUI <- function(id) {
+  ns <- NS(id)
+  
   return(
     fluidPage(
-      tags$b("Disclaimers:"),
-      tags$ul(
-        tags$li("Until now, only table files are supported."),
-        tags$li("Selecting a file will immediately upload it (heavy files might 
-                be slow)."),
-        tags$li("Editing a data file requires removing it and uploading its
-                newest version."),
-        class = "disclaimer"
+      tags$div(
+        id = ns("disclaimer"),
+        class = "disclaimer",
+        tags$h4("Disclaimer"),
+        tags$p("(click to dismiss)"),
+        "Until now, only table files are supported."
       ),
+      # tags$b("Disclaimers:"),
+      # tags$ul(
+      #   tags$li("Until now, only table files are supported."),
+      #   tags$li("Selecting a file will immediately upload it (heavy files might 
+      #           be slow)."),
+      #   tags$li("Editing a data file requires removing it and uploading its
+      #           newest version."),
+      #   class = "disclaimer"
+      # ),
       fluidRow(
         column(6,
                div(
                  fileInput(
-                   NS(id, "add_data_files"),
+                   ns("add_data_files"),
                    "Select data file(s) from your dataset",
                    buttonLabel = span("Load files", icon("plus-circle")),
                    multiple = TRUE,
@@ -46,7 +55,7 @@ DataFilesUI <- function(id) {
               id = "url_div",
               wipRow(
                 URL_Input_UI(
-                  NS(id, "url_files"),
+                  ns("url_files"),
                   "Select data file(s) from an URL"
                 ),
                 actionButton(
@@ -86,7 +95,9 @@ DataFiles <- function(id, main.env) {
       shinyjs::show("url_div")
     }
     
-    # Setup UI on load
+    
+    
+    # Setup UI on load =====
     observeEvent(main.env$EAL$page, { # on load
       req(main.env$EAL$page == 2)
       
@@ -103,6 +114,12 @@ DataFiles <- function(id, main.env) {
     priority = -1, 
     label = "EAL2: setup UI"
     )
+    
+    # Remove disclaimer ----
+    shinyjs::onclick(session$ns("disclaimer"), {
+      # animate cause it looks nice
+      shinyjs::hide("disclaimer", anim = TRUE, time = 0.25)
+    }, asis = TRUE)
     
     # Add data files ====
     observeEvent(input$add_data_files, {

@@ -3,6 +3,8 @@
 #'
 #' @noRd
 SelectDPUI <- function(id) {
+  ns <- NS(id)
+  
   # UI output
   return(
     fluidPage(
@@ -10,7 +12,7 @@ SelectDPUI <- function(id) {
       tags$div(
         class = "headband",
         collapsibleUI(
-          NS(id, "usage"),
+          ns("usage"),
           "TUTORIAL: EML Assembly Line workflow",
           ... = tagList(
             tags$p(tags$b("Welcome in the EML Assembly line."), "This tool is
@@ -43,105 +45,103 @@ SelectDPUI <- function(id) {
         # Load existing DP ----
         column(
           6,
-          tags$h4("Edit existing data package",
-                  style = "text-align:center"
-          ),
-          shinyjs::hidden(
-            tags$div(
-              id = NS(id, "dp_list_empty"),
-              helpText("No data package has been found.")
-            )
-          ),
-          
-          # DP list
-          tags$div(
-            radioButtons(
-              NS(id, "dp_list"),
-              NULL,
-              choiceNames = c("None selected"),
-              choiceValues = c("")
+          tags$fieldset(
+            tags$legend(
+              tags$h4("Edit existing data package",
+                      style = "text-align:center"
+              )
             ),
-            style = "overflow: scroll; width: auto; max-height: 500px;"
-          ),
-          
-          # Load button
-          actionButton(
-            NS(id, "dp_load"),
-            "Load",
-            icon = icon("folder-open")
-          ),
-          # Delete button
-          actionButton(
-            NS(id, "dp_delete"),
-            "Delete",
-            icon = icon("minus-circle"),
-            class = "redButton"
-          ),
-          # Download button
-          downloadButton(
-            NS(id, "dp_download"),
-            label = "Download .zip",
-            icon = icon("file-download")
-          ),
-          # Warning -- manual handling
-          tags$p(
-            "If you have handled manually some packages in ",
-            tags$code("~/dataPackagesOutput/emlassemblyline"),
-            ", some packages might not be listed here."
-          )
-        ),
+            tagList(
+              # DP list
+              textInput(ns("dp_search"), "", placeholder = "plants_project"),
+              shinyjs::hidden(
+                tags$div(
+                  id = ns("dp_list_empty"),
+                  helpText("No data package has been found.")
+                )
+              ),
+              tags$div(
+                radioButtons(
+                  ns("dp_list"),
+                  NULL,
+                  choiceNames = c("None selected"),
+                  choiceValues = c("")
+                ),
+                style = "overflow: scroll; width: auto; max-height: 500px;"
+              ),
+              # Load button
+              actionButton(
+                ns("dp_load"),
+                "Load",
+                icon = icon("folder-open")
+              ),
+              # Delete button
+              actionButton(
+                ns("dp_delete"),
+                "Delete",
+                icon = icon("minus-circle"),
+                class = "redButton"
+              ),
+              # Download button
+              downloadButton(
+                ns("dp_download"),
+                label = "Download .zip",
+                icon = icon("file-download")
+              )
+            ) # end of tagList
+          ) # end of fieldset
+        ), # end of column
         # Create DP ----
         column(
           6,
-          tags$h4("Create new data package",
-                  style = "text-align:center"
-          ),
-          checkboxInput(
-            NS(id, "quick"),
-            tagList(
-              tags$b("Quick mode"),
-              "Most fields will be automatically filled"
+          tags$fieldset(
+            tags$legend(
+              tags$h4("Create new data package",
+                      style = "text-align:center"
+              )
             ),
-            value = TRUE
-          ),
-          # Data package name
-          textInput(
-            NS(id, "dp_name"),
-            "Data package name (displayed)",
-            placeholder = "my_project"
-          ),
-          # Title
-          textInput(
-            NS(id, "dp_title"),
-            "Dataset title (file name)",
-            placeholder = "Any title is a title"
-          ),
-          tags$p(
-            "Only use alphanumerics, or one of:",
-            HTML(paste(
-              tags$code('  '), tags$code('.'), tags$code(','), 
-              tags$code(':'), tags$code('_'), tags$code('-'),
-              sep = "&nbsp&nbsp"
-            ))
-          ),
-          # License
-          tags$div(
-            id = "license-help",
-            selectInput(
-              NS(id, "license"),
-              "Select an Intellectual Rights License:",
-              c("CCBY", "CC0"),
-              multiple = FALSE
-            )
-          ),
-          HTML("License: <br>
-               <b>CC0:</b> public domain. <br>
-               <b>CC-BY-4.0:</b> open source with authorship. <br>
-               For more details, visit Creative Commons."),
-          # DP creation
-          shinyjs::disabled(
-            actionButton(NS(id, "dp_create"), "Create")
-          )
+            tagList(
+              # Data package name
+              textInput(
+                ns("dp_name"),
+                helpLabel("Data package name", "Files will be saved under this name; e.g. 'france_plants'"),
+                value = paste0(Sys.Date(), "_project")
+              ),
+              # Title
+              textInput(
+                ns("dp_title"),
+                helpLabel("Dataset title", "The data published title (for articles and so on) will be this one; e.g. 'Measures of petals size in Angiospermae of France'"),
+                placeholder = "Plants of France"
+              ),
+              tags$p(
+                "Only use alphanumerics, or one of:",
+                HTML(paste(
+                  tags$code('  '), tags$code('.'), tags$code(','), 
+                  tags$code(':'), tags$code('_'), tags$code('-'),
+                  sep = "&nbsp&nbsp"
+                ))
+              ),
+              # License
+              tags$div(
+                id = "license-help",
+                selectInput(
+                  ns("license"),
+                  helpLabel(
+                    "Select an Intellectual Rights License:",
+                    "Currently, CC-BY-4.0 ensures the author to be named when her
+                    data is reused, while CC0 allows a totally free reuse of
+                    the data."
+                  ),
+                  c("CC-BY-4.0" = "CCBY", "CC0" = "CC️0"),
+                  multiple = FALSE
+                )
+              ),
+              # DP creation
+              shinyjs::disabled(
+                actionButton(ns("dp_create"), "Create")
+              )
+            ) # end of taglist
+          ) # end of fieldset
         ) # end column2
       ) # end fluidRow
     ) # end fluidPage
@@ -185,7 +185,9 @@ SelectDP <- function(id, main.env) {
     label = "EAL1: set DP"
     )
     
-    # Render DP list ====
+    # DP Load ====
+    
+    ## Render DP list ----
     # get files list
     .files.poll <- reactiveDirReader(
       main.env$PATHS$eal.dp,
@@ -196,9 +198,18 @@ SelectDP <- function(id, main.env) {
     # Extra reactive: makes sure files are returned reactively
     files.poll.reactive <- reactive(.files.poll())
     
+    # get search items
+    search.pattern <- reactive(input$dp_search) |>
+      debounce(300)
+    
     # set it up
     observe({
       dp.list <- gsub(files.poll.reactive(), pattern = "_emldp$", replacement = "")
+      
+      if(isContentTruthy(search.pattern())) {
+        # do the filter
+        dp.list <- dp.list[which(agrepl(search.pattern(), dp.list))]
+      }
       changed <- isFALSE(identical(dp.list, main.env$local.rv$dp.list))
       
       # Changed and files present: update file list
@@ -299,23 +310,17 @@ SelectDP <- function(id, main.env) {
     label = "EAL1: dp title input"
     )
     
-    # Quick mode
-    # TODO depreciated -- only quick mode used
-    # Transform it in "if ORCID-connected" grab ontologies terms ?
-    observeEvent(input$quick, {
-      req(input$dp_name %in% c("", "my_project", paste0(Sys.Date(), "_project"))) # Do not change a yet changed name
-      if(isTRUE(getOption("shiny.testmode"))) {
-        updateTextInput(session, "dp_name", value = "my_project")
-      } else if (input$quick) {
-        updateTextInput(session, "dp_name", value = paste0(Sys.Date(), "_project"))
-      } else {
-        updateTextInput(session, "dp_name", placeholder = paste0(Sys.Date(), "_project"))
-      }
-    },
-    label = "EAL1: quick"
-    )
-    
     # DP management - on clicks ----
+    ## Check Create DP ----
+    observe({
+      shinyjs::toggleState(
+        "dp_create",
+        condition = isContentTruthy(main.env$local.rv$dp.name()) &&
+          isContentTruthy(main.env$local.rv$dp.title()) &&
+          main.env$local.rv$dp.license() %in% c("CC0", "CCBY")
+      )
+    }, priority = -1)
+    
     ## Create DP ----
     observeEvent(input$dp_create, {
       req(input$dp_create)
@@ -392,7 +397,7 @@ SelectDP <- function(id, main.env) {
         unname()
       
       # - check quick mode
-      .tmp$quick <- isTRUE(.tmp$quick)
+      # .tmp$quick <- isTRUE(.tmp$quick)
       
       # - for elder DP, add use.catvars boolean variable
       if("Attributes" %in% .tmp$history && 

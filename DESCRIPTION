@@ -1,6 +1,6 @@
 Package: MetaShARK
 Title: metashark
-Version: 1.7.0
+Version: 1.7.1
 Authors@R: 
     person(given = "Elie",
            family = "ARNAUD",
@@ -138,3 +138,4 @@ Collate:
     'utils_coordinateInput.R'
     'utils_customLocationInput.R'
     'utils_geospatial.R'
+    'utils_helpMark.R'

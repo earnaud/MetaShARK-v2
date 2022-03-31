@@ -43,7 +43,7 @@ uploadUI <- function(id) {
             It allows the user to authenticate a connection between its current location and
             a distant server, actually the metadata catalog. To upload a data package, 
             the authentication token is required."),
-      actionButton(NS(id, "toSettings"), "Go to settings", icon("cog")),
+      actionButton(NS(id, "toSettings"), "Go to settings", icon("cogs")),
       class = "leftMargin inputBox"
     ),
     

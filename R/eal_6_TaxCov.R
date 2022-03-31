@@ -7,7 +7,8 @@ TaxCovUI <- function(id) {
       fluidRow(
         column(
           4,
-          uiOutput(NS(id, "taxa.table")),
+          uiOutput(NS(id, "taxa.table")), # TODO replace by updateSelectInput()
+          tags$b("Column preview"),
           tableOutput(NS(id, "preview"))
         ),
         column(4, uiOutput(NS(id, "taxa.name.type")) ),
@@ -95,7 +96,7 @@ TaxCov <- function(id, main.env) {
         unlist()
       
       data <- data.table::fread(
-        file, nrows = 5,
+        file, nrows = 5, header=TRUE,
         data.table = FALSE
       )[main.env$local.rv$taxa.col]
       

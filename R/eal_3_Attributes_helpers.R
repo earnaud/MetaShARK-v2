@@ -236,3 +236,155 @@ customUnits <- function(id, main.env) {
     
   })
 }
+
+# Manual editing ====
+#' @import shiny
+#' @noRd
+metadataEditorUI <- function(id) {
+  ns <- NS(id)
+  
+  modalDialog(
+    title = "Manual edit",
+    tagList(
+      tags$p("This panel supports features similar to a spreadsheet, like copy-pasting over multiple rows."),
+      fluidRow(
+        column(9, DataEditR::dataEditUI(ns("metadata_edit"))),
+        column(3, uiOutput(ns("errors")))
+      )
+    ),
+    size = "l",
+    footer = tagList(
+      actionButton(ns("validate"), "Save and close")
+    )
+  )
+}
+
+#' @import shiny
+#' @noRd
+metadataEditor <- function(id, main.env, selected.file) {
+  moduleServer(id, function(input, output, session) {
+    
+    manual.edit.errors <- reactiveVal("")
+    
+    ## manage input ----
+    observeEvent(
+      input$`metadata_edit-x`,
+      {
+        req(main.env$EAL$page == 3)
+        .content <- main.env$local.rv$metadata.editor()
+        .errors = list()
+        
+        ### check emptiness ----
+        # attributeName
+        .errors <- manualEditCheck(.content["attributeName"], .errors)
+        # attributeDefinition
+        .errors <- manualEditCheck(.content["attributeDefinition"], .errors)
+        # class
+        .errors <- manualEditCheck(.content["class"], .errors)
+        
+        ### check invalid values ----
+        # class
+        .test <- sapply(.content$class, `%in%`, c("character", "categorical", "numeric", "Date"))
+        if(isFALSE(all(.test))) { # any is false
+          .row.ind <- which(!.test)
+          .errors[[length(.errors)+1]] <- HTML(
+            sprintf("Invalid values for <code>class</code> at l. %s.",  paste(.row.ind, collapse = ", "))
+          )
+        }
+        # dateTimeFormatString
+        .test <- sapply(1:nrow(.content), function(i){
+          if(.content$class[i] != "date") TRUE else # only test dates
+            .content$dateTimeFormatString[i] %in% main.env$FORMATS$dates
+        })
+        if(isFALSE(all(.test))) { # add error if any is false
+          .row.ind <- which(!.test)
+          .errors[[length(.errors)+1]] <- HTML(
+            sprintf("Invalid values for <code>dateTimeFormatString</code> at l. %s.",  paste(.row.ind, collapse = ", "))
+          )
+        }
+        # unit
+        .test <- sapply(1:length(.content$unit), function(i){
+          if(.content$class[i] != "numeric") TRUE else # only test dates
+            .content$unit[i] %in% unlist(main.env$FORMATS$units)
+        })
+        if(isFALSE(all(.test))) { # add error if any is false
+          .row.ind <- which(!.test)
+          .errors[[length(.errors)+1]] <- HTML(
+            sprintf("Invalid values for <code>unit</code> at l. %s.",  paste(.row.ind, collapse = ", "))
+          )
+        }
+        
+        ### check not required values ----
+        # dates
+        .test <- .content$class != "date" &
+          sapply(.content$dateTimeFormatString, isTruthy)
+        if(any(.test)) {
+          .errors[[length(.errors)+1]] <- HTML(
+            sprintf("Unnecessary values for <code>dateTimeFormatString</code> at l. %s.",  paste(which(.test), collapse = ", "))
+          )
+        }
+        # units
+        .test <- .content$class != "numeric" & 
+          sapply(.content$unit, isTruthy)
+        if(any(.test)) {
+          .errors[[length(.errors)+1]] <- HTML(
+            sprintf("Unnecessary values for <code>unit</code> at l. %s.",  paste(which(.test), collapse = ", "))
+          )
+        }
+        
+        ### check missing value pairs ----
+        .test <- sapply(.content$missingValueCode, isContentTruthy) == sapply(.content$missingValueCodeExplanation, isContentTruthy)
+        if(isFALSE(all(.test))) {
+          .errors[[length(.errors)+1]] <- HTML(
+            sprintf("Inconsistent missing value at l. %s", which(!.test))
+          )
+        }
+        
+        ### final check ----
+        .valid = length(.errors) == 0
+        if(!.valid){
+          # browser()
+          # send errors
+          manual.edit.errors(tags$ul(lapply(.errors, tags$li)))
+        } else 
+          manual.edit.errors("")
+        # toggle close modal button
+        shinyjs::toggleState("manual_edit-valid", condition = .valid)
+      }, 
+      ignoreInit = TRUE,
+      priority = -1
+    )
+    
+    output$errors <- renderUI({
+      manual.edit.errors()
+    })
+    
+    # Save ====
+    observeEvent(input$validate, {
+      req(isFALSE(isContentTruthy(manual.edit.errors())))
+      
+      # shortcut
+      md = main.env$local.rv$metadata.editor()
+      # curate
+      md[is.na(md)] <- ""
+      # send ping = "update current row"
+      if(!identical(main.env$local.rv$md.tables[[selected.file()]], md))
+        main.env$EAL$ping <- "update current row"
+      # save
+      main.env$local.rv$md.tables[[selected.file()]] <- md
+      # leave
+      removeModal()
+    })
+  })
+}
+
+manualEditCheck <- function(content, errors) {
+  if(!all(sapply(content[[1]], isContentTruthy))) {
+    .row.ind <- which(!sapply(content[[1]], isContentTruthy))
+    errors[[length(errors)+1]] <- HTML(
+      sprintf("Empty content for <code>%s</code> at l. %s", colnames(content),  paste(.row.ind, collapse = ", "))
+    )
+  }
+  
+  return(errors)
+}

@@ -124,8 +124,8 @@ uploadDP <- function(
   
   # Fix for PNDB
   adress <- ifelse(
-    d1c@mn@name == "PNDB TEST Data Repository",
-    gsub("test", "data.test", adress),
+    grepl("^test.pndb", adress),
+    gsub("^test", "data.test", adress),
     adress
   )
   

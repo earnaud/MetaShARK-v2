@@ -19,7 +19,7 @@ initReactive <- function(sub.list = NULL, save.variable = NULL, main.env) {
   else if (sub.list == "emlal") {
     save.variable <- reactiveValues(
       step = 1,
-      quick = FALSE,
+      # quick = FALSE,
       creator = character(),
       history = isolate(main.env$EAL$history),
       SelectDP = reactiveValues(
@@ -132,14 +132,14 @@ setLocalRV <- function(main.env){
   devmsg(tag = "fill-module-setup.R", "set variable", timer.env = main.env)
   main.env$local.rv <- switch(
     main.env$EAL$page,
-    ##SelectDP ----
+    ## SelectDP ----
     reactiveValues(
       dp.name = character(),
       dp.title = character(),
       dp.list = listDP(main.env),
       dp.license = NULL
     ),
-    ##DataFiles ----
+    ## DataFiles ----
     {
       reactiveValues(
         data.files = if (isContentTruthy(main.env$save.variable$DataFiles) &&
@@ -150,8 +150,7 @@ setLocalRV <- function(main.env){
             id = paste0("_", seq(.ind)),
             main.env$save.variable$DataFiles[.ind, .col]
           )
-        }
-        else
+        } else
           data.frame(stringsAsFactors = FALSE),
         counter = 1
       )
