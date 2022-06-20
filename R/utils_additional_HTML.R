@@ -66,7 +66,7 @@ unns <- function(id) {
   strsplit(id, "-") |> unlist() |> tail(1)
 }
 
-#' @title checkFeedback
+#' checkFeedback
 #' 
 #' relies on {shinyFeedback} to automate feedback on one input.
 #' 
