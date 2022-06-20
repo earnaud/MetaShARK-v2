@@ -9,9 +9,10 @@ x \%grep\% table
 \arguments{
 \item{x}{character. Pattern(s) to be matched against \code{table}.}
 
-\item{table}{any unlisted data. A collection of data among which to find \code{pattern}-matching
-elements.}
+\item{table}{any unlisted data. A collection of data among which to find
+\code{pattern}-matching elements.}
 }
 \description{
-This function is designed to be a shorthand for base::grepl, thought to be used as \code{\%in\%}.
+This function is designed to be a shorthand for base::grepl, thought to be
+used as \code{\%in\%}.
 }

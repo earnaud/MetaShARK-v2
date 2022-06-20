@@ -9,17 +9,49 @@
 
 /* -- Overwrite -- */
 
-.form-control.selectize-control {
-  background: none !important;
-}
-
 .bttn.disabled, .bttn.disabled::after, .bttn.disabled::before  {
   cursor: not-allowed;
   transform: none !important;
+  background-color: rgba(0,0,0,0);
 }
 
 .content-wrapper {
   background-color: #aadaf2 !important;
+}
+
+.form-control {
+  background-color: #fff !important;
+}
+
+.form-control.selectize-control {
+  background: none !important;
+}
+
+.logo {
+  background-color: #4e91b9 !important;
+}
+
+.main-sidebar {
+  background-color: #172a3a !important;
+}
+
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover {
+  background-color: #ffffff57 !important;
+}
+
+.nav-tabs > li > a {
+  background: linear-gradient(transparent, #ffffff57);
+}
+
+.navbar {
+  background-color: #4e91b9 !important;
+}
+
+.welcome-row {
+  background: #fff;
+  padding: 0em calc(1000px + 3em) 0.5em 3em;
+  margin: 1em -1000px 2em 5em;
+  transform: skewX(-5deg);
 }
 
 fieldset {
@@ -31,15 +63,8 @@ fieldset {
     background-color: #ffffff57;
 }
 
-.form-control {
-  background-color: #fff !important;
-}
-
-.welcome-row {
-  background: #fff;
-  padding: 0em calc(1000px + 3em) 0.5em 3em;
-  margin: 1em -1000px 2em 5em;
-  transform: skewX(-5deg);
+hr {
+  border-top: 1px solid #ccc;
 }
 
 img {
@@ -63,32 +88,8 @@ legend {
     background-color: #e7f5fc;
 }
 
-.logo {
-  background-color: #4e91b9 !important;
-}
-
-.nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover {
-  background-color: #ffffff57 !important;
-}
-
-.nav-tabs > li > a {
-  background: linear-gradient(transparent, #ffffff57);
-}
-
-.navbar {
-  background-color: #4e91b9 !important;
-}
-
-.main-sidebar {
-  background-color: #172a3a !important;
-}
-
 p {
   text-align: justify;
-}
-
-hr {
-  border-top: 1px solid #ccc;
 }
 
 textarea {
@@ -170,6 +171,7 @@ h3.box-title {
 }
 
 .disclaimer {
+  position: relative;
   padding: 0.5em;
   margin: 0.5em;
   border-radius: 0.25em;

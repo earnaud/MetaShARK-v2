@@ -1,106 +1,103 @@
 #' Preload & set variables
-#' 
+#'
 #' This function is used to prepare variables at the application startup.
 #' It takes up to a dozen of seconds.
-#' 
-#' CAPITAL written variables are constant variables.
-#' common written variables are regular variables.
-#' 
+#'
 #' @import shiny
 #' @importFrom EML get_unitList
 #' @importFrom data.table fread
 #'
 #' @noRd
-.globalScript <- function(
-  .args = list(dev = FALSE, wip = FALSE, reactlog = TRUE), 
-  envir,
-  ...
-) {
+.setGlobalVariables <- function(.args = list(dev = FALSE, wip = FALSE, reactlog = TRUE),
+                                envir,
+                                ...) {
   # handle additional arguments in ...
-  other.items <- c(...)
-  
+  other_items <- c(...)
+
   # Options setup ====
   options(stringsAsFactors = FALSE)
   options(shiny.reactlog = .args$reactlog)
-  
+
   # Environment setup ====
-  main.env <- new.env(parent = envir)
+  main_env <- new.env(parent = envir)
   # assign specific values for quick access
-  assign("dev", .args$dev, main.env)
-  assign("wip", .args$wip, main.env)
-  # assign other values in 'metashark.args'
-  other.args <- .args[which(names(.args) != c("wip", "dev"))]
-  assign("other.args", other.args, main.env)
-  # assign ... in main.env
-  assign("other.items", other.items, main.env)
-  
+  assign("dev", .args$dev, main_env)
+  assign("wip", .args$wip, main_env)
+  # assign other values in 'metashark_args'
+  other_args <- .args[which(names(.args) != c("wip", "dev"))]
+  assign("other_args", other_args, main_env)
+  # assign ... in main_env
+  assign("other_items", other_items, main_env)
+
   # Paths ====
   # Paths contained in inst/resources
-  resourcePaths <- system.file("resources", package = "MetaShARK") |>
+  resource_paths <- system.file("resources", package = "MetaShARK") |>
     dir(full.names = TRUE) |>
     as.list()
-  names(resourcePaths) <- basename(unlist(resourcePaths))
-  
+  names(resource_paths) <- basename(unlist(resource_paths))
+
   # Set Home -- different if testmode is on
-  HOME <- if(isTRUE(getOption("shiny.testmode")))
-    system.file("../tests/testthat/app/tests/shinytest/test_data_package/", package = "MetaShARK") else
-      "~/dataPackagesOutput/emlAssemblyLine"
+  HOME <- if (isTRUE(getOption("shiny.testmode"))) {
+    system.file(
+      "../tests/testthat/app/tests/shinytest/test_data_package/",
+      package = "MetaShARK"
+    )
+  } else {
+    "~/dataPackagesOutput/emlAssemblyLine"
+  }
   # Index interesting paths
   PATHS <- reactiveValues(
     # home directory
-    eal.dp = paste0(HOME, "/"),
+    eal_dp = paste0(HOME, "/"),
     # path to index file
     # FIXME later : still unused, shall handle users sessions & profiles
-    eal.dp.index =sprintf(
-      "%s/index.txt",
-      HOME
-    ),
+    eal_dp_index = sprintf("%s/index.txt", HOME),
     # defined temp dir
-    eal.tmp = tempdir(),
+    eal_tmp = tempdir(),
     # paths to resources
-    resources = resourcePaths
+    resources = resource_paths
   )
-  
+
   # Test-specific path setup
-  if(!isTRUE(getOption("shiny.testmode")))
-    dir.create(isolate(PATHS$eal.dp), recursive = TRUE, showWarnings = FALSE)
-  # dir.create(isolate(PATHS$eal.tmp), recursive = TRUE, showWarnings = FALSE)
+  if (!isTRUE(getOption("shiny.testmode"))) {
+    dir.create(isolate(PATHS$eal_dp), recursive = TRUE, showWarnings = FALSE)
+  }
 
   # save PATHS
-  assign("PATHS", PATHS, envir = main.env)
+  assign("PATHS", PATHS, envir = main_env)
 
   # Sessionning ====
 
   # In test, set DP list to empty
-  if(isTRUE(getOption("shiny.testmode"))) {
+  if (isTRUE(getOption("shiny.testmode"))) {
     devmsg(tag = "test", "setting DP list")
     # FIXME : add dp index
-    DP.LIST <- data.frame(
+    DP_LIST <- data.frame(
       creator = character(),
       name = character(),
       title = character(),
       path = character(),
       stringsAsFactors = FALSE
     )
-  } else if (isTRUE(file.exists(isolate(PATHS$eal.dp.index)))) { # if existing index: dp list
-    DP.LIST <- readDataTable(isolate(PATHS$eal.dp.index), sep = "\t")
-    DP.LIST$path <- DP.LIST$path |>
+  } else if (isTRUE(file.exists(isolate(PATHS$eal_dp_index)))) {
+    DP_LIST <- readDataTable(isolate(PATHS$eal_dp_index), sep = "\t")
+    DP_LIST$path <- DP_LIST$path |>
       gsub(pattern = "//+", replacement = "/")
   } else { # if no index: empty list
-    DP.LIST <- data.frame(
+    DP_LIST <- data.frame(
       creator = character(),
       name = character(),
       title = character(),
       path = character(),
       stringsAsFactors = FALSE
     )
-    # Fill DP.LIST for first-time runs
+    # Fill DP_LIST for first-time runs
     # Get list of DPs
-    .files <- dir(isolate(PATHS$eal.dp), full.names = TRUE) |>
+    .files <- dir(isolate(PATHS$eal_dp), full.names = TRUE) |>
       gsub(pattern = "//", replacement = "/")
     # Set information per DP entry by reading json summary file
-    if(length(.files) > 0) {
-      sapply(.files, function(.file) {
+    if (length(.files) > 0) {
+      sapply(.files, \ (.file) {
         .info <- jsonlite::read_json(
           sprintf(
             "%s/%s.json",
@@ -118,43 +115,43 @@
           path = .file
         )
         # Add to dp list
-        DP.LIST <<- rbind(DP.LIST, .row)
+        DP_LIST <<- rbind(DP_LIST, .row)
       })
     }
   }
-  # check DP.LIST columns are well named
-  colnames(DP.LIST) <- c("creator", "name", "title", "path")
-  
-  # Curate DP.LIST versus actual list
-  .actual.index <- dir(
-    isolate(main.env$PATHS$eal.dp),
+  # check DP_LIST columns are well named
+  colnames(DP_LIST) <- c("creator", "name", "title", "path")
+
+  # Curate DP_LIST versus actual list
+  .actual_index <- dir(
+    isolate(main_env$PATHS$eal_dp),
     pattern = "_emldp$",
     full.names = TRUE
-  ) |> 
+  ) |>
     gsub(pattern = "//+", replacement = "/")
-  # Only keep really existing DP 
-  DP.LIST <- dplyr::filter(DP.LIST, path %in% .actual.index)
-  
+  # Only keep really existing DP
+  DP_LIST <- dplyr::filter(DP_LIST, path %in% .actual_index)
+
   # save actual index
-  data.table::fwrite(DP.LIST, isolate(PATHS$eal.dp.index), sep = "\t")
-  # save DP.LIST
-  assign("DP.LIST", DP.LIST, envir = main.env)
-  # Make it reactive 
-  makeReactiveBinding("DP.LIST", env = main.env)
+  data.table::fwrite(DP_LIST, isolate(PATHS$eal_dp_index), sep = "\t")
+  # save DP_LIST
+  assign("DP_LIST", DP_LIST, envir = main_env)
+  # Make it reactive
+  makeReactiveBinding("DP_LIST", env = main_env)
 
   # Values ====
   # Multiple purposes data
-  
+
   # DataONE nodes
-  .ENDPOINTS <- readDataTable(resourcePaths$registeredEndpoints.txt)
-  
-  # Save 
+  .ENDPOINTS <- readDataTable(resource_paths$registeredEndpoints.txt)
+
+  # Save
   assign(
     "VALUES",
     reactiveValues(
-      dataone.endpoints = .ENDPOINTS,
+      dataone_endpoints = .ENDPOINTS,
       thresholds = reactiveValues(
-        files.size.max = 500000 
+        files_size_max = 2000000
       ),
       steps = c(
         "SelectDP",
@@ -166,36 +163,34 @@
         "Personnel",
         "Miscellaneous",
         "Make_EML"
-      ),
-      last.timer = Sys.time()
+      )
     ),
-    envir = main.env
+    envir = main_env
   )
-  
+
   # Formats ====
 
   # Taxa authorities
-  .TAXA.AUTHORITIES <- data.table::fread(resourcePaths$taxaAuthorities.txt)
+  .TAXA_AUTHORITIES <- data.table::fread(resource_paths$taxaAuthorities.txt)
 
   # Unit types
-  .all.units <- EML::get_unitList()$units
-  .ind <- seq_along(.all.units$name)[-anyDuplicated(.all.units$name)]
-  .units <- .all.units$name[.ind]
-  .unitTypes <- .all.units$unitType[.ind] 
-  .unitTypes <- replace(
-    .unitTypes,
-    which(.unitTypes %in% c("", "NA", NA)), 
+  # FIXME poor unit list
+  .all_units <- EML::get_unitList()$units
+  .ind <- seq_along(.all_units$name)[-anyDuplicated(.all_units$name)]
+  .units <- .all_units$name[.ind]
+  .unit_types <- .all_units$unitType[.ind]
+  .unit_types <- replace(
+    .unit_types,
+    which(.unit_types %in% c("", "NA", NA)),
     "unsorted"
   )
-  .unitList <- sort(paste(.unitTypes, .units, sep = "/"))
-  
-  .units <- "custom"
-  names(.units) <- "custom"
-  
+  .unit_list <- sort(paste(.unit_types, .units, sep = "/"))
+  .units <- c()
+
   # Structure unit list
-  sapply(.unitList, function(unit) {
+  sapply(.unit_list, \ (unit) {
     .units <<- c(
-      .units, 
+      .units,
       setNames(
         gsub("^.*/(.*)$", "\\1", unit),
         gsub("^(.*)/.*$", "\\1", unit)
@@ -205,29 +200,27 @@
   .units <- split(.units, names(.units)) |>
     sapply(unname)
   # Turn 1-length items' names to items themselves
-  sapply(
-    which(sapply(.units, length) == 1),
-    function(li) 
-      names(.units)[li] <<- .units[[li]]
-  )
+  sapply(which(sapply(.units, length) == 1), \ (li) {
+    names(.units)[li] <<- .units[[li]]
+  })
   # Set custom as first unit
   .units <- c(.units["custom"], .units[names(.units) != "custom"])
-  
+
   # Save
   assign(
     "FORMATS",
     reactiveValues(
       dates = c(
         "YYYY-MM-DD", "YYYY",
-        "YYYY-MM",  "YYYY-DD-MM",
+        "YYYY-MM", "YYYY-DD-MM",
         "MM-YYYY", "DD-MM-YYYY", "MM-DD-YYYY",
         "hh:mm:ss", "hh:mm", "mm:ss", "hh"
       ),
       lubridate_formats = lubridate:::lubridate_formats,
       units = .units,
-      taxa.authorities = .TAXA.AUTHORITIES
+      taxa_authorities = .TAXA_AUTHORITIES
     ),
-    envir = main.env
+    envir = main_env
   )
 
   # Semantics ====
@@ -237,7 +230,7 @@
     reactiveValues(
       ontologies = character()
     ),
-    envir = main.env
+    envir = main_env
   )
 
   # Settings ====
@@ -246,45 +239,44 @@
     reactiveValues(
       logged = FALSE,
       user = "public",
-      orcid.token = character(),
-      cedar.token = character(),
-      metacat.token = character(),
-      side.tab = c()
-      # , metacat.test = FALSE
+      orcid_token = character(),
+      cedar_token = character(),
+      metacat_token = character(),
+      side_tab = c()
     ),
-    envir = main.env
+    envir = main_env
   )
 
   # EAL rv ====
   assign(
     "EAL",
     reactiveValues(
-      old.page = 0,
+      old_page = 0,
       page = 1, # page number
-      page.load = makeReactiveTrigger(),
-      history = isolate(main.env$VALUES$steps[1]), # all browsed pages names in steps
-      current = isolate(main.env$VALUES$steps[1]), # last of history
+      page_load = makeReactiveTrigger(),
+      history = isolate(main_env$VALUES$steps[1]), # EAL pages names
+      current = isolate(main_env$VALUES$steps[1]), # last of history
       completed = FALSE, # is current page completed?
-      tag.list = tagList(), # side HTML tags to display
+      tag_list = tagList(), # side HTML tags to display
       help = character(),
       ping = "" # change character to ping EAL and trigger an observer
     ),
-    envir = main.env
+    envir = main_env
   )
 
   assign(
-    "save.variable",
-    initReactive(main.env = main.env),
-    envir = main.env
+    "save_variable",
+    initReactive(main_env = main_env),
+    envir = main_env
   )
 
   # Local rv ====
   assign(
-    "local.rv",
+    "local_rv",
     reactiveValues(),
-    envir = main.env
-  )  
-  
+    envir = main_env
+  )
+
   # Patterns ====
   assign(
     "PATTERNS",
@@ -294,18 +286,18 @@
       name = "^[[:alpha:] \\'\\.\\-]+$",
       email = "^[^@]+@[^@]+\\.[[:alpha:]]",
       ORCID = "\\d{4}-\\d{4}-\\d{4}-(\\d{4}|\\d{3}X)",
-      dateRegex = reactiveValues(
+      date_regex = reactiveValues(
         DD = "^0?[1-9]$|^[12][0-9]$|^3[01]$",
         MM = "^0?[1-9]$|^1[0-2]$",
         YY = "^[0-9]{2}$",
-        YYYY = "^[12][0-9]{3}$"
+        YYYY = "^[12][0-9]{3}$" # 1000 - 2999
       )
     ),
-    envir = main.env
+    envir = main_env
   )
 
   # output ====
   shinyOptions(shiny.reactlog = .args$reactlog)
 
-  return(main.env)
+  return(main_env)
 }

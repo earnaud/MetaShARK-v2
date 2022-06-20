@@ -7,45 +7,47 @@
 #' @param width	(character) the width of the input, e.g. '400px', or '100%'; see
 #' validateCssUnit().
 #'
-#' @return 
+#' @return
 #' (output of calling the module part)
 #' If input is a valid URL (regex-tested + curl-tested), returns input.
 #' Else, returns NA.
 #'
 #' @import shiny
-URL_Input_UI <- function(id, label = "URL", width = "100%") {
+urlInput_UI <- function(id, label = "URL", width = "100%") {
   ns <- NS(id)
 
   tagList(
-    textInput(NS(id, "url"), label, placeholder = "https://github.com/earnaud/MetaShARK-v2"),
-    textOutput(NS(id, "warnings"))
+    textInput(ns("url"), label,
+      placeholder = "https://github.com/earnaud/MetaShARK-v2"
+    ),
+    textOutput(ns("warnings"))
   )
 }
 
-#' @title URL_Input
+#' @title urlInput
 #'
-#' @describeIn URL_Input_UI
+#' @describeIn urlInput_UI
 #'
 #' @import shiny
 #' @importFrom RCurl url.exists
-URL_Input <- function(id) {
+urlInput <- function(id) {
   moduleServer(id, function(input, output, session) {
     # variable initialization
     url <- reactiveVal(character())
 
     # actions
     observeEvent(input$url, {
-      is.url <- RCurl::url.exists(input$url)
+      is_url <- RCurl::url.exists(input$url)
 
       output$warnings <- renderText({
         validate(
-          need(is.url, "Invalid URL target.")
+          need(is_url, "Invalid URL target.")
         )
         return(NULL)
       })
 
       url <- NA_character_
-      req(is.url)
+      req(is_url)
       url <- input$url
     })
 

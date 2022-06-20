@@ -10,7 +10,8 @@ makeReactiveTrigger(dev = FALSE, label = "")
 Create a 'reactiveTrigger' object (NOT a proper R class) with two methods:
 \enumerate{
 \item depend() : must be written in a code chunk to execute on triggering
-\item trigger() : when executed, trigger the object (and all the "depending" code chunks)
+\item trigger() : when executed, trigger the object (and all the "depending"
+code chunks)
 This function is freely reused from Dean Attali's work: check it out, it is
 \href{https://github.com/daattali/advanced-shiny/tree/master/reactive-trigger}{awesome}
 }

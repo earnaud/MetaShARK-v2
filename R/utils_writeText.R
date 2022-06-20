@@ -4,7 +4,7 @@ write.text <- function(x, file = ".", collapse = "\n") {
   if (missing(x)) {
     stop("Error: no text has been provided.")
   }
-  
+
   if (!is.character(x)) {
     stop("Error: 'x' is not a text.")
   }
@@ -25,7 +25,7 @@ write.text <- function(x, file = ".", collapse = "\n") {
   }
 
   # Proper write ----
-  fileConn <- file(file)
-  writeLines(x, fileConn)
-  close(fileConn)
+  file_con <- file(file)
+  writeLines(x, file_con)
+  close(file_con)
 }

@@ -8,28 +8,29 @@ insertModule(
   id,
   selector,
   moduleUI,
-  moduleUI.args = list(),
+  moduleUI_args = list(),
   module,
-  module.args = list(),
-  ui.class = NULL,
+  module_args = list(),
+  container_class = NULL,
  
-    ui.style = "border: 1px solid lightgrey; border-radius: 10px; padding: 3px;\\n\\tmargin: 3px;"
+    container_style = "border: 1px solid lightgrey; border-radius: 10px;\\n  padding: 3px; margin: 3px;"
 )
 }
 \arguments{
-\item{id}{The id to use for the modules. If you call \code{insertModule} from another
-module, make sure \code{id} is namespaced.}
+\item{id}{The id to use for the modules. If you call \code{insertModule} from
+another module, make sure \code{id} is namespaced.}
 
 \item{selector}{A JS selector targetting the element after which the UI shall
 be inserted (see \code{shiny::insertUI}).}
 
-\item{moduleUI, moduleUI.args}{The module UI definition and its arguments OTHER
-THAN \code{inputID}. Prepare them to be input in a \code{do.call} call.}
+\item{moduleUI, moduleUI_args}{The module UI definition and its arguments
+OTHER THAN \code{inputID}. Prepare them to be input in a \code{do.call} call.}
 
-\item{module, module.args}{The module server definition and its arguments OTHER
-THAN \code{inputID}. Prepare them to be input in a \code{do.call} call.}
+\item{module, module_args}{The module server definition and its arguments
+OTHER THAN \code{inputID}. Prepare them to be input in a \code{do.call} call.}
 
-\item{ui.class, ui.style}{CSS class and style to be applied to the module UI
+\item{container_class, container_style}{CSS class and style to be applied to
+the module UI
 container.}
 }
 \description{

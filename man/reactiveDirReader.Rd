@@ -4,25 +4,34 @@
 \alias{reactiveDirReader}
 \title{reactiveDirReader}
 \usage{
-files.poll <- reactiveDirReader(path, session, pattern, full.names = FALSE, intervalMillis = 1000)
+files_poll <- reactiveDirReader(path, session, pattern, full_names = FALSE,
+intervalMillis = 1000)
 }
 \arguments{
 \item{repo}{(character) Path of the target directory to poll.}
 
-\item{session}{The user session to associate this file reader with, or NULL if none. If non-null, the reader will automatically stop when the session ends.}
+\item{session}{The user session to associate this file reader with, or NULL
+if none. If non-null, the reader will automatically stop when the session
+ends.}
 
-\item{pattern}{(character) an optional regular expression. Only file names which match the regular expression will be returned.}
+\item{pattern}{(character) an optional regular expression. Only file names
+which match the regular expression will be returned.}
 
-\item{full.names}{(logical) a logical value. If TRUE, the directory path is prepended to the file names to give a relative file path. If FALSE, the file names (rather than paths) are returned.}
+\item{full_names}{(logical) a logical value. If TRUE, the directory path is
+prepended to the file names to give a relative file path. If FALSE, the file
+names (rather than paths) are returned.}
 
-\item{intervalMillis}{(integer) Approximate number of milliseconds to wait between calls to checkFunc. This can be either a numeric value, or a function that returns a numeric value.}
+\item{intervalMillis}{(integer) Approximate number of milliseconds to wait
+between calls to checkFunc. This can be either a numeric value, or a
+function that returns a numeric value.}
 }
 \value{
 A reactive returning the files contained in the target repository. If folders
-are returned, their content won't be detailed. If no file is to be found, only
-returns "No files found." through \code{validate()}.
+are returned, their content won't be detailed. If no file is to be found,
+only returns "No files found." through \code{validate()}.
 }
 \description{
-Function adapted from \code{reactivePoll()}. Used to create a reactive data source,
-which works by periodically polling a directory of non-reactive data sources.
+Function adapted from \code{reactivePoll()}. Used to create a reactive data
+source, which works by periodically polling a directory of non-reactive data
+sources.
 }

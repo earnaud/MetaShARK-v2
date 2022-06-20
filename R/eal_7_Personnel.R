@@ -1,5 +1,5 @@
 #' @import shiny
-#' 
+#'
 #' @noRd
 PersonnelUI <- function(id) {
   ns <- NS(id)
@@ -7,7 +7,7 @@ PersonnelUI <- function(id) {
   return(
     fluidPage(
       tags$span(
-        actionButton(NS(id, "addui"), "", icon("plus")),
+        actionButton(ns("addui"), "", icon("plus")),
         "At least one \"creator\" and \"contact\" are required. Filling the",
         tags$b("ORCID"), "field shall automatically fill the remaining fields."
       ),
@@ -19,127 +19,111 @@ PersonnelUI <- function(id) {
 #' @import shiny
 #'
 #' @noRd
-Personnel <- function(id, main.env) {
+Personnel <- function(id, main_env) {
   moduleServer(id, function(input, output, session) {
-    if (main.env$dev){
-      observeEvent(
-        main.env$dev.browse(), 
-        {
-          if (main.env$current.tab() == "fill" &&
-              main.env$EAL$page == 7) {
-            browser()
-          }
-        }
-      )
-    }
+    if (main_env$dev) .browse_dev(main_env, 7)
 
-    # Setup UI on load
-    # observeEvent(main.env$EAL$page, { # on load
-    #   req(main.env$EAL$old.page %in% c(0,6) && main.env$EAL$page == 7)
-    #   if (isContentTruthy(main.env$local.rv$Personnel) && 
-    #       nrow(main.env$local.rv$Personnel) > 0) {
-    #     sapply(seq(nrow(main.env$local.rv$Personnel)), function(row.id) {
-    #       insertPersonnelInput(
-    #         session$ns(sprintf("_%s", row.id)),
-    #         main.env
-    #       )
-    #     })
-    #   }
-    # })
-    
     # Fill Personnel ====
-    # * Setup ----
+    ## Setup ----
     # Initial UI
-    observeEvent(main.env$EAL$page, {
-      if(main.env$EAL$page == 7) {
-        req(nrow(main.env$local.rv$Personnel) > 0)
-        
-        sapply(seq(nrow(main.env$local.rv$Personnel)), function(ind) {
-          row <- main.env$local.rv$Personnel[ind,]
-          
-          insertPersonnelInput(
-            session$ns(row$id),
-            # hidden = FALSE,
-            main.env
+    observeEvent(main_env$EAL$page, {
+      req(main_env$EAL$page == 7)
+      req(nrow(main_env$local_rv$Personnel) > 0)
+
+      sapply(seq_row(main_env$local_rv$Personnel), function(ind) {
+        row <- main_env$local_rv$Personnel[ind, ]
+
+        insertPersonnelInput(
+          session$ns(row$id),
+          # hidden = FALSE,
+          main_env
+        )
+      })
+    },
+    priority = -1
+    )
+
+    # different priority
+    observeEvent(main_env$EAL$page, {
+      if (main_env$EAL$old_page == 7) {
+        sapply(seq_row(main_env$local_rv$Personnel), function(ind) {
+          sapply(
+            paste0(main_env$local_rv$Personnel$id, "-container"),
+            function(id) {
+              removeUI(sprintf("#%s", session$ns(id)), immediate = TRUE)
+            }
           )
         })
-      } 
-    }, priority = -1)
-    
-    observeEvent(main.env$EAL$page, {
-      if(main.env$EAL$old.page == 7) {
-        sapply(seq(nrow(main.env$local.rv$Personnel)), function(ind) {
-          row <- main.env$local.rv$Personnel[ind,]
-          
-          sapply(paste0(main.env$local.rv$Personnel$id, "-container"), function(id) {
-            removeUI(sprintf("#%s", session$ns(id)), immediate = TRUE)
-          })
-        })
       }
-    }, priority = 1)
-    
+    },
+    priority = 1
+    )
+
     # Add form ====
     # User's additional UI
     observeEvent(input$addui, {
       insertPersonnelInput(
         session$ns(as.character(input$addui)),
-        main.env
-        # hidden = FALSE
-      ) 
+        main_env
+      )
     },
     label = "EAL7 add personnel UI"
     )
 
     # Saves ----
     observe({
-      req(main.env$EAL$page == 7)
+      req(main_env$EAL$page == 7)
       invalidateLater(1000)
-      
+
       # Roles
-      .roles <- if(isTruthy(main.env$local.rv$Personnel$role))
+      .roles <- if (isTruthy(main_env$local_rv$Personnel$role)) {
         table(
-          .tmp <- main.env$local.rv$Personnel$role |>
+          .tmp <- main_env$local_rv$Personnel$role |>
             strsplit(split = ",") |>
             unlist()
-        ) else
-          c()
-      if(isFALSE("creator" %in% names(.roles))) 
+        )
+      } else {
+        c()
+      }
+      if (isFALSE("creator" %in% names(.roles))) {
         .roles <- c(.roles, "creator" = 0)
-      if(isFALSE("contact" %in% names(.roles))) 
+      }
+      if (isFALSE("contact" %in% names(.roles))) {
         .roles <- c(.roles, "contact" = 0)
+      }
 
-      main.env$EAL$tag.list <- tagList(
+      main_env$EAL$tag_list <- tagList(
         tags$b("Roles"),
-        lapply(seq(.roles), function(role.index) {
+        lapply(seq(.roles), function(role_index) {
           .ui <- tags$div(
-            paste0(names(.roles)[role.index], ": ", .roles[role.index]),
-            style = if(names(.roles)[role.index] %in% c("creator", "contact") &&
-                       .roles[role.index] == 0)
+            paste0(names(.roles)[role_index], ": ", .roles[role_index]),
+            style = if (
+              names(.roles)[role_index] %in% c("creator", "contact") &&
+              .roles[role_index] == 0) {
               "color: red"
+            }
           )
         })
       )
-      
+
       # Completeness
-      main.env$EAL$completed <- all(
+      main_env$EAL$completed <- all(
         # Personnel
         all(
-          sapply(seq(nrow(main.env$local.rv$Personnel)), function(row.index){
-            row <- main.env$local.rv$Personnel[row.index,]
-            
-            main.env$PATTERNS$name %grep% row$givenName &&
-              main.env$PATTERNS$name %grep% row$surName &&
+          sapply(seq_row(main_env$local_rv$Personnel), function(row.index) {
+            row <- main_env$local_rv$Personnel[row.index, ]
+
+            main_env$PATTERNS$name %grep% row$givenName &&
+              main_env$PATTERNS$name %grep% row$surName &&
               isTruthy(row$organizationName) &&
-              main.env$PATTERNS$email %grep% row$electronicMailAddress
+              main_env$PATTERNS$email %grep% row$electronicMailAddress
           })
         ) &&
-        # Required roles
-          all(c("creator", "contact") %grep% main.env$local.rv$Personnel$role)
+          # Required roles
+          all(c("creator", "contact") %grep% main_env$local_rv$Personnel$role)
       )
     },
     label = "EAL7 set completed"
     )
-
-    # Process data (deprecated)
   })
 }

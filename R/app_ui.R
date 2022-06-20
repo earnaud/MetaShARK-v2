@@ -1,11 +1,12 @@
 #' @import shiny
-#' @importFrom shinydashboard dashboardSidebar sidebarMenu menuItem dashboardBody tabItems tabItem
+#' @importFrom shinydashboard dashboardSidebar sidebarMenu menuItem
+#'   dashboardBody tabItems tabItem
 #' @importFrom shinyjs useShinyjs inlineCSS hidden
 #' @importFrom shinyFeedback useShinyFeedback
 #' @importFrom htmltools includeCSS
 #' @importFrom shinydashboardPlus loadingState dashboardPage dashboardHeader
 #' @importFrom shinybusy add_busy_spinner
-#' 
+#'
 #' @noRd
 ui <- function() {
   # body
@@ -15,7 +16,7 @@ ui <- function() {
     tags$head(
       tags$script(
         HTML(
-         "<script type=\"text/javascript\">
+          "<script type=\"text/javascript\">
             var _paq = window._paq = window._paq || [];
             _paq.push(['trackPageView']);
           _paq.push(['enableLinkTracking']);
@@ -33,7 +34,7 @@ ui <- function() {
     ## Enables packages support ----
     shinyjs::useShinyjs(),
     shinyFeedback::useShinyFeedback(),
-    
+
     ## Add style ----
     shinyjs::inlineCSS("
       #loading-content {
@@ -47,7 +48,7 @@ ui <- function() {
         text-align: center;
         color: #FFFFFF;
       }
-      
+
       .logo {
         padding-left: 5px !important;
         padding-top: 5px !important;
@@ -68,7 +69,7 @@ ui <- function() {
       h2("Loading..."),
       shinydashboardPlus::loadingState(),
       tags$img(
-        src = "media/sea_shark.png", 
+        src = "media/sea_shark.png",
         width = "473px",
         height = "235px"
       )
@@ -78,13 +79,13 @@ ui <- function() {
         id = "app-content",
         shinydashboardPlus::dashboardPage(
           title = "MetaShARK",
-          # Header ====
+          # UI Header ====
           header = shinydashboardPlus::dashboardHeader(
             title = tagList(
               span(
                 class = "logo-lg",
                 tags$img(
-                  src = "media/metashark-logo-v4.png", 
+                  src = "media/metashark-logo-v4.png",
                   width = "240px",
                   height = "40px"
                 )

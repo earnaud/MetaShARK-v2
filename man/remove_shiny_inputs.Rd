@@ -16,6 +16,6 @@ the module's UI function.*}
 Clear server-side of a shiny module
 }
 \details{
-Freely teached from a community soluce on
-\href{https://appsilon.com/how-to-safely-remove-a-dynamic-shiny-module/}{appsilon}.
+Freely taught from a community soluce on
+\href{https://appsilon.com/how-to-safely-remove-a-dynamic-shiny-module/}{appsilon}
 }

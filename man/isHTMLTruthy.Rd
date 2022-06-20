@@ -13,5 +13,5 @@ isHTMLTruthy(x)
 A logical value indicating whether or not the tag is truthy.
 }
 \description{
-Check if a HTML tag is well formed, according to opening and closing chevrons.
+Check if a HTML tag is well formed according to opening and closing chevrons.
 }

@@ -1,34 +1,33 @@
 #' @import shiny
 #'
 #' @noRd
-insertPersonnelInput <- function(id, main.env) {
+insertPersonnelInput <- function(id, main_env) {
   # Add row
   .id <- unns(id)
-  if(!grepl("^_", .id)) {
+  if (!grepl("^_", .id)) {
     # add a new row to local table
-    main.env$local.rv$Personnel[nrow(main.env$local.rv$Personnel)+1,] <- 
-      c(rep("", ncol(main.env$local.rv$Personnel)-1), id = .id)
+    main_env$local_rv$Personnel[nrow(main_env$local_rv$Personnel) + 1, ] <-
+      c(rep("", ncol(main_env$local_rv$Personnel) - 1), id = .id)
   }
   # create the UI
-  new.ui <- PersonnelInputUI(id, main.env)
+  new_ui <- PersonnelInputUI(id, main_env)
   # insert the UI
-  # insertUI("#inserthere_eal7", ui = shinydashboard::box("OK", title = textInput("ok","ok"), collapsible = TRUE) )
-  insertUI(selector = "#inserthere_eal7", ui = new.ui, immediate = TRUE)
+  insertUI(selector = "#inserthere_eal7", ui = new_ui, immediate = TRUE)
   # create the server
-  PersonnelInput(.id, main.env)
+  PersonnelInput(.id, main_env)
 }
 
 #' @import shiny
 #' @importFrom shinyjs hidden
 #'
 #' @noRd
-PersonnelInputUI <- function(id, main.env) {
+PersonnelInputUI <- function(id, main_env) {
   # Setup
   ref <- unns(id)
-  .value <- main.env$local.rv$Personnel[
-    which(main.env$local.rv$Personnel$id == ref),
+  .value <- main_env$local_rv$Personnel[
+    which(main_env$local_rv$Personnel$id == ref),
   ]
-  
+
   # Form ====
   # ui <- tags$div(
   ui <- tags$div(
@@ -39,7 +38,7 @@ PersonnelInputUI <- function(id, main.env) {
       collapsible = TRUE,
       collapsed = TRUE,
       width = 12,
-      
+
       # * Header ----
       title = tags$div(
         id = NS(id, "box-header-title"),
@@ -52,14 +51,14 @@ PersonnelInputUI <- function(id, main.env) {
           # Role
           roleInputUI(
             NS(id, "role"),
-            main.env$local.rv$role.choices,
+            main_env$local_rv$role.choices,
             val = .value$role,
             width = "50%"
           ),
           # Show name
           tags$div(
             uiOutput(NS(id, "name")),
-            style="margin-top: 20px; padding: 6px; height: 40px; width: 50%;"
+            style = "margin-top: 20px; padding: 6px; height: 40px; width: 50%;"
           )
         ),
         # Remove UI
@@ -74,7 +73,7 @@ PersonnelInputUI <- function(id, main.env) {
           column(4, orcidInputUI(NS(id, "orcid"), val = .value$userId)),
           # First name
           column(
-            3, 
+            3,
             textInput(
               NS(id, "first_name"),
               "First name",
@@ -83,16 +82,16 @@ PersonnelInputUI <- function(id, main.env) {
           ),
           # Middle initial
           column(
-            1, 
+            1,
             textInput(
               NS(id, "middle_initial"),
-              label = tags$div("MI", title="Middle Initial"),
+              label = tags$div("MI", title = "Middle Initial"),
               value = .value$middleInitial
             )
           ),
           # Last name
           column(
-            4, 
+            4,
             textInput(
               NS(id, "last_name"),
               "Last name",
@@ -104,7 +103,7 @@ PersonnelInputUI <- function(id, main.env) {
         fluidRow(
           # Email
           column(
-            5, 
+            5,
             textInput(
               NS(id, "email"),
               "Email address",
@@ -113,7 +112,7 @@ PersonnelInputUI <- function(id, main.env) {
           ),
           # Organization
           column(
-            7, 
+            7,
             textInput(
               NS(id, "organization"),
               "Organization name",
@@ -128,7 +127,7 @@ PersonnelInputUI <- function(id, main.env) {
             fluidRow(
               # Project title
               column(
-                4, 
+                4,
                 textInput(
                   NS(id, "project_title"),
                   "Project title",
@@ -137,7 +136,7 @@ PersonnelInputUI <- function(id, main.env) {
               ),
               # Funding agency
               column(
-                4, 
+                4,
                 textInput(
                   NS(id, "funding_agency"),
                   "Funding agency",
@@ -146,7 +145,7 @@ PersonnelInputUI <- function(id, main.env) {
               ),
               # Funding number
               column(
-                4, 
+                4,
                 textInput(
                   NS(id, "funding_number"),
                   "Funding number",
@@ -167,172 +166,156 @@ PersonnelInputUI <- function(id, main.env) {
 #' @importFrom shinyjs toggle show hide
 #'
 #' @noRd
-PersonnelInput <- function(id, main.env) {
+PersonnelInput <- function(id, main_env) {
   moduleServer(id, function(input, output, session) {
     # Setup ----
-    row <- reactive({which(main.env$local.rv$Personnel$id == id)})
-    name.pattern <- main.env$PATTERNS$name
-    orcid.pattern <- main.env$PATTERNS$ORCID
-    mail.pattern <- main.env$PATTERNS$email
-    
+    row <- reactive({
+      which(main_env$local_rv$Personnel$id == id)
+    })
+    name_pattern <- main_env$PATTERNS$name
+    mail_pattern <- main_env$PATTERNS$email
+
     # [U] Collapse ====
     shinyjs::onclick("box-header-title", {
       shinyjs::runjs(
-        sprintf("$('#%s').closest('.box').find('[data-widget=collapse]').click();",
-                session$ns("box"))
+        sprintf(
+          "$('#%s').closest('.box').find('[data-widget=collapse]').click();",
+          session$ns("box")
+        )
       )
     })
-    
-    # observeEvent(input$collapse, {
-    #   browser()
-    #   shinyjs::toggle(
-    #     id = "content",
-    #     anim = TRUE,
-    #     animType = "slide",
-    #     time = 0.25,
-    #     condition = input$collapse %% 2 == 1
-    #   )
-    #   
-    #   updateActionButton(
-    #     session, 
-    #     "collapse", 
-    #     icon = icon(
-    #       ifelse(input$collapse %% 2 == 0, "chevron-right", "chevron-down")
-    #     )
-    #   )
-    # })
-    # 
-    
+
     # [I] Role ====
-    roleInput("role", main.env, row = row)
-    
+    roleInput("role", main_env, row = row)
+
     # Toggle PI fields
     observeEvent(input$`role-role`, {
-      req(main.env$EAL$page == 7)
-      if("PI" %grep% main.env$local.rv$Personnel$role[row()])
-        shinyjs::show("PI") else
-          shinyjs::hide("PI")
+      req(main_env$EAL$page == 7)
+      shinyjs::toggle(
+        "PI",
+        condition = "PI" %grep% main_env$local_rv$Personnel$role[row()])
     },
     priority = -1,
     ignoreNULL = FALSE,
     label = "EAL7 toggle PI"
     )
-    
+
     # [U] Verbose name ====
     output$name <- renderUI({
-      
       .name <- paste(
-        main.env$local.rv$Personnel$givenName[row()],
-        main.env$local.rv$Personnel$middleInitial[row()],
-        main.env$local.rv$Personnel$surName[row()],
+        main_env$local_rv$Personnel$givenName[row()],
+        main_env$local_rv$Personnel$middleInitial[row()],
+        main_env$local_rv$Personnel$surName[row()],
         collapse = " "
       ) |>
-        gsub(pattern = " +", replacement =  " ") |>
+        gsub(pattern = " +", replacement = " ") |>
         gsub(pattern = "^ +$", replacement = "")
-      
+
       validate(
         need(.name != "", "No provided name")
       )
-      
+
       return(.name)
     })
-    
+
     # [U] Remove ====
     observeEvent(input$remove, {
       # remove the UI
-      removeUI(selector = paste0("#", session$ns("container")), immediate = TRUE)
+      removeUI(
+        selector = paste0("#", session$ns("container")), immediate = TRUE
+      )
       # remove data
-      main.env$local.rv$Personnel <- main.env$local.rv$Personnel[-row(),]
+      main_env$local_rv$Personnel <- main_env$local_rv$Personnel[-row(), ]
     })
-    
+
     # [I] ORCID ====
-    orcidInput("orcid", main.env, row = row)
+    orcidInput("orcid", main_env, row = row)
     observeEvent(input[["orcid-orcid"]], {
       .value <- input[["orcid-orcid"]]
-      
-      req(main.env$PATTERNS$ORCID %grep% .value)
-      
-      .value <- stringr::str_extract(.value, main.env$PATTERNS$ORCID)
+
+      req(main_env$PATTERNS$ORCID %grep% .value)
+
+      .value <- stringr::str_extract(.value, main_env$PATTERNS$ORCID)
       # Get ORCID record
       result <- httr::GET(
         sprintf("https://pub.orcid.org/v3.0/%s", .value),
         httr::add_headers(Accept = "application/json")
       )
-      result$content <- result$content |> 
-        rawToChar() |> 
+      result$content <- result$content |>
+        rawToChar() |>
         jsonlite::fromJSON()
-      
+
       # Update inputs with orcid record
-      given.name <- try(result$content$person$name$`given-names`$value)
-      if(class(given.name) != "try-error") {
-        updateTextInput(session, "first_name", value = given.name)
+      .given_name <- try(result$content$person$name$`given-names`$value)
+      if (class(.given_name) != "try-error") {
+        updateTextInput(session, "first_name", value = .given_name)
       }
-      
-      last.name <- try(result$content$person$name$`family-name`$value)
-      if(class(last.name) != "try-error") {
-        updateTextInput(session, "last_name", value = last.name)
+
+      .last_name <- try(result$content$person$name$`family-name`$value)
+      if (class(.last_name) != "try-error") {
+        updateTextInput(session, "last_name", value = .last_name)
       }
-      
+
       email <- try(result$content$person$emails$email$email)
-      if(class(email) != "try-error") {
+      if (class(email) != "try-error") {
         updateTextInput(session, "email", value = email)
       }
-      
-      organization.name <- try(result$content$`activities-summary`$employments$
-                                 `affiliation-group`$summaries[[1]]$`employment-summary`$organization$
-                                 name)
-      if(class(organization.name) != "try-error") {
-        updateTextInput(session, "organization", value = organization.name)
+
+      .organization_name <- try(result$content$`activities-summary`$employments$
+        `affiliation-group`$summaries[[1]]$
+        `employment-summary`$organization$name)
+      if (class(.organization_name) != "try-error") {
+        updateTextInput(session, "organization", value = .organization_name)
       }
     })
-    
+
     # [I] Names ====
     # * First name ----
     observeEvent(input$first_name, {
-      main.env$local.rv$Personnel$givenName[row()] <- input$first_name
-      checkFeedback(input, "first_name", name.pattern %grep% input$first_name)
+      main_env$local_rv$Personnel$givenName[row()] <- input$first_name
+      checkFeedback(input, "first_name", name_pattern %grep% input$first_name)
     })
-    
+
     # * Middle initial ----
     observeEvent(input$middle_initial, {
-      main.env$local.rv$Personnel$middleInitial[row()] <- input$middle_initial
+      main_env$local_rv$Personnel$middleInitial[row()] <- input$middle_initial
     })
-    
+
     # * Last name ----
     observeEvent(input$last_name, {
-      main.env$local.rv$Personnel$surName[row()] <- input$last_name
-      checkFeedback(input, "last_name", name.pattern %grep% input$last_name)
+      main_env$local_rv$Personnel$surName[row()] <- input$last_name
+      checkFeedback(input, "last_name", name_pattern %grep% input$last_name)
     })
-    
+
     # [I] Email ====
     observeEvent(input$email, {
-      main.env$local.rv$Personnel$electronicMailAddress[row()] <- input$email
-      checkFeedback(input, "email", mail.pattern %grep% input$email)
+      main_env$local_rv$Personnel$electronicMailAddress[row()] <- input$email
+      checkFeedback(input, "email", mail_pattern %grep% input$email)
     })
-    
+
     # [I] Organization ====
     observeEvent(input$organization, {
-      main.env$local.rv$Personnel$organizationName[row()] <- input$organization
+      main_env$local_rv$Personnel$organizationName[row()] <- input$organization
       checkFeedback(input, "organization")
     })
-    
+
     # [I] PI fields ====
-    
+
     # * Project title ----
     observeEvent(input$project_title, {
-      main.env$local.rv$Personnel$projectTitle[row()] <- input$project_title
+      main_env$local_rv$Personnel$projectTitle[row()] <- input$project_title
     })
-    
+
     # * Funding agency ----
     observeEvent(input$funding_agency, {
-      main.env$local.rv$Personnel$fundingAgency[row()] <- input$funding_agency
+      main_env$local_rv$Personnel$fundingAgency[row()] <- input$funding_agency
     })
-    
+
     # * Funding number ----
     observeEvent(input$funding_number, {
-      main.env$local.rv$Personnel$fundingNumber[row()] <- input$funding_number
+      main_env$local_rv$Personnel$fundingNumber[row()] <- input$funding_number
     })
-    
+
     # (End) ====
   })
 }

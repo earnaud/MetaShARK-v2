@@ -8,7 +8,7 @@
 #' @param name internal. Current root node name
 #'
 #' @import shiny
-#' 
+#'
 #' @export
 listReactiveValues <- function(rv, lv = 0, name = "root") {
   if (missing(rv)) {
@@ -21,20 +21,18 @@ listReactiveValues <- function(rv, lv = 0, name = "root") {
   # Check for children
   children <- isolate(reactiveValuesToList(rv))
   n <- names(children)
-  out <- lapply(seq_along(children), function(sub) {
+  out <- lapply(seq_along(children), \ (sub) {
     subrv <- children[[sub]]
 
     if (is.reactivevalues(subrv)) {
       listReactiveValues(subrv, lv + 1, name = n[sub])
-    }
-    else if (is.reactive(subrv)) {
+    } else if (is.reactive(subrv)) {
       return(isolate(subrv()))
-    }
-    else {
+    } else {
       return(subrv)
     }
   })
   names(out) <- n
-  
+
   return(out)
 }
