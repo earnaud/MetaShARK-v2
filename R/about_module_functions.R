@@ -11,17 +11,22 @@
 #' 
 #' @export
 renderBibliography <- function(bib) {
+  # read bibliography content
   .bib <- RefManageR::ReadBib(bib)
+  # avoid getting numbers: just render a list
   RefManageR::NoCite(.bib, "*")
 
+  # make the UI, once and for all  
   renderUI(
     withProgress(message = "Loading bibliography entry ...", value = 0, {
       HTML(
         paste(
-          utils::capture.output(
-            invisible(
+          utils::capture.output( # get output from i/o string
+            invisible( # do not print in logs
+              # for each elements of bibliography ...
               sapply(
                 .bib,
+                # ... render proper bibliography
                 function(b) {
                   incProgress(1 / length(.bib))
                   RefManageR::PrintBibliography(b,
@@ -29,11 +34,11 @@ renderBibliography <- function(bib) {
                   )
                 }
               )
-            )
+            ) # end of invisible
           ),
           collapse = ""
-        )
+        ) # end of paste
       )
-    })
-  )
+    }) # end of withProgress
+  ) # end of renderUI
 }

@@ -156,7 +156,8 @@ Attributes <- function(id, main.env) {
     # * Get input from tree ----
     # shinyTree selection
     .selected <- reactive({
-      devmsg("selected", tag="attributes")
+      if(main.env$dev)
+        devmsg("selected", tag="attributes")
       if(isContentTruthy(input$tree)){
         get_selected(input$tree)
       } else {
@@ -167,7 +168,8 @@ Attributes <- function(id, main.env) {
     
     # shinyTree path exploration
     .ancestor <- reactive({
-      devmsg("ancestor", tag="attributes")
+      if(main.env$dev)
+        devmsg("ancestor", tag="attributes")
       if(isContentTruthy(.selected())){
         attr(.selected()[[1]], "ancestry")
       } else {
@@ -181,7 +183,8 @@ Attributes <- function(id, main.env) {
       req(isContentTruthy(.selected()) && 
             isContentTruthy(.ancestor()))
       
-      devmsg("selected file", tag = "attributes")
+      if(main.env$dev)
+        devmsg("selected file", tag = "attributes")
       
       if(length(.ancestor()) == 0)
         return(.selected()[[1]][1])
@@ -202,6 +205,7 @@ Attributes <- function(id, main.env) {
     # get selected attribute from shinyTree
     selected.attribute <- reactive({
       req(isContentTruthy(.selected()))
+      
       if(length(.ancestor()) == 0)
         return(NULL)
       else
@@ -484,11 +488,11 @@ Attributes <- function(id, main.env) {
       # Correct input value
       .value <- unit.value()
       if(isFALSE(.value %in% c(
-        main.env$FORMATS$units,
+        unlist(main.env$FORMATS$units),
         "custom",
         main.env$local.rv$custom.units$table$unit.id
       ))) {
-        .value <- main.env$FORMATS$units[2] # dimensionless
+        .value <- main.env$FORMATS$units$dimensionless[1] # dimensionless
         # updateSelectInput(
         #   session,
         #   "unit",
@@ -777,7 +781,7 @@ Attributes <- function(id, main.env) {
                 input$unit != "custom" &&
                 input$unit %in% c(
                   main.env$local.rv$custom.units$table$id,
-                  main.env$FORMATS$units
+                  unlist(main.env$FORMATS$units)
                 )
             } else TRUE
           } && 

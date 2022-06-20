@@ -190,7 +190,7 @@ CatVars <- function(id, main.env) {
       req(main.env$EAL$page == 4)
       req(isContentTruthy(main.env$local.rv$cv.tables))
       
-      sapply(
+      .completed <- sapply(
         names(main.env$local.rv$cv.tables),
         function(.file.name) {
           sapply(
@@ -207,7 +207,9 @@ CatVars <- function(id, main.env) {
           )
         }
       )
-    }, priority = -1,
+      main.env$EAL$completed <- all(unlist(.completed))
+    }, 
+    priority = -1,
     label = "EAL4: check completed")
     
   })

@@ -163,6 +163,7 @@ MetaFIN <- function(id, main.env) {
       )
       # content -- tricks in followPath: same path, different tree
       .content <- followPath(local.rv$eml.list, .path)
+      # rename content if unnamed
       if(length(.content) == 1 && is.null(names(.content)))
         names(.content) <- strsplit(.path, split = "/")[[1]] |> tail(1)
       
@@ -170,6 +171,7 @@ MetaFIN <- function(id, main.env) {
     })
     
     # * output form ----
+    # check if content() children are to be rendered as UI (depth == 0)
     torender.ui <- reactive({
       req(content())
       devmsg(tag="MetaFIN", "torender.ui()")
@@ -177,6 +179,7 @@ MetaFIN <- function(id, main.env) {
       names(content())[sapply(content(), depth) == 0]
     })
     
+    # check if content() children are to be rendered as links (depth > 0)
     torender.links <- reactive({
       req(content())
       devmsg(tag="MetaFIN", "torender.links()")

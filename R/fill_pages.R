@@ -23,8 +23,17 @@ tabPage <- function(id, title, ui, navTagList = NULL) {
 #'
 #' @noRd
 pagesUI <- function(id, parent.id) {
-  steps <- base::get("ui.steps", envir = .GlobalEnv)
-  # rm("ui.steps", envir = .GlobalEnv)
+  steps <- c(
+    "SelectDP",
+    "Data_Files",
+    "Attributes",
+    "Categorical_Variables",
+    "Geographic_Coverage",
+    "Taxonomic_Coverage",
+    "Personnel",
+    "Miscellaneous",
+    "Make_EML"
+  )
   .nb <- length(steps)
   .ui.args <- vector("list", .nb)
   
@@ -92,27 +101,38 @@ pagesServer <- function(id, main.env) {
     
     changePage <- function(from, to, input, main.env) {
       observeEvent(input[[paste(from, to, sep = "_")]], {
-        
         main.env$EAL$old.page <- main.env$EAL$page
         
         # Two times computing required for ifelse clause following
         .tmp <- main.env$EAL$page + to - from
-        main.env$EAL$page <- .tmp + if(
-          # want to reach categorical variables
-          # but no catvar is to be found ..
-          .tmp == 4 && isFALSE(main.env$save.variable$Attributes$use.catvars)
-        ) {
-          # .. avoid step ..
-          switch(
-            as.character(main.env$EAL$old.page),
-            "3" = 1,
-            "5" = -1
-          )
-        } else {
-          # .. else let step be reached
-          0
+        # Do catvars?
+        if(.tmp == 4) {
+          .use.catvars <- if("Attributes" %in% main.env$EAL$history)
+            any(sapply(
+              main.env$save.variable$Attributes$content,
+              function(table) any(table$class == "categorical")
+            )) else if(main.env$EAL$old.page == 3)
+              main.env$local.rv$use.catvars() else
+                FALSE
+          
+          .tmp <- .tmp  + if(isFALSE(.use.catvars)) {
+            # tell the user if going from Attributes to GeoCov
+            if(main.env$EAL$old.page == 3)
+              showNotification(
+                "Skipped categorical variables (not required)"
+              )
+            # .. no, avoid step ..
+            switch(
+              as.character(main.env$EAL$old.page),
+              "3" = 1,
+              "5" = -1
+            )
+          } else if(isTRUE(.use.catvars)) {
+            # let it goooo !! ♪♪ 
+            0
+          }
         }
-        
+        main.env$EAL$page <- .tmp
       },
       label = paste("changePage", from, to)
       )
@@ -127,7 +147,7 @@ pagesServer <- function(id, main.env) {
       })
     }
     
-    # * Servers ====
+    ## Servers ====
     ids <- seq_along(steps)
     # Generate observers
     # Previous page
@@ -140,13 +160,13 @@ pagesServer <- function(id, main.env) {
       completeToggle(i, i+1, main.env)
     })
     
-    # * Side UI ====
+    ## Side UI ====
     # Fully functional? 
     sapply(isolate(main.env$VALUES$steps), function(page) {
       output[[paste0(page, "-tag_list")]] <- renderUI(main.env$EAL$tag.list)
     })
     
-    # * Annotation ====
+    ## Annotation ====
     # annotation_modal <- annotationsUI(session$ns("annotations"))
     # annotations("annotations")
     # observeEvent(input$open_annotation, {
@@ -185,12 +205,12 @@ pagesServer <- function(id, main.env) {
     # },
     # label = "open annotation")
     
-    # * Chain ====
+    ## Chain ====
     # TODO fun things to use: bsButton() bsTooltip()
   })
 }
 
-# * Next ====
+## Next ====
 
 #' @import shiny
 #'
@@ -211,7 +231,7 @@ nextTabButton <- function(id, i) {
   # )
 }
 
-# * Previous ====
+## Previous ====
 
 #' @import shiny
 #'

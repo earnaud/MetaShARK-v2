@@ -173,23 +173,19 @@ GeoCovInput <- function(id, main.env) {
     )
 
     # site description
-    observeEvent(input$site_description, 
-      {
-        req(input$site_description)
-        local.rv$geographicDescription <- input$site_description
-      },
-      priority = 1
-    )
+    observeEvent(input$site_description, {
+      req(input$site_description)
+      local.rv$geographicDescription <- input$site_description
+    },
+    priority = 1)
 
     # latitude
-    observeEvent(input$latitude,
-      {
-        req(input$latitude)
-        local.rv$northBoundingCoordinate <- max(input$latitude)
-        local.rv$southBoundingCoordinate <- min(input$latitude)
-      },
-      priority = 1
-    )
+    observeEvent(input$latitude, {
+      req(input$latitude)
+      local.rv$northBoundingCoordinate <- max(input$latitude)
+      local.rv$southBoundingCoordinate <- min(input$latitude)
+    },
+    priority = 1)
 
     # longitude
     observeEvent(input$longitude,

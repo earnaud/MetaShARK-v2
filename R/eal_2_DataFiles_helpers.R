@@ -2,14 +2,12 @@
 #' 
 #' @noRd
 insertDataFileInput <- function(id, main.env){
-  # Add row
-  .id <- unns(id)
-  # create the UI -- no NS !!!
+  # create the UI
   new.ui <- DataFileInputUI(id, main.env)
   # insert the UI
   insertUI(selector = "#inserthere_eal2", ui = new.ui, immediate = TRUE)
   # create the server
-  DataFileInput(.id, main.env)
+  DataFileInput(unns(id), main.env)
 }
 
 #' @import shiny
@@ -44,7 +42,7 @@ DataFileInputUI <- function(id, main.env) {
     shinyjs::hidden(
       tags$div(
         id = NS(id, "content"),
-        class = "contentRow",
+        # class = "contentRow",
         tagList(
           fluidRow(
             column(

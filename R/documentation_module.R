@@ -74,7 +74,7 @@ documentation <- function(id, main.env) {
 
     # UI render ====
 
-    # render tree
+    ## render tree ----
     output$tree <- shinyTree::renderTree({
       validate(
         need(isContentTruthy(local.rv$tree), "Documentation is being loaded.")
@@ -83,16 +83,21 @@ documentation <- function(id, main.env) {
       local.rv$tree
     })
 
-    # output selected node
+    ## output selected node ----
     output$doc <- renderUI({
+      # check tree presence
       validate(
         need(isContentTruthy(local.rv$tree), "Documentation is being loaded."),
         need("tree" %in% names(input), "Please select a node.")
       )
+      
+      # check tree selection
       tree.node <- shinyTree::get_selected(input$tree)
       validate(
         need(unlist(tree.node), "(Select an item first)")
       )
+      
+      # read path to selected node in tree
       path <- paste(
         c(
           attr(tree.node[[1]], "ancestry"),
@@ -100,7 +105,9 @@ documentation <- function(id, main.env) {
         ),
         collapse = "/"
       )
+      # access the selected node
       doc.node <- followPath(local.rv$doc, path)
+      # return curated display
       if ("annotation" %in% names(doc.node)) {
         doc.node$annotation
       } else {
