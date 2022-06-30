@@ -69,7 +69,7 @@ unns <- function(id) {
 
 #' @title checkFeedback
 #' 
-#' relies on {shinyFeedback} to automate feedback on one input.
+#' @description relies on {shinyFeedback} to automate feedback on one input.
 #' 
 #' @param id character. An ID string that corresponds with the ID used to call 
 #' the module's UI function.
