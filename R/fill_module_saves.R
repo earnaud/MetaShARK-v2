@@ -190,21 +190,31 @@ saveReactive <- function(main.env, page, do.template = TRUE) {
         dplyr::filter(grepl(tablename, metadatapath)) |>
         dplyr::select(metadatapath) |>
         unlist()
-      table <- content$md.tables[[tablename]]
-      data.table::fwrite(table, path, sep = "\t")
+      .table <- content$md.tables[[tablename]]
+      data.table::fwrite(.table, path, sep = "\t")
     }
   )
   
   # Write Custom units
-  if (isContentTruthy(content$CU_Table)) {
+  if (isContentTruthy(content$custom.units$table)) {
+    # remove unused CU
+    .used_units <- sapply(
+      listReactiveValues(content$md.tables), 
+      \(.table) .table$unit) |>
+      unlist() |> 
+      unique()
+    content$custom.units$table <- content$custom.units$table |>
+      filter(id %in% .used_units)
+    
+    # save CU table
+    .sv$Attributes$custom_units_table <- content$custom.units$table
+    
+    # write CU table
     data.table::fwrite(
-      content$CU_Table, 
+      content$custom.units$table,
       paste0(.sv$SelectDP$dp.metadata.path, "/custom_units.txt")
     )
   }
-
-  # Add use of categorical variables (or not)
-  # .sv$Attributes$use.catvars <- isTRUE(content$use.catvars())
   
   return(.sv)
 }

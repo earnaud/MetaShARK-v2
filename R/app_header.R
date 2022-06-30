@@ -179,39 +179,36 @@
 
   # Unit types
   .all.units <- EML::get_unitList()$units
-  .ind <- seq_along(.all.units$name)[-anyDuplicated(.all.units$name)]
-  .units <- .all.units$name[.ind]
-  .unitTypes <- .all.units$unitType[.ind] 
-  .unitTypes <- replace(
-    .unitTypes,
-    which(.unitTypes %in% c("", "NA", NA)), 
-    "unsorted"
-  )
-  .unitList <- sort(paste(.unitTypes, .units, sep = "/"))
-  
-  .units <- "custom"
-  names(.units) <- "custom"
+  # .ind <- seq_along(.all.units$name)[-anyDuplicated(.all.units$name)]
+  # .units <- .all.units$name[.ind]
+  # .unitTypes <- .all.units$unitType[.ind] 
+  # .unitTypes <- replace(
+  #   .unitTypes,
+  #   which(.unitTypes %in% c("", "NA", NA)), 
+  #   "unsorted"
+  # )
+  # .unitList <- sort(paste(.unitTypes, .units, sep = "/"))
+  .unitList <- split(.all.units$name, .all.units$unitType)
+  names(.unitList)[[1]] <- "unsorted"
   
   # Structure unit list
-  sapply(.unitList, function(unit) {
-    .units <<- c(
-      .units, 
-      setNames(
-        gsub("^.*/(.*)$", "\\1", unit),
-        gsub("^(.*)/.*$", "\\1", unit)
-      )
-    )
-  })
-  .units <- split(.units, names(.units)) |>
-    sapply(unname)
+  # sapply(.unitList, function(unit) {
+  #   .units <<- c(
+  #     .units, 
+  #     setNames(
+  #       gsub("^.*/(.*)$", "\\1", unit),
+  #       gsub("^(.*)/.*$", "\\1", unit)
+  #     )
+  #   )
+  # })
+  # .units <- split(.units, names(.units)) |>
+  #   sapply(unname)
   # Turn 1-length items' names to items themselves
-  sapply(
-    which(sapply(.units, length) == 1),
-    function(li) 
-      names(.units)[li] <<- .units[[li]]
-  )
-  # Set custom as first unit
-  .units <- c(.units["custom"], .units[names(.units) != "custom"])
+  # sapply(
+  #   which(sapply(.units, length) == 1),
+  #   function(li) 
+  #     names(.units)[li] <<- .units[[li]]
+  # )
   
   # Save
   assign(
@@ -221,10 +218,11 @@
         "YYYY-MM-DD", "YYYY",
         "YYYY-MM",  "YYYY-DD-MM",
         "MM-YYYY", "DD-MM-YYYY", "MM-DD-YYYY",
-        "hh:mm:ss", "hh:mm", "mm:ss", "hh"
+        "hh:mm:ss", "hh:mm", "mm:ss", "hh",
+        "YYYY-MM-DD hh:mm:ss", "YYYY-MM-DD hh:mm"
       ),
       lubridate_formats = lubridate:::lubridate_formats,
-      units = .units,
+      units = .unitList,
       taxa.authorities = .TAXA.AUTHORITIES
     ),
     envir = main.env
