@@ -2,9 +2,7 @@
 % Please edit documentation in R/utils_additional_HTML.R
 \name{checkFeedback}
 \alias{checkFeedback}
-\title{checkFeedback
-
-relies on {shinyFeedback} to automate feedback on one input.}
+\title{checkFeedback}
 \usage{
 checkFeedback(
   input,
@@ -30,7 +28,5 @@ feedback in case \code{condition} is not met.}
 \item{text}{character. What message to display in case of unmet condition.}
 }
 \description{
-checkFeedback
-
 relies on {shinyFeedback} to automate feedback on one input.
 }

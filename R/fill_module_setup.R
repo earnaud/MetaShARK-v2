@@ -159,7 +159,6 @@ setLocalRV <- function(main.env){
     ## Attributes ----
     reactiveValues(
       md.tables = reactiveValues(),
-      # checked = FALSE,
       completed = reactiveValues(),
       data.filepath = main.env$save.variable$DataFiles$datapath,
       md.filenames = basename(main.env$save.variable$DataFiles$metadatapath),
@@ -366,6 +365,7 @@ setLocalRV <- function(main.env){
   
   # Post-modifications ====
   devmsg(tag = "fill-module-setup.R", "post-modification", timer.env = main.env)
+  
   ## Attributes ----
   if(main.env$EAL$page == 3) {
     devmsg(tag = "setup", "3")
@@ -424,9 +424,8 @@ setLocalRV <- function(main.env){
                     unique()
                   
                   # If no result, default format string
-                  if(length(.date.formats) == 0){
+                  if(length(.date.formats) == 0)
                     .date.formats <- main.env$FORMATS$dates[1]
-                  }
                   
                   return(.date.formats[1])
                 }
@@ -442,18 +441,22 @@ setLocalRV <- function(main.env){
           if (isTruthy(.unit.rows)){
             .val <- .md.table$unit[.unit.rows]
             .val[sapply(.val, function(v) 
-              v == main.env$FORMATS$units$dimensionless[1] ||
-                !isTruthy(v) ||
-                grepl("!Ad.*ere!", v)
+                !isTruthy(v) || 
+                  grepl("!Ad.*ere!", v) ||
+                  isFALSE(v %in% unlist(c(
+                    main.env$FORMATS$units, 
+                    main.env$local.rv$custom.units$table$id
+                  )))
             )] <- main.env$FORMATS$units$dimensionless[1]
             .md.table$unit[.unit.rows] <- .val
           }
+          
           # Add units for 'latitude' and 'longitude'
           .degree.attributes <- .md.table$attributeName %in% c("latitude", "longitude")
           if(any(.degree.attributes))
             .md.table$unit[.degree.attributes] <- "degree"
           
-          # Commit changes
+          # Set md table
           main.env$local.rv$md.tables[[.rv.name]] <<- .md.table
           
           # Add reactivity to each table
@@ -533,10 +536,11 @@ setLocalRV <- function(main.env){
     # Add reactive check for catvars templating
     main.env$local.rv$use.catvars <- reactive({
       # Shortcut variable
-      .md.tables <- main.env$local.rv$md.tables
+      .md.tables <- listReactiveValues(main.env$local.rv$md.tables)
       # check for direction: CustomUnits or CatVars
       .check <- sapply(.md.tables, function(.table) {
-        isTRUE("categorical" %in% .table[,"class"])
+        "class" %in% colnames(.table) &&
+          isTRUE("categorical" %in% .table[,"class"])
       }) |>
         unlist() |>
         any()
