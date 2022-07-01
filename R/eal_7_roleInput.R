@@ -1,11 +1,11 @@
 #' @import shiny
 #'
 #' @noRd
-roleInputUI <- function(id, role.choices, val, width) {
+roleInputUI <- function(id, role_choices, val, width) {
   selectInput(
     inputId = NS(id, "role"),
     label = "Role",
-    choices = role.choices, 
+    choices = role_choices,
     selected = unlist(strsplit(val, ",")),
     multiple = TRUE,
     selectize = TRUE,
@@ -17,25 +17,26 @@ roleInputUI <- function(id, role.choices, val, width) {
 #' @importFrom shinyjs toggleState
 #'
 #' @noRd
-roleInput <- function(id, main.env, row) {
+roleInput <- function(id, main_env, row) {
   moduleServer(id, function(input, output, session) {
-    
+
     # Get main role input ====
     observeEvent(input$role, {
-      req(main.env$EAL$page == 7)
+      req(main_env$EAL$page == 7)
       .last <- tail(input$role, 1)
-      
+
       # Get value
-      if(length(.last) == 0) {
-        main.env$local.rv$Personnel$role[row()] <- ""
-      } else if(.last != "Other") {
-        if(isTruthy(input$role)) {
-          main.env$local.rv$Personnel$role[row()] <- paste(
+      if (length(.last) == 0) {
+        main_env$local_rv$Personnel$role[row()] <- ""
+      } else if (.last != "Other") {
+        if (isTruthy(input$role)) {
+          main_env$local_rv$Personnel$role[row()] <- paste(
             input$role,
             collapse = ","
           )
-        } else
-          main.env$local.rv$Personnel$role[row()] <- ""
+        } else {
+          main_env$local_rv$Personnel$role[row()] <- ""
+        }
       } else { # Ask for custom role
         showModal(
           modalDialog(
@@ -45,8 +46,12 @@ roleInput <- function(id, main.env, row) {
               "Other role"
             ),
             footer = tags$span(
-              actionButton(session$ns("modal-close"), "Confirm", icon = icon("check")),
-              actionButton(session$ns("modal-cancel"), "Cancel", icon = icon("ban"))
+              actionButton(session$ns("modal-close"), "Confirm",
+                           icon = icon("check")
+              ),
+              actionButton(session$ns("modal-cancel"), "Cancel",
+                           icon = icon("ban")
+              )
             )
           )
         )
@@ -54,70 +59,70 @@ roleInput <- function(id, main.env, row) {
     },
     ignoreNULL = FALSE,
     ignoreInit = TRUE,
-    label = session$ns("role") 
+    label = session$ns("role")
     )
-    
+
     # Validate modal button ====
     observe({
-      req(main.env$EAL$page == 7)
-      
+      req(main_env$EAL$page == 7)
+
       shinyjs::toggleState(
         "modal-close",
-        condition = isTruthy(input$`role-other`) && 
-          isFALSE(input$`role-other` %in% main.env$local.rv$role.choices$Other)
+        condition = isTruthy(input$`role-other`) &&
+          isFALSE(input$`role-other` %in% main_env$local_rv$role_choices$Other)
       )
     })
-    
+
     # Get modal input ====
     observeEvent(input$`modal-cancel`, {
-      req(main.env$EAL$page == 7)
+      req(main_env$EAL$page == 7)
       removeModal()
-      
+
       updateSelectizeInput(
-        session, 
+        session,
         "role",
         selected = input$role[which(input$role != "Other")]
       )
     })
-    
+
     observeEvent(input$`modal-close`, {
-      req(main.env$EAL$page == 7)
+      req(main_env$EAL$page == 7)
       removeModal()
-      main.env$local.rv$last.modified <- row()
-      
-      main.env$local.rv$role.choices$Other <- unique(c(
-        main.env$local.rv$role.choices$Other,
+      main_env$local_rv$last_modified <- row()
+
+      main_env$local_rv$role_choices$Other <- unique(c(
+        main_env$local_rv$role_choices$Other,
         input$`role-other`
       ))
-      
+
       updateSelectizeInput(
-        session, 
+        session,
         "role",
-        choices = main.env$local.rv$role.choices,
+        choices = main_env$local_rv$role_choices,
         selected = replace(
           input$role,
-          which(input$role == "Other"), 
+          which(input$role == "Other"),
           input$`role-other`
         )
       )
     },
     label = session$ns("modal-close")
     )
-    
+
     # Update role choices ====
     observeEvent({
-      ifelse(main.env$EAL$page == 7,
-        main.env$local.rv$trigger(),
-        FALSE
+      ifelse(main_env$EAL$page == 7,
+             main_env$local_rv$trigger(),
+             FALSE
       )
     }, {
-      req(main.env$EAL$page == 7)
-      req(main.env$local.rv$last.modified != row())
-      
+      req(main_env$EAL$page == 7)
+      req(main_env$local_rv$last_modified != row())
+
       updateSelectizeInput(
         session,
         "role",
-        choices = main.env$local.rv$role.choices,
+        choices = main_env$local_rv$role_choices,
         selected = input$role
       )
     },

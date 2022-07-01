@@ -127,6 +127,13 @@ Features are emphasized into the NEWS.md file.
 
 Any contribution can be done and submitted. Care about documenting code chunks you want to edit, and also add motivations about these changes.
 
+#### Naming conventions
+
+CONSTANTS: items who will store never-changing values
+theFunctions: items who will take other as arguments
+the_variables: items who will store changing or changeable values
+.xxx: any item (function or variable) defined and used inside a code block
+
 ### Issues post
 
 On posting issues, make sure your problem/idea has not been discussed before (beware of the "is closed" filter).

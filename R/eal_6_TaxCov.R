@@ -2,16 +2,49 @@
 #'
 #' @noRd
 TaxCovUI <- function(id) {
+  ns <- NS(id)
+
   return(
     fluidPage(
       fluidRow(
         column(
           4,
-          uiOutput(NS(id, "taxa.table")),
-          tableOutput(NS(id, "preview"))
+          selectInput(
+            ns("taxa.col"),
+            helpLabel(
+              "Select taxonomic attribute",
+              "Select an attribute containing taxa names (either common
+              or scientific)."
+            ),
+            choices = c(),
+            selected = c(),
+            multiple = FALSE
+          ),
+          tags$b("Column preview"),
+          tableOutput(ns("preview"))
         ),
-        column(4, uiOutput(NS(id, "taxa.name.type")) ),
-        column(4, uiOutput(NS(id, "taxa.authority")) )
+        column(
+          4,
+          checkboxGroupInput(
+            ns("taxa_name_type"),
+            helpLabel(
+              "Select taxonomic name notation",
+              "Selection has to be made according to the content
+              of the taxonomic attribute selected previously."
+            ),
+            c("scientific", "common")
+          )
+        ),
+        column(
+          4,
+          selectInput(
+            ns("taxa_authority"),
+            "Select taxonomic authority.ies",
+            choices = c(),
+            selected = c(),
+            multiple = TRUE
+          )
+        )
       )
     ) # end of fluidPage
   ) # end of return
@@ -21,197 +54,201 @@ TaxCovUI <- function(id) {
 #' @importFrom dplyr select filter
 #'
 #' @noRd
-TaxCov <- function(id, main.env) {
+TaxCov <- function(id, main_env) {
   moduleServer(id, function(input, output, session) {
-    if (main.env$dev){
-      observeEvent(
-        main.env$dev.browse(), 
-        {
-          if (main.env$current.tab() == "fill" &&
-              main.env$EAL$page == 6) {
-            browser()
-          }
-        }
-      )
-    }
-    
+    if (main_env$dev) .browse_dev(main_env, 6)
+
     # Set UI ====
 
-    # * taxa.table ----
-    output$taxa.table <- renderUI({
-      isolate({
-        # Set choices for selectInput -- reuse & filter Attributes
-        .att <- main.env$save.variable$Attributes$content
-        .choice <- main.env$local.rv$.taxa.choices <- list()
-        sapply(names(.att), function(.md.file) {
-          .data.file <- main.env$save.variable$DataFiles |>
-            filter(grepl(.md.file, metadatapath)) |>
-            select(datapath) |>
-            unlist() |>
-            basename()
-          # Set sites
-          .choice[[.data.file]] <<- .att[[.md.file]] |> 
-            as.data.frame() |>
-            dplyr::filter(class %in% c("character", "categorical")) |> 
-            dplyr::select(attributeName) |>
-            unlist()
-          .choice[[.data.file]] <<- paste(.data.file, .choice[[.data.file]], sep="/") |>
-            setNames(nm = .choice[[.data.file]])
-        })
-        # Set value -- read from saved
-        .value <- if(isContentTruthy(main.env$save.variable$TaxCov)){
-          paste(
-            main.env$local.rv$taxa.table,
-            main.env$local.rv$taxa.col,
-            sep = "/"
-          ) |>
-            setNames(nm = main.env$local.rv$taxa.table)
-        }
+    ## taxa.col ----
+    observeEvent(main_env$EAL$page, {
+      req(main_env$EAL$page == 6)
+
+      # shortcut for attributes content
+      .att <- main_env$save_variable$Attributes$content
+
+      # Set choices for selectInput -- reuse & filter Attributes
+      .choice <- main_env$local_rv$taxa_choices <- list()
+      sapply(names(.att), function(.md_file) {
+        .data_file <- main_env$save_variable$DataFiles |>
+          filter(grepl(.md_file, metadatapath)) |>
+          select(datapath) |>
+          unlist() |>
+          basename()
+        # Set sites
+        .choice[[.data_file]] <<- .att[[.md_file]] |>
+          as.data.frame() |>
+          dplyr::filter(class %in% c("character", "categorical")) |>
+          dplyr::select(attributeName) |>
+          unlist()
+        .choice[[.data_file]] <<- paste(
+          .data_file, .choice[[.data_file]],
+          sep = "/"
+        ) |>
+          setNames(nm = .choice[[.data_file]])
       })
 
+      # Set value -- read from saved
+      .value <- if (isContentTruthy(main_env$save_variable$TaxCov)) {
+        paste(
+          main_env$local_rv$taxa_col,
+          main_env$local_rv$taxa_col,
+          sep = "/"
+        ) |>
+          setNames(nm = main_env$local_rv$taxa_col)
+      }
+
       # UI itself
-      selectInput(
-        session$ns("taxa.table"),
-        "Files containing taxonomic references",
+      updateSelectInput(
+        session,
+        "taxa.col",
         choices = .choice,
-        selected = .value,
-        multiple = FALSE
-      )
-    })
-    
-    output$preview <- renderTable({
-      validate(
-        need(isTruthy(main.env$local.rv$taxa.table), "invalid taxa selection"),
-        need(isTruthy(main.env$local.rv$taxa.col), "invalid taxa selection")
-      )
-      
-      file <- main.env$save.variable$DataFiles$datapath |>
-        as.data.frame() |>
-        setNames(nm = "filenames")
-      file <- dplyr::filter(
-        file,
-        grepl(pattern = main.env$local.rv$taxa.table, filenames)
-      ) |>
-        unlist()
-      
-      data <- data.table::fread(
-        file, nrows = 5,
-        data.table = FALSE
-      )[main.env$local.rv$taxa.col]
-      
-      return(data)
-    })
-    
-    # * taxa.name.type ----
-    output$taxa.name.type <- renderUI({
-      isolate({
-        .value <- main.env$local.rv$taxa.name.type
-        if (isTRUE(.value == "both")) {
-          .value <- c("scientific", "common")
-        } else if (isFALSE(.value %in% c("scientific", "common"))) {
-          .value <- NULL
-        }
-      })
-      
-      checkboxGroupInput(
-        session$ns("taxa.name.type"),
-        "Select one or both taxonomic name notation",
-        c("scientific", "common"),
         selected = .value
       )
     })
 
-    # * taxa.authority ----
-    output$taxa.authority <- renderUI({
-      isolate({
-        taxa.authority <- main.env$FORMATS$taxa.authorities
-        choices <- taxa.authority$authority
-        value <- if (isTruthy(main.env$local.rv$taxa.authority)) {
-          taxa.authority |>
-            dplyr::filter(id == main.env$local.rv$taxa.authority) |>
-            dplyr::select(authority)
-        }
-      })
+    output$preview <- renderTable({
+      validate(
+        need(isTruthy(main_env$local_rv$taxa_col), "invalid taxa selection")
+      )
 
-      selectInput(
-        session$ns("taxa.authority"),
+      file <- main_env$save_variable$DataFiles$datapath |>
+        as.data.frame() |>
+        setNames(nm = "filenames")
+      file <- unlist(
+        dplyr::filter(
+          file,
+          grepl(pattern = main_env$local_rv$taxa_col, filenames)
+        )
+      )
+
+      .data <- data.table::fread(
+        file,
+        nrows = 5, header = TRUE,
+        data.table = FALSE
+      )[main_env$local_rv$taxa_col]
+
+      return(.data)
+    },
+    priority = -1
+    )
+
+    ## taxa_name_type ----
+    observeEvent(main_env$EAL$page, {
+      req(main_env$EAL$page == 6)
+
+      .value <- main_env$local_rv$taxa_name_type
+      if (isTRUE(.value == "both")) {
+        .value <- c("scientific", "common")
+      } else if (isFALSE(.value %in% c("scientific", "common"))) {
+        .value <- NULL
+      }
+
+      updateCheckboxGroupInput(
+        session, "taxa_name_type",
+        selected = .value
+      )
+    },
+    priority = -1
+    )
+
+    ## taxa_authority ----
+    observeEvent(main_env$EAL$page, {
+      req(main_env$EAL$page == 6)
+
+      taxa_authorities <- main_env$FORMATS$taxa_authorities
+      choices <- taxa_authorities$authority
+      value <- if (isTruthy(main_env$local_rv$taxa_authority)) {
+        taxa_authorities |>
+          dplyr::filter(id == main_env$local_rv$taxa_authority) |>
+          dplyr::select(authority)
+      }
+
+      updateSelectInput(
+        session,
+        "taxa_authority",
         "Select taxonomic authority.ies",
         choices = choices,
-        selected = value,
-        multiple = TRUE
+        selected = value
       )
-    })
+    },
+    priority = -1
+    )
 
     # Taxonomic coverage input ====
 
-    # * Taxa files ----
-    observeEvent(input$taxa.table, 
-      {
-        # save
-        .tmp <- input$taxa.table |> 
-          strsplit(split = "/", fixed = TRUE) |>
-          unlist()
-        main.env$local.rv$taxa.table <- .tmp[1]
-        main.env$local.rv$taxa.col <- .tmp[2]
-      },
-      label = "EAL6: input taxa table",
-      priority = -1
+    ## Taxa col ----
+    observeEvent(input$taxa_col, {
+      # save
+      .tmp <- input$taxa_col |>
+        strsplit(split = "/", fixed = TRUE) |>
+        unlist()
+      main_env$local_rv$taxa_table <- .tmp[1]
+      main_env$local_rv$taxa_col <- .tmp[2]
+    },
+    label = "EAL6: input taxa_table",
+    priority = -1
     )
 
-    # * Taxa type ----
-    observeEvent(input$taxa.name.type, {
-      if(isTruthy(input$taxa.name.type)) {
-        main.env$local.rv$taxa.name.type <- input$taxa.name.type
-        
-        if ("scientific" %in% main.env$local.rv$taxa.name.type &&
-          "common" %in% main.env$local.rv$taxa.name.type) {
-          main.env$local.rv$taxa.name.type <- "both"
+    ## Taxa type ----
+    observeEvent(input$taxa_name_type, {
+      if (isTruthy(input$taxa_name_type)) {
+        main_env$local_rv$taxa_name_type <- input$taxa_name_type
+
+        if ("scientific" %in% main_env$local_rv$taxa_name_type &&
+            "common" %in% main_env$local_rv$taxa_name_type) {
+          main_env$local_rv$taxa_name_type <- "both"
         }
-      } else
-        main.env$local.rv$taxa.name.type <- character()
+      } else {
+        main_env$local_rv$taxa_name_type <- character()
+      }
     },
     ignoreNULL = FALSE,
     label = "EAL6: input taxa name type"
     )
 
-    # * Taxa authority ----
-    observeEvent(input$taxa.authority, {
-      if(isTruthy(input$taxa.authority))
-        main.env$local.rv$taxa.authority <- main.env$FORMATS$taxa.authorities |>
-          dplyr::filter(authority %in% input$taxa.authority) |>
+    ## Taxa authority ----
+    observeEvent(input$taxa_authority, {
+      if (isTruthy(input$taxa_authority)) {
+        main_env$local_rv$taxa_authority <- main_env$FORMATS$taxa_authorities |>
+          dplyr::filter(authority %in% input$taxa_authority) |>
           dplyr::select(id) |>
           unlist()
-      else
-        main.env$local.rv$taxa.authority <- character()
+      } else {
+        main_env$local_rv$taxa_authority <- character()
+      }
     },
     ignoreNULL = FALSE,
     label = "EAL6: input taxa authority"
     )
 
     # Saves ====
-    observe({
-      req(main.env$EAL$page == 6)
-      
-      invalidateLater(1000)
-      
-      main.env$EAL$completed <- TRUE
-      main.env$local.rv$complete <- all(
-        length(main.env$local.rv$taxa.table) > 0 &&
-          length(main.env$local.rv$taxa.col) > 0 &&
-          length(main.env$local.rv$taxa.name.type) > 0 &&
-          length(main.env$local.rv$taxa.authority) > 0
+    observeEvent({
+      input$taxa_col
+      input$taxa_name_type
+      input$taxa_authority
+    }, {
+      req(main_env$EAL$page == 6)
+
+      main_env$EAL$completed <- TRUE # step is facultative
+      main_env$local_rv$complete <- all(
+        length(main_env$local_rv$taxa_table) > 0 &&
+          length(main_env$local_rv$taxa_col) > 0 &&
+          length(main_env$local_rv$taxa_name_type) > 0 &&
+          length(main_env$local_rv$taxa_authority) > 0
       )
-      
-      if(isFALSE(main.env$local.rv$complete)) {
-        main.env$EAL$tag.list <- tagList(
+
+      if (isFALSE(main_env$local_rv$complete)) {
+        main_env$EAL$tag_list <- tagList(
           tags$b("Incomplete coverage !"),
           tags$p("Going to next step will skip taxonomic coverage.")
         )
+      } else {
+        main_env$EAL$tag_list <- tagList()
       }
-      else
-        main.env$EAL$tag.list <- tagList()
     },
-    label = "EAL6: set completed"
+    label = "EAL6: set completed",
+    priority = -3
     )
   })
 }

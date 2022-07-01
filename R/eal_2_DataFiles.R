@@ -1,63 +1,51 @@
-# @param id character. An ID string that corresponds with the ID used to call 
-# the module's UI function.
-# @param main.env environment. An internal environment for MetaShARK save 
-# variables.
-# 
-# insertModule(
-# session$ns("_1111"),
-# "#inserthere_eal2",
-# moduleUI = DataFileInputUI2,
-# moduleUI.args = list(main.env = main.env),
-# module = DataFileInput2,
-# module.args = list(main.env = main.env)
-# )
 #' @import shiny
 #'
 #' @noRd
 DataFilesUI <- function(id) {
+  ns <- NS(id)
+
   return(
     fluidPage(
-      tags$b("Disclaimers:"),
-      tags$ul(
-        tags$li("Until now, only table files are supported."),
-        tags$li("Selecting a file will immediately upload it (heavy files might 
-                be slow)."),
-        tags$li("Editing a data file requires removing it and uploading its
-                newest version."),
-        class = "disclaimer"
+      tags$div(
+        id = ns("disclaimer"),
+        class = "disclaimer",
+        tags$h4("Disclaimer"),
+        tags$p("(click to dismiss)"),
+        "Until now, only table files are supported."
       ),
       fluidRow(
-        column(6,
-               div(
-                 fileInput(
-                   NS(id, "add_data_files"),
-                   "Select data file(s) from your dataset",
-                   buttonLabel = span("Load files", icon("plus-circle")),
-                   multiple = TRUE,
-                   width = "100%"
-                 ),
-                 style = "display: inline-block; vertical-align: top;"
-               )
-        ),
         column(
-          6,
-          shinyjs::hidden(
-            tags$div(
-              id = "url_div",
-              wipRow(
-                URL_Input_UI(
-                  NS(id, "url_files"),
-                  "Select data file(s) from an URL"
-                ),
-                actionButton(
-                  NS(id,"add_url_files"),
-                  label = "Get",
-                  icon = icon("download")
-                )
-              )
-            )
+          12, #6,
+          div(
+            fileInput(
+              ns("add_data_files"),
+              "Select data file(s) from your dataset",
+              buttonLabel = span("Load files", icon("plus-circle")),
+              multiple = TRUE,
+              width = "100%"
+            ),
+            style = "display: inline-block; vertical-align: top;"
           )
-        )
+        )#,
+        # column(
+        #   6,
+        #   shinyjs::hidden(
+        #     tags$div(
+        #       id = "url_div",
+        #       wipRow(
+        #         urlInput_UI(
+        #           ns("url_files"),
+        #           "Select data file(s) from an URL"
+        #         ),
+        #         actionButton(
+        #           ns("add_url_files"),
+        #           label = "Get",
+        #           icon = icon("download")
+        #         )
+        #       )
+        #     )
+        #   )
+        # )
       ),
       tags$div(id = "inserthere_eal2")
     ) # end fluidPage
@@ -67,242 +55,228 @@ DataFilesUI <- function(id) {
 #' @import shiny
 #' @importFrom fs is_dir
 #' @importFrom gdata humanReadable
-#'
-#' @noRd
-DataFiles <- function(id, main.env) {
+DataFiles <- function(id, main_env) {
   moduleServer(id, function(input, output, session) {
-    if (main.env$dev){
-      observeEvent(
-        main.env$dev.browse(), 
-        {
-          if (main.env$current.tab() == "fill" &&
-              main.env$EAL$page == 2) {
-            browser()
-          }
-        },
-        label = "EAL2: dev"
-      )
-      
-      shinyjs::show("url_div")
-    }
-    
-    # Setup UI on load
-    observeEvent(main.env$EAL$page, { # on load
-      req(main.env$EAL$page == 2)
-      
-      if (isContentTruthy(main.env$local.rv$data.files) && 
-          nrow(main.env$local.rv$data.files) > 0) {
-        sapply(seq(nrow(main.env$local.rv$data.files)), function(row.id) {
-          insertDataFileInput(
-            session$ns(sprintf("_%s", as.character(row.id))),
-            main.env
-          )
-        })
-      }
-    }, 
-    priority = -1, 
-    label = "EAL2: setup UI"
-    )
-    
+    if (main_env$dev) .browse_dev(main_env, 2)
+    # remote data
+    # shinyjs::show("url_div")
+
+    # Setup UI on load =====
+    # observeEvent(main_env$EAL$page,
+    #   { # on load
+    #     req(main_env$EAL$page == 2)
+    #
+    #     if (isContentTruthy(main_env$local_rv$data_files) &&
+    #       nrow(main_env$local_rv$data_files) > 0)
+    #       sapply(seq_row(main_env$local_rv$data_files), function(row.id) {
+    #         insertDataFileInput(
+    #           session$ns(sprintf("_%s", as.character(row.id))),
+    #           main_env
+    #         )
+    #       })
+    #   },
+    #   priority = -1,
+    #   label = "EAL2: setup UI"
+    # )
+
+    # Remove disclaimer ----
+    shinyjs::onclick(session$ns("disclaimer"), {
+      req(main_env$EAL$page == 2)
+      # animate cause it looks nice
+      shinyjs::hide("disclaimer", anim = TRUE, time = 0.25)
+    }, asis = TRUE)
+
     # Add data files ====
     observeEvent(input$add_data_files, {
-      # validity checks
-      req(isContentTruthy(input$add_data_files))
-      
-      ## retrieve files info ----
-      .loaded.files <- input$add_data_files
-      # FIXME clean file input - buggy
-      # shinyjs::reset(input$add_data_files)
-      
-      # remove spaces
-      file.rename(
-        .loaded.files$datapath,
-        gsub(" ", "_",.loaded.files$datapath)
-      )
-      .loaded.files$name <- gsub(" ", "_", .loaded.files$name)
-      .loaded.files$datapath <- gsub(" ", "_", .loaded.files$datapath)
-      # add URL, description and table name columns
-      .loaded.files$url <- rep("", dim(.loaded.files)[1])
-      .loaded.files$description <- rep("", dim(.loaded.files)[1])
-      .loaded.files$table.name <- rep("", dim(.loaded.files)[1])
-      
-      # Check for folders
-      .to.remove <- c()
-      sapply(seq(nrow(.loaded.files)), function(.ind) {
-        .loaded.file <- .loaded.files[.ind,]
-        filepath <- .loaded.file$datapath
-        if (fs::is_dir(filepath)) {
-          showNotification(
-            paste(filename, "is a folder."),
-            type = "warning"
-          )
-          .to.remove <<- c(.to.remove, .ind)
-        }
-      })
-      if(length(.to.remove) > 0)
-        .loaded.files <- .loaded.files[-.to.remove,]
-      
-      # Do not go further if no more files left
-      req(length(.loaded.files) > 0)
-      
-      ## bind into local.rv ----
-      ### empty local.rv ----
-      if (isFALSE(
-        isContentTruthy(main.env$local.rv$data.files) && 
-        all(dim(main.env$local.rv$data.files) > 0)
-      )) {
-        # Bind data
-        main.env$local.rv$data.files <- cbind(
-          id = main.env$local.rv$counter + seq(nrow(.loaded.files)) - 1,
-          .loaded.files
+        # validity checks
+        req(isContentTruthy(input$add_data_files))
+
+        ## retrieve files info ----
+        .loaded_files <- input$add_data_files
+
+        # FIXME clean file input
+
+        # remove spaces
+        file.rename(
+          .loaded_files$datapath,
+          gsub(" ", "_", .loaded_files$datapath)
         )
-        # Add UI
-        sapply(
-          seq(nrow(.loaded.files)),
-          function(ind){
-            # Render
-            insertDataFileInput(
-              session$ns(main.env$local.rv$counter),
-              main.env
+        .loaded_files$name <- gsub(" ", "_", .loaded_files$name)
+        .loaded_files$datapath <- gsub(" ", "_", .loaded_files$datapath)
+        # add URL, description and table name columns
+        .loaded_files$url <- rep("", dim(.loaded_files)[1])
+        .loaded_files$description <- rep("", dim(.loaded_files)[1])
+        .loaded_files$table_name <- rep("", dim(.loaded_files)[1])
+
+        # Check for folders
+        .to_remove <- c()
+        sapply(seq_row(.loaded_files), function(.ind) {
+          .loaded_file <- .loaded_files[.ind, ]
+          filepath <- .loaded_file$datapath
+          if (fs::is_dir(filepath)) {
+            showNotification(
+              paste(filename, "is a folder."),
+              type = "warning"
             )
-            # Increase file counter
-            main.env$local.rv$counter <- main.env$local.rv$counter+1
+            .to_remove <<- c(.to_remove, .ind)
           }
-        )
-        # Copy new files to the server
+        })
+        if (length(.to_remove) > 0) {
+          .loaded_files <- .loaded_files[-.to_remove, ]
+        }
+
+        # Do not go further if no more files left
+        req(length(.loaded_files) > 0)
+
+        ## bind into local_rv ----
+        ### empty local_rv ----
+        if (isFALSE(
+          isContentTruthy(main_env$local_rv$data_files) &&
+            all(dim(main_env$local_rv$data_files) > 0)
+        )) {
+          # Bind data
+          main_env$local_rv$data_files <- cbind(
+            id = main_env$local_rv$counter + seq_row(.loaded_files) - 1,
+            .loaded_files
+          )
+          # Add UI
+          sapply(
+            seq_row(.loaded_files),
+            function(ind) {
+              # Render
+              insertDataFileInput(
+                session$ns(main_env$local_rv$counter),
+                main_env
+              )
+              # Increase file counter
+              main_env$local_rv$counter <- main_env$local_rv$counter + 1
+            }
+          )
+          # Copy new files to the server
+          destination <- sprintf(
+            "%s/%s",
+            main_env$PATHS$eal_tmp,
+            main_env$local_rv$data_files$name
+          )
+          file.copy(main_env$local_rv$data_files$datapath, destination)
+          main_env$local_rv$data_files$datapath <- destination
+        } else {
+          ### non-empty local_rv ----
+          sapply(seq_along(.loaded_files$name), function(.row) {
+            filename <- .loaded_files$name[.row]
+
+            # Add entry in variable
+            if (!filename %in% main_env$local_rv$data_files$name) {
+              if (main_env$dev) devmsg("uploaded %s", filename)
+              # Bind data
+              main_env$local_rv$data_files <- unique(rbind(
+                main_env$local_rv$data_files,
+                cbind(
+                  id = main_env$local_rv$counter,
+                  .loaded_files[.row, ]
+                )
+              ))
+              # Render
+              insertDataFileInput(
+                session$ns(main_env$local_rv$counter),
+                main_env
+              )
+              # Increase file counter
+              main_env$local_rv$counter <- main_env$local_rv$counter + 1
+            } else {
+              if (main_env$dev) devmsg("updated %s", filename)
+              .row2 <- which(main_env$local_rv$data_files$name == filename)
+
+              # replace
+              main_env$local_rv$data_files[.row2, -1] <- .loaded_files[.row, ]
+              # update UI
+              if (!isTruthy(main_env$local_rv$data_files$description[.row2])) {
+                main_env$local_rv$data_files$description[.row2] <- sprintf(
+                  "Content of %s", main_env$local_rv$data_files$name[.row2]
+                )
+              }
+              updateTextAreaInput(
+                session = session,
+                paste0(.row2, "-data_description"),
+                value = main_env$local_rv$data_files$description[.row2]
+              )
+            }
+          })
+        }
+
+        ## copy to the server ----
         destination <- sprintf(
           "%s/%s",
-          main.env$PATHS$eal.tmp,
-          main.env$local.rv$data.files$name
+          main_env$PATHS$eal_tmp,
+          main_env$local_rv$data_files$name
         )
-        file.copy(main.env$local.rv$data.files$datapath, destination)
-        main.env$local.rv$data.files$datapath <- destination
-        
-      } else {
-        ### non-empty local.rv ----
-        sapply(.loaded.files$name, function(filename) {
-          .row <- which(.loaded.files$name == filename)
-          filepath <- .loaded.files$datapath[.row]
-          
-          # Add entry in variable 
-          if (!filename %in% main.env$local.rv$data.files$name) {
-            if(main.env$dev) devmsg("uploaded %s", filename)
-            # Bind data
-            main.env$local.rv$data.files <- unique(rbind(
-              main.env$local.rv$data.files,
-              cbind(
-                id = main.env$local.rv$counter,
-                .loaded.files[.row, ]
-              )
-            ))
-            # Render
-            insertDataFileInput(
-              session$ns(main.env$local.rv$counter),
-              main.env
-            )
-            # Increase file counter
-            main.env$local.rv$counter <- main.env$local.rv$counter + 1
-          } else {
-            if(main.env$dev) devmsg("updated %s", filename)
-            .row2 <- which(main.env$local.rv$data.files$name == filename)
-            
-            # replace
-            main.env$local.rv$data.files[.row2, -1] <- .loaded.files[.row,]
-            # update UI
-            if(!isTruthy(main.env$local.rv$data.files$description[.row2]))
-              main.env$local.rv$data.files$description[.row2] <- sprintf(
-                "Content of %s", main.env$local.rv$data.files$name[.row2]
-              )
-            updateTextAreaInput(
-              session = session,
-              paste0(.row2, "-data.description"),
-              value = main.env$local.rv$data.files$description[.row2]
-            )
-          }
-          
-          # Copy file to the server
-          # browser()
-          # destination <- sprintf(
-          #   "%s/%s",
-          #   main.env$PATHS$eal.tmp,
-          #   filename
-          # )
-          # .ind <- which(main.env$local.rv$data.files$name == filename)
-          # file.copy(main.env$local.rv$data.files$datapath[.ind], destination)
-          # main.env$local.rv$data.files$datapath[.ind] <- destination
-          
-        })
-      }
-      
-      ## copy to the server ----
-      destination <- sprintf(
-        "%s/%s",
-        main.env$PATHS$eal.tmp,
-        main.env$local.rv$data.files$name
-      )
-      file.copy(main.env$local.rv$data.files$datapath, destination)
-      main.env$local.rv$data.files$datapath <- destination
-    },
-    ignoreInit = TRUE,
-    label = "EAL2: add files"
+        file.copy(main_env$local_rv$data_files$datapath, destination)
+        main_env$local_rv$data_files$datapath <- destination
+      },
+      ignoreInit = TRUE,
+      label = "EAL2: add files"
     )
-    
+
     # Data size ----
-    observeEvent(main.env$local.rv$data.files, {
-      main.env$EAL$tag.list <- tagList()
-      req(isContentTruthy(main.env$local.rv$data.files))
-      
-      files.size <- if (isContentTruthy(main.env$local.rv$data.files$size)) {
-        sum(main.env$local.rv$data.files$size)
-      } else {
-        0
-      }
-      files.size.max <- main.env$VALUES$thresholds$files.size.max
-      
-      style <- if (files.size < 0.9 * files.size.max) {
-        "color: green;"
-      } else if (files.size >= 0.9 * files.size.max && files.size < files.size.max) {
-        "color: gold;"
-      } else {
-        "color: red;"
-      }
-      
-      main.env$EAL$tag.list <- tagList(
-        "Files size:",
-        tags$p(
-          gdata::humanReadable(files.size),
-          if (files.size >= files.size.max) {
-            paste("Max. recommended:", gdata::humanReadable(files.size.max))
-          } else {
-            NULL
-          },
-          style = style
+    observeEvent(main_env$local_rv$data_files, {
+        main_env$EAL$tag_list <- tagList()
+        req(isContentTruthy(main_env$local_rv$data_files))
+
+        files_size <- if (isContentTruthy(main_env$local_rv$data_files$size)) {
+          sum(main_env$local_rv$data_files$size)
+        } else {
+          0
+        }
+        files_size_max <- main_env$VALUES$thresholds$files_size_max
+
+        style <- if (files_size < 0.9 * files_size_max) {
+          "color: green;"
+        } else if (files_size >= 0.9 * files_size_max &&
+          files_size < files_size_max) {
+          "color: gold;"
+        } else {
+          "color: red;"
+        }
+
+        main_env$EAL$tag_list <- tagList(
+          "Files size:",
+          tags$p(
+            gdata::humanReadable(files_size),
+            if (files_size >= files_size_max) {
+              paste("Max. recommended:", gdata::humanReadable(files_size_max))
+            } else {
+              NULL
+            },
+            style = style
+          )
         )
-      )
-    },
-    label = "EAL2: data files size"
+      },
+      label = "EAL2: data files size"
     )
-    
+
     # Saves ----
     observe({
-      req(main.env$EAL$page == 2)
-      # invalidateLater(1000)
-      main.env$EAL$completed <- isContentTruthy(main.env$local.rv$data.files) &&
-        all(dim(main.env$local.rv$data.files) > 0)
+      req(main_env$EAL$page == 2)
+
+      main_env$EAL$completed <- isContentTruthy(main_env$local_rv$data_files) &&
+        all(dim(main_env$local_rv$data_files) > 0)
     },
     priority = -1,
     label = "EAL2: set completed"
     )
-    
+
     # Remove inserted UI ----
-    observeEvent(main.env$EAL$page, {
-      req(main.env$EAL$old.page == 2) # left the DataFiles step
-      
-      sapply(paste0(main.env$local.rv$data.files$id, "-container"), function(id) {
-        removeUI(sprintf("#%s", session$ns(id)), immediate = TRUE)
-      })
-    },
-    priority = 1
+    observeEvent(main_env$EAL$page, {
+        req(main_env$EAL$old_page == 2) # left the DataFiles step
+
+        sapply(
+          paste0(main_env$local_rv$data_files$id, "-container"),
+          function(id) {
+            removeUI(sprintf("#%s", session$ns(id)), immediate = TRUE)
+          }
+        )
+      },
+      priority = 1
     )
   })
 }

@@ -1,58 +1,71 @@
 library(dataone)
 
-staging.nodes <- listMemberNodes(D1Client("STAGING"))
+staging_nodes <- listMemberNodes(D1Client("STAGING"))
 prod.nodes <- listMemberNodes(D1Client("PROD"))
 
 messages <- c()
 
-do.staging.drop <- c()
-sapply(1:length(staging.nodes), function(i) {
-  ping <- try(httr::GET(staging.nodes[[i]]@baseURL)$status == 200)
-  if(is.logical(ping)) {do.staging.drop <<- c(do.staging.drop, ping)} else {
+do_staging_drop <- c()
+sapply(seq_along(staging_nodes), function(i) {
+  ping <- try(httr::GET(staging_nodes[[i]]@baseURL)$status == 200)
+  if (is.logical(ping)) {
+    do_staging_drop <<- c(do_staging_drop, ping) } else {
     messages <<- c(
-      messages, 
-      if(grepl("Connection timed out after 10000 milliseconds", ping[[1]]))
-        paste(staging.nodes[[i]]@baseURL, ": timeout ping") else
-          if(grepl("CAfile: none CRLfile: none", ping[[1]]))
-            paste(staging.nodes[[i]]@baseURL, ": expired openssl certificate?") else
+      messages,
+      if (grepl("Connection timed out after 10000 milliseconds", ping[[1]]))
+        paste(staging_nodes[[i]]@baseURL, ": timeout ping") else
+          if (grepl("CAfile: none CRLfile: none", ping[[1]]))
+            paste(
+              staging_nodes[[i]]@baseURL,
+              ": expired openssl certificate?") else
               ping[[1]]
     )
-    do.staging.drop <<- c(do.staging.drop, FALSE)
+    do_staging_drop <<- c(do_staging_drop, FALSE)
   }
 })
 
 messages <- c()
 
-do.prod.drop <- c()
-sapply(1:length(prod.nodes), function(i) {
+do_prod_drop <- c()
+sapply(seq_along(prod.nodes), function(i) {
   ping <- try(httr::GET(prod.nodes[[i]]@baseURL)$status == 200)
-  if(is.logical(ping)) {do.prod.drop <<- c(do.prod.drop, ping)} else {
+  if (is.logical(ping)) {
+    do_prod_drop <<- c(do_prod_drop, ping)} else {
     messages <<- c(
-      messages, 
-      if(grepl("Connection timed out after 10000 milliseconds", ping[[1]]))
+      messages,
+      if (grepl("Connection timed out after 10000 milliseconds", ping[[1]]))
         paste(prod.nodes[[i]]@baseURL, ": timeout ping") else
-          if(grepl("CAfile: none CRLfile: none", ping[[1]]))
-            paste(prod.nodes[[i]]@baseURL, ": expired openssl certificate?") else
+          if (grepl("CAfile: none CRLfile: none", ping[[1]]))
+            paste(
+              prod.nodes[[i]]@baseURL,
+              ": expired openssl certificate?") else
               ping[[1]]
     )
-    do.prod.drop <<- c(do.prod.drop, FALSE)
+    do_prod_drop <<- c(do_prod_drop, FALSE)
   }
 })
 
 # do something with messages here
 
-staging.list <- staging.nodes[do.staging.drop]
-prod.list <- prod.nodes[do.prod.drop]
+staging_list <- staging_nodes[do_staging_drop]
+prod_list <- prod.nodes[do_prod_drop]
 
-.list <- c(staging.list, prod.list)
+.list <- c(staging_list, prod_list)
 
-.table <- sapply(1:length(.list), function(i) {
+.table <- sapply(seq_along(.list), function(i) {
   c(
     name = .list[[i]]@name,
     mn = .list[[i]]@identifier,
-    cn = ifelse(i <= length(staging.list), "STAGING", "PROD"),
+    cn = ifelse(i <= length(staging_list), "STAGING", "PROD"),
     description = .list[[i]]@description
   )
-}) |> setNames(1:length(.list)) |> as.data.frame() |> t()
+}) |> 
+  setNames(seq_along(.list)) |> 
+  as.data.frame() |>
+  t()
 
-data.table::fwrite(.table, system.file("resources/registeredEndpoints.txt", package = "MetaShARK"))
+data.table::fwrite(
+  .table, 
+  system.file(
+    "resources/registeredEndpoints.txt",
+    package = "MetaShARK"))

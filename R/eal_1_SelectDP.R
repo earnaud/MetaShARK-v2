@@ -3,6 +3,8 @@
 #'
 #' @noRd
 SelectDPUI <- function(id) {
+  ns <- NS(id)
+
   # UI output
   return(
     fluidPage(
@@ -10,138 +12,141 @@ SelectDPUI <- function(id) {
       tags$div(
         class = "headband",
         collapsibleUI(
-          NS(id, "usage"),
+          ns("usage"),
           "TUTORIAL: EML Assembly Line workflow",
           ... = tagList(
             tags$p(tags$b("Welcome in the EML Assembly line."), "This tool is
-              basically designed as a package, embedded in Shiny within MetaShARK.
-              This little helper aims to show you what awaits you in the further 
-              steps."),
-            tags$p("After loading/creating a data package, a navigation bar will 
+              basically designed as a package, embedded in Shiny within
+              MetaShARK. This little helper aims to show you what awaits you in
+              the further steps."),
+            tags$p("After loading/creating a data package, a navigation bar will
               appear on your right. There features the following buttons:"),
             tags$ul(
               tags$li(tags$b("Quit: "), "click this to leave the edition of the
-                current data package. You will be asked if you wanted to save the
-                current changes. You can switch to other section of the app (e.g.
-                documentation) without losing the current metadata."),
-              tags$li(tags$b("Save: "), "click this to save the current changes 
+                current data package. You will be asked if you wanted to save
+                the current changes. You can switch to other section of the app
+                (e.g. documentation) without losing the current metadata."),
+              tags$li(tags$b("Save: "), "click this to save the current changes
                 in the filled metadata. This will write a save file in the data
-                package directory. Then, metadata will only be lost with data 
+                package directory. Then, metadata will only be lost with data
                 package removal."),
               tags$li(tags$b("Next: "), "click this to continue your metadata
                 filling. It will bring you to the next step."),
-              tags$li(tags$b("Previous:"), "click this to come back to the
+              tags$li(
+                tags$b("Previous:"), "click this to come back to the
                 previous step."
-              # You can also use the steps", tags$span(icon("circle"),style = "color: dodgerblue;"), " markers to get to the desired step.")
+                # You can also use the steps",
+                # tags$span(icon("circle"),style = "color: dodgerblue;"), "
+                # markers to get to the desired step.")
               )
             )
           )
-        ),
-        tags$hr()
+        )
       ),
       fluidRow(
         # Load existing DP ----
         column(
           6,
-          tags$h4("Edit existing data package",
-                  style = "text-align:center"
-          ),
-          shinyjs::hidden(
-            tags$div(
-              id = NS(id, "dp_list_empty"),
-              helpText("No data package has been found.")
-            )
-          ),
-          
-          # DP list
-          tags$div(
-            radioButtons(
-              NS(id, "dp_list"),
-              NULL,
-              choiceNames = c("None selected"),
-              choiceValues = c("")
+          tags$fieldset(
+            tags$legend(
+              tags$h4("Edit existing data package",
+                style = "text-align:center"
+              )
             ),
-            style = "overflow: scroll; width: auto; max-height: 500px;"
-          ),
-          
-          # Load button
-          actionButton(
-            NS(id, "dp_load"),
-            "Load",
-            icon = icon("folder-open")
-          ),
-          # Delete button
-          actionButton(
-            NS(id, "dp_delete"),
-            "Delete",
-            icon = icon("minus-circle"),
-            class = "redButton"
-          ),
-          # Download button
-          downloadButton(
-            NS(id, "dp_download"),
-            label = "Download .zip",
-            icon = icon("file-download")
-          ),
-          # Warning -- manual handling
-          tags$p(
-            "If you have handled manually some packages in ",
-            tags$code("~/dataPackagesOutput/emlassemblyline"),
-            ", some packages might not be listed here."
-          )
-        ),
+            tagList(
+              # DP list
+              textInput(ns("dp_search"), "", placeholder = "plants_project"),
+              shinyjs::hidden(
+                tags$div(
+                  id = ns("dp_list_empty"),
+                  helpText("No data package has been found.")
+                )
+              ),
+              tags$div(
+                radioButtons(
+                  ns("dp_list"),
+                  NULL,
+                  choiceNames = c("None selected"),
+                  choiceValues = c("")
+                ),
+                style = "overflow: scroll; width: auto; max-height: 500px;"
+              ),
+              # Load button
+              actionButton(
+                ns("dp_load"),
+                "Load",
+                icon = icon("folder-open")
+              ),
+              # Delete button
+              actionButton(
+                ns("dp_delete"),
+                "Delete",
+                icon = icon("minus-circle"),
+                class = "redButton"
+              ),
+              # Download button
+              downloadButton(
+                ns("dp_download"),
+                label = "Download .zip",
+                icon = icon("file-download")
+              )
+            ) # end of tagList
+          ) # end of fieldset
+        ), # end of column
         # Create DP ----
         column(
           6,
-          tags$h4("Create new data package",
-                  style = "text-align:center"
-          ),
-          checkboxInput(
-            NS(id, "quick"),
-            tagList(
-              tags$b("Quick mode"),
-              "Most fields will be automatically filled"
+          tags$fieldset(
+            tags$legend(
+              tags$h4("Create new data package",
+                style = "text-align:center"
+              )
             ),
-            value = TRUE
-          ),
-          # Data package name
-          textInput(
-            NS(id, "dp_name"),
-            "Data package name (displayed)",
-            placeholder = "my_project"
-          ),
-          # Title
-          textInput(
-            NS(id, "dp_title"),
-            "Dataset title (file name)",
-            placeholder = "Any title is a title"
-          ),
-          tags$p(
-            "Only use alphanumerics, or one of:",
-            HTML(paste(
-              tags$code('  '), tags$code('.'), tags$code(','), 
-              tags$code(':'), tags$code('_'), tags$code('-'),
-              sep = "&nbsp&nbsp"
-            ))
-          ),
-          # License
-          tags$div(
-            id = "license-help",
-            selectInput(
-              NS(id, "license"),
-              "Select an Intellectual Rights License:",
-              c("CCBY", "CC0"),
-              multiple = FALSE
-            )
-          ),
-          HTML("License: <br>
-               <b>CC0:</b> public domain. <br>
-               <b>CC-BY-4.0:</b> open source with authorship. <br>
-               For more details, visit Creative Commons."),
-          # DP creation
-          shinyjs::disabled(
-            actionButton(NS(id, "dp_create"), "Create")
-          )
+            tagList(
+              # Data package name
+              textInput(
+                ns("dp_name"),
+                helpLabel("Data package name", "Files will be saved under this
+                          name; e.g. 'france_plants'"),
+                value = paste0(Sys.Date(), "_project")
+              ),
+              # Title
+              textInput(
+                ns("dp_title"),
+                helpLabel("Dataset title", "The data published title (for
+                          articles and so on) will be this one; e.g.
+                          'Measures of petals size in Angiospermae of France'"),
+                placeholder = "Plants of France"
+              ),
+              tags$p(
+                "Only use alphanumerics, or one of:",
+                HTML(paste(
+                  tags$code("  "), tags$code("."), tags$code(","),
+                  tags$code(":"), tags$code("_"), tags$code("-"),
+                  sep = "&nbsp&nbsp"
+                ))
+              ),
+              # License
+              tags$div(
+                id = "license-help",
+                selectInput(
+                  ns("license"),
+                  helpLabel(
+                    "Select an Intellectual Rights License:",
+                    "Currently, CC-BY-4.0 ensures the author to be named when
+                    her data is reused, while CC0 allows a totally free reuse of
+                    the data."
+                  ),
+                  c("CC-BY-4.0" = "CCBY", "CC0" = "CC️0"),
+                  multiple = FALSE
+                )
+              ),
+              # DP creation
+              shinyjs::disabled(
+                actionButton(ns("dp_create"), "Create")
+              )
+            ) # end of taglist
+          ) # end of fieldset
         ) # end column2
       ) # end fluidRow
     ) # end fluidPage
@@ -152,232 +157,229 @@ SelectDPUI <- function(id) {
 #' @importFrom shinyjs toggle toggleState disable enable
 #' @importFrom shinyFeedback hideFeedback showFeedbackDanger showFeedbackSuccess
 #' @importFrom utils zip
-#' @importFrom jsonlite read_json unserializeJSON 
-#' 
+#' @importFrom jsonlite read_json unserializeJSON
+#'
 #' @noRd
-SelectDP <- function(id, main.env) {
+SelectDP <- function(id, main_env) {
   moduleServer(id, function(input, output, session) {
     # Dev zone
-    if (main.env$dev){
-      observeEvent(
-        main.env$dev.browse(),
-        {
-          if (main.env$current.tab() == "fill" &&
-              main.env$EAL$page == 1) {
-            browser()
-          }
-        },
-        label = "EAL1: dev"
-      )
-    }
-    
+    if (main_env$dev) .browse_dev(main_env, 1)
+
     # Help button -- server call
     collapsible("usage")
-    
+
     # variable initialization ----
-    observeEvent(main.env$EAL$page, {
-      req(main.env$EAL$page == 1)
-      main.env$local.rv$dp.name <- reactive(input$dp_name)
-      main.env$local.rv$dp.title <- reactive(input$dp_title)
-      main.env$local.rv$dp.license <- reactive(input$license)
+    observeEvent(main_env$EAL$page, {
+      req(main_env$EAL$page == 1)
+
+      main_env$local_rv$dp_name <- reactive(input$dp_name)
+      main_env$local_rv$dp_title <- reactive(input$dp_title)
+      main_env$local_rv$dp_license <- reactive(input$license)
     },
     priority = -1,
     label = "EAL1: set DP"
     )
-    
-    # Render DP list ====
+
+    # DP Load ====
+
+    ## Render DP list ----
     # get files list
-    .files.poll <- reactiveDirReader(
-      main.env$PATHS$eal.dp,
+    files_poll <- reactiveDirReader(
+      main_env$PATHS$eal_dp,
       session,
       pattern = "_emldp$"
     )
-    
+
     # Extra reactive: makes sure files are returned reactively
-    files.poll.reactive <- reactive(.files.poll())
-    
+    files_poll_reactive <- reactive(files_poll())
+
+    # get search items
+    search_pattern <- reactive(input$dp_search) |>
+      debounce(300)
+
     # set it up
     observe({
-      dp.list <- gsub(files.poll.reactive(), pattern = "_emldp$", replacement = "")
-      changed <- isFALSE(identical(dp.list, main.env$local.rv$dp.list))
-      
-      # Changed and files present: update file list
-      if(changed) {
-        main.env$local.rv$dp.list <- dp.list
-        
-        if(isContentTruthy(dp.list))
-          # update list
-          updateRadioButtons(
-            session,
-            "dp_list",
-            choiceNames = c("None selected", main.env$local.rv$dp.list),
-            choiceValues = c("", gsub(" \\(.*\\)$", "", main.env$local.rv$dp.list))
-          )
-        
-        # toggle messages
-        shinyjs::toggle("dp_list_empty", condition = !isContentTruthy(dp.list))
-        shinyjs::toggle("dp_list", condition = isContentTruthy(dp.list))
-      }
-    },
-    label = "EAL 1: dp list")
-    
-    # toggles
-    # observe({
-    #   truthy.dp.list <- isContentTruthy(main.env$local.rv$dp.list)
-    #   shinyjs::toggle("dp_list", condition = truthy.dp.list)
-    #   shinyjs::toggle("no_dp_found", condition = isFALSE(truthy.dp.list))
-    # }, 
-    # label = "EAL1: toggle dp list")
-    
+        dp_list <- gsub(
+          files_poll_reactive(),
+          pattern = "_emldp$",
+          replacement = ""
+        )
+
+        if (isContentTruthy(search_pattern())) {
+          # do the filter
+          dp_list <- dp_list[which(agrepl(search_pattern(), dp_list))]
+        }
+        changed <- isFALSE(identical(dp_list, main_env$local_rv$dp_list))
+
+        # Changed and files present: update file list
+        if (changed) {
+          main_env$local_rv$dp_list <- dp_list
+
+          if (isContentTruthy(dp_list)) {
+            # update list
+            updateRadioButtons(
+              session,
+              "dp_list",
+              choiceNames = c("None selected", main_env$local_rv$dp_list),
+              choiceValues = c("", gsub(
+                " \\ (.*\\)$",
+                "",
+                main_env$local_rv$dp_list
+              ))
+            )
+          }
+
+          # toggle messages
+          shinyjs::toggle("dp_list_empty", condition = !isContentTruthy(dp_list))
+          shinyjs::toggle("dp_list", condition = isContentTruthy(dp_list))
+        }
+      },
+      label = "EAL 1: dp list"
+    )
+
     # toggle Load and Delete buttons
     observeEvent(input$dp_list, {
-      valid.selected <- input$dp_list != ""
-      shinyjs::toggleState("dp_load", condition = valid.selected)
-      shinyjs::toggleState("dp_delete", condition = valid.selected)
-      shinyjs::toggleState("dp_download", condition = valid.selected)
-    },
-    label = "EAL1: toggle dp buttons"
+        valid_selected <- input$dp_list != ""
+        shinyjs::toggleState("dp_load", condition = valid_selected)
+        shinyjs::toggleState("dp_delete", condition = valid_selected)
+        shinyjs::toggleState("dp_download", condition = valid_selected)
+      },
+      label = "EAL1: toggle dp buttons"
     )
-    
+
     # DP create ====
     ## Check name ----
     observeEvent(input$dp_name, {
-      shinyjs::disable("dp_create") # default
-      shinyFeedback::hideFeedback("dp_name")
-      
-      # Ask for > 3 characters
-      if(nchar(input$dp_name) <= 3) {
-        shinyFeedback::showFeedbackDanger(
-          "dp_name",
-          "Not enough characters."
-        )
-      } else if( # Asks only for valid characters
-        isFALSE(grepl("^[[:alnum:]_-]+$", input$dp_name))
-      ) { 
-        shinyFeedback::showFeedbackDanger(
-          "dp_name",
-          "Only use alphanumeric, '_' and '-' characters."
-        )
-      } else if(input$dp_name %in% main.env$local.rv$dp.list) { # already exist
-        shinyFeedback::showFeedbackDanger(
-          "dp_name",
-          "Already used."
-        )
-      } else {
-        shinyFeedback::showFeedbackSuccess("dp_name")
-        shinyjs::enable("dp_create")
-      }
-    },
-    label = "EAL1: dp name input"
+        shinyjs::disable("dp_create") # default
+        shinyFeedback::hideFeedback("dp_name")
+
+        # Ask for > 3 characters
+        if (nchar(input$dp_name) <= 3) {
+          shinyFeedback::showFeedbackDanger(
+            "dp_name",
+            "Not enough characters."
+          )
+        } else # Asks only for valid characters
+        if (isFALSE(grepl("^[[:alnum:]_-]+$", input$dp_name))) {
+          shinyFeedback::showFeedbackDanger(
+            "dp_name",
+            "Only use alphanumeric, '_' and '-' characters."
+          )
+        } else # dp already exists
+        if (input$dp_name %in% main_env$local_rv$dp_list) {
+          shinyFeedback::showFeedbackDanger(
+            "dp_name",
+            "Already used."
+          )
+        } else {
+          shinyFeedback::showFeedbackSuccess("dp_name")
+          shinyjs::enable("dp_create")
+        }
+      },
+      label = "EAL1: dp name input"
     )
-    
+
     ## Check title ----
     observeEvent(input$dp_title, {
-      shinyjs::disable("dp_create")
-      shinyFeedback::hideFeedback("dp_title")
-      
-      # Ask for > 3 characters
-      if(nchar(input$dp_title) <= 3) {
-        shinyFeedback::showFeedbackDanger(
-          "dp_title",
-          "Not enough characters."
-        )
-      } else if(isFALSE( # Asks only for valid characters
-        grepl("^[[:alnum:]\\ \\.,:_-]+$", input$dp_title)
-      )) {
-        shinyFeedback::showFeedbackDanger(
-          "dp_title",
-          "Invalid characters used."
-        )
-      } else { # do not check against other titles # NOTE shall we ?
-        shinyFeedback::showFeedbackSuccess(
-          "dp_title"
-        )
-        shinyjs::enable("dp_create")
-      }
-    },
-    label = "EAL1: dp title input"
+        shinyjs::disable("dp_create")
+        shinyFeedback::hideFeedback("dp_title")
+
+        # Ask for > 3 characters
+        if (nchar(input$dp_title) <= 3) {
+          shinyFeedback::showFeedbackDanger("dp_title", "Not enough characters.")
+        } else # Asks only for valid characters
+        if (isFALSE(grepl("^[[:alnum:]\\ \\.,:_-]+$", input$dp_title))) {
+          shinyFeedback::showFeedbackDanger(
+            "dp_title",
+            "Invalid characters used."
+          )
+        } else { # do not check against other titles # NOTE shall we ?
+          shinyFeedback::showFeedbackSuccess(
+            "dp_title"
+          )
+          shinyjs::enable("dp_create")
+        }
+      },
+      label = "EAL1: dp title input"
     )
-    
-    # Quick mode
-    # TODO depreciated -- only quick mode used
-    # Transform it in "if ORCID-connected" grab ontologies terms ?
-    observeEvent(input$quick, {
-      req(input$dp_name %in% c("", "my_project", paste0(Sys.Date(), "_project"))) # Do not change a yet changed name
-      if(isTRUE(getOption("shiny.testmode"))) {
-        updateTextInput(session, "dp_name", value = "my_project")
-      } else if (input$quick) {
-        updateTextInput(session, "dp_name", value = paste0(Sys.Date(), "_project"))
-      } else {
-        updateTextInput(session, "dp_name", placeholder = paste0(Sys.Date(), "_project"))
-      }
-    },
-    label = "EAL1: quick"
-    )
-    
+
     # DP management - on clicks ----
+    ## Check Create DP ----
+    observe({
+        shinyjs::toggleState(
+          "dp_create",
+          condition = isContentTruthy(main_env$local_rv$dp_name()) &&
+            isContentTruthy(main_env$local_rv$dp_title()) &&
+            main_env$local_rv$dp_license() %in% c("CC0", "CCBY")
+        )
+      },
+      priority = -1
+    )
+
     ## Create DP ----
     observeEvent(input$dp_create, {
-      req(input$dp_create)
-      req(main.env$local.rv$dp.name())
-      
-      # save in empty dedicated variable
-      main.env$save.variable <- initReactive(
-        "emlal", 
-        main.env$save.variable,
-        main.env
-      )
-      # Next page triggered in this particular saveReactive
-      saveReactive(main.env, main.env$EAL$page) # page = 1
-      # Reset annotations variable
-      main.env$local.annotations <- reactiveValues(
-        annotation.table = data.frame(stringsAsFactors = FALSE),
-        result.table = data.frame(stringsAsFactors = FALSE),
-        tree.content =list()
-      )
-    },
-    label = "EAL1: create DP"
+        req(input$dp_create)
+        req(main_env$local_rv$dp_name())
+
+        # save in empty dedicated variable
+        main_env$save_variable <- initReactive(
+          "emlal",
+          main_env$save_variable,
+          main_env
+        )
+        # Next page will be triggered in this particular saveReactive
+        saveReactive(main_env, main_env$EAL$page)
+      },
+      label = "EAL1: create DP"
     )
-    
+
     ## Load DP ----
     observeEvent(input$dp_load, {
       req(input$dp_list)
       shinyjs::disable("dp_load")
-      
+
       # variable operation - legibility purpose
       dp <- input$dp_list
-      path <- paste0(main.env$PATHS$eal.dp, dp, "_emldp")
-      
+      path <- paste0(main_env$PATHS$eal_dp, dp, "_emldp")
+
       # verbose
       showNotification(
         paste("Loading:", dp),
         type = "message"
       )
-      
+
       # read variables
-      main.env$save.variable <- initReactive("emlal", main.env$save.variable, main.env)
+      main_env$save_variable <- initReactive(
+        "emlal",
+        main_env$save_variable,
+        main_env
+      )
       # Read json in a tmp variable to let it be curated
       .tmp <- jsonlite::read_json(paste0(path, "/", dp, ".json"))[[1]] |>
         jsonlite::unserializeJSON()
-      
-      # save.variable adaptations
+
+      # save_variable adaptations
       # TODO remove this later
-      
+      .tmp <- renameList(.tmp, "\\.(?!txt$)", "_")
+
       # - keywords.thesaurus replaced by keywordThesaurus
-      if("Misc" %in% names(.tmp) && 
-         "keyword.thesaurus" %in% names(.tmp$Misc$keywords))
-        names(.tmp$Misc$keywords)[2] <- "keywordThesaurus"
-      
-      # - emlal/metafin difference
-      if (identical(names(.tmp), c("metafin", "emlal")))
+      if ("Misc" %in% names(.tmp) &&
+          "keyword.thesaurus" %in% names(.tmp$Misc$keywords)) {
+        names(.tmp$Misc$keywords)["keyword.thesaurus"] <- "keywordThesaurus"
+      }
+
+      # - eal/metafin difference
+      if (identical(names(.tmp), c("metafin", "emlal"))) {
         .tmp <- .tmp$emlal
-      
+      }
+
       # - creator
-      if(isFALSE("creator" %in% names(.tmp) && isTruthy(.tmp$creator)))
-        .tmp$creator <- main.env$SETTINGS$user
-      
+      if (isFALSE("creator" %in% names(.tmp) && isTruthy(.tmp$creator))) {
+        .tmp$creator <- main_env$SETTINGS$user
+      }
+
       # - history
-      .tmp$history <- sapply(.tmp$history, function(h) {
+      .tmp$history <- sapply(.tmp$history, \ (h) {
         switch(h,
                create = "SelectDP",
                DataFiles = "Data Files",
@@ -388,137 +390,128 @@ SelectDP <- function(id, main.env) {
                TaxCov = "Taxonomic Coverage",
                h # unchanged
         )
-      }) |> 
+      }) |>
         unname()
-      
-      # - check quick mode
-      .tmp$quick <- isTRUE(.tmp$quick)
-      
-      # - for elder DP, add use.catvars boolean variable
-      if("Attributes" %in% .tmp$history && 
-         isFALSE("use.catvars" %in% names(.tmp$Attributes))) # if attributes has been met
-        .tmp$Attributes$use.catvars <- any(
+
+      # - for elder DP, add use_catvars boolean variable
+      if ("Attributes" %in% .tmp$history &&
+          isFALSE("use_catvars" %in% names(.tmp$Attributes))) {
+        .tmp$Attributes$use_catvars <- any(
           sapply(
-            main.env$save.variable$Attributes$content,
-            function(table) any(table$class == "categorical")
+            main_env$save_variable$Attributes$content,
+            \ (.table) any(.table$class == "categorical")
           )
         )
-      
-      # if("Miscellaneous" %in% .tmp$history &&
-      #    "additional.information" %in% names(.tmp$Misc))
-        
-      
-      # Once prepared, properly merge tmp and save variables
-      main.env$save.variable <- setSaveVariable(.tmp, main.env$save.variable)
-      
+      }
+
+      # Once prepared, properly merge tmp and save_variables
+      main_env$save_variable <- setSaveVariable(.tmp, main_env$save_variable)
+
       # Update paths from another file system
       ## selectDP
-      sapply(
-        names(main.env$save.variable$SelectDP),
-        function(.dp.item) {
-          main.env$save.variable$SelectDP[[.dp.item]] <- gsub(
-            pattern = "^.*/dataPackagesOutput/emlAssemblyLine/",
-            replacement = main.env$PATHS$eal.dp,
-            main.env$save.variable$SelectDP[[.dp.item]]
-          )
-        }
-      )
-      
+      sapply(names(main_env$save_variable$SelectDP), \ (.dp_item) {
+        main_env$save_variable$SelectDP[[.dp_item]] <- gsub(
+          pattern = "^.*/dataPackagesOutput/emlAssemblyLine/",
+          replacement = main_env$PATHS$eal_dp,
+          main_env$save_variable$SelectDP[[.dp_item]]
+        )
+      })
+
       ## datafiles
-      if (isContentTruthy(main.env$save.variable$DataFiles)) {
-        sapply(names(main.env$save.variable$DataFiles), function(col) {
-          main.env$save.variable$DataFiles[, col] <- gsub(
+      if (isContentTruthy(main_env$save_variable$DataFiles)) {
+        sapply(names(main_env$save_variable$DataFiles), \ (col) {
+          main_env$save_variable$DataFiles[, col] <- gsub(
             pattern = ".*/dataPackagesOutput/emlAssemblyLine/",
-            replacement = main.env$PATHS$eal.dp,
-            main.env$save.variable$DataFiles[, col]
+            replacement = main_env$PATHS$eal_dp,
+            main_env$save_variable$DataFiles[, col]
           )
           if (col == "size") {
-            main.env$save.variable$DataFiles[, col] <- as.integer(
-              main.env$save.variable$DataFiles[, col]
+            main_env$save_variable$DataFiles[, col] <- as.integer(
+              main_env$save_variable$DataFiles[, col]
             )
           }
         })
       }
-      
+
       ## miscellaneous
-      if (isContentTruthy(main.env$save.variable$Misc$abstract)) {
-        main.env$save.variable$Misc$abstract <- gsub(
+      if (isContentTruthy(main_env$save_variable$Misc$abstract)) {
+        main_env$save_variable$Misc$abstract <- gsub(
           ".*/dataPackagesOutput/emlAssemblyLine/",
-          main.env$PATHS$eal.dp,
-          main.env$save.variable$Misc$abstract
+          main_env$PATHS$eal_dp,
+          main_env$save_variable$Misc$abstract
         )
-        main.env$save.variable$Misc$methods <- gsub(
+        main_env$save_variable$Misc$methods <- gsub(
           ".*/dataPackagesOutput/emlAssemblyLine/",
-          main.env$PATHS$eal.dp,
-          main.env$save.variable$Misc$methods
+          main_env$PATHS$eal_dp,
+          main_env$save_variable$Misc$methods
         )
-        main.env$save.variable$Misc$additional_information <- gsub(
+        main_env$save_variable$Misc$additional_information <- gsub(
           ".*/dataPackagesOutput/emlAssemblyLine/",
-          main.env$PATHS$eal.dp,
-          main.env$save.variable$Misc$additional_information
+          main_env$PATHS$eal_dp,
+          main_env$save_variable$Misc$additional_information
         )
       }
-      
+
       # resume at saved page
-      if(main.env$save.variable$step == 1) { # crashed on going to next
-        main.env$EAL$page <- main.env$save.variable$step+1
-        main.env$EAL$history <- main.env$VALUES$steps[1:main.env$EAL$page]
+      if (main_env$save_variable$step == 1) { # crashed on going to next
+        main_env$EAL$page <- main_env$save_variable$step + 1
+        main_env$EAL$history <- main_env$VALUES$steps[1:main_env$EAL$page]
       } else { # expected normal way
-        main.env$EAL$page <- main.env$save.variable$step
-        main.env$EAL$history <- main.env$save.variable$history
+        main_env$EAL$page <- main_env$save_variable$step
+        main_env$EAL$history <- main_env$save_variable$history
       }
-      main.env$EAL$old.page <- 1
-      
+      main_env$EAL$old_page <- 1
+
       shinyjs::enable("dp_load")
     },
     ignoreInit = TRUE,
     label = "EAL1: load DP"
     )
-    
+
     ## Delete DP ----
     observeEvent(input$dp_delete, {
-      req(isTruthy(input$dp_list))
-      
-      # variable operation - legibility purpose
-      dp <- input$dp_list
-      
-      # actions
-      showModal(
-        modalDialog(
-          title = "Delete data package?",
-          ... = paste("Are you sure to delete", dp, "?"),
-          easyClose = FALSE,
-          footer = tagList(
-            modalButton("No"),
-            actionButton(
-              session$ns("delete_confirm"), "Yes",
-              class = "redButton"
-            )
-          ) # end footer
-        ) # end modalDialog
-      ) # end showModal
-    },
-    label = "EAL1: delete DP"
+        req(isTruthy(input$dp_list))
+
+        # variable operation - legibility purpose
+        dp <- input$dp_list
+
+        # actions
+        showModal(
+          modalDialog(
+            title = "Delete data package?",
+            ... = paste("Are you sure to delete", dp, "?"),
+            easyClose = FALSE,
+            footer = tagList(
+              modalButton("No"),
+              actionButton(
+                session$ns("delete_confirm"), "Yes",
+                class = "redButton"
+              )
+            ) # end footer
+          ) # end modalDialog
+        ) # end showModal
+      },
+      label = "EAL1: delete DP"
     )
-    
+
     # If deletion is confirmed
     observeEvent(input$delete_confirm, {
-      # variable operation - legibility purpose
-      dp <- gsub(" \\(public\\)", "", input$dp_list)
-      path <- paste0(main.env$PATHS$eal.dp, dp, "_emldp")
-      
-      # verbose
-      removeModal()
-      showNotification(
-        paste("Deleting:", dp, sep = "")
-      )
-      
-      # actions
-      unlink(path, recursive = TRUE)
-    },
-    label = "EAL1: confirm delete DP"
+        # variable operation - legibility purpose
+        dp <- gsub(" \\ (public\\)", "", input$dp_list)
+        path <- paste0(main_env$PATHS$eal_dp, dp, "_emldp")
+
+        # verbose
+        removeModal()
+        showNotification(
+          paste("Deleting:", dp, sep = "")
+        )
+
+        # actions
+        unlink(path, recursive = TRUE)
+      },
+      label = "EAL1: confirm delete DP"
     )
-    
+
     ## Manage DP download ----
     output$dp_download <- downloadHandler(
       filename = function() {
@@ -526,7 +519,7 @@ SelectDP <- function(id, main.env) {
       },
       content = function(file) {
         .path <- getwd()
-        setwd(main.env$PATHS$eal.dp)
+        setwd(main_env$PATHS$eal_dp)
         utils::zip(
           zipfile = file,
           files = dir(
@@ -547,6 +540,5 @@ SelectDP <- function(id, main.env) {
       },
       contentType = "application/zip"
     )
-    
   })
 }

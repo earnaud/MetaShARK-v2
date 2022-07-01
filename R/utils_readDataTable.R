@@ -1,6 +1,6 @@
 #' Read Data Tables
 #'
-#' Disclaimer: this function is still maturing. There is no guarantee about its 
+#' Disclaimer: this function is still maturing. There is no guarantee about its
 #' performance.
 #' Guess the type of the data file (e.g. .xls* or not) and loads it accordingly.
 #'
@@ -15,7 +15,7 @@
 #'
 #' @importFrom readxl read_excel
 #' @importFrom data.table fread
-#' 
+#'
 # @export
 readDataTable <- function(file, data.table = FALSE, ...) {
   if (missing(file) || length(file) == 0) {
@@ -27,20 +27,22 @@ readDataTable <- function(file, data.table = FALSE, ...) {
     sheet <- 1
     x <- TRUE
     content <- list()
-    while(class(x)[1] != "try-error") {
+    while (class(x)[1] != "try-error") {
       x <- try(as.data.frame(readxl::read_excel(file, sheet, na = "NA", ...)))
-      if(class(x)[1] != "try-error")
+      if (class(x)[1] != "try-error") {
         content[[sheet]] <- x
-      sheet <- sheet+1
+      }
+      sheet <- sheet + 1
     }
     options(show.error.messages = FALSE)
     df <- content
   } else {
+    devmsg(file)
     df <- data.table::fread(
-      file, 
-      data.table = data.table, 
+      file,
+      data.table = data.table,
       stringsAsFactors = FALSE,
-      na.strings = "NA", 
+      na.strings = "NA",
       ...
     )
   }

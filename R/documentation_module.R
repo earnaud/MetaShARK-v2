@@ -17,15 +17,15 @@ docUI <- function(id) {
     fluidRow(
       # original documentation
       tags$h5(
-        "Original documentation is available ", 
-        tags$a("here.", href="https://eml.ecoinformatics.org/schema/")
+        "Original documentation is available ",
+        tags$a("here.", href = "https://eml.ecoinformatics.org/schema/")
       ),
       # search sidebar
       column(
         5,
         wellPanel(
           shinyTree::shinyTree(
-            outputId = NS(id, "tree"),
+            outputId = ns("tree"),
             search = TRUE,
             theme = "proton",
             wholerow = TRUE,
@@ -36,7 +36,7 @@ docUI <- function(id) {
       # display main panel
       column(
         7,
-        uiOutput(NS(id, "doc"))
+        uiOutput(ns("doc"))
       )
     )
   )
@@ -47,29 +47,30 @@ docUI <- function(id) {
 #' @importFrom jsonlite unserializeJSON read_json
 #'
 #' @noRd
-documentation <- function(id, main.env) {
+documentation <- function(id, main_env) {
   moduleServer(id, function(input, output, session) {
-
-    local.rv <- reactiveValues(
+    local_rv <- reactiveValues(
       doc = c(),
       tree = c()
     )
-    
+
     # Load data ====
     observe({
-      req(main.env$current.tab() == "documentation")
+      req(main_env$current_tab() == "documentation")
       req(isFALSE("tree" %in% names(input)))
-      
+
       withProgress({
-        doc <- system.file("resources/doc_guideline.json", package = "MetaShARK")
-        local.rv$doc <- jsonlite::unserializeJSON(jsonlite::read_json(doc)[[1]])
-        incProgress(0.5)
-        
-        tree <- system.file("resources/tree_guideline.json", package = "MetaShARK")
-        local.rv$tree <- jsonlite::unserializeJSON(jsonlite::read_json(tree)[[1]])
-        incProgress(0.5)
-      },
-      message = "Rendering documentation.")
+          doc <- app_sys("resources/doc_guideline.json")
+          local_rv$doc <- jsonlite::read_json(doc)[[1]] |>
+            jsonlite::unserializeJSON()
+          incProgress(0.5)
+
+          tree <- app_sys("resources/tree_guideline.json")
+          local_rv$tree <- jsonlite::unserializeJSON(jsonlite::read_json(tree)[[1]])
+          incProgress(0.5)
+        },
+        message = "Rendering documentation."
+      )
     })
 
     # UI render ====
@@ -77,39 +78,39 @@ documentation <- function(id, main.env) {
     ## render tree ----
     output$tree <- shinyTree::renderTree({
       validate(
-        need(isContentTruthy(local.rv$tree), "Documentation is being loaded.")
+        need(isContentTruthy(local_rv$tree), "Documentation is being loaded.")
       )
-      
-      local.rv$tree
+
+      local_rv$tree
     })
 
     ## output selected node ----
     output$doc <- renderUI({
       # check tree presence
       validate(
-        need(isContentTruthy(local.rv$tree), "Documentation is being loaded."),
+        need(isContentTruthy(local_rv$tree), "Documentation is being loaded."),
         need("tree" %in% names(input), "Please select a node.")
       )
-      
+
       # check tree selection
-      tree.node <- shinyTree::get_selected(input$tree)
+      tree_node <- shinyTree::get_selected(input$tree)
       validate(
-        need(unlist(tree.node), "(Select an item first)")
+        need(unlist(tree_node), "(Select an item first)")
       )
-      
+
       # read path to selected node in tree
       path <- paste(
         c(
-          attr(tree.node[[1]], "ancestry"),
-          unlist(tree.node)
+          attr(tree_node[[1]], "ancestry"),
+          unlist(tree_node)
         ),
         collapse = "/"
       )
       # access the selected node
-      doc.node <- followPath(local.rv$doc, path)
+      doc_node <- followPath(local_rv$doc, path)
       # return curated display
-      if ("annotation" %in% names(doc.node)) {
-        doc.node$annotation
+      if ("annotation" %in% names(doc_node)) {
+        doc_node$annotation
       } else {
         helpText("No content found at:", path)
       }

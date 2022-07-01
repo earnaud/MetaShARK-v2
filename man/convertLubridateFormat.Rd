@@ -4,7 +4,7 @@
 \alias{convertLubridateFormat}
 \title{Convert lubridate to common format}
 \usage{
-convertLubridateFormat(date.formats)
+convertLubridateFormat(date_formats)
 }
 \description{
 Convert lubridate to common format

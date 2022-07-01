@@ -1,22 +1,22 @@
 # getPredicate <- function(api.key, ontology = "OBOREL", predicate) {
-#   if(missing(api.key) || !isTruthy(api.key)) {
+#   if (missing(api.key) || !isTruthy(api.key)) {
 #     warning("No api key provided to getPredicate. Returning NULL.")
 #     return(NULL)
 #   }
-# 
+#
 #   # Check `ontology` is available in BioPortal
 #   predicate.classes <- cedarr::accessOntology(api.key, ontology, item = "classes")
 #   # Search for `predicate` in `ontology` classes
 #   predicate.id <- functionToFindApproximatelyATermAmongOthers()
 #   predicate.found <- cedarr::accessClass(api.key, ontology, predicate.id)
-# 
+#
 #   return(predicate.found)
 # }
-# 
+#
 # getObject <- function(ontology, object) {
-# 
+#
 # }
-# 
+#
 # # TODO Build a row:
 # #
 # # Idea

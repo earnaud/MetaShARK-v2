@@ -1,19 +1,19 @@
 # UI ====
 
 #' @import shiny
-#' 
+#'
 #' @noRd
-tabPage <- function(id, title, ui, navTagList = NULL) {
+tabPage <- function(id, title, ui, nav_tag_list = NULL) {
   tabPanelBody(
     value = title,
-    if (is.null(navTagList)) {
+    if (is.null(nav_tag_list)) {
       fluidRow(
         column(12, ui)
       )
     } else {
       fluidRow(
         column(10, ui),
-        column(2, navTagList)
+        column(2, nav_tag_list)
       )
     }
   )
@@ -22,7 +22,7 @@ tabPage <- function(id, title, ui, navTagList = NULL) {
 #' @import shiny
 #'
 #' @noRd
-pagesUI <- function(id, parent.id) {
+pagesUI <- function(id, parent_id) {
   steps <- c(
     "SelectDP",
     "Data_Files",
@@ -35,58 +35,52 @@ pagesUI <- function(id, parent.id) {
     "Make_EML"
   )
   .nb <- length(steps)
-  .ui.args <- vector("list", .nb)
-  
+  .ui_args <- vector("list", .nb)
+
   # Wizard UI: a hidden tabSetPanel
   sapply(
     seq_along(steps),
     function(i) {
       page <- steps[i]
-      
-      .ui.args[[i]] <<- tabPage(
+
+      .ui_args[[i]] <<- tabPage(
         id = id, # namespace extension
         title = page,
         ui = do.call(
           what = switch(i,
-                        "SelectDPUI",
-                        "DataFilesUI",
-                        "AttributesUI",
-                        "CatVarsUI",
-                        "GeoCovUI",
-                        "TaxCovUI",
-                        "PersonnelUI",
-                        "MiscUI",
-                        "MakeEMLUI"
+            "SelectDPUI",
+            "DataFilesUI",
+            "AttributesUI",
+            "CatVarsUI",
+            "GeoCovUI",
+            "TaxCovUI",
+            "PersonnelUI",
+            "MiscUI",
+            "MakeEMLUI"
           ),
           args = list(
-            id = NS(parent.id, page)
+            id = NS(parent_id, page)
           )
         ),
-        navTagList = if (i > 1)
+        nav_tag_list = if (i > 1) {
           tagList(
             if (i != 2) prevTabButton(id, i),
             if (i != .nb) nextTabButton(id, i),
             tags$br(),
-            # if(i > 2) # unused on Data Files selection
-            #   actionButton(
-            #     NS(id, "open_annotation"),
-            #     "Annotation",
-            #     icon = icon("project-diagram"),
-            #     width = "100%"
-            #   ),
             tags$hr(),
             uiOutput(NS(id, paste0(page, "-tag_list")))
           )
-        else
+        } else {
           NULL
+        }
       )
     }
   )
-  
-  .ui.args$id <- NS(id, "wizard")
-  .ui.args$type <- "hidden"
-  
-  do.call("tabsetPanel", .ui.args)
+
+  .ui_args$id <- NS(id, "wizard")
+  .ui_args$type <- "hidden"
+
+  do.call("tabsetPanel", .ui_args)
 }
 
 # Server ====
@@ -95,116 +89,80 @@ pagesUI <- function(id, parent.id) {
 #' @importFrom shinyjs toggleState
 #'
 #' @noRd
-pagesServer <- function(id, main.env) {
+pagesServer <- function(id, main_env) {
   moduleServer(id, function(input, output, session) {
-    steps <- isolate(main.env$VALUES$steps)
-    
-    changePage <- function(from, to, input, main.env) {
+    steps <- isolate(main_env$VALUES$steps)
+
+    changePage <- function(from, to, input, main_env) {
       observeEvent(input[[paste(from, to, sep = "_")]], {
-        main.env$EAL$old.page <- main.env$EAL$page
-        
-        # Two times computing required for ifelse clause following
-        .tmp <- main.env$EAL$page + to - from
-        # Do catvars?
-        if(.tmp == 4) {
-          .use.catvars <- if("Attributes" %in% main.env$EAL$history)
-            any(sapply(
-              main.env$save.variable$Attributes$content,
-              function(table) any(table$class == "categorical")
-            )) else if(main.env$EAL$old.page == 3)
-              main.env$local.rv$use.catvars() else
-                FALSE
-          
-          .tmp <- .tmp  + if(isFALSE(.use.catvars)) {
-            # tell the user if going from Attributes to GeoCov
-            if(main.env$EAL$old.page == 3)
-              showNotification(
-                "Skipped categorical variables (not required)"
+          main_env$EAL$old_page <- main_env$EAL$page
+
+          # Two times computing required for ifelse clause following
+          .tmp <- main_env$EAL$page + to - from
+          # Do catvars?
+          if (.tmp == 4) {
+            .use_catvars <- if ("Attributes" %in% main_env$EAL$history) {
+              any(sapply(
+                main_env$save_variable$Attributes$content,
+                function(table) any(table$class == "categorical")
+              ))
+            } else if (main_env$EAL$old_page == 3) {
+              main_env$local_rv$use_catvars()
+            } else {
+              FALSE
+            }
+
+            .tmp <- .tmp + if (isFALSE(.use_catvars)) {
+              # tell the user if going from Attributes to GeoCov
+              if (main_env$EAL$old_page == 3) {
+                showNotification(
+                  "Skipped categorical variables (not required)"
+                )
+              }
+              # .. no, avoid step ..
+              switch(as.character(main_env$EAL$old_page),
+                "3" = 1,
+                "5" = -1
               )
-            # .. no, avoid step ..
-            switch(
-              as.character(main.env$EAL$old.page),
-              "3" = 1,
-              "5" = -1
-            )
-          } else if(isTRUE(.use.catvars)) {
-            # let it goooo !! ♪♪ 
-            0
+            } else if (isTRUE(.use_catvars)) {
+              # let it goooo !! ♪♪
+              0
+            }
           }
-        }
-        main.env$EAL$page <- .tmp
-      },
-      label = paste("changePage", from, to)
+          main_env$EAL$page <- .tmp
+        },
+        label = paste("changePage", from, to)
       )
     }
-    
-    completeToggle <- function(from, to, main.env) {
+
+    completeToggle <- function(from, to, main_env) {
       observe({
         shinyjs::toggleState(
           paste(from, to, sep = "_"),
-          condition = isTRUE(main.env$EAL$completed)
+          condition = isTRUE(main_env$EAL$completed)
         )
       })
     }
-    
+
     ## Servers ====
     ids <- seq_along(steps)
     # Generate observers
     # Previous page
-    lapply(ids[-1], function(i) 
-      changePage(i, i-1, input, main.env)
-    )
+    lapply(ids[-1], function(i) {
+      changePage(i, i - 1, input, main_env)
+    })
     # Next page
     lapply(ids[-length(steps)], function(i) {
-      changePage(i, i+1, input, main.env)
-      completeToggle(i, i+1, main.env)
+      changePage(i, i + 1, input, main_env)
+      completeToggle(i, i + 1, main_env)
     })
-    
+
     ## Side UI ====
-    # Fully functional? 
-    sapply(isolate(main.env$VALUES$steps), function(page) {
-      output[[paste0(page, "-tag_list")]] <- renderUI(main.env$EAL$tag.list)
+    # Fully functional?
+    sapply(isolate(main_env$VALUES$steps), function(page) {
+      output[[paste0(page, "-tag_list")]] <- renderUI(main_env$EAL$tag_list)
     })
-    
-    ## Annotation ====
-    # annotation_modal <- annotationsUI(session$ns("annotations"))
-    # annotations("annotations")
-    # observeEvent(input$open_annotation, {
-    #   # only available on Attributes
-    #   req(main.env$EAL$page > 2) # Nothing to describe in data files 
-    #   # on first time, template
-    #   if(!isContentTruthy(main.env$save.variable$Annotations$annot.table)){
-    #     # template
-    #     EMLassemblyline::template_annotations(
-    #       path = main.env$save.variable$SelectDP$dp.path,
-    #       data.path = main.env$save.variable$SelectDP$dp.data.path,
-    #       data.table = main.env$save.variable$DataFiles$name,
-    #       eml.path = ifelse(
-    #         dir.exists(sprintf("%s/eml", main.env$save.variable$SelectDP$dp.path)),
-    #         sprintf("%s/eml", main.env$save.variable$SelectDP$dp.path),
-    #         NULL # EAL default
-    #       ),
-    #       eml = ifelse(
-    #         dir.exists(sprintf("%s/eml", main.env$save.variable$SelectDP$dp.path)),
-    #         dir(sprintf("%s/eml", main.env$save.variable$SelectDP$dp.path))[1],
-    #         NULL # EAL default
-    #       )
-    #     )
-    #     # read templated
-    #     main.env$local.annotations$annotation.table <- readDataTable(
-    #       sprintf(
-    #         "%s/annotations.txt",
-    #         main.env$save.variable$SelectDP$dp.metadata.path
-    #       )
-    #     )
-    #     # build tree for modal popup
-    #     main.env$local.annotations$tree.content <- buildAnnotationTree(main.env$local.annotations$annotation.table)
-    #   }
-    #   # show modal
-    #   showModal(annotation_modal)
-    # },
-    # label = "open annotation")
-    
+
     ## Chain ====
     # TODO fun things to use: bsButton() bsTooltip()
   })
@@ -220,15 +178,8 @@ nextTabButton <- function(id, i) {
     NS(id, paste(i, i + 1, sep = "_")),
     "Next",
     icon("arrow-right"),
-    # style = "pill",
     block = TRUE
   )
-  # actionButton(
-  #   NS(id, paste(i, i + 1, sep = "_")),
-  #   "Next",
-  #   icon = icon("arrow-right"),
-  #   width = "100%"
-  # )
 }
 
 ## Previous ====
@@ -241,13 +192,6 @@ prevTabButton <- function(id, i) {
     NS(id, paste(i, i - 1, sep = "_")),
     "Previous",
     icon("arrow-left"),
-    # style = "pill",
     block = TRUE
   )
-  # actionButton(
-  #   NS(id, paste(i, i - 1, sep = "_")),
-  #   "Previous",
-  #   icon = icon("arrow-left"),
-  #   width = "100%"
-  # )
 }

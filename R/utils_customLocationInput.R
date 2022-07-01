@@ -1,69 +1,73 @@
 insertCustomLocationInput <- function(
-  id, outer.id, default, selector = "#inserthere", local.rv, removable = TRUE
-) {
+    id, outer_id, default, selector = "#inserthere", local_rv, removable = TRUE) {
   # create the UI
-  new.ui <- customLocationInput_UI(id, default = default, removable = removable)
+  new_ui <- customLocationInput_UI(id, default = default, removable = removable)
   # insert the UI
-  insertUI(selector, ui = new.ui, immediate = TRUE)
+  insertUI(selector, ui = new_ui, immediate = TRUE)
   # create the server
-  customLocationInput(unns(id), outer.id = outer.id, local.rv, removable = removable)
+  customLocationInput(unns(id),
+    outer_id = outer_id, local_rv,
+    removable = removable
+  )
 }
 
 # Coordinate Input UI ====
 customLocationInput_UI <- function(id, default, removable) {
   ns <- NS(id)
-  
+
   tags$div(
     id = ns("box"),
     coordinateInput_UI(ns("coordinate"), default),
-    if(isTRUE(removable))
-      actionLink(ns("rmv"), "", icon("times")),
+    if (isTRUE(removable)) {
+      actionLink(ns("rmv"), "", icon("times"))
+    },
     style = "display: flex; align-items: baseline;"
   )
 }
 
 # Coordinate Input Server ====
-customLocationInput <- function(id, outer.id, local.rv, removable = TRUE) {
+customLocationInput <- function(id, outer_id, local_rv, removable = TRUE) {
   moduleServer(id, function(input, output, session) {
     # grab values from inserted module
     rv <- coordinateInput("coordinate")
-    
+
     # get values ----
     observeEvent(rv(), {
       req(isContentTruthy(rv()))
-      
+
       .id <- id # used for dplyr
-      
+
       ## either create .. ----
-      if(isFALSE(.id %in% as.character(local.rv$custom[[outer.id]]$points$id))){
-        local.rv$custom[[outer.id]]$points <- rbind(
-          local.rv$custom[[outer.id]]$points,
+      if (!(.id %in% as.character(local_rv$custom[[outer_id]]$points$id))) {
+        local_rv$custom[[outer_id]]$points <- rbind(
+          local_rv$custom[[outer_id]]$points,
           data.frame(
-            id = as.double(.id), 
-            lat = rv()$lat, 
+            id = as.double(.id),
+            lat = rv()$lat,
             lon = rv()$lon
           )
         )
       } else { ## .. or change ----
-        local.rv$custom[[outer.id]]$points[
-          local.rv$custom[[outer.id]]$points$id == .id,
-        ] <- local.rv$custom[[outer.id]]$points[
-          local.rv$custom[[outer.id]]$points$id == .id,
-        ] |> 
+        local_rv$custom[[outer_id]]$points[
+          local_rv$custom[[outer_id]]$points$id == .id,
+        ] <- local_rv$custom[[outer_id]]$points[
+          local_rv$custom[[outer_id]]$points$id == .id,
+        ] |>
           mutate(lat = rv()$lat) |>
           mutate(lon = rv()$lon)
       }
     })
-    
+
     # remove point ----
-    if(isTRUE(removable)) { # no need for pointless observer
+    if (isTRUE(removable)) { # no need for pointless observer
       observeEvent(input$rmv, {
         devmsg("Removing #%s", session$ns("box"), tag = "customLocationInput.R")
         # remove UI
         removeUI(selector = paste0("#", session$ns("box")), immediate = TRUE)
         # remove data
-        .ind <- which(local.rv$custom[[outer.id]]$points$id == id) # might not be the same as index
-        local.rv$custom[[outer.id]]$points <- local.rv$custom[[outer.id]]$points[-.ind,]
+        .ind <- which(local_rv$custom[[outer_id]]$points$id == id)
+        local_rv$custom[[outer_id]]$points <- local_rv$custom[[outer_id]]$
+          points[-.ind, ]
       })
     }
   })

@@ -7,12 +7,12 @@
 \usage{
 uploadUI(id)
 
-upload(id, main.env)
+upload(id, main_env)
 }
 \arguments{
 \item{id}{shiny module id}
 
-\item{main.env}{inner global environment}
+\item{main_env}{inner global environment}
 }
 \description{
 UI part for the upload module. Used to build and drop

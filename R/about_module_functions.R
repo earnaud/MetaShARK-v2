@@ -1,6 +1,7 @@
 #' @title renderBibliography
 #'
-#' @description shiny-formatted render* function. Allow the user to print a .bib bibliography content. References are NOT numbered
+#' @description shiny-formatted render* function. Allow the user to print a .bib
+#' bibliography content. References are NOT numbered
 #' according to possible calls from the app.
 #'
 #' @param bib character. Path to bibliography file (.bib format).
@@ -8,7 +9,7 @@
 #' @import shiny
 #' @importFrom utils capture.output
 #' @importFrom RefManageR PrintBibliography
-#' 
+#'
 #' @export
 renderBibliography <- function(bib) {
   # read bibliography content
@@ -16,24 +17,18 @@ renderBibliography <- function(bib) {
   # avoid getting numbers: just render a list
   RefManageR::NoCite(.bib, "*")
 
-  # make the UI, once and for all  
+  # make the UI, once and for all
   renderUI(
     withProgress(message = "Loading bibliography entry ...", value = 0, {
       HTML(
         paste(
-          utils::capture.output( # get output from i/o string
-            invisible( # do not print in logs
-              # for each elements of bibliography ...
-              sapply(
-                .bib,
-                # ... render proper bibliography
-                function(b) {
-                  incProgress(1 / length(.bib))
-                  RefManageR::PrintBibliography(b,
-                    .opts = list(style = "html")
-                  )
-                }
-              )
+          utils::capture.output(
+            invisible(
+              # for each elements of bibliography render proper bibliography
+              sapply(.bib, \ (b) {
+                incProgress(1 / length(.bib))
+                RefManageR::PrintBibliography(b, .opts = list(style = "html"))
+              })
             ) # end of invisible
           ),
           collapse = ""

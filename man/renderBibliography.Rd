@@ -10,6 +10,7 @@ renderBibliography(bib)
 \item{bib}{character. Path to bibliography file (.bib format).}
 }
 \description{
-shiny-formatted render* function. Allow the user to print a .bib bibliography content. References are NOT numbered
+shiny-formatted render* function. Allow the user to print a .bib
+bibliography content. References are NOT numbered
 according to possible calls from the app.
 }

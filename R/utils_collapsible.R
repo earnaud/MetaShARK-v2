@@ -2,7 +2,7 @@
 #'
 #' @description A shiny module to get a div collapsed by clicking on a link.
 #'
-#' @param id character.  An ID string that corresponds with the ID used to call 
+#' @param id character.  An ID string that corresponds with the ID used to call
 #' the module's UI function.
 #' @param label character. A label appearing on the clickable link.
 #' @param .hidden logical. A flag to make the UI display as collapsed or not.
@@ -11,7 +11,7 @@
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs hidden
-#' 
+#'
 #' @export
 collapsibleUI <- function(id, label, .hidden = TRUE, ..., class = NULL) {
   content <- tags$div(
@@ -25,7 +25,11 @@ collapsibleUI <- function(id, label, .hidden = TRUE, ..., class = NULL) {
     actionLink(
       NS(id, "link"),
       label,
-      icon = if (isTRUE(.hidden)) icon("chevron-circle-right") else icon("chevron-down")
+      icon = if (isTRUE(.hidden)) {
+        icon("chevron-circle-right")
+      } else {
+        icon("chevron-down")
+      }
     ),
     if (isTRUE(.hidden)) {
       shinyjs::hidden(
@@ -38,12 +42,12 @@ collapsibleUI <- function(id, label, .hidden = TRUE, ..., class = NULL) {
 }
 
 #' @describeIn collapsibleUI
-#' 
+#'
 #' Server part for collapsible widget module.
-#' 
-#' @param id character. An ID string that corresponds with the ID used to call 
+#'
+#' @param id character. An ID string that corresponds with the ID used to call
 #' the module's UI function.
-#' 
+#'
 #' @import shiny
 #' @importFrom shinyjs toggle
 #'

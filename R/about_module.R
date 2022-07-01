@@ -1,15 +1,15 @@
-#' @param id character. An ID string that corresponds with the ID used to call 
+#' @param id character. An ID string that corresponds with the ID used to call
 #' the module's UI function.
-#' 
+#'
 #' @import shiny
-#' 
+#'
 #' @noRd
 aboutUI <- function(id) {
   fluidPage(
     # PNDB presentation
     tags$h1("About MetaShARK dev team"),
-    HTML("MetaShARK is developped within the french Museum National 
-          d'Histoire Naturelle / UMS Patrimoine Naturel / Pole 
+    HTML("MetaShARK is developped within the french Museum National
+          d'Histoire Naturelle / UMS Patrimoine Naturel / Pole
           National de Biodiversite. Its development team is currently
           composed of <a href='https://fr.linkedin.com/in/elie-arnaud-440132151?trk=people-guest_profile-result-card_result-card_full-click'>Elie Arnaud</a>
           (lead developer) and <a href ='https://fr.linkedin.com/in/yvan-le-bras-aa2b3738?trk=people-guest_profile-result-card_result-card_full-click'>Yvan Le Bras</a> (team director)."),
@@ -17,8 +17,9 @@ aboutUI <- function(id) {
     tags$h1("Thanks"),
     HTML("MetaShARK could not be built without the help of those people: </br>
         <ul>
-          <li>Colin Smith (EDI, US)</li> who collaborates with us since March 
-          2019, and currently provides us the <a href='https://github.com/EDIorg/EMLassemblyline'>EML Assembly Line</a> tool.
+          <li>Colin Smith (EDI, US)</li> who collaborates with us since March
+          2019, and currently provides us the
+          <a href='https://github.com/EDIorg/EMLassemblyline'>EML Assembly Line</a> tool.
         </ul>"),
     # References
     tags$h1("References"),
@@ -41,23 +42,19 @@ aboutUI <- function(id) {
   )
 }
 
-#' @param id character. An ID string that corresponds with the ID used to call 
+#' @param id character. An ID string that corresponds with the ID used to call
 #' the module's UI function.
-#' 
-#' @import shiny
 #'
+#' @import shiny
 #' @noRd
 about <- function(id) {
   moduleServer(id, function(input, output, session) {
 
     # Render bibliography for actors
     output$actors <- renderBibliography(
-      system.file(
-        "resources/bibliography-actors.bib",
-        package = "MetaShARK"
-      )
+      app_sys("resources/bibliography-actors.bib")
     )
-    
+
     # Render bibliography for informatic part
     output$informatics <- renderBibliography(
       system.file(
@@ -65,7 +62,7 @@ about <- function(id) {
         package = "MetaShARK"
       )
     )
-    
+
     # Render bibliography for ecology part
     output$ecology <- renderBibliography(
       system.file(
