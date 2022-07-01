@@ -1,6 +1,6 @@
 Package: MetaShARK
 Title: metashark
-Version: 1.7.0
+Version: 1.7.1
 Authors@R: 
     person(given = "Elie",
            family = "ARNAUD",
@@ -89,6 +89,7 @@ Collate:
     'eal_3_Attributes.R'
     'eal_3_Attributes_dates.R'
     'eal_3_Attributes_helpers.R'
+    'eal_3_Attributes_units.R'
     'eal_4_CatVars.R'
     'eal_4_CatVars_helpers.R'
     'eal_5_GeoCov.R'

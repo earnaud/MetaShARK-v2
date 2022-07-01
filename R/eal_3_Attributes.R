@@ -69,14 +69,7 @@ AttributesUI <- function(id) {
               choices = c(NA_character_)
             ),
             # * unit ----
-            selectInput(
-              ns("unit"),
-              label = tagList(
-                tags$b("Select an unit"),
-                helpText("You can search a unit by typing its name.")
-              ),
-              choices = c(NA_character_)
-            ),
+            unitsUI(ns("units")),
             # * missingValueCode ----
             textInput(
               ns("missingValueCode"),
@@ -106,6 +99,7 @@ AttributesUI <- function(id) {
       tags$div(
         id = "custom_units",
         tags$hr(),
+        tags$b("Unused custom units won't be saved."),
         tags$h4("Custom units"),
         fluidRow(
           tableOutput(ns("CUUI"))
@@ -142,7 +136,7 @@ Attributes <- function(id, main.env) {
     observeEvent(main.env$EAL$page, {
       req(main.env$EAL$page == 3) 
       req(isContentTruthy(main.env$local.rv$tree.content))
-      devmsg("update tree", tag = "attributes")
+      
       shinyTree::updateTree(
         session = session, 
         treeId = "tree",
@@ -156,8 +150,6 @@ Attributes <- function(id, main.env) {
     # * Get input from tree ----
     # shinyTree selection
     .selected <- reactive({
-      if(main.env$dev)
-        devmsg("selected", tag="attributes")
       if(isContentTruthy(input$tree)){
         get_selected(input$tree)
       } else {
@@ -168,8 +160,6 @@ Attributes <- function(id, main.env) {
     
     # shinyTree path exploration
     .ancestor <- reactive({
-      if(main.env$dev)
-        devmsg("ancestor", tag="attributes")
       if(isContentTruthy(.selected())){
         attr(.selected()[[1]], "ancestry")
       } else {
@@ -182,9 +172,6 @@ Attributes <- function(id, main.env) {
     selected.file <- reactive({
       req(isContentTruthy(.selected()) && 
             isContentTruthy(.ancestor()))
-      
-      if(main.env$dev)
-        devmsg("selected file", tag = "attributes")
       
       if(length(.ancestor()) == 0)
         return(.selected()[[1]][1])
@@ -229,7 +216,7 @@ Attributes <- function(id, main.env) {
       # Disable temporarily next button
       main.env$EAL$completed <- FALSE
       # Update values
-      .row <- main.env$local.rv$md.tables[[selected.file()]] |>
+      .row <- selected.table() |>
         filter(attributeName == selected.attribute())
       # Set attributeDefinition
       updateTextAreaInput(
@@ -257,7 +244,7 @@ Attributes <- function(id, main.env) {
       )
       updateSelectInput(
         session,
-        "unit",
+        "units-unit",
         choices = .tmp$unit.list,
         selected = .tmp$set.unit
       )
@@ -342,78 +329,63 @@ Attributes <- function(id, main.env) {
     label = "EAL3: definition input")
     
     # * class ----
-    observeEvent({
+    selected_class <- reactive({
+      req(main.env$EAL$page == 3)
+      req(isTruthy(input$class))
+      
       input$class
+    })
+    
+    observeEvent({
+      selected_class()
       selected.attribute()
     }, {
       validate(
         need(isTruthy(selected.file()), "No file selected"),
         need(isTruthy(selected.attribute()), "No attribute selected"),
-        need(isTruthy(input$class), "Invalid value for class"),
+        need(isTruthy(selected_class()), "Invalid value for class"),
         need(
-          input$class %in% c("character", "categorical", "numeric", "Date"), 
+          selected_class() %in% c("character", "categorical", "numeric", "Date"), 
           "Value not found for class"
         )
       )
-      
+      if(main.env$dev)
+        devmsg(
+          "changed class, unit is: %s", 
+          selected.table() %>% 
+            dplyr::filter(attributeName == selected.attribute()) %>%
+            select(unit)
+        )
+        
       main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
-        main.env$local.rv$md.tables[[selected.file()]],
+        selected.table(),
         selected.attribute(),
         "class",
-        input$class
+        selected_class()
       )
       
       # Hide/show units and dateTFS
       shinyjs::toggle(
         "dateTimeFormatString",
-        condition = input$class == "Date"
+        condition = selected_class() == "Date"
       )
-      if(input$class != "Date") {
-        updateSelectInput(
-          session,
-          "dateTimeFormatString",
-          selected = ""
-        )
+      
+      if(selected_class() != "Date") {
+        .dtfs <- ""
       } else {
-        .dtfs <- selected.table()[
-          which(selected.table()$attributeName == selected.attribute()),
-          "dateTimeFormatString"
-        ]
+        .dtfs <- selected.table() %>% 
+          dplyr::filter("attributeName" == selected.attribute()) %>%
+          select("dateTimeFormatString")
+        
         if(isFALSE(.dtfs %in% main.env$FORMATS$dates))
           .dtfs <- main.env$FORMATS$dates[1] # YYYY-MM-DD
-        updateSelectInput(
-          session,
-          "dateTimeFormatString",
-          selected = .dtfs
-        )
       }
       
-      shinyjs::toggle(
-        "unit",
-        condition = input$class == "numeric"
+      updateSelectInput(
+        session,
+        "dateTimeFormatString",
+        selected = .dtfs
       )
-      if(input$class != "numeric") {
-        updateSelectInput(
-          session,
-          "unit",
-          selected = ""
-        )
-      } else {
-        .unit <- selected.table()[
-          which(selected.table()$attributeName == selected.attribute()),
-          "unit"
-        ]
-        .tmp <- setUnitList(
-          main.env, 
-          set = optional(.unit, default = "dimensionless")
-        )
-        updateSelectInput(
-          session,
-          "unit",
-          choices = .tmp$unit.list,
-          selected = .tmp$set.unit
-        )
-      }
       
       # Check validity
       checkFeedback(input, "class", type = "danger")
@@ -425,12 +397,9 @@ Attributes <- function(id, main.env) {
       validate(
         need(isTruthy(selected.file()), "No file selected"),
         need(isTruthy(selected.attribute()), "No attribute selected"),
-        need(input$class == "Date", "Not a Date"),
+        need(selected_class() == "Date", "Not a Date"),
         need(!is.na(input$dateTimeFormatString), "Unset dateTimeFormatString input.")
       )
-      
-      if(main.env$dev)
-        devmsg(input$dateTimeFormatString)
       
       # Correct input value
       .value <- input$dateTimeFormatString
@@ -445,7 +414,7 @@ Attributes <- function(id, main.env) {
       }
       
       main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
-        main.env$local.rv$md.tables[[selected.file()]],
+        selected.table(),
         selected.attribute(),
         "dateTimeFormatString",
         .value
@@ -455,7 +424,7 @@ Attributes <- function(id, main.env) {
       checkFeedback(
         input, 
         "dateTimeFormatString", 
-        condition = if(input$class == "Date")
+        condition = if(selected_class() == "Date")
           isTruthy(input$dateTimeFormatString) && 
           .value %in% main.env$FORMATS$dates
         else
@@ -466,174 +435,11 @@ Attributes <- function(id, main.env) {
     label = "EAL3: dateTimeFormatString input")
     
     # * unit ----
-    unit.value <- eventReactive(input$unit, {
-      validate(
-        need(isTruthy(selected.file()), "No file selected"),
-        need(isTruthy(selected.attribute()), "No attribute selected"),
-        need(input$class == "numeric", "Not a number"),
-        need(!is.na(input$unit), "Unset unit input.")
-      )
-      devmsg(tag = "attributes", "unit change")
-      
-      input$unit
-    },
-    label = "EAL3: unit input") |>
-      debounce(1000, priority = -1) # let 1s blank time before getting input
-    
-    observe({
-      req(unit.value())
-      
-      devmsg(tag = "attributes", "unit set")
-      
-      # Correct input value
-      .value <- unit.value()
-      if(isFALSE(.value %in% c(
-        unlist(main.env$FORMATS$units),
-        "custom",
-        main.env$local.rv$custom.units$table$unit.id
-      ))) {
-        .value <- main.env$FORMATS$units$dimensionless[1] # dimensionless
-        # updateSelectInput(
-        #   session,
-        #   "unit",
-        #   selected = .value
-        # )
-        showNotification(
-          id = "unit_404",
-          "Queried unit not found: check spelling."
-        )
-      }
-      
-      # Standard unit
-      if(.value != "custom") {
-        # Save value
-        main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
-          main.env$local.rv$md.tables[[selected.file()]],
-          selected.attribute(),
-          "unit",
-          .value
-        )
-      } else { # Custom unit
-        # Check if currently worked unit is a custom one
-        saved <- main.env$local.rv$md.tables[[selected.file()]] |>
-          filter(attributeName == selected.attribute()) |>
-          select(unit) |>
-          unlist()
-        # Set default value for input module
-        if(isTRUE(saved %in% main.env$local.rv$custom.units$table$unit.id)) {
-          .values <- main.env$local.rv$custom.units$table |>
-            dplyr::filter(id == saved) |>
-            unlist(use.names = T)
-        } else { # New custom unit - empty UI
-          .values <- rep(NA, 5) |>
-            setNames(nm = names(main.env$local.rv$custom.units$table))
-        }
-        
-        # Properly show modal
-        showModal(
-          customUnitsUI(
-            session$ns("customUnits"),
-            values = .values,
-            main.env = main.env
-          )
-        )
-      }
-      
-      # Check validity
-      .condition <- if(input$class == "numeric") {
-        isTruthy(.value) && 
-          .value != "custom" &&
-          (.value %grep% main.env$FORMATS$units ||
-             .value %in% main.env$local.rv$custom.units$table$id)
-      } else TRUE
-      checkFeedback(
-        input, 
-        "unit",
-        condition = .condition,
-        type = "danger"
-      )
-    })
-    
-    # ** Custom Units ----
-    customUnits("customUnits", main.env)
-    
-    observeEvent({
-      if(main.env$EAL$page == 3 &&
-         "cancel" %in% names(main.env$local.rv$custom.units)){
-        main.env$local.rv$custom.units$cancel()
-      }
-    }, {
-      # Set unit
-      .tmp <- setUnitList(
-        main.env, 
-        set = "dimensionless"
-      )
-      updateSelectInput(
-        session,
-        "unit",
-        choices = .tmp$unit.list,
-        selected = .tmp$set.unit
-      )
-    },
-    priority = -1,
-    label = "EAL3: trigger CU"
-    )
-    
-    observeEvent({
-      if(main.env$EAL$page == 3 &&
-         "reactive" %in% names(main.env$local.rv$custom.units)){
-        main.env$local.rv$custom.units$reactive()
-      }
-    }, {
-      req(main.env$EAL$page == 3)
-      req(input$unit == "custom")
-      
-      .unit <- main.env$local.rv$custom.units$table$id
-      main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
-        main.env$local.rv$md.tables[[selected.file()]],
-        selected.attribute(),
-        "unit",
-        .unit
-      )
-      .tmp <- setUnitList(
-        main.env, 
-        set = if(input$class == "numeric") .unit
-      )
-      updateSelectInput(
-        session,
-        "unit",
-        choices = .tmp$unit.list,
-        selected = .tmp$set.unit
-      )
-    }, 
-    priority = -1,
-    label = "EAL3: CU input")
+    units("units", main.env, selected.file, selected.attribute, selected_class)
     
     output$CUUI <- renderTable({
       main.env$local.rv$custom.units$reactive()
     })
-    
-    # Check if a custom unit has been removed
-    observe({
-      # Trigger observe
-      .row <- main.env$local.rv$md.tables[[selected.file()]] |> 
-        filter(attributeName == selected.attribute())
-      # Get list of CU id
-      .cuids <- main.env$local.rv$custom.units$table$id
-      sapply(.cuids, function(.cuid){
-        .found <- any(sapply(
-          listReactiveValues(main.env$local.rv$md.tables),
-          function(table){
-            .cuid %grep% table$unit
-          }
-        ))
-        if(!.found){
-          .row.index <- which(.cuids == .cuid)
-          main.env$local.rv$custom.units$table <<-
-            main.env$local.rv$custom.units$table[-.row.index,]
-        }
-      })
-    }, priority = -1)
     
     # * missingValueCode ----
     observeEvent(input$missingValueCode, {
@@ -671,7 +477,7 @@ Attributes <- function(id, main.env) {
       }
       
       main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
-        main.env$local.rv$md.tables[[selected.file()]],
+        selected.table(),
         selected.attribute(),
         "missingValueCode",
         .value
@@ -703,7 +509,7 @@ Attributes <- function(id, main.env) {
       
       .value <- input$missingValueCodeExplanation
       main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
-        main.env$local.rv$md.tables[[selected.file()]],
+        selected.table(),
         selected.attribute(),
         "missingValueCodeExplanation",
         .value
@@ -755,11 +561,14 @@ Attributes <- function(id, main.env) {
       input$attributeDefinition
       input$class
       input$dateTimeFormatString
-      input$unit
+      input$`units-unit`
       input$missingValueCode
       input$missingValueCodeExplanation
     }, {
       req(main.env$EAL$page == 3)
+      
+      if(main.env$dev)
+        devmsg("check")
       # Upon any input change, check attribute's completeness
       main.env$local.rv$completed[[
         selected.file()
@@ -777,9 +586,9 @@ Attributes <- function(id, main.env) {
           } &&
           {
             if(input$class == "numeric") {
-              isContentTruthy(input$unit) &&
-                input$unit != "custom" &&
-                input$unit %in% c(
+              isContentTruthy(input$`units-unit`) &&
+                input$`units-unit` != "custom" &&
+                input$`units-unit` %in% c(
                   main.env$local.rv$custom.units$table$id,
                   unlist(main.env$FORMATS$units)
                 )
