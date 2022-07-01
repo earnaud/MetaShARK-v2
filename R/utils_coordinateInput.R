@@ -51,7 +51,7 @@ coordinateInput <- function(id, main_env) {
 
     observe({
         req(isContentTruthy(rv()$lon))
-      
+
         if (!identical(rv()$lon, input$lon)) {
           updateNumericInput(session, "lon", value = rv()$lon)
         }

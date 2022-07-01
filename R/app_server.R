@@ -32,7 +32,7 @@ server <- function(input, output, session) {
   assign(
     "contents",
     reactiveValues(
-      dp.index = character()
+      dp_index = character()
     ),
     envir = session$userData
   )

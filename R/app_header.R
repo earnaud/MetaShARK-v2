@@ -108,8 +108,9 @@
         )[[1]] |>
           jsonlite::unserializeJSON()
         # set row for the file
+        if("dp.name" %in% names(.info$SelectDP)) browser()
         .row <- c(
-          creator.orcid = "public", # default to public access
+          creator_orcid = "public", # default to public access
           name = .info$SelectDP$dp.name,
           title = .info$SelectDP$dp.title,
           path = .file

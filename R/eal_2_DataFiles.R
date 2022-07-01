@@ -197,7 +197,7 @@ DataFiles <- function(id, main_env) {
               }
               updateTextAreaInput(
                 session = session,
-                paste0(.row2, "-data.description"),
+                paste0(.row2, "-data_description"),
                 value = main_env$local_rv$data_files$description[.row2]
               )
             }

@@ -1,7 +1,7 @@
 #' @noRd
 build_attributes_tree <- function(main_env) {
   if (main_env$EAL$page == 3) {
-    .tables <- isolate(main_env$local_rv$md.tables)
+    .tables <- isolate(main_env$local_rv$md_tables)
     req(isContentTruthy(.tables))
 
     devmsg("compute tree", tag = "attributes")
@@ -9,12 +9,12 @@ build_attributes_tree <- function(main_env) {
     lapply(
       names(.tables),
       # Files node
-      function(file.name) {
+      function(file_name) {
         structure(lapply(
-          .tables[[file.name]]$attributeName,
+          .tables[[file_name]]$attributeName,
           # Attributes leaves
-          file.name = file.name,
-          function(attribute_name, file.name) {
+          file_name = file_name,
+          function(attribute_name, file_name) {
             # Render leaf
             structure(
               attribute_name,
@@ -23,7 +23,7 @@ build_attributes_tree <- function(main_env) {
             )
           }
         ) |>
-          setNames(nm = .tables[[file.name]]$attributeName),
+          setNames(nm = .tables[[file_name]]$attributeName),
         stopened = TRUE,
         # sttype = "root",
         sticon = "fa fa-file"
@@ -92,8 +92,8 @@ setUnitList <- function(main_env, set = NULL) {
 
   # Output
   return(list(
-    unit.list = out,
-    set.unit = set
+    unit_list = out,
+    set_unit = set
   ))
 }
 
@@ -255,7 +255,7 @@ metadataEditor <- function(id, main_env, selected_file) {
     ## manage input ----
     observeEvent(input$`metadata_edit-x`, {
         req(main_env$EAL$page == 3)
-        .content <- main_env$local_rv$metadata.editor()
+        .content <- main_env$local_rv$metadata_editor()
         .errors <- list()
 
         ### check emptiness ----
@@ -373,15 +373,15 @@ metadataEditor <- function(id, main_env, selected_file) {
       req(isFALSE(isContentTruthy(manual_edit_errors())))
 
       # shortcut
-      md <- main_env$local_rv$metadata.editor()
+      md <- main_env$local_rv$metadata_editor()
       # curate
       md[is.na(md)] <- ""
       # send ping = "update current row"
-      if (!identical(main_env$local_rv$md.tables[[selected_file()]], md)) {
+      if (!identical(main_env$local_rv$md_tables[[selected_file()]], md)) {
         main_env$EAL$ping <- "update current row"
       }
       # save
-      main_env$local_rv$md.tables[[selected_file()]] <- md
+      main_env$local_rv$md_tables[[selected_file()]] <- md
       # leave
       removeModal()
     })

@@ -365,7 +365,7 @@ SelectDP <- function(id, main_env) {
       # - keywords.thesaurus replaced by keywordThesaurus
       if ("Misc" %in% names(.tmp) &&
           "keyword.thesaurus" %in% names(.tmp$Misc$keywords)) {
-        names(.tmp$Misc$keywords)[2] <- "keywordThesaurus"
+        names(.tmp$Misc$keywords)["keyword.thesaurus"] <- "keywordThesaurus"
       }
 
       # - eal/metafin difference

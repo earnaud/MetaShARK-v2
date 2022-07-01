@@ -15,6 +15,8 @@
 #'   \item{reactlog}{logical. Use reactlog? (default to TRUE)}
 #'   \item{use_profvis}{logical. Profile the app with {profvis}?
 #'   (default to FALSE)}
+#'   \item{use_test}{logical. Lanch the app with its testing environment?
+#'   (default to FALSE). Shall not be used by end-users.}
 #' }
 #'
 #' @details
@@ -22,8 +24,6 @@
 #' which is designed to help its user as much as possible for filling ecological
 #' metadata. It uses the EML standard (cf. NCEAS work) to allow a full and
 #' precise description of input datasets.
-#'
-#' For server setup, see [this git](https://github.com/earnaud/MetaShARK_docker)
 #'
 #' @author
 #' Elie Arnaud <elie.arnaud@mnhn.fr>

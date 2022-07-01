@@ -45,8 +45,8 @@ saveReactive <- function(main_env, page, do_template = TRUE) {
 
       # Error catching ----
       # If an error came out, do not go further
-      if (class(.tmp_save) == "try-error" || 
-          class(.tmp_template) == "try-error") { 
+      if (class(.tmp_save) == "try-error" ||
+          class(.tmp_template) == "try-error") {
         # not page-1 but oldpage: comes back to previously visited
         isolate({
           main_env$EAL$page <- main_env$EAL$old_page
@@ -290,50 +290,8 @@ saveReactive <- function(main_env, page, do_template = TRUE) {
            tag = "fill_module_saves.R")
     .sv$GeoCov$columns <- main_env$local_rv$columns
 
-    # Site
-    # site <- listReactiveValues(main_env$local_rv$columns$site)
-    # .geographicDescription <- .values$.data_content[[site$file]][[site$col]]
-    #
-    # # extract queried
-    # .tmp <- extractCoordinates(
-    #   main_env,
-    #   "lat",
-    #   main_env$PATTERNS$coordinates,
-    #   .values$.data_content
-    # )
-    # .northBoundingCoordinate <- .tmp$coordinates$N
-    # .southBoundingCoordinate <- .tmp$coordinates$S
-    # .lat.index <- .tmp$coord.index
-    #
-    # .tmp <- extractCoordinates(
-    #   main_env,
-    #   "lon",
-    #   main_env$PATTERNS$coordinates,
-    #   .values$.data_content
-    # )
-    # .eastBoundingCoordinate <- .tmp$coordinates$E
-    # .westBoundingCoordinate <- .tmp$coordinates$W
-    # .lon.index <- .tmp$coord.index
-    #
-    # # Get only lines fully completed
-    # .index <- intersect(.lat.index, .lon.index)
-    # # .northBoundingCoordinate <- .northBoundingCoordinate[.lat.index[.lat.index %in% .index]]
-    # # .southBoundingCoordinate <- .southBoundingCoordinate[.lat.index[.lat.index %in% .index]]
-    # # .eastBoundingCoordinate <- .eastBoundingCoordinate[.lon.index[.lon.index %in% .index]]
-    # # .westBoundingCoordinate <- .westBoundingCoordinate[.lon.index[.lon.index %in% .index]]
-    # .geographicDescription <- .geographicDescription[.index]
-    #
-    # # Final
-    # geocov <- data.frame(
-    #   geographicDescription = .geographicDescription,
-    #   northBoundingCoordinate = .northBoundingCoordinate,
-    #   southBoundingCoordinate = .southBoundingCoordinate,
-    #   eastBoundingCoordinate = .eastBoundingCoordinate,
-    #   westBoundingCoordinate = .westBoundingCoordinate,
-    #   stringsAsFactors = FALSE
-    # )
 
-    # Templated
+    # Replaced with a EAL templating functions
     geocov <- NULL
   }
 
@@ -497,7 +455,7 @@ saveReactive <- function(main_env, page, do_template = TRUE) {
   # abstract ----
   saveHTMLasMD(content$abstract)
   removeDuplicateFiles(
-    content$abstract$file, 
+    content$abstract$file,
     main_env$save_variable$SelectDP$dp_metadata_path)
 
   # methods ----
@@ -537,17 +495,6 @@ saveReactive <- function(main_env, page, do_template = TRUE) {
   # additional information ----
   saveHTMLasMD(content$additional_information)
   removeDuplicateFiles(content$additional_information$file)
-
-  # Remove non-md files
-  # sapply(c("abstract", "methods", "additional_information"), function(x) {
-  #   file.remove(
-  #     dir(
-  #       main_env$save_variable$SelectDP$dp_metadata_path,
-  #       full.names = TRUE,
-  #       pattern = paste0("^.*", x, ".*\\.[^md]$")
-  #     )
-  #   )
-  # })
 
   # Output
   return(.sv)

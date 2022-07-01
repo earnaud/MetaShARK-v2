@@ -55,21 +55,21 @@ set_date_selection <- function(dates_sample) {
 #' @importFrom lubridate guess_formats
 guessDateTimeFormat <- function(date, lubridate_formats) {
   # guess format by lubridate
-  date.formats <- date |>
+  date_formats <- date |>
     lubridate::guess_formats(lubridate_formats) |>
     unique()
   # are there separators? if there are, remove mismatching formats like "YYDD"
-  if ("[[:punct:]]" %grep% date.formats) {
-    date.formats <- date.formats[!grepl("%[a-zA-Z]%", date.formats)]
+  if ("[[:punct:]]" %grep% date_formats) {
+    date_formats <- date_formats[!grepl("%[a-zA-Z]%", date_formats)]
   }
 
-  return(date.formats)
+  return(date_formats)
 }
 
 
 #' Convert lubridate to common format
-convertLubridateFormat <- function(date.formats) {
-  date.formats |>
+convertLubridateFormat <- function(date_formats) {
+  date_formats |>
     gsub(pattern = "%Y", replacement = "YYYY") |>
     gsub(pattern = "%O?y", replacement = "YY") |>
     gsub(pattern = "%O?m", replacement = "MM") |>
