@@ -1,5 +1,5 @@
 #' @noRd
-build_attributes_tree <- function(main_env) {
+buildAttributesTree <- function(main_env) {
   if (main_env$EAL$page == 3) {
     .tables <- isolate(main_env$local_rv$md_tables)
     req(isContentTruthy(.tables))
@@ -37,7 +37,7 @@ build_attributes_tree <- function(main_env) {
 }
 
 #' @noRd
-replace_value <- function(table, attribute_name, field, new_value) {
+replaceValue <- function(table, attribute_name, field, new_value) {
   x <- try({
     row <- which(table$attributeName == attribute_name)
     col <- field

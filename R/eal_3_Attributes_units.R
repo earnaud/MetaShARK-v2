@@ -89,6 +89,7 @@ units <- function(id, main.env, selected_file, selected_attribute, selected_clas
       }
       
       # Save value
+      browser() # test if replaceValue adds a new line
       main.env$local.rv$md.tables[[selected_file()]] <<- replaceValue(
         main.env$local.rv$md.tables[[selected_file()]],
         selected_attribute(),

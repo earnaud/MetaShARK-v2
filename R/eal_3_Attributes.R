@@ -15,7 +15,7 @@ AttributesUI <- function(id) {
       guessed attribute values to avoid any mistake."
     ),
     fluidRow(
-      # 0) shinyTree ====
+      ## shinyTree ====
       column(
         4,
         tags$fieldset(
@@ -37,7 +37,7 @@ AttributesUI <- function(id) {
           )
         )
       ),
-      # 1) Full Form ====
+      ## Full Form ====
       column(
         7,
         tags$fieldset(
@@ -46,9 +46,9 @@ AttributesUI <- function(id) {
             tags$span(
               id = "file_info",
               class = "inlined",
-              ## 1) File name ----
+              ### File name ----
               tags$b("Current file: "), textOutput(ns("filename")),
-              # 2) Manual edit ====
+              ### Manual edit ====
               shinyWidgets::actionBttn(
                 inputId = ns("manual_edit"),
                 label = "Manual edit",
@@ -77,9 +77,9 @@ AttributesUI <- function(id) {
                   8,
                   tags$div(
                     style = "width: 100%;",
-                    ## 1) attribute name (output) ----
+                    ### attribute name (output) ----
                     tags$h4(textOutput(ns("attribute_name"))),
-                    ## 1) attributeDefinition ----
+                    ### attributeDefinition ----
                     textAreaInput(
                       ns("attributeDefinition"),
                       helpLabel(
@@ -93,7 +93,7 @@ AttributesUI <- function(id) {
                       resize = "both"
                     ) |>
                       shiny::tagAppendAttributes(style = "width: initial;"),
-                    ## 1) class ----
+                    ### class ----
                     selectInput(
                       ns("class"),
                       helpLabel(
@@ -106,48 +106,24 @@ AttributesUI <- function(id) {
                       ),
                       choices = c("numeric", "character", "Date", "categorical")
                     ),
-                    ## 1) dateTimeFormatString ----
+                    ### dateTimeFormatString ----
                     selectInput(
                       ns("dateTimeFormatString"),
                       helpLabel("Select a date format", "Common date and time
                                 formats in which is expressed the attribute."),
                       choices = c(NA_character_)
                     ),
-                    ## 1) unit ----
-                    tags$div(
-                      id = ns("unit_div"),
-                      style = "width: 62%;", # based on ratio with other widgets
-                      # Unit selection
-                      tags$div(
-                        style = "width:65%; float:left",
-                        selectInput(
-                          ns("unit"),
-                          helpLabel("Select an unit", "Unit in which is
-                                    expressed the attribute. You can search a
-                                    unit by typing its name."),
-                          choices = c(NA_character_) # updated in server
-                        )
-                      ),
-                      # Custom units button
-                      tags$div(
-                        style = "float:right",
-                        actionButton(
-                          ns("add_custom_units"),
-                          HTML("Custom<br>units")
-                        )
-                      ),
-                      # CSS twist
-                      tags$br(style = "clear:both")
-                    ),
+                    ### unit ----
+                    unitsUI(ns("units")),
 
-                    ## 1) missingValueCode ----
+                    ### missingValueCode ----
                     textInput(
                       ns("missingValueCode"),
                       helpLabel("Code for missing value (1 word)", "This value
                       entered is what is placed into a data table if the value
                       is missing for some reason.")
                     ),
-                    ## 1) missingValueCodeExplanation ----
+                    ### missingValueCodeExplanation ----
                     textAreaInput(
                       ns("missingValueCodeExplanation"),
                       helpLabel("Explain Missing Values", "The reason causing
@@ -156,7 +132,7 @@ AttributesUI <- function(id) {
                     )
                   ) # end div
                 ), # end column
-                ## 1) Preview ----
+                ## Preview ----
                 column(
                   4,
                   tags$div(
@@ -179,7 +155,7 @@ AttributesUI <- function(id) {
       ) # end column -- description
     ), # end fluidRow -- page
 
-    # 3) Custom Units ----
+    ## Custom Units ----
     customUnitsUI(ns("custom_units"))
   )
 }
@@ -198,9 +174,9 @@ Attributes <- function(id, main_env) {
       asis = TRUE
     )
 
-    # 0) Tree ====
+    ## Tree ====
 
-    ## 0) Make tree ----
+    ## Make tree ----
     # initialize empty tree
     output$tree <- shinyTree::renderEmptyTree()
     outputOptions(output, "tree", suspendWhenHidden = FALSE)
@@ -224,7 +200,7 @@ Attributes <- function(id, main_env) {
       label = "EAL3: update tree"
     )
 
-    ## 0) Get input from tree ----
+    ## Get input from tree ----
     # Setup reactives
     selected_file <- reactiveVal()
     selected_row <- reactiveVal()
@@ -238,7 +214,7 @@ Attributes <- function(id, main_env) {
           devmsg("clicked tree", tag = "attributes")
         }
 
-        ### 0) path exploration ----
+        ### path exploration ----
         # Selected node
         .selected <- if (isContentTruthy(input$tree)) {
           shinyTree::get_selected(input$tree)
@@ -282,7 +258,7 @@ Attributes <- function(id, main_env) {
       label = "EAL3: click tree"
     )
 
-    ## 0) Display selection ----
+    ## Display selection ----
     # Show selected filename
     output$filename <- renderText(selected_file())
 
@@ -302,7 +278,7 @@ Attributes <- function(id, main_env) {
         attributeName[selected_row()]
     })
 
-    # 0) On attribute change ----
+    ## On attribute change ----
     observeEvent(input$tree, {
         validate(
           need(isContentTruthy(selected_file()), "Not a valid file"),
@@ -312,7 +288,7 @@ Attributes <- function(id, main_env) {
         # Disable temporarily next button
         main_env$EAL$completed <- FALSE
 
-        ## 1) Update form values ----
+        ## Update form values ----
 
         .row <- main_env$local_rv$md_tables[[selected_file()]][
           selected_row(),
@@ -348,7 +324,7 @@ Attributes <- function(id, main_env) {
           value = .row$missingValueCodeExplanation
         )
 
-        # 1) Check validity ----
+        ## Check validity ----
 
         # attributeDefinition
         checkFeedback(input, "attributeDefinition", type = "danger")
@@ -387,14 +363,14 @@ Attributes <- function(id, main_env) {
       label = "EAL3: update upon attribute change"
     )
 
-    # 2) Manual edit ====
+    ## Manual edit ====
 
-    ## 2) setup ----
+    ### setup ----
 
     metadata_editor_ui <- metadataEditorUI(session$ns("manual_edit"))
     metadataEditor("manual_edit", main_env, selected_file)
 
-    ## 2) instantiate observer ----
+    ### instantiate observer ----
     observeEvent(input$manual_edit, {
       req(main_env$EAL$page == 3)
 
@@ -416,7 +392,7 @@ Attributes <- function(id, main_env) {
       showModal(metadata_editor_ui)
     })
 
-    ## 2) Update UI ----
+    ### Update UI ----
     # For a clean display
     observeEvent(main_env$EAL$ping, { # ping is sent from metadataEditor
       req(main_env$EAL$page == 3)
@@ -453,9 +429,9 @@ Attributes <- function(id, main_env) {
       )
     })
 
-    # 1) Form ====
+    ## Form ====
 
-    ## 1) toggle forms -----
+    ### toggle forms -----
     observe({
       shinyjs::toggle(
         selector = "#no_attribute",
@@ -467,7 +443,7 @@ Attributes <- function(id, main_env) {
       )
     })
 
-    ## 1) attributeDefinition ----
+    ### attributeDefinition ----
     observeEvent(input$attributeDefinition, {
         validate(
           need(isTruthy(selected_file()), "No file selected"),
@@ -484,7 +460,7 @@ Attributes <- function(id, main_env) {
       label = "EAL3: definition input"
     )
 
-    ## 1) class ----
+    ### class ----
     observeEvent(input$class, {
         validate(
           need(isTruthy(selected_file()), "No file selected"),
@@ -501,7 +477,7 @@ Attributes <- function(id, main_env) {
 
         main_env$local_rv$md_tables[[selected_file()]]$class[.row] <<- input$class
 
-        ### 1) Check DateTimeFormatString ----
+        #### Check DateTimeFormatString ----
         shinyjs::toggle(
           "dateTimeFormatString",
           condition = input$class == "Date"
@@ -531,7 +507,7 @@ Attributes <- function(id, main_env) {
             dateTimeFormatString[selected_row()] <- .dtfs
         }
 
-        ## 1) Check units ----
+        ### Check units ----
         shinyjs::toggle("unit_div", condition = input$class == "numeric")
         if (input$class != "numeric") {
           updateSelectInput(session, "unit", selected = "")
@@ -560,7 +536,7 @@ Attributes <- function(id, main_env) {
       label = "EAL3: class input"
     )
 
-    ## 1) dateTimeFormatString ----
+    ### dateTimeFormatString ----
     observeEvent(input$dateTimeFormatString, {
         req(main_env$EAL$page == 3)
 
@@ -588,7 +564,7 @@ Attributes <- function(id, main_env) {
 
         main_env$local_rv$md_tables[[selected_file()]]$
           dateTimeFormatString[selected_row()] <- .value
-        # main_env$local_rv$md_tables[[selected_file()]] <<- replace_value(
+        # main_env$local_rv$md_tables[[selected_file()]] <<- replaceValue(
         #   main_env$local_rv$md_tables[[selected_file()]],
         #   selected_row(),
         #   "dateTimeFormatString",
@@ -611,92 +587,10 @@ Attributes <- function(id, main_env) {
       label = "EAL3: dateTimeFormatString input"
     )
 
-    ## 1) unit ----
-    unit_value <- eventReactive(input$unit, {
-        validate(
-          need(isTruthy(selected_file()), "No file selected"),
-          need(isTruthy(selected_row()), "No attribute selected"),
-          need(input$class == "numeric", "Not a number"),
-          need(!is.na(input$unit), "Unset unit input.")
-        )
-        devmsg(tag = "attributes", "unit change")
-
-        input$unit
-      },
-      label = "EAL3: unit input"
-    ) |>
-      debounce(500, priority = -1) # let 0.5s blank time before getting input
-
-    ### 1) handle unit input ----
-    observe({
-        req(unit_value())
-
-        devmsg(tag = "attributes", "unit set")
-
-        .value <- unit_value()
-
-        ## Unit not found
-        if (isFALSE(
-          .value %in% c(
-            unlist(main_env$FORMATS$units),
-            main_env$local_rv$custom.units$table$unit.id
-          )
-        )) {
-          .value <- main_env$FORMATS$units$dimensionless[1] # dimensionless
-          updateSelectInput(
-            session,
-            "unit",
-            selected = .value
-          )
-          showNotification(
-            id = "unit_404",
-            "Queried unit not found: check spelling.",
-            duration = NULL
-          )
-        }
-
-        main_env$local_rv$md_tables[[selected_file()]]$
-          unit[[selected_row()]] <<- .value
-
-        # Check validity
-        .condition <- if (input$class == "numeric") {
-          isTruthy(.value) &&
-            .value != "custom" &&
-            (.value %grep% main_env$FORMATS$units ||
-              .value %in% main_env$local_rv$custom.units$table$id)
-        } else {
-          TRUE
-        }
-
-        checkFeedback(
-          input,
-          "unit",
-          condition = .condition,
-          type = "danger"
-        )
-      },
-      label = "EAL3: unit processing"
-    )
-
-    ### 3) Custom Units ----
-
-    # add a new empty row of custom units on click
-    observeEvent(input$add_custom_units, {
-        # Do not add a new empty row if there is yet one
-        req(!any(apply(
-          main_env$local_rv$custom.units$table, 1,
-          function(row) all(row == rep("", 5))
-        )))
-        .table <- main_env$local_rv$custom.units$table # shortcut
-        .table[nrow(.table) + 1, ] <- rep("", 5)
-        main_env$local_rv$custom.units$table <- .table
-      },
-      label = "EAL3: add custom units"
-    )
-
-    customUnits("custom_units", main_env)
-
-    ## 1) missingValueCode ----
+    ### unit ----
+    units("units", main.env, selected_file, selected_attribute, selected_class)
+    
+    ### missingValueCode ----
     observeEvent(input$missingValueCode, {
         validate(
           need(isTruthy(selected_file()), "No file selected"),
@@ -731,7 +625,7 @@ Attributes <- function(id, main_env) {
           )
         }
 
-        main_env$local_rv$md_tables[[selected_file()]] <<- replace_value(
+        main_env$local_rv$md_tables[[selected_file()]] <<- replaceValue(
           main_env$local_rv$md_tables[[selected_file()]],
           selected_row(),
           "missingValueCode",
@@ -761,7 +655,7 @@ Attributes <- function(id, main_env) {
       label = "EAL3: missing value code"
     )
 
-    ## 1) missingValueCodeExplanation ----
+    ### missingValueCodeExplanation ----
     observeEvent(input$missingValueCodeExplanation, {
         validate(
           need(isTruthy(selected_file()), "No file selected"),
@@ -769,7 +663,7 @@ Attributes <- function(id, main_env) {
         )
 
         .value <- input$missingValueCodeExplanation
-        main_env$local_rv$md_tables[[selected_file()]] <<- replace_value(
+        main_env$local_rv$md_tables[[selected_file()]] <<- replaceValue(
           main_env$local_rv$md_tables[[selected_file()]],
           selected_row(),
           "missingValueCodeExplanation",
@@ -808,7 +702,7 @@ Attributes <- function(id, main_env) {
       label = "EAL3: missing value code explanation"
     )
 
-    # 1) Preview ====
+    ## Preview ====
     output$preview <- renderTable({
       req(isContentTruthy(selected_file()))
       req(isContentTruthy(selected_row()))
