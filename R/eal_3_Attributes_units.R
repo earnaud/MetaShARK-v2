@@ -89,12 +89,7 @@ units <- function(id, main.env, selected_file, selected_attribute, selected_clas
       }
       
       # Save value
-      main.env$local.rv$md.tables[[selected_file()]] <<- replaceValue(
-        main.env$local.rv$md.tables[[selected_file()]],
-        selected_attribute(),
-        "unit",
-        .value
-      )
+      main.env$local.rv$md.tables[[selected_file()]]$unit <<- .value
       
       # Check validity
       .condition <- if(selected_class() == "numeric") {
@@ -105,6 +100,7 @@ units <- function(id, main.env, selected_file, selected_attribute, selected_clas
           )
       } else 
         TRUE # not a number: do not block progression to Attributes step
+      
       checkFeedback(
         input, 
         "unit",

@@ -357,12 +357,7 @@ Attributes <- function(id, main.env) {
             select(unit)
         )
         
-      main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
-        selected.table(),
-        selected.attribute(),
-        "class",
-        selected_class()
-      )
+      main.env$local.rv$md.tables[[selected.file()]]$class <<- selected_class()
       
       # Hide/show units and dateTFS
       shinyjs::toggle(
@@ -413,12 +408,8 @@ Attributes <- function(id, main.env) {
         )
       }
       
-      main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
-        selected.table(),
-        selected.attribute(),
-        "dateTimeFormatString",
-        .value
-      )
+      main.env$local.rv$md.tables[[selected.file()]]$
+        dateTimeFormatString <<- .value
       
       # Check validity
       checkFeedback(
@@ -476,12 +467,8 @@ Attributes <- function(id, main.env) {
         )
       }
       
-      main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
-        selected.table(),
-        selected.attribute(),
-        "missingValueCode",
-        .value
-      )
+      main.env$local.rv$md.tables[[selected.file()]]$
+        missingValueCode <<- .value
       
       # Check validity
       checkFeedback(
@@ -508,12 +495,8 @@ Attributes <- function(id, main.env) {
       )
       
       .value <- input$missingValueCodeExplanation
-      main.env$local.rv$md.tables[[selected.file()]] <<- replaceValue(
-        selected.table(),
-        selected.attribute(),
-        "missingValueCodeExplanation",
-        .value
-      )
+      main.env$local.rv$md.tables[[selected.file()]]$
+        missingValueCodeExplanation <<- .value
       
       # Check validity
       checkFeedback(
