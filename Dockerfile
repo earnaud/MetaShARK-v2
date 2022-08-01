@@ -1,6 +1,6 @@
 FROM rocker/shiny:4.1.0
 
-LABEL version="1.7.1"
+LABEL version="1.7.2"
 
 RUN apt update --fix-missing -y \
     && apt upgrade -y \
@@ -41,15 +41,10 @@ WORKDIR /build_zone
 RUN dpkg -S /usr/include/GL/gl.h \
 && echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), download.file.method = 'libcurl')" >> /usr/local/lib/R/etc/Rprofile.site \
 && R -e 'install.packages("devtools")' \
-&& R -e 'devtools::install_version("remotes", version = "2.3.0")'
-<<<<<<< HEAD
-RUN R -e 'remotes::install_github("EDIorg/EMLassemblyline", ref = "v3.5.2")' 
-RUN Rscript -e 'remotes::install_github("earnaud/SummeRnote")'
-
-=======
-RUN R -e 'remotes::install_github("EDIorg/EMLassemblyline@d3d2eb90a67370c1138e234c09dd96c529408f90")' 
-RUN R -e 'remotes::install_github("earnaud/SummeRnote")'
->>>>>>> dev
+&& R -e 'devtools::install_version("remotes", version = "2.4.2")'
+RUN R -e 'remotes::install_github("EDIorg/EMLassemblyline", ref = "v3.5.2")' \
+&& R -e 'remotes::install_github("earnaud/SummeRnote")'\
+&& R -e 'remotes::install_github("ropensci/bibtex")'
 
 RUN  R -e 'remotes::install_version("RCurl",upgrade="never", version = "1.98-1.3")'\
 && R -e 'remotes::install_version("attempt",upgrade="never", version = "0.3.1")' \

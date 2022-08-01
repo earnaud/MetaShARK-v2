@@ -1,6 +1,6 @@
 Package: MetaShARK
 Title: metashark
-Version: 1.7.1
+Version: 1.7.2
 Authors@R: 
     person(given = "Elie",
            family = "ARNAUD",
@@ -74,7 +74,6 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.0
 Collate: 
-    'DataFiles_helpers2.R'
     'about_module.R'
     'about_module_functions.R'
     'app_config.R'

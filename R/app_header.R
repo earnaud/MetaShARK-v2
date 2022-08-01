@@ -112,7 +112,7 @@
         .row <- c(
           creator_orcid = "public", # default to public access
           name = .info$SelectDP$dp.name,
-          title = .info$SelectDP$dp.title,
+          title = .info$SelectDP$dp_title,
           path = .file
         )
         # Add to dp list
@@ -176,8 +176,8 @@
 
   # Unit types
   .all.units <- EML::get_unitList()$units
-  .unitList <- split(.all.units$name, .all.units$unitType)
-  names(.unitList)[[1]] <- "unsorted"
+  .unit_list <- split(.all.units$name, .all.units$unitType)
+  names(.unit_list)[[1]] <- "unsorted"
   
   # Save
   assign(
@@ -191,7 +191,7 @@
         "YYYY-MM-DD hh:mm:ss", "YYYY-MM-DD hh:mm"
       ),
       lubridate_formats = lubridate:::lubridate_formats,
-      units = .units,
+      units = .unit_list,
       taxa_authorities = .TAXA_AUTHORITIES
     ),
     envir = main_env
