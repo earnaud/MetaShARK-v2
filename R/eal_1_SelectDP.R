@@ -55,7 +55,10 @@ SelectDPUI <- function(id) {
             ),
             tagList(
               # DP list
-              textInput(ns("dp_search"), "", placeholder = "plants_project"),
+              textInput(
+                ns("dp_search"),
+                "Search for a data package",
+                placeholder = "plants_project"),
               shinyjs::hidden(
                 tags$div(
                   id = ns("dp_list_empty"),
@@ -163,7 +166,7 @@ SelectDPUI <- function(id) {
 SelectDP <- function(id, main_env) {
   moduleServer(id, function(input, output, session) {
     # Dev zone
-    if (main_env$dev) .browse_dev(main_env, 1)
+    if (main_env$dev) .browse_dev(main_env, 1, input, output, session)
 
     # Help button -- server call
     collapsible("usage")
@@ -220,12 +223,8 @@ SelectDP <- function(id, main_env) {
             updateRadioButtons(
               session,
               "dp_list",
-              choiceNames = c("None selected", main_env$local_rv$dp_list),
-              choiceValues = c("", gsub(
-                " \\ (.*\\)$",
-                "",
-                main_env$local_rv$dp_list
-              ))
+              choices = main_env$local_rv$dp_list,
+              selected = if(length(dp_list) == 1) dp_list[[1]] else character(0)
             )
           }
 
@@ -394,15 +393,15 @@ SelectDP <- function(id, main_env) {
         unname()
 
       # - for elder DP, add use_catvars boolean variable
-      if ("Attributes" %in% .tmp$history &&
-          isFALSE("use_catvars" %in% names(.tmp$Attributes))) {
-        .tmp$Attributes$use_catvars <- any(
-          sapply(
-            main_env$save_variable$Attributes$content,
-            \ (.table) any(.table$class == "categorical")
-          )
-        )
-      }
+      # if ("Attributes" %in% .tmp$history &&
+      #     isFALSE("use_catvars" %in% names(.tmp$Attributes))) {
+      #   .tmp$Attributes$use_catvars <- any(
+      #     sapply(
+      #       main_env$save_variable$Attributes$content,
+      #       \ (.table) any(.table$class == "categorical")
+      #     )
+      #   )
+      # }
 
       # Once prepared, properly merge tmp and save_variables
       main_env$save_variable <- setSaveVariable(.tmp, main_env$save_variable)
@@ -497,7 +496,7 @@ SelectDP <- function(id, main_env) {
     # If deletion is confirmed
     observeEvent(input$delete_confirm, {
         # variable operation - legibility purpose
-        dp <- gsub(" \\ (public\\)", "", input$dp_list)
+        dp <- input$dp_list
         path <- paste0(main_env$PATHS$eal_dp, dp, "_emldp")
 
         # verbose

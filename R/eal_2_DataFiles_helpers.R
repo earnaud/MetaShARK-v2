@@ -1,16 +1,4 @@
 #' @import shiny
-#'
-#' @noRd
-insertDataFileInput <- function(id, main_env) {
-  # create the UI
-  new_ui <- DataFileInputUI(id, main_env)
-  # insert the UI
-  insertUI(selector = "#inserthere_eal2", ui = new_ui, immediate = TRUE)
-  # create the server
-  DataFileInput(unns(id), main_env)
-}
-
-#' @import shiny
 #' @importFrom shinyjs hidden
 #'
 #' @noRd
@@ -53,7 +41,7 @@ DataFileInputUI <- function(id, main_env) {
             column(
               6,
               textInput(
-                ns("data.name"),
+                ns("data_name"),
                 "Data table name",
                 value = .value$name
               )
@@ -61,7 +49,7 @@ DataFileInputUI <- function(id, main_env) {
             column(
               6,
               urlInput_UI(
-                ns("data.url"),
+                ns("data_url"),
                 label = "Data remote location"
               )
             ),
@@ -130,19 +118,17 @@ DataFileInput <- function(id, main_env) {
 
     # [I] Inputs ====
     # Data name
-    observeEvent(input$data.name, {
-        isolate(
-          main_env$local_rv$data_files[row(), "table.name"] <- input$data.name
-        )
-        shinyFeedback::hideFeedback("data.name")
-        if (isFALSE(isContentTruthy(input$data.name))) {
-          shinyFeedback::showFeedbackWarning("data.name", "Incomplete")
-        } else {
-          shinyFeedback::showFeedbackSuccess("data.name")
-        }
-      },
-      ignoreInit = FALSE,
-      label = sprintf("EAL2: input name %s", unns(id))
+    observeEvent(input$data_name, {
+      isolate(
+        main_env$local_rv$data_files[row(), "table_name"] <- input$data_name
+      )
+      
+      checkFeedback(
+        input, "data_name", type = "warning", text = "Incomplete"
+      )
+    },
+    ignoreInit = FALSE,
+    label = sprintf("EAL2: input name %s", unns(id))
     )
 
     # Data URL

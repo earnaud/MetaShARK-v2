@@ -91,7 +91,7 @@ MakeEMLUI <- function(id) {
 #' @noRd
 MakeEML <- function(id, main_env) {
   moduleServer(id, function(input, output, session) {
-    if (main_env$dev) .browse_dev(main_env, 9)
+    if (main_env$dev) .browse_dev(main_env, 9, input, output, session)
 
     # Make eml ----
     observeEvent(input$make_eml, {
@@ -103,8 +103,8 @@ MakeEML <- function(id, main_env) {
           x <- try(
             EMLassemblyline::template_arguments(
               path = .x$SelectDP$dp_metadata_path,
-              data.path = .x$SelectDP$dp.data.path,
-              data.table = dir(.x$SelectDP$dp.data.path)
+              data.path = .x$SelectDP$dp_data_path,
+              data.table = dir(.x$SelectDP$dp_data_path)
             )
           )
 
@@ -116,15 +116,15 @@ MakeEML <- function(id, main_env) {
             incProgress(0.3)
 
             x$path <- .x$SelectDP$dp_metadata_path
-            x$data.path <- .x$SelectDP$dp.data.path
+            x$data.path <- .x$SelectDP$dp_data_path
             x$eml.path <- .x$SelectDP$dp_eml_path
-            x$dataset.title <- .x$SelectDP$dp.title
-            x$temporal.coverage <- .x$Misc$temporal.coverage
+            x$dataset.title <- .x$SelectDP$dp_title
+            x$temporal.coverage <- .x$Misc$temporal_coverage
             # FROM FILES geographic.description
             # FROM FILES geographic.coordinates
             x$maintenance.description <- "ongoing"
             # x$data.table <- dir(x$data.path)
-            x$data.table.name <- optional(.x$DataFiles$table.name)
+            x$data.table.name <- optional(.x$DataFiles$table_name)
             x$data.table.description <- optional(.x$DataFiles$description)
             # TODO data.table.quote.character
             x$data.table.url <- optional(.x$DataFiles$url)
@@ -134,12 +134,11 @@ MakeEML <- function(id, main_env) {
             # TODO other.entity.url
             # TODO provenance -- possible with DOIs ?
             x$user.id <- optional(
-              if (main_env$SETTINGS$user != "public") {
+              if (main_env$SETTINGS$user != "public")
                 main_env$SETTINGS$user
-              }
             )
             # TODO user domain -- PNDB ? ORCID ?
-            x$package.id <- x$dataset.title # is set as UUID (default)
+            x$package.id <- x$dataset_title # is set as UUID (default)
             x$write.file <- TRUE
             x$return.obj <- TRUE
 
@@ -176,7 +175,7 @@ MakeEML <- function(id, main_env) {
         # eml.file <- dir(
         #   main_env$save_variable$SelectDP$dp_eml_path,
         #   full.names = TRUE,
-        #   pattern = main_env$save_variable$SelectDP$dp.title
+        #   pattern = main_env$save_variable$SelectDP$dp_title
         # )
         # dir.create(dirname(out.file), recursive = TRUE)
         # .old_wd <- getwd()
@@ -214,16 +213,16 @@ MakeEML <- function(id, main_env) {
     # Download Data Package ----
     output$download_data_package <- downloadHandler(
       filename = function() {
-        paste0(main_env$save_variable$SelectDP$dp.name, ".zip")
+        paste0(main_env$save_variable$SelectDP$dp_name, ".zip")
       },
       content = function(file) {
         .old_wd <- getwd()
-        setwd(main_env$save_variable$SelectDP$dp.path)
+        setwd(main_env$save_variable$SelectDP$dp_path)
 
         zip::zip(
           zipfile = file,
           files = dir(
-            main_env$save_variable$SelectDP$dp.path,
+            main_env$save_variable$SelectDP$dp_path,
             # full.names = TRUE,
             recursive = TRUE
           )
@@ -287,7 +286,7 @@ MakeEML <- function(id, main_env) {
       valid <- EML::eml_validate(
         dir(
           main_env$save_variable$SelectDP$dp_eml_path,
-          pattern = main_env$save_variable$SelectDP$dp.title,
+          pattern = main_env$save_variable$SelectDP$dp_title,
           full.names = TRUE
         )
       )

@@ -69,7 +69,7 @@ MiscUI <- function(id) {
           title = "Additional Info - optional",
           value = 5,
           MiscellaneousUI(
-            ns("additional.information"),
+            ns("additional_information"),
             help_label = tags$p(
               "If you have additional information that doesn't fall under the
               scope of the abstract or methods (e.g. a list of research articles
@@ -90,7 +90,7 @@ MiscUI <- function(id) {
 #' @noRd
 Misc <- function(id, main_env) {
   moduleServer(id, function(input, output, session) {
-    if (main_env$dev) .browse_dev(main_env, 8)
+    if (main_env$dev) .browse_dev(main_env, 8, input, output, session)
 
     # Fill ----
     ## Abstract ----
@@ -194,7 +194,7 @@ Misc <- function(id, main_env) {
     )
 
     ## Additional information ----
-    Miscellaneous("additional.information", main_env)
+    Miscellaneous("additional_information", main_env)
 
     # Checks ----
     observe({

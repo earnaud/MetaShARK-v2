@@ -22,13 +22,13 @@ unitsUI <- function(id) {
   )
 }
 
-units <- function(id, main.env, selected_file, selected_attribute, selected_class) {
+units <- function(id, main_env, selected_file, selected_attribute, selected_class) {
   moduleServer(id, function(input, output, session) {
     # Toggle and update ----
     # depends on class
     observeEvent(selected_class(), {
-      req(main.env$EAL$page == 3)
-      
+      req(main_env$EAL$page == 3)
+
       shinyjs::toggle(
         "unit_div",
         condition = selected_class() == "numeric"
@@ -40,20 +40,20 @@ units <- function(id, main.env, selected_file, selected_attribute, selected_clas
           selected = ""
         )
       } else {
-        .unit <- main.env$local.rv$md.tables[[selected_file()]] |>
+        .unit <- main_env$local_rv$md_tables[[selected_file()]] |>
           filter(attributeName == selected_attribute()) |>
           select(unit)
         
         .tmp <- setUnitList(
-          main.env, 
+          main_env, 
           set = optional(.unit,
-                         default = main.env$FORMATS$units$dimensionless[1])
+                         default = main_env$FORMATS$units$dimensionless[1])
         )
         updateSelectInput(
           session,
           "unit",
-          choices = .tmp$unit.list,
-          selected = .tmp$set.unit
+          choices = .tmp$unit_list,
+          selected = .tmp$set_unit
         )
       }
     })
@@ -65,17 +65,17 @@ units <- function(id, main.env, selected_file, selected_attribute, selected_clas
         need(isTruthy(selected_file()), "No file selected"),
         need(isTruthy(selected_attribute()), "No attribute selected"),
         need(selected_class() == "numeric", "Not a number"),
-        need(!is.na(input$unit), "Unset unit input.")
+        need(!is.na(input$unit), "Unset_unit input.")
       )
       
       # Correct input value
       .value <- input$unit
 
       if(isFALSE(.value %in% c(
-        unlist(main.env$FORMATS$units),
-        main.env$local.rv$custom.units$table$id
+        unlist(main_env$FORMATS$units),
+        main_env$local_rv$custom_units$table$id
       ))) {
-        .value <- main.env$FORMATS$units$dimensionless[1]
+        .value <- main_env$FORMATS$units$dimensionless[1]
         
         updateSelectInput(
           session,
@@ -89,19 +89,15 @@ units <- function(id, main.env, selected_file, selected_attribute, selected_clas
       }
       
       # Save value
-      main.env$local.rv$md.tables[[selected_file()]] <<- replaceValue(
-        main.env$local.rv$md.tables[[selected_file()]],
-        selected_attribute(),
-        "unit",
-        .value
-      )
+      .row <- which(main_env$local_rv$md_tables[[selected_file()]]$attributeName == selected_attribute())
+      main_env$local_rv$md_tables[[selected_file()]][.row, "unit"] <<- .value
       
       # Check validity
       .condition <- if(selected_class() == "numeric") {
         isTruthy(.value) && 
           .value %in% c(
-            unlist(main.env$FORMATS$units),
-            main.env$local.rv$custom.units$table$id
+            unlist(main_env$FORMATS$units),
+            main_env$local_rv$custom_units$table$id
           )
       } else 
         TRUE # not a number: do not block progression to Attributes step
@@ -115,13 +111,13 @@ units <- function(id, main.env, selected_file, selected_attribute, selected_clas
     
     # Custom Units ----
     observeEvent(input$add_custom_units, {
-      req(main.env$EAL$page == 3)
+      req(main_env$EAL$page == 3)
       
       # Properly show modal
       showModal(
         customUnitsUI(
           ns = session$ns,
-          main.env = main.env
+          main_env = main_env
         )
       )
     })
@@ -129,20 +125,20 @@ units <- function(id, main.env, selected_file, selected_attribute, selected_clas
     ## Cancel ----
     # Just remove popup
     observeEvent(input$modal_cancel, {
-      req(main.env$EAL$page == 3)
+      req(main_env$EAL$page == 3)
       removeModal()
     },
     label = "EAL3: CU cancel")
     
     ## Validate submit ----
     observe({
-      req(main.env$EAL$page == 3)
+      req(main_env$EAL$page == 3)
       
       # Validate each field
       checkFeedback(
         input,
         "modal_id",
-        condition = !input$modal_id %in% main.env$local.rv$custom.units$table$id &&
+        condition = !input$modal_id %in% main_env$local_rv$custom_units$table$id &&
           input$modal_id != "custom" &&
           isTruthy(input$modal_id),
         type = "danger"
@@ -156,7 +152,7 @@ units <- function(id, main.env, selected_file, selected_attribute, selected_clas
       shinyjs::toggleState(
         "modal_submit",
         condition = (
-          !input$modal_id %in% main.env$local.rv$custom.units$table$id &&
+          !input$modal_id %in% main_env$local_rv$custom_units$table$id &&
             input$modal_id != "custom" &&
             isTruthy(input$modal_id) &&
             isTruthy(input$modal_unitType) &&
@@ -171,7 +167,7 @@ units <- function(id, main.env, selected_file, selected_attribute, selected_clas
     
     ## Submit ----
     observeEvent(input$modal_submit, {
-      req(main.env$EAL$page == 3)
+      req(main_env$EAL$page == 3)
       
       # Close modal
       removeModal()
@@ -183,30 +179,29 @@ units <- function(id, main.env, selected_file, selected_attribute, selected_clas
         input$modal_multiplier,
         input$modal_description
       ) |>
-        setNames(nm = colnames(main.env$local.rv$custom.units$table))
+        setNames(nm = colnames(main_env$local_rv$custom_units$table))
 
       ### Save CU values ----
       # CU table is expected to have been made reactive at savevariable_functions.R#392
       # Update CU values ...
-      if (.values[1] %in% main.env$local.rv$custom.units$table$id) {
-        main.env$local.rv$custom.units$table <- main.env$local.rv$custom.units$table |>
+      if (.values[1] %in% main_env$local_rv$custom_units$table$id) {
+        browser()
+        main_env$local_rv$custom_units$table <- main_env$local_rv$custom_units$table |>
           dplyr::filter(id = .values[1]) |>
           base::replace(values = .values)
       } else { # ... or add CU values
-        main.env$local.rv$custom.units$table[
-          nrow(main.env$local.rv$custom.units$table) + 1, ] <- .values
+        main_env$local_rv$custom_units$table[
+          nrow(main_env$local_rv$custom_units$table) + 1, ] <- .values
       }
 
       ## Update unit input ----
-      .tmp <- setUnitList(main.env, set = .values[1])
-      print(.tmp$set.unit)
+      .tmp <- setUnitList(main_env, set = .values[1])
       updateSelectInput(
         session,
         "unit",
-        choices = .tmp$unit.list,
-        selected = .tmp$set.unit
+        choices = .tmp$unit_list,
+        selected = .tmp$set_unit
       )
-      print(input$unit)
     },
     priority = 1,
     label = "EAL3 CU: do submit")
@@ -217,10 +212,13 @@ units <- function(id, main.env, selected_file, selected_attribute, selected_clas
 #' @import shiny
 #'
 #' @noRd
-customUnitsUI <- function(ns, main.env) {
+customUnitsUI <- function(ns, main_env) {
   modalDialog(
     title = "Custom Unit",
     tagList(
+      # disclaimer: incompatible with Manual edit
+      tags$b("Warning: custom units might not be supported by the manual edit feature.
+              Using it can lead to the unit overwritten by a default value (dimensionless)."),
       # id
       fluidRow(
         column(
@@ -241,7 +239,7 @@ customUnitsUI <- function(ns, main.env) {
           selectInput(
             ns("modal_parentSI"),
             label = "Parent unit in SI",
-            choices = main.env$FORMATS$units
+            choices = main_env$FORMATS$units
           ),
           # MultiplierToSI
           numericInput(
@@ -267,10 +265,10 @@ customUnitsUI <- function(ns, main.env) {
 }
 
 #' @noRd
-setUnitList <- function(main.env, set = NULL) {
+setUnitList <- function(main_env, set = NULL) {
   # Flat list
-  choices <- sapply(main.env$FORMATS$units, as.list)
-  .tmp <- main.env$local.rv$custom.units$table$id
+  choices <- sapply(main_env$FORMATS$units, as.list)
+  .tmp <- main_env$local_rv$custom_units$table$id
   if(isContentTruthy(.tmp))
     choices[["custom"]] <- sapply(.tmp, as.list)
   
@@ -280,7 +278,7 @@ setUnitList <- function(main.env, set = NULL) {
       setNames(nm = names(choices)[
         which(sapply(
           choices,
-          function(.ul) 
+          function(.ul)
             set %in% .ul
         ))
       ]) |>
@@ -290,7 +288,7 @@ setUnitList <- function(main.env, set = NULL) {
   
   # Output
   return(list(
-    unit.list = choices,
-    set.unit = set
+    unit_list = choices,
+    set_unit = set
   ))
 }

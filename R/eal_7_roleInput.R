@@ -46,11 +46,11 @@ roleInput <- function(id, main_env, row) {
               "Other role"
             ),
             footer = tags$span(
-              actionButton(session$ns("modal-close"), "Confirm",
-                           icon = icon("check")
-              ),
               actionButton(session$ns("modal-cancel"), "Cancel",
                            icon = icon("ban")
+              ),
+              actionButton(session$ns("modal-close"), "Confirm",
+                           icon = icon("check")
               )
             )
           )

@@ -57,7 +57,7 @@ DataFilesUI <- function(id) {
 #' @importFrom gdata humanReadable
 DataFiles <- function(id, main_env) {
   moduleServer(id, function(input, output, session) {
-    if (main_env$dev) .browse_dev(main_env, 2)
+    if (main_env$dev) .browse_dev(main_env, 2, input, output, session)
     # remote data
     # shinyjs::show("url_div")
 
@@ -103,7 +103,7 @@ DataFiles <- function(id, main_env) {
         )
         .loaded_files$name <- gsub(" ", "_", .loaded_files$name)
         .loaded_files$datapath <- gsub(" ", "_", .loaded_files$datapath)
-        # add URL, description and table name columns
+        # add URL, description and table_name columns
         .loaded_files$url <- rep("", dim(.loaded_files)[1])
         .loaded_files$description <- rep("", dim(.loaded_files)[1])
         .loaded_files$table_name <- rep("", dim(.loaded_files)[1])
@@ -144,10 +144,18 @@ DataFiles <- function(id, main_env) {
             seq_row(.loaded_files),
             function(ind) {
               # Render
-              insertDataFileInput(
-                session$ns(main_env$local_rv$counter),
+              insertModule(
+                "Data_Files",
+                list(
+                  ui = session$ns(main_env$local_rv$counter),
+                  server = as.character(main_env$local_rv$counter)
+                ),
                 main_env
               )
+              # insertDataFileInput(
+              #   session$ns(main_env$local_rv$counter),
+              #   main_env
+              # )
               # Increase file counter
               main_env$local_rv$counter <- main_env$local_rv$counter + 1
             }
@@ -164,7 +172,7 @@ DataFiles <- function(id, main_env) {
           ### non-empty local_rv ----
           sapply(seq_along(.loaded_files$name), function(.row) {
             filename <- .loaded_files$name[.row]
-
+            
             # Add entry in variable
             if (!filename %in% main_env$local_rv$data_files$name) {
               if (main_env$dev) devmsg("uploaded %s", filename)
@@ -177,8 +185,12 @@ DataFiles <- function(id, main_env) {
                 )
               ))
               # Render
-              insertDataFileInput(
-                session$ns(main_env$local_rv$counter),
+              insertModule(
+                "Data_Files",
+                list(
+                  ui = session$ns(main_env$local_rv$counter),
+                  server = as.character(main_env$local_rv$counter)
+                ),
                 main_env
               )
               # Increase file counter

@@ -21,28 +21,28 @@ PersonnelUI <- function(id) {
 #' @noRd
 Personnel <- function(id, main_env) {
   moduleServer(id, function(input, output, session) {
-    if (main_env$dev) .browse_dev(main_env, 7)
+    if (main_env$dev) .browse_dev(main_env, 7, input, output, session)
 
     # Fill Personnel ====
     ## Setup ----
     # Initial UI
-    observeEvent(main_env$EAL$page, {
-      req(main_env$EAL$page == 7)
-      req(nrow(main_env$local_rv$Personnel) > 0)
+    # observeEvent(main_env$EAL$page, {
+    #   req(main_env$EAL$page == 7)
+    #   req(nrow(main_env$local_rv$Personnel) > 0)
+    # 
+    #   sapply(seq_row(main_env$local_rv$Personnel), function(ind) {
+    #     row <- main_env$local_rv$Personnel[ind, ]
+    # 
+    #     insertPersonnelInput(
+    #       session$ns(row$id),
+    #       main_env
+    #     )
+    #   })
+    # },
+    # priority = -1
+    # )
 
-      sapply(seq_row(main_env$local_rv$Personnel), function(ind) {
-        row <- main_env$local_rv$Personnel[ind, ]
-
-        insertPersonnelInput(
-          session$ns(row$id),
-          # hidden = FALSE,
-          main_env
-        )
-      })
-    },
-    priority = -1
-    )
-
+    # Remove UI after step
     # different priority
     observeEvent(main_env$EAL$page, {
       if (main_env$EAL$old_page == 7) {
@@ -62,10 +62,25 @@ Personnel <- function(id, main_env) {
     # Add form ====
     # User's additional UI
     observeEvent(input$addui, {
-      insertPersonnelInput(
-        session$ns(as.character(input$addui)),
+      req(main_env$EAL$page == 7)
+      # Add row to the table
+      .id <- input$addui
+      main_env$local_rv$Personnel[nrow(main_env$local_rv$Personnel) + 1, ] <-
+        rep("", ncol(main_env$local_rv$Personnel))
+      main_env$local_rv$Personnel[nrow(main_env$local_rv$Personnel), "id"] <- .id
+      # Add module to the GUI
+      insertModule(
+        "Personnel",
+        list(
+          ui = session$ns(input$addui),
+          server = as.character(input$addui)
+        ),
         main_env
       )
+      # insertPersonnelInput(
+      #   session$ns(as.character(input$addui)),
+      #   main_env
+      # )
     },
     label = "EAL7 add personnel UI"
     )

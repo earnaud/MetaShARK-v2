@@ -1,21 +1,20 @@
 #' @import shiny
 #'
 #' @noRd
-insertPersonnelInput <- function(id, main_env) {
-  # Add row
-  .id <- unns(id)
-  if (!grepl("^_", .id)) {
-    # add a new row to local table
-    main_env$local_rv$Personnel[nrow(main_env$local_rv$Personnel) + 1, ] <-
-      c(rep("", ncol(main_env$local_rv$Personnel) - 1), id = .id)
-  }
-  # create the UI
-  new_ui <- PersonnelInputUI(id, main_env)
-  # insert the UI
-  insertUI(selector = "#inserthere_eal7", ui = new_ui, immediate = TRUE)
-  # create the server
-  PersonnelInput(.id, main_env)
-}
+# insertPersonnelInput <- function(id, main_env) {
+#   # Add row
+#   .id <- unns(id)
+#   if (!grepl("^_", .id)) {
+#     # add a new row to local table
+#     
+#   }
+#   # create the UI
+#   new_ui <- PersonnelInputUI(id, main_env)
+#   # insert the UI
+#   insertUI(selector = "#inserthere_eal7", ui = new_ui, immediate = TRUE)
+#   # create the server
+#   PersonnelInput(.id, main_env)
+# }
 
 #' @import shiny
 #' @importFrom shinyjs hidden
@@ -51,7 +50,7 @@ PersonnelInputUI <- function(id, main_env) {
           # Role
           roleInputUI(
             NS(id, "role"),
-            main_env$local_rv$role.choices,
+            main_env$local_rv$role_choices,
             val = .value$role,
             width = "50%"
           ),
@@ -169,8 +168,9 @@ PersonnelInputUI <- function(id, main_env) {
 PersonnelInput <- function(id, main_env) {
   moduleServer(id, function(input, output, session) {
     # Setup ----
+    ref <- unns(id)
     row <- reactive({
-      which(main_env$local_rv$Personnel$id == id)
+      which(main_env$local_rv$Personnel$id == ref)
     })
     name_pattern <- main_env$PATTERNS$name
     mail_pattern <- main_env$PATTERNS$email
@@ -192,8 +192,9 @@ PersonnelInput <- function(id, main_env) {
     observeEvent(input$`role-role`, {
       req(main_env$EAL$page == 7)
       shinyjs::toggle(
-        "PI",
-        condition = "PI" %grep% main_env$local_rv$Personnel$role[row()])
+        selector = session$ns("PI"),
+        condition = "PI" %grep% main_env$local_rv$Personnel$role[row()]
+      )
     },
     priority = -1,
     ignoreNULL = FALSE,

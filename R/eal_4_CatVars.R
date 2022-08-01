@@ -15,6 +15,9 @@ CatVarsUI <- function(id) {
         choices = c()
       ),
       textOutput(ns("invalid_description")),
+      tags$b("This spreadsheet supports copy-pasting features, making it easy to
+             re-use ready definitions. Attribute names and codes are protected
+             values and can't be edited."),
       DataEditR::dataEditUI(ns("data_edit"))
     ) # end of fluidPage
   ) # end of return
@@ -28,7 +31,7 @@ CatVarsUI <- function(id) {
 #' @noRd
 CatVars <- function(id, main_env) {
   moduleServer(id, function(input, output, session) {
-    if (main_env$dev) .browse_dev(main_env, 4)
+    if (main_env$dev) .browse_dev(main_env, 4, input, output, session)
 
     # Set variables ====
     ## Set files selection ----
