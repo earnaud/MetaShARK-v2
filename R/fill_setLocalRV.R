@@ -14,7 +14,8 @@ setLocalRV <- function(main_env) {
 
   # Set variable ====
   devmsg(tag = "setLocalRV", "set variable %s", main_env$EAL$page)
-  main_env$local_rv <- switch(main_env$EAL$page,
+  main_env$local_rv <- switch(
+    main_env$EAL$page,
     setupPageEAL1(main_env),
     setupPageEAL2(main_env),
     setupPageEAL3(main_env),
@@ -76,15 +77,15 @@ setupPageEAL3 <- function(main_env) {
   # Preview ----
   .preview <- lapply(
     main_env$save_variable$DataFiles$datapath,
-    function(.file_path) {
-      table <- readDataTable(.file_path)
-      out <- lapply(colnames(table), function(col) {
+    \(.file_path) {
+      # read the 5 first rows of data table
+      table <- readDataTable(.file_path, nrows = 5)
+      
+      # append "" to columns with less than 5 items
+      out <- lapply(colnames(table), \(col) {
         .out <- table[, col][which(sapply(table[, col], isContentTruthy))]
-        if (length(.out) < 5) {
+        if (length(.out) < 5)
           .out <- c(.out, rep("", 5 - length(.out)))
-        } else {
-          .out <- .out[1:5]
-        }
         return(.out)
       }) |>
         setNames(nm = colnames(table))
@@ -110,17 +111,17 @@ setupPageEAL3 <- function(main_env) {
 
   # Build rv ----
   local_rv <- reactiveValues(
-    md.tables = reactiveValues(),
+    md_tables = reactiveValues(),
     # checked = FALSE,
     completed = reactiveValues(),
-    data.filepath = main_env$save_variable$DataFiles$datapath,
-    md.filenames = basename(main_env$save_variable$DataFiles$metadatapath),
+    data_filepath = main_env$save_variable$DataFiles$datapath,
+    md_filenames = basename(main_env$save_variable$DataFiles$metadatapath),
     tree_content = c(),
     preview = .preview,
     custom_units = .custom_units
   )
 
-  # Add content ----
+  # Add content
   lapply(
     seq(length(main_env$save_variable$DataFiles$datapath)),
     function(.ind) {
@@ -135,11 +136,11 @@ setupPageEAL3 <- function(main_env) {
       .md_table[is.na(.md_table)] <- ""
 
       ## Attribute Definition ----
-      .to.fill <- which(!sapply(
+      .to_fill <- which(!sapply(
         .md_table[["attributeDefinition"]],
         isContentTruthy))
-      .md_table[["attributeDefinition"]][.to.fill] <- paste(
-        "Description for:", .md_table[["attributeName"]][.to.fill]
+      .md_table[["attributeDefinition"]][.to_fill] <- paste(
+        "Description for:", .md_table[["attributeName"]][.to_fill]
       )
 
       ## Curate date ----
@@ -147,9 +148,8 @@ setupPageEAL3 <- function(main_env) {
       # Ensure removing "!Add.*here!"
       .to_replace <- which(grepl(
         "!Add.*here!", .md_table[["dateTimeFormatString"]]))
-      if (any(.to_replace)) {
+      if (any(.to_replace))
         .md_table[["dateTimeFormatString"]][.to_replace] <- ""
-      }
 
       # If any date, fill rows
       if (isTruthy(.date_row)) {
@@ -158,12 +158,14 @@ setupPageEAL3 <- function(main_env) {
           sapply(.md_table[["dateTimeFormatString"]], isContentTruthy) &
             !sapply(.md_table[["dateTimeFormatString"]], grepl, "!Add.*here!")
         )[.date_row]
+
         if (any(!.filled_date)) { # if any date is not filled
           # Read 100 first rows
           .data_table <- readDataTable(
             main_env$save_variable$DataFiles$datapath[.ind],
             nrows = 100
           )
+
           # Guess date for date rows not filled
           .md_table[["dateTimeFormatString"]][.date_row] <- sapply(
             .date_row[!.filled_date],
@@ -210,29 +212,35 @@ setupPageEAL3 <- function(main_env) {
       }
 
       # Commit changes
-      local_rv$md.tables[[.rv_name]] <<- .md_table
+      local_rv$md_tables[[.rv_name]] <<- .md_table
 
       # Add reactivity to each table
-      makeReactiveBinding(sprintf("local_rv$md.tables$%s", .rv_name))
+      makeReactiveBinding(sprintf("main.env$local_rv$md_tables$%s", .rv_name))
 
       # Add completed status for each attribute of each table
       local_rv$completed[[.rv_name]] <- reactiveValues()
-      lapply(seq_row(.md_table), function(row.index) {
+      lapply(seq_row(.md_table), \(row.index) {
         # Set completed per row by class
         .attribute <- .md_table[["attributeName"]][row.index]
         # Just use the attribute since checking the attribute makes checking 
         # all fields
         local_rv$completed[[.rv_name]][[.attribute]] <- TRUE
       }) # end lapply:row
-
-      # Setup tree
-      local_rv$tree_content <- build_attributes_tree(main_env)
     }
   )
-
-  # Add reactive bindings ----
-  makeReactiveBinding("local_rv$custom.units$table")
-
+  
+  ## Setup tree ----
+  
+  local_rv$tree_content <- buildAttributesTree(local_rv)
+  
+  ## Catvars use ----
+  local_rv$use_catvars <- reactive({
+    any(sapply(
+      main_env$local_rv$md_tables,
+      \(table) any(table$class == "categorical")
+    ))
+  })
+  
   return(local_rv)
 }
 
@@ -259,22 +267,26 @@ setupPageEAL4 <- function(main_env) {
 
     # Set each table ----
     # Read and store catvars values
-    local_rv$cv.tables[[.file_name]] <- readDataTable(.file_path)
+    local_rv$cv_tables[[.file_name]] <- readDataTable(.file_path)
 
     # Curate values
     .catvar_attributes_names <- c()
-    sapply(main_env$save_variable$Attributes$content, function(.md_table) {
-      .catvar_attributes_names <<- c(
-        .catvar_attributes_names,
-        .md_table$attributeName[.md_table$class == "categorical"]
-      )
-    })
-    local_rv$cv.tables[[.file_name]] <- local_rv$cv.tables[[.file_name]] |>
+    sapply(
+      listReactiveValues(main_env$save_variable$Attributes$content),
+      function(.md_table) {
+        .catvar_attributes_names <<- unique(c(
+          .catvar_attributes_names,
+          .md_table$attributeName[.md_table$class == "categorical"]
+        ))
+      }
+    )
+
+    local_rv$cv_tables[[.file_name]] <- local_rv$cv_tables[[.file_name]] |>
       # keep attributes actually found as categorical
       dplyr::filter(attributeName %in% .catvar_attributes_names) |>
       # Fill in automated definitions
       dplyr::mutate(
-        definition = if (definition == "NA" || !isTruthy(definition)) {
+        definition = if (!isTruthy(definition) || definition == "NA") {
           paste("Value:", code, "for attribute:", attributeName)
         } else {
           definition
@@ -287,17 +299,17 @@ setupPageEAL4 <- function(main_env) {
 
     # Add reactive binding ----
     makeReactiveBinding(
-      sprintf("local_rv$cv.tables$%s", .file_name)
+      sprintf("local_rv$cv_tables$%s", .file_name)
     )
 
     # Set completed ----
     # Create RV
     local_rv$completed[[.file_name]] <- reactiveValues()
     # Initialize each attribute as FALSE
-    .attributes <- local_rv$cv.tables[[.file_name]]$attributeName |>
+    .attributes <- local_rv$cv_tables[[.file_name]]$attributeName |>
       unique()
-    lapply(attributes, function(attribute) {
-      local_rv$completed[[.file_name]][[attribute]] <- FALSE
+    lapply(.attributes, function(.att) {
+      local_rv$completed[[.file_name]][[.att]] <- FALSE
     })
   }) # end sapply:.cv_file
 
@@ -318,7 +330,7 @@ setupPageEAL5 <- function(main_env) {
       basename()
     # Set potential sites choices from attributes
     .site[[.data_file]] <<- .att[[.md_file]] |>
-      dplyr::filter("class" %in% c("character", "categorical")) |>
+      dplyr::filter(class %in% c("character", "categorical")) |>
       dplyr::select("attributeName") |>
       unlist()
     .site[[.data_file]] <<- paste(.data_file, .site[[.data_file]], sep = "/") |>
@@ -340,7 +352,7 @@ setupPageEAL5 <- function(main_env) {
       choices = reactiveValues(
         # file names based on Attributes templates, not Data Files
         files = names(main_env$save_variable$Attributes$content),
-        sites = .sites,
+        sites = .site,
         coords = .col
       ),
       site = reactiveValues(
@@ -457,7 +469,7 @@ setupPageEAL6 <- function(main_env) {
   # Build rv ----
   local_rv <- reactiveValues(
     taxa_table = character(),
-    taxa.col = character(),
+    taxa_col = character(),
     taxa_name_type = character(),
     taxa_authority = character(),
     complete = FALSE
@@ -487,18 +499,22 @@ setupPageEAL6 <- function(main_env) {
     local_rv$taxa_authority <- .sv$taxa_authority
   }
 
+  # Set EAL page completeness to TRUE
+  main_env$EAL$completed <- TRUE
+  
   return(local_rv)
 }
 
 setupPageEAL7 <- function(main_env) {
   # Build rv ----
   local_rv <- reactiveValues(
-    role.choices = list(
+    role_choices = list(
       Base = list("creator", "contact", "PI"),
       Other = list("Other")
     ),
-    last.modified = 0,
+    last_modified = 0,
     Personnel = data.frame(
+      id = numeric(),
       # Basic Identity
       givenName = character(),
       middleInitial = character(),
@@ -519,7 +535,7 @@ setupPageEAL7 <- function(main_env) {
 
   # Set saved values ----
   saved_table <- optional(main_env$save_variable$Personnel)
-  if (!is.null(saved.table)) {
+  if (!is.null(saved_table)) {
     # Remove NA
     saved_table[is.na(saved_table)] <- ""
     # Add id column - with specific values for retrieved data
@@ -531,7 +547,7 @@ setupPageEAL7 <- function(main_env) {
   # Add trigger inter-roleInputs
   local_rv$trigger <- reactive({
     req(main_env$EAL$page == 7)
-    main_env$local_rv$last.modified
+    main_env$local_rv$last_modified
   })
 
   return(local_rv)
@@ -602,7 +618,7 @@ setupPageEAL8 <- function(main_env) {
     # Temporal coverage
     temporal_coverage = c(Sys.Date() - 1, Sys.Date()),
     # Additional information
-    additional.information = reactiveValues(
+    additional_information = reactiveValues(
       content = character(),
       file = paste(
         isolate(main_env$save_variable$SelectDP$dp_metadata_path),
@@ -614,7 +630,7 @@ setupPageEAL8 <- function(main_env) {
 
   # Set saved values ----
   # markdown files
-  sapply(c("abstract", "methods", "additional.information"), function(x) {
+  sapply(c("abstract", "methods", "additional_information"), function(x) {
     isolate({
       local_rv[[x]]$content <- readHTMLfromMD(local_rv[[x]]$file)
     })

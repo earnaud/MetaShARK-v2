@@ -146,7 +146,7 @@ saveReactive <- function(main_env, page, do_template = TRUE) {
     # -- Get files data
     .from <- .tmp$datapath
     .to <- paste0(
-      .sv$SelectDP$dp.data.path,
+      .sv$SelectDP$dp_data_path,
       "/", .tmp$name
     )
     file.copy(
@@ -183,19 +183,19 @@ saveReactive <- function(main_env, page, do_template = TRUE) {
   .sv <- main_env$save_variable
   content <- main_env$local_rv
   # Save
-  .sv$Attributes$content <- content$md.tables
-  devmsg(names(content$md.tables), tag = "save attributes")
+  .sv$Attributes$content <- content$md_tables
+  devmsg(names(content$md_tables), tag = "save attributes")
 
   # Write attribute tables
   sapply(
-    names(content$md.tables),
+    names(content$md_tables),
     function(tablename) {
       # write filled tables
       path <- .sv$DataFiles |>
         dplyr::filter(grepl(tablename, metadatapath)) |>
         dplyr::select(metadatapath) |>
         unlist()
-      table <- content$md.tables[[tablename]]
+      table <- content$md_tables[[tablename]]
       data.table::fwrite(table, path, sep = "\t")
     }
   )
@@ -218,11 +218,15 @@ saveReactive <- function(main_env, page, do_template = TRUE) {
   content <- main_env$local_rv
 
   sapply(content$cv.files, function(.file_path) {
-    devmsg(.file_path)
     .file_name <- basename(.file_path)
 
+    # Fix content
+    content$cv_tables[[.file_name]]$
+      code <- gsub("\"\"", "", content$cv_tables[[.file_name]]$code)
+    
     # Save
-    main_env$save_variable$CatVars[[.file_name]] <- content$cv.tables[[.file_name]]
+    main_env$save_variable$
+      CatVars[[.file_name]] <- content$cv_tables[[.file_name]]
 
     # Overwrite
     file.remove(.file_path)
@@ -246,7 +250,7 @@ saveReactive <- function(main_env, page, do_template = TRUE) {
 #' @import shiny
 .saveGeoCov <- function(main_env) {
   .sv <- main_env$save_variable
-
+browser()
   # Initialize variables
   .method <- main_env$local_rv$method
 
@@ -255,7 +259,7 @@ saveReactive <- function(main_env, page, do_template = TRUE) {
   names(.data_content) <- basename(.data_files)
 
   # format extracted content - keep latlon-valid columns
-  .data_content.coordinates <- lapply(
+  .data_content_coordinates <- lapply(
     names(.data_content),
     function(.data_filename) {
       df <- .data_content[[.data_filename]]
@@ -271,11 +275,11 @@ saveReactive <- function(main_env, page, do_template = TRUE) {
       df[, .df_num]
     }
   )
-  names(.data_content.coordinates) <- basename(.data_files)
+  names(.data_content_coordinates) <- basename(.data_files)
 
   .values <- list(
     .data_content = .data_content,
-    .data_content.coordinates = .data_content.coordinates
+    .data_content_coordinates = .data_content_coordinates
   )
 
   geocov <- NULL
@@ -298,6 +302,7 @@ saveReactive <- function(main_env, page, do_template = TRUE) {
   # Custom ----
   if (.method == "custom") {
     devmsg("Geographic Coverage saved with custom", tag = "fill_module_saves.R")
+    browser()
     # shortcuts
     .local_rv <- main_env$local_rv$custom
     .features_ids <- names(.local_rv)[
@@ -334,6 +339,7 @@ saveReactive <- function(main_env, page, do_template = TRUE) {
       bind_rows()
 
     # save
+    browser()
     .sv$GeoCov$custom <- main_env$local_rv$custom
 
     # fill
@@ -377,7 +383,7 @@ saveReactive <- function(main_env, page, do_template = TRUE) {
   # Save
   .sv$TaxCov$taxa_table <- content$taxa_table
   .sv$TaxCov$taxa_col <- content$taxa_col
-  .sv$TaxCov$taxa_name.type <- content$taxa_name_type
+  .sv$TaxCov$taxa_name_type <- content$taxa_name_type
   .sv$TaxCov$taxa_authority <- content$taxa_authority
 
   main_env$save_variable <- .sv
@@ -460,7 +466,9 @@ saveReactive <- function(main_env, page, do_template = TRUE) {
 
   # methods ----
   saveHTMLasMD(content$methods)
-  removeDuplicateFiles(content$methods$file)
+  removeDuplicateFiles(
+    content$methods$file,
+    main_env$save_variable$SelectDP$dp_metadata_path)
 
   # keywords ----
   # Set NA thesaurus as "" thesaurus
@@ -469,7 +477,6 @@ saveReactive <- function(main_env, page, do_template = TRUE) {
     which(is.na(content$keywords[["keywordThesaurus"]])),
     ""
   )
-
   # build keywords data.frame
   .keywords <- lapply(unique(content$keywords$keywordThesaurus), function(kwt) {
     row.ind <- which(content$keywords$keywordThesaurus == kwt)
@@ -481,7 +488,6 @@ saveReactive <- function(main_env, page, do_template = TRUE) {
     )
   }) |>
     dplyr::bind_rows()
-
   # write files
   data.table::fwrite(
     .keywords,
@@ -494,7 +500,9 @@ saveReactive <- function(main_env, page, do_template = TRUE) {
 
   # additional information ----
   saveHTMLasMD(content$additional_information)
-  removeDuplicateFiles(content$additional_information$file)
+  removeDuplicateFiles(
+    content$additional_information$file,
+    main_env$save_variable$SelectDP$dp_metadata_path)
 
   # Output
   return(.sv)

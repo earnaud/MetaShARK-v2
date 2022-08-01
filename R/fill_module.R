@@ -117,7 +117,7 @@ fill <- function(id, main_env) {
     output$current_DP <- renderText({
       req(main_env$EAL$page > 1)
 
-      main_env$save_variable$SelectDP$dp.title
+      main_env$save_variable$SelectDP$dp_title
     })
 
     # modules content
@@ -261,7 +261,7 @@ fill <- function(id, main_env) {
           main_env$PATHS$eal_tmp <- tempdir()
         }
 
-        # Properly change page
+        # Change page variables
         main_env$EAL$current <- main_env$VALUES$steps[main_env$EAL$page]
         main_env$EAL$tag_list <- tagList()
         incProgress(1 / 8)
@@ -271,28 +271,32 @@ fill <- function(id, main_env) {
         main_env <- setLocalRV(main_env)
         incProgress(1 / 8)
 
-        ## Set UI for new page ----
-        ## TODO
-        updatePageUI(main_env, session)
-        incProgress(1 / 8)
-
         ## Change page ----
         devmsg(tag = "fill_module.R/navigation", "change pane")
         updateTabsetPanel(
           session,
           "wizard-wizard",
-          selected = steps[main_env$EAL$page]
+          selected = main_env$VALUES$steps[main_env$EAL$page]
         )
         incProgress(1 / 8)
-
+        
+        ## Set UI for new page ----
+        devmsg(tag = "fill_module.R/navigation", "update UI")
+        if(main_env$EAL$page > 1)
+          updatePageUI(
+            main_env, session, 
+            ns = NS(session$ns(main_env$VALUES$steps[main_env$EAL$page]))
+          )
+        incProgress(1 / 8)
+        
         ## Update history ----
+        devmsg(tag = "fill_module.R/navigation", "update history")
         if (!main_env$EAL$current %in% main_env$EAL$history) {
           main_env$EAL$history <- c(
             main_env$EAL$history,
             main_env$EAL$current
           )
         }
-        devmsg(tag = "fill_module.R/navigation", "update history")
         incProgress(1 / 8)
 
         ## Savevar changes ----
@@ -351,7 +355,7 @@ fill <- function(id, main_env) {
                    tags$p("This module allows you to load data files from the dataset you want to
             describe. Once uploaded, you can set:"),
                    tags$ul(
-                     tags$li(tags$i("Content name:"), "A name for the data contained in the file (e.g. table name)."),
+                     tags$li(tags$i("Content name:"), "A name for the data contained in the file (e.g. table_name)."),
                      tags$li(tags$i("URL:"), "If the file is accessible remotely, here is a way to reference it."),
                      tags$li(tags$i("Description:"), "A short text provided to describe the file, its content,
               relevant information about the data in the entity.")

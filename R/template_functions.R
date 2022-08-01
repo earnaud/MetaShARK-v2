@@ -154,7 +154,7 @@ templateModules <- function(main_env, page) {
     main_env$local_rv$use_catvars()
   } else {
     any(sapply(
-      main_env$save_variable$Attributes$content,
+      listReactiveValues(main_env$save_variable$Attributes$content),
       function(table) any(table$class == "categorical")
     ))
   }
@@ -187,7 +187,7 @@ templateModules <- function(main_env, page) {
       )
 
       # TODO add templating for spatial coverage
-      # .are.shp.files <- sapply(main_env$local_rv$data_filepath,
+      # .are_shp_files <- sapply(main_env$local_rv$data_filepath,
       #   EMLassemblyline:::is.shp.dir)
       # if (any(.are.shp.files)) {
       #   EMLassemblyline:::template_spatial_coverage(
@@ -271,10 +271,10 @@ templateModules <- function(main_env, page) {
       EMLassemblyline::template_taxonomic_coverage(
         main_env$save_variable$SelectDP$dp_metadata_path,
         main_env$save_variable$SelectDP$dp_data_path,
-        taxa.table = main_env$local_rv$taxa_table,
-        taxa.col = main_env$local_rv$taxa_col,
-        taxa.name.type = main_env$local_rv$taxa_name_type,
-        taxa.authority = main_env$local_rv$taxa_authority
+        taxa_table = main_env$local_rv$taxa_table,
+        taxa_col = main_env$local_rv$taxa_col,
+        taxa_name_type = main_env$local_rv$taxa_name_type,
+        taxa_authority = main_env$local_rv$taxa_authority
       )
 
       # Check for EAL issues
@@ -324,7 +324,7 @@ checkTemplates <- function(main_env) {
   ) || # Or Clicked "Previous"
     main_env$EAL$page < main_env$EAL$old_page
 
-  if (isFALSE(check)) { # clicked next and didn't found template
+  if (isFALSE(check)) { # clicked next and didn't find template
     templateModules(
       main_env,
       switch(as.character(main_env$EAL$page),
