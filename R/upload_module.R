@@ -283,8 +283,7 @@ upload <- function(id, main_env) {
         updateSelectInput(
           session,
           "DP",
-          # choiceNames = c("None selected", dp_list),
-          choice = c("---", gsub(" \\ (.*\\)$", "", dp_list))
+          choice = c("---", dp_list)
         )
       },
       label = "Upload: dp list"

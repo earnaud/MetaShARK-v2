@@ -1,5 +1,5 @@
 #' @noRd
-write.text <- function(x, file = ".", collapse = "\n") {
+writeText <- function(x, file = ".", collapse = "\n") {
   # Validity check ----
   if (missing(x)) {
     stop("Error: no text has been provided.")

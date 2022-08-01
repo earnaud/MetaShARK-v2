@@ -11,7 +11,7 @@ insertCustomLocationInput <- function(
   )
 }
 
-# Coordinate Input UI ====
+# Coordinate Input UI 
 customLocationInput_UI <- function(id, default, removable) {
   ns <- NS(id)
 
@@ -25,7 +25,7 @@ customLocationInput_UI <- function(id, default, removable) {
   )
 }
 
-# Coordinate Input Server ====
+# Coordinate Input Server
 customLocationInput <- function(id, outer_id, local_rv, removable = TRUE) {
   moduleServer(id, function(input, output, session) {
     # grab values from inserted module

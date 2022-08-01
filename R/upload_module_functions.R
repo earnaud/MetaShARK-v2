@@ -124,8 +124,8 @@ uploadDP <- function(
 
   # Fix for PNDB
   adress <- ifelse(
-    grepl("^test.pndb", adress),
-    gsub("^test", "data.test", adress),
+    grepl("^https://test.pndb", adress),
+    gsub("^https://test", "https://data.test", adress),
     adress
   )
 

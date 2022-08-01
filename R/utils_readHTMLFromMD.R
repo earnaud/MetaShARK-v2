@@ -1,8 +1,8 @@
 saveHTMLasMD <- function(content) {
-  .tmp.file <- tempfile(fileext = ".html")
-  htmltools::save_html(html = htmltools::HTML(content$content), .tmp.file)
+  .tmp_file <- tempfile(fileext = ".html")
+  htmltools::save_html(html = htmltools::HTML(content$content), .tmp_file)
   rmarkdown::pandoc_convert(
-    .tmp.file,
+    .tmp_file,
     from = "html",
     to = "markdown_strict",
     output = content$file
@@ -13,7 +13,7 @@ removeDuplicateFiles <- function(filename, path) {
   if (isContentTruthy(filename)) {
     onlyname <- sub("\\..+", "", basename(filename))
     synonyms <- dir(
-      path,
+      path = path,
       pattern = onlyname,
       full.names = TRUE
     )

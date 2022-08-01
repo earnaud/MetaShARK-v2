@@ -9,7 +9,7 @@ rightSidebarSettings <- function(id) {
     id = "settings_bar",
     width = 300,
 
-    # #### MAX 5 PANELS !!!! due to AdminLTE2 ### #
+    # ### MAX 5 PANELS !!!! due to AdminLTE2 ### #
 
     shinydashboardPlus::controlbarMenu(
       id = "settings_menu",

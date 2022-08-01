@@ -37,7 +37,7 @@ readDataTable <- function(file, data.table = FALSE, ...) {
     options(show.error.messages = FALSE)
     df <- content
   } else {
-    devmsg(file)
+    devmsg(file, tag = "utils_readDataTable.R")
     df <- data.table::fread(
       file,
       data.table = data.table,
