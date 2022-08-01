@@ -76,7 +76,6 @@ img {
 legend {
     display: block;
     width: fit-content;
-    padding: 0;
     font-size: 21px;
     line-height: inherit;
     color: #333;
