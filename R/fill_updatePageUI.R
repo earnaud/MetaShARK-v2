@@ -80,12 +80,15 @@ updatePageUI <- function(main_env, session, ns) {
             "custom_input",
             condition = main_env$local_rv$method == "custom"
           )
-          try(sapply(1:main_env$local_rv$custom$count, function(.count) {
-            insertCustomGeoCov(
-              session$ns(as.character(.count)),
-              main_env
-            )
-          }))
+          if(main_env$local_rv$method == "custom" &&
+             main_env$local_rv$custom$count > 0)
+            try(sapply(1:main_env$local_rv$custom$count, function(.count) {
+              insertCustomGeoCov(
+                session$ns(as.character(.count)),
+                main_env
+              )
+            }
+          ))
         }
       },
       # Tax cov ====
@@ -150,13 +153,13 @@ updatePageUI <- function(main_env, session, ns) {
         # setup taxa authorities ----
         .taxa_authorities <- main_env$FORMATS$taxa_authorities
         .choices <- .taxa_authorities$authority
-        
         .value <- optional(
           .taxa_authorities |>
             dplyr::filter(id == main_env$local_rv$taxa_authority) |>
             dplyr::select(authority),
           NULL
-        )
+        ) |> 
+          suppressWarnings()
         
         updateSelectInput(
           session,

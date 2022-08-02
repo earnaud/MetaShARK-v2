@@ -129,7 +129,7 @@ customGeoCov <- function(id, main_env) {
     # Ensure points ids match the numbers of rows
     main_env$local_rv$custom[[id]]$points$id <- 1:.npoints
     # Fix the count
-    # main_env$local_rv$custom[[id]]$count <- .npoints
+    main_env$local_rv$custom[[id]]$count <- .npoints
 
     # Load ====
     # !!! Initialized on click, not with main_env$EAL$page
@@ -138,9 +138,6 @@ customGeoCov <- function(id, main_env) {
     sapply(
       1:.npoints,
       function(rowid) { # enforced previously
-        main_env$local_rv$custom[[id]]$
-          count <- main_env$local_rv$custom[[id]]$count + 1
-        
         insertCustomLocationInput(
           session$ns(as.character(rowid)), # 1:nrow
           outer_id = id,
@@ -149,7 +146,7 @@ customGeoCov <- function(id, main_env) {
             select(c("lat", "lon")),
           selector = sprintf("#inserthere_eal5_custom_%s", id),
           local_rv = main_env$local_rv,
-          removable = main_env$local_rv$custom[[id]]$count > 3
+          removable = rowid > 3
         )
       }
     ) # end of sapply
@@ -270,7 +267,7 @@ customGeoCov <- function(id, main_env) {
     # Remove ====
     observeEvent(input$rmv, {
       browser()
-      message(paste0("remove #", NS(id, "box")))
+      message(paste0("remove #", session$ns("box")))
       # remove UI
       removeUI(selector = paste0("#", session$ns("box")), immediate = TRUE)
       # remove data

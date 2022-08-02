@@ -329,26 +329,27 @@ GeoCov <- function(id, main_env) {
       .lat <- .coor[seq(2, length(.coor), 2)]
       .lon <- .coor[seq(1, length(.coor), 2)]
       
-      .points <- switch(main_env$local_rv$custom[[as.character(.nm)]]$type,
-                        marker = data.frame(
-                          id = 1:3,
-                          lat = c(.lat, 60, mean(c(.lat, 60))),
-                          lon = c(.lon, 35, mean(c(.lat, 35))),
-                          stringsAsFactors = FALSE
-                        ),
-                        rectangle = data.frame(
-                          id = 1:3,
-                          lat = c(min(.lat), max(.lat), mean(.lat)),
-                          lon = c(min(.lon), max(.lon), mean(.lon)),
-                          stringsAsFactors = FALSE
-                        ),
-                        polygon = data.frame(
-                          id = 1:(length(.coor) / 2),
-                          lat = .lat,
-                          lon = .lon,
-                          stringsAsFactors = FALSE
-                        ) |>
-                          tail(-1) # save without repeating last point
+      .points <- switch(
+        main_env$local_rv$custom[[as.character(.nm)]]$type,
+        marker = data.frame(
+          id = 1:3,
+          lat = c(.lat, 60, mean(c(.lat, 60))),
+          lon = c(.lon, 35, mean(c(.lat, 35))),
+          stringsAsFactors = FALSE
+        ),
+        rectangle = data.frame(
+          id = 1:3,
+          lat = c(min(.lat), max(.lat), mean(.lat)),
+          lon = c(min(.lon), max(.lon), mean(.lon)),
+          stringsAsFactors = FALSE
+        ),
+        polygon = data.frame(
+          id = 1:(length(.coor) / 2),
+          lat = .lat,
+          lon = .lon,
+          stringsAsFactors = FALSE
+        ) |>
+          tail(-1) # save without repeating last point
       )
       main_env$local_rv$custom[[as.character(.nm)]]$points <- .points
       
@@ -399,10 +400,10 @@ GeoCov <- function(id, main_env) {
                  rectangle = {
                    list(
                      type = main_env$local_rv$custom[[id]]$type,
-                     lat1 = min(main_env$local_rv$custom[[id]]$points$lat),
-                     lat2 = max(main_env$local_rv$custom[[id]]$points$lat),
-                     lon1 = min(main_env$local_rv$custom[[id]]$points$lon),
-                     lon2 = max(main_env$local_rv$custom[[id]]$points$lon),
+                     lat1 = main_env$local_rv$custom[[id]]$points$lat[1],
+                     lat2 = main_env$local_rv$custom[[id]]$points$lat[2],
+                     lon1 = main_env$local_rv$custom[[id]]$points$lon[1],
+                     lon2 = main_env$local_rv$custom[[id]]$points$lon[2],
                      col = main_env$local_rv$custom[[id]]$color
                    )
                  },
