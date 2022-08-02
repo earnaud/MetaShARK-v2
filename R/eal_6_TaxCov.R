@@ -232,8 +232,9 @@ TaxCov <- function(id, main_env) {
 
     # Saves ====
     observeEvent({
+      main_env$EAL$page
       input$taxa_col
-      input$taxa_name_type
+      input$taxa_name_type # can be NULL so ignoreNULL = FALSE
       input$taxa_authority
     }, {
       req(main_env$EAL$page == 6)
@@ -256,7 +257,8 @@ TaxCov <- function(id, main_env) {
       }
     },
     label = "EAL6: set completed",
-    priority = -3
+    ignoreNULL = FALSE,
+    priority = -33
     )
   })
 }
