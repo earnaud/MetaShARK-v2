@@ -37,14 +37,31 @@ readDataTable <- function(file, data.table = FALSE, ...) {
     options(show.error.messages = FALSE)
     df <- content
   } else {
-    devmsg(file, tag = "utils_readDataTable.R")
-    df <- data.table::fread(
+    df <- try(data.table::fread(
       file,
       data.table = data.table,
       stringsAsFactors = FALSE,
       na.strings = "NA",
       ...
-    )
+    )) |>
+      suppressWarnings()
+    
+    if(any(names(df) == "V1"))
+      suppressWarnings(
+        for(.sep in strsplit("\t;|,: ","")[[1]]) {
+          .df <- try(data.table::fread(
+            file,
+            data.table = data.table,
+            stringsAsFactors = FALSE,
+            na.strings = "NA",
+            sep = .sep
+          ))
+          if(all(names(.df) != "V1")){
+            df <- .df
+            break
+          }
+        }
+      )
   }
 
   return(df)
