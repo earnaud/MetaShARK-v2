@@ -269,12 +269,12 @@ templateModules <- function(main_env, page) {
 
     x <- try({
       EMLassemblyline::template_taxonomic_coverage(
-        main_env$save_variable$SelectDP$dp_metadata_path,
-        main_env$save_variable$SelectDP$dp_data_path,
-        taxa_table = main_env$local_rv$taxa_table,
-        taxa_col = main_env$local_rv$taxa_col,
-        taxa_name_type = main_env$local_rv$taxa_name_type,
-        taxa_authority = main_env$local_rv$taxa_authority
+        path = main_env$save_variable$SelectDP$dp_metadata_path,
+        data.path = main_env$save_variable$SelectDP$dp_data_path,
+        taxa.table = main_env$local_rv$taxa_table,
+        taxa.col = main_env$local_rv$taxa_col,
+        taxa.name.type = main_env$local_rv$taxa_name_type,
+        taxa.authority = main_env$local_rv$taxa_authority
       )
 
       # Check for EAL issues

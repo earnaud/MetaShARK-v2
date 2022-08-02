@@ -250,12 +250,13 @@ saveReactive <- function(main_env, page, do_template = TRUE) {
 #' @import shiny
 .saveGeoCov <- function(main_env) {
   .sv <- main_env$save_variable
-browser()
+
   # Initialize variables
   .method <- main_env$local_rv$method
 
   .data_files <- .sv$DataFiles$datapath
   .data_content <- lapply(.data_files, readDataTable)
+  
   names(.data_content) <- basename(.data_files)
 
   # format extracted content - keep latlon-valid columns
@@ -302,12 +303,10 @@ browser()
   # Custom ----
   if (.method == "custom") {
     devmsg("Geographic Coverage saved with custom", tag = "fill_module_saves.R")
-    browser()
+
     # shortcuts
     .local_rv <- main_env$local_rv$custom
-    .features_ids <- names(.local_rv)[
-      !names(.local_rv) %in% c("count", "complete")
-    ]
+    .features_ids <- setdiff(names(.local_rv), c("count", "complete"))
 
     # build coverage table from local_rv
     .custom_coordinates <- lapply(.features_ids, function(feat_id) {
@@ -339,7 +338,6 @@ browser()
       bind_rows()
 
     # save
-    browser()
     .sv$GeoCov$custom <- main_env$local_rv$custom
 
     # fill

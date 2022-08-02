@@ -270,7 +270,7 @@ MakeEML <- function(id, main_env) {
     #   }
     # )
     #
-    # Post-end ====
+    # Display ====
     observe({
       req(main_env$EAL$page == 9)
       invalidateLater(1000)
@@ -283,6 +283,7 @@ MakeEML <- function(id, main_env) {
       )
 
       # Allow to publish or not
+      browser()
       valid <- EML::eml_validate(
         dir(
           main_env$save_variable$SelectDP$dp_eml_path,

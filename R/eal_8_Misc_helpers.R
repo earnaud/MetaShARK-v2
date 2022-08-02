@@ -24,8 +24,7 @@ MiscellaneousUI <- function(id, help_label = NULL) {
     SummeRnote::summernoteInput(
       ns("content"),
       label = NULL,
-      # value = HTML(main_env$local_rv[[id]]$content),
-      height = 300,
+      height = 200,
       toolbar = list(
         list("style", c("bold", "italic", "underline")),
         list("font", c("superscript", "subscript")),
