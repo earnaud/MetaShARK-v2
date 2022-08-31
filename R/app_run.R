@@ -109,9 +109,12 @@ runMetashark <- function(...) {
     options("shiny.testmode" = TRUE)
     shinyApp(ui = ui, server = server)
   } else {
+    if(isTRUE(args$dev))
+      browseURL("0.0.0.0:3838", browser = "/usr/bin/google-chrome")
     runApp(
       shinyApp(ui = ui, server = server),
       launch.browser = args$launch_browser
     )
   }
+  
 }

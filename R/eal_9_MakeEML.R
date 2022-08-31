@@ -283,7 +283,6 @@ MakeEML <- function(id, main_env) {
       )
 
       # Allow to publish or not
-      browser()
       valid <- EML::eml_validate(
         dir(
           main_env$save_variable$SelectDP$dp_eml_path,

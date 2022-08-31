@@ -197,8 +197,14 @@ Misc <- function(id, main_env) {
     Miscellaneous("additional_information", main_env)
 
     # Checks ----
-    observe({
-      invalidateLater(1000) # to keep placed before req()
+    observeEvent({
+      input[["abstract-content"]]
+      input[["methods-content"]]
+      main_env$local_rv$keywords$keyword
+      main_env$local_rv$keywords$temporal_coverage
+      input[["additional_information-content"]]
+    }, {
+      # invalidateLater(1000) # to keep placed before req()
       req(main_env$EAL$page == 8)
 
       ## Checks----

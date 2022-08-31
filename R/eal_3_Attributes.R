@@ -45,14 +45,14 @@ AttributesUI <- function(id) {
         tags$fieldset(
           tags$legend("Attribute description"),
           ## manual edit button ====
-          shinyjs::hidden(
-            shinyWidgets::actionBttn(
-              inputId = ns("manual_edit"),
-              label = "Manual edit",
-              style = "simple",
-              color = "primary"
-            )
-          ),
+          # shinyjs::hidden(
+          #   shinyWidgets::actionBttn(
+          #     inputId = ns("manual_edit"),
+          #     label = "Manual edit",
+          #     style = "simple",
+          #     color = "primary"
+          #   )
+          # ),
           tags$br(),
           shinyjs::hidden(
             tags$span(
@@ -209,12 +209,16 @@ Attributes <- function(id, main_env) {
     # Setup reactives
     selected_file <- reactiveVal()
     selected_row <- reactiveVal()
-    selected_table <- reactive({
+    selected_table <- eventReactive({
+      main_env$EAL$page
+      selected_file()
+    }, {
       req(main_env$EAL$page == 3)
       req(isTruthy(selected_file()))
-      
-      main_env$local_rv$md_tables[[selected_file()]]
-    })
+      .md <- main_env$local_rv$md_tables[[selected_file()]]
+      devmsg("new table: %s [%s %s]", selected_file(), dim(.md)[1], dim(.md)[2])
+      .md
+    }, label = "EAL3: selected table")
     
     # Observe input
     observeEvent(input$tree, {
@@ -385,8 +389,8 @@ Attributes <- function(id, main_env) {
     ### instantiate observer ----
     observeEvent(input$manual_edit, {
       req(main_env$EAL$page == 3)
-      req(isTruthy(selected_file()))
-      
+      req(isContentTruthy(selected_table()))
+      devmsg("clicked manual edit", tag="Attributes")
       showModal(metadata_editor_ui)
     })
     
@@ -720,13 +724,19 @@ Attributes <- function(id, main_env) {
     
     # Preview ====
     output$preview <- renderTable({
-      req(isContentTruthy(selected_file()))
-      req(isContentTruthy(selected_row()))
+      .selected_row <- selected_row()
+      isolate({
+        .selected_file <- selected_file()
+        .selected_attribute <- selected_attribute()
+        .preview <- main_env$local_rv$preview[[.selected_file]][[.selected_row]]
+      })
       
       validate(
+        need(isContentTruthy(.selected_file), "No file selected."),
+        need(isContentTruthy(.selected_row), "No row selected."),
+        need(isContentTruthy(.selected_attribute), "No attribute selected."),
         need(
-          isContentTruthy(main_env$local_rv$
-                            preview[[selected_file()]][[selected_row()]]),
+          isContentTruthy(.preview),
           "Empty preview colum."
         )
       )
@@ -735,12 +745,12 @@ Attributes <- function(id, main_env) {
         devmsg("render preview", tag = "attributes")
       }
       
-      main_env$local_rv$preview[[selected_file()]][[selected_row()]] |>
+      .preview |>
         as.character() |>
         enc2utf8() |>
         as.data.frame() |>
         setNames(
-          nm = selected_attribute()
+          nm = .selected_attribute
         )
     })
     
@@ -813,9 +823,9 @@ Attributes <- function(id, main_env) {
       # If any problem, tell the user
       .checked_attributes <- which(
         main_env$local_rv$completed |>
-          isFALSE() |>
           listReactiveValues() |>
-          unlist()
+          unlist() |>
+          isFALSE()
       ) |>
         names() |>
         gsub(pattern = "\\.txt\\.", replacement = ".txt: ") |>
@@ -831,9 +841,9 @@ Attributes <- function(id, main_env) {
       
       # next step tag
       if (main_env$local_rv$use_catvars()) {
-        main_env$local_rv$tag_list$next.step <- tagList()
+        main_env$local_rv$tag_list$next_step <- tagList()
       } else {
-        main_env$local_rv$tag_list$next.step <- tagList(
+        main_env$local_rv$tag_list$next_step <- tagList(
           tags$br(),
           "No categorical variables found: will skip to geographic coverage."
         )
