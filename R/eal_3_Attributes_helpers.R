@@ -41,7 +41,7 @@ buildAttributesTree <- function(local_rv) {
 #' @noRd
 metadataEditorUI <- function(id) {
   ns <- NS(id)
-
+  
   modalDialog(
     title = "Manual edit",
     easyClose = TRUE,
@@ -67,31 +67,40 @@ metadataEditor <- function(id, main_env, selected_table, selected_file) {
   moduleServer(id, function(input, output, session) {
     ## setup variable ----
     manual_edit_errors <- reactiveVal("")
-
+    
     ## handle input ----
     metadata_editor <- DataEditR::dataEditServer(
       "metadata_edit",
       data = selected_table,
       col_edit = FALSE,
-      col_names = FALSE,
-      col_factor = FALSE,
       col_options = list(
         class = c("character", "Date", "categorical", "numeric"),
         unit = isolate(unlist(main_env$FORMATS$units)),
         dateTimeFormatString = isolate(main_env$FORMATS$dates)
       ),
+      col_stretch = TRUE,
+      col_names = FALSE,
+      col_readonly = c("attributeName"),
+      col_factor = FALSE,
       row_edit = FALSE,
       quiet = TRUE
     )
     
     # curate input ----
-    observeEvent(input$`metadata_edit-x`, {
+    observeEvent(metadata_editor(), {
       req(main_env$EAL$page == 3)
-      
+      devmsg("+ new value in %s", selected_file())
+
       .content <- metadata_editor()
+      .content[is.na(.content)] <- ""
       .errors <- list()
       
-      ### check emptiness ----
+      ### update table if not correct ----
+      # if(!identical(nrow(metadata_editor()), length(input$`metadata_edit-x`$data))) {
+      #   browser()
+      # }
+      
+      ## check emptiness ----
       # attributeName
       .errors <- manualEditCheck(.content["attributeName"], .errors)
       # attributeDefinition
@@ -99,7 +108,7 @@ metadataEditor <- function(id, main_env, selected_table, selected_file) {
       # class
       .errors <- manualEditCheck(.content["class"], .errors)
       
-      ### check invalid values ----
+      ## check invalid values ----
       # class
       .test <- sapply(
         .content$class, `%in%`,
@@ -115,7 +124,7 @@ metadataEditor <- function(id, main_env, selected_table, selected_file) {
         )
       }
       # dateTimeFormatString
-      .test <- sapply(seq_row(.content), \(i) {
+      .test <- sapply(seq_row(.content), \ (i) {
         if (.content$class[i] != "date") {
           TRUE
         } else { # only test dates
@@ -133,14 +142,11 @@ metadataEditor <- function(id, main_env, selected_table, selected_file) {
       }
       # unit
       .test <- sapply(seq_row(.content), \(i) {
-        if (.content$class[i] != "numeric") {
-          TRUE
-        } else { # only test dates
+        .content$class[i] != "numeric" ||
           .content$unit[i] %in% c(
             unlist(main_env$FORMATS$units),
             main_env$local_rv$custom_units$table$id
           )
-        }
       })
       if (isFALSE(all(.test))) { # add error if any is false
         .row.ind <- which(!.test)
@@ -152,7 +158,7 @@ metadataEditor <- function(id, main_env, selected_table, selected_file) {
         )
       }
       
-      ### check not required values ----
+      ## check not required values ----
       # dates
       .test <- .content$class != "Date" &
         sapply(.content$dateTimeFormatString, isTruthy)
@@ -176,7 +182,7 @@ metadataEditor <- function(id, main_env, selected_table, selected_file) {
         )
       }
       
-      ### check missing value pairs ----
+      ## check missing value pairs ----
       .test <- sapply(.content$missingValueCode, isContentTruthy) ==
         sapply(.content$missingValueCodeExplanation, isContentTruthy)
       if (isFALSE(all(.test))) {
@@ -184,8 +190,8 @@ metadataEditor <- function(id, main_env, selected_table, selected_file) {
           sprintf("Inconsistent missing value at l. %s", which(!.test))
         )
       }
-      
-      ### final check ----
+
+      ## final check ----
       .valid <- length(.errors) == 0
       if (!.valid) {
         # send errors
@@ -194,20 +200,20 @@ metadataEditor <- function(id, main_env, selected_table, selected_file) {
         manual_edit_errors("")
       }
       # toggle close modal button
-      shinyjs::toggleState("manual_edit-validate", condition = .valid)
+      shinyjs::toggleState("validate", condition = .valid)
     },
     ignoreInit = TRUE,
-    priority = -1
+    priority = 1
     )
-
+    
     output$errors <- renderUI({
       manual_edit_errors()
     })
-
+    
     # Save ====
     observeEvent(input$validate, {
       req(isFALSE(isContentTruthy(manual_edit_errors())))
-
+      
       # shortcut
       md <- metadata_editor()
       # curate
@@ -234,6 +240,6 @@ manualEditCheck <- function(content, errors) {
       )
     )
   }
-
+  
   return(errors)
 }

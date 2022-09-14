@@ -184,11 +184,10 @@ saveReactive <- function(main_env, page, do_template = TRUE) {
   content <- main_env$local_rv
   # Save
   .sv$Attributes$content <- content$md_tables
-  devmsg(names(content$md_tables), tag = "save attributes")
 
   # Write attribute tables
   sapply(
-    names(content$md_tables),
+    names(listReactiveValues(content$md_tables)),
     function(tablename) {
       # write filled tables
       path <- .sv$DataFiles |>
