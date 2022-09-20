@@ -5,6 +5,9 @@
 rebuild <- function(new_version = NA) {
   stopifnot(!is.na(new_version))
 
+  # snapshot dependencies
+  renv::snapshot()
+  
   old_archive <- dir(".", pattern = "MetaShARK_.*tar.gz")
   old_version <- gsub("MetaShARK_(.*).tar.gz", "\\1", old_archive)
   message(sprintf("Updating from %s to %s", old_version, new_version))
